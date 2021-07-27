@@ -21,7 +21,10 @@ Die folgende Beschreibung ist für die Konvertierung einer HSQL-DB (Standard-Dat
 
 	<Connection database="MYSQL" dbURL="jdbc:mysql://localhost/fktest" id="JDBC1" jdbcSpecific="MYSQL" name="FktMysql" password="fktestuser" type="JDBC" user="fktestuser"/>
 	<Connection database="HSQLDB" dbURL="jdbc:hsqldb:/PFAD/ZUM/ARBEITSVERZEICHNIS/Database/Database" id="JDBC0" jdbcSpecific="HSQLDB" name="hsqldb" type="JDBC" user="sa"/>
+	
+*Warnung: Dieses Tool benötigt Jave 8*
 
+- `chmod +x bin/clover`
 - `bin\clover migration.grf`
 - `bin\clover migration_002.grf`
 - `bin\clover migration_003.grf`
