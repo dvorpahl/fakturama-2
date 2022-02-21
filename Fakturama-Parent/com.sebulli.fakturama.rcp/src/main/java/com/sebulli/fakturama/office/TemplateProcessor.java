@@ -115,7 +115,27 @@ import com.sebulli.fakturama.util.DocumentTypeUtil;
  */
 public class TemplateProcessor {
 
-    public static final int COUNT_OF_LAST_SHOWN_DIGITS = 3; 
+    public static final int COUNT_OF_LAST_SHOWN_DIGITS = 3;
+    
+// GS/ [ADD TemplateParameters]
+    /**
+     * char that marks the beginning of a parameter in a placeholder
+     */
+    public static final char PARAMETER_SEPARATOR = '$';
+    /**
+     * char that marks the end the parameter name
+     */
+    public static final char PARAMETER_NAME_TEMINATOR = ':';
+    /**
+     * char that marks the end the placeholder
+     */
+    public static final char PLACEHOLDER_TEMINATOR = '>';
+    /**
+     * char that marks the beginning of an entity (encoded special character)
+     * within a placeholder parameter body
+     */
+    public static final char PLACEHOLDER_ENTITY_CHAR = '%';
+
 	    
     @Inject
     @Translation
@@ -268,9 +288,42 @@ public class TemplateProcessor {
 		
 		return value;
 	}
+
+// GS/ [ADD TemplateParameters]
+	/**
+	 * Replace the placeholder value by use of Java's {@link String#replaceAll(String, String)}
+	 * 
+	 * @param replacement
+	 * 		format: "regex", "replacement"
+	 * @param value
+	 * 		The input value
+	 * @return
+	 * 		The modified value
+	 */
+	private String replaceRegex(String replacement, String value) {
+		// split (comma may be used in the parameters)
+		String parts[] = removeQuotationMarks(replacement).split("\"\\s*,\\s*\"");
+
+		// prepare params
+		String regex = templateProcessorHelper.encodeEntities(parts[0]);
+		if (regex.length() < 1) {
+			// nothing to do
+			return value;
+		}
+		String replaceBy = parts.length >= 2 ? parts[1] : "";
+		replaceBy = templateProcessorHelper.encodeEntities(replaceBy);
+		
+		try {
+			return value.replaceAll(regex, replaceBy);
+		} catch (Exception e) {
+			log.error("\nException in $REPLACEREGEX:"+replacement+"\nReason: " + e);
+			return value;
+		}
+	}
 	
 	/**
-	 * Interprets the placeholder parameters
+	 * Interprets the placeholder parameters<br>
+	 * GS: parameters in placeholder can be chained/repeated
 	 * 
 	 * @param placeholder
 	 * 		Name of the placeholder
@@ -280,6 +333,168 @@ public class TemplateProcessor {
 	 * 		The value modified by the parameters
 	 */
 	String interpretParameters(final String placeholder, final String pValue) {
+/* GS/ [ADD TemplateParameters]
+ * - new parameter REPLACEREGEX
+ * - code rework/optimizations
+ * - enable arbitrary chaining/repeating of parameters
+ * 
+ * old code below
+ */
+		int paramPos = placeholder.indexOf(PARAMETER_SEPARATOR);
+		
+		// nothing to do
+		if (paramPos < 0 || pValue == null)
+			return pValue;
+		
+		String paramBody = ""; // the parameters content (what's after :)
+		String retval = pValue;
+		int paramNameEndPos = -1;
+		int paramEndPos = -1;
+		int nextPosInPlaceholder = paramPos + 1; // first unprocessed position
+		String paramName = null;
+		
+		while (paramPos >= 0) {
+			// extract the parameter's name
+			paramNameEndPos = placeholder.indexOf(PARAMETER_NAME_TEMINATOR, nextPosInPlaceholder);
+			if (paramNameEndPos > nextPosInPlaceholder) {
+				paramName = placeholder.substring(nextPosInPlaceholder, paramNameEndPos);
+				if (!paramName.isEmpty()) {
+					nextPosInPlaceholder = paramNameEndPos + 1;
+					// extract the parameter's body = anything after ':' up to
+					// a) the next param = '$'
+					// b) the end of the placeholder (w/o its terminator '>')
+					paramEndPos = placeholder.indexOf(PARAMETER_SEPARATOR, nextPosInPlaceholder); // a)
+					paramBody = "";
+					if (paramEndPos > nextPosInPlaceholder) {
+						paramBody = placeholder.substring(nextPosInPlaceholder, paramEndPos).trim();
+						nextPosInPlaceholder = paramEndPos; // because we want fo find this parameter below
+					} else {
+						paramEndPos = placeholder.indexOf(PLACEHOLDER_TEMINATOR, nextPosInPlaceholder); // b)
+						if (paramEndPos > nextPosInPlaceholder) {
+							paramBody = placeholder.substring(nextPosInPlaceholder, paramEndPos).trim();
+							nextPosInPlaceholder = paramEndPos + 1;
+						} else {
+							paramBody = placeholder.substring(nextPosInPlaceholder).trim(); // get all the rest
+							nextPosInPlaceholder = placeholder.length();
+						}
+					}
+
+					// process the parameter
+					//   note: currently there are no (valid) params with an empty body
+					if (!paramBody.isEmpty()) {
+						if (retval.isEmpty()) {
+							// params operating on an empty value
+							//   note: this switch is currently not really needed, just in place for easy extension
+							switch (paramName) {
+								case "EMPTY":
+									retval = removeQuotationMarks(paramBody);
+									break;
+								default:
+									break; // do nothing
+							}
+						} else {
+							// params operating on a non-empty value
+							switch (paramName) {
+								case "PRE":
+									retval = removeQuotationMarks(paramBody) + retval;
+									break;
+								case "POST":
+									retval += removeQuotationMarks(paramBody);
+									break;
+								case "INONELINE":
+									retval = StringInOneLine(retval, removeQuotationMarks(paramBody));
+									break;
+								case "REPLACE":
+									retval = replaceValues(removeQuotationMarks(paramBody) , retval);
+									break;
+								case "REPLACEREGEX": // GS/ [ADD TemplateParameters]
+									retval = replaceRegex(paramBody , retval);
+									break;
+								case "FORMAT":
+									try {
+										Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
+										retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, paramBody);
+									}
+									catch (ParseException e) {
+										retval = "### NVL ###";
+									}
+									break;
+								case "DFORMAT":
+									try {
+										GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
+										SimpleDateFormat sdf = new SimpleDateFormat(paramBody);
+										retval = sdf.format(checkDate.getTime());
+									} catch (IllegalArgumentException e) {
+										retval = "### NVL ###";
+									}
+									break;
+								case "FIRST":
+									Integer lengthFIRST = templateProcessorHelper.extractLengthFromParameter(paramBody, retval.length());
+									if (lengthFIRST.compareTo(Integer.valueOf(0)) >= 0) {
+										int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
+										retval = retval.substring(0, len);
+									}
+									break;
+								case "LAST":
+									Integer lengthLAST = templateProcessorHelper.extractLengthFromParameter(paramBody, retval.length());
+									if (lengthLAST.compareTo(Integer.valueOf(0)) >= 0) {
+										int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
+										retval = retval.substring(retval.length() - len);
+									}
+									break;
+								case "RANGE":
+									String[] boundariesRANGE = paramBody.split(",");
+									if(boundariesRANGE.length == 2) {
+										// for customer convenience we start counting from 1
+										Integer start = templateProcessorHelper.extractLengthFromParameter(boundariesRANGE[0], 0) - 1;
+										Integer end = templateProcessorHelper.extractLengthFromParameter(boundariesRANGE[1], retval.length());
+										if (end.compareTo(Integer.valueOf(0)) >= 0 ) {
+											int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+											retval = len == 0 ? "" : retval.substring(start, len);
+										}
+									}
+									break;
+								case "EXRANGE":
+									if (!paramBody.isEmpty()) {
+										String[] boundariesEXRANGE = paramBody.split(",");
+										if (boundariesEXRANGE.length == 2) {
+											// for customer convenience we start counting from 1
+											Integer start = templateProcessorHelper.extractLengthFromParameter(boundariesEXRANGE[0], 0) - 1;
+											Integer end = templateProcessorHelper.extractLengthFromParameter(boundariesEXRANGE[1], retval.length());
+											if (end.compareTo(Integer.valueOf(0)) >= 0) {
+												int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+												if (len == 0) {
+													retval = "";
+												} else {
+													String first = retval.substring(0, Math.max(0, start));
+													String last = retval.substring(len, retval.length());
+													retval = first + last;
+												}
+											}
+										}
+									}
+									break;
+								default:
+									break; // do nothing
+							}
+							// intermediate encode special entities that may have been added by a parameter processing
+							// so the retval is ready ('clean') for more processing (or return)
+							retval = templateProcessorHelper.encodeEntities(retval);
+						}
+					} // if (!paramBody.isEmpty())
+				} // if (!paramName.isEmpty())
+				// are there more params?
+				paramPos = placeholder.indexOf(PARAMETER_SEPARATOR, nextPosInPlaceholder);
+				if (paramPos >= nextPosInPlaceholder) {
+					nextPosInPlaceholder = paramPos + 1;
+				}
+			} else {
+				break;
+			}
+		}
+		
+		return retval;
+/* GS/ old code here:
 		String par;
 		String retval = pValue;
 		
@@ -396,9 +611,10 @@ public class TemplateProcessor {
 			if (!par.isEmpty())
 				retval = removeQuotationMarks(par);
 		}
-		
+	
 		// Encode some special characters
 		return templateProcessorHelper.encodeEntities(retval);
+GS/ -end- */
 	}
 	
 	/**
@@ -1503,6 +1719,11 @@ public class TemplateProcessor {
 
         String value = "";
         
+<<<<<<< Upstream, based on origin/develop
+=======
+// GS/ [FIX TemplateParameters] (see Forum: PRE/POST output always as uppercase)
+//        String placeholderDisplayText = cellPlaceholder.getNodeText().toUpperCase();
+>>>>>>> 354039b ADD/FIX TemplateParameters
         String placeholderDisplayText = cellPlaceholder.getNodeText();
         String placeholder = placeholderDisplayText.substring(1, placeholderDisplayText.length() - 1);
         String key = placeholder.split("\\$")[0];

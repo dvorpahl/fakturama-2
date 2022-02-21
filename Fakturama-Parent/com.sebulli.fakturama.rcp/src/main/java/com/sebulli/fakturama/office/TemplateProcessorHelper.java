@@ -22,8 +22,9 @@ import org.apache.commons.lang3.StringUtils;
  * Utility class for {@link TemplateProcessor}
  */
 public class TemplateProcessorHelper {
-    
-    private static final String PARAMETER_SEPARATOR = "$";
+// GS/ [ADD TemplateParameters]
+//    private static final String PARAMETER_SEPARATOR = "$";
+	private static final String PARAMETER_SEPARATOR = String.valueOf(TemplateProcessor.PARAMETER_SEPARATOR);
 
     /**
      * Get a part of the telephone number
@@ -94,7 +95,9 @@ public class TemplateProcessorHelper {
      *  Converted
      */
     String encodeEntities(String s) {
-        if (StringUtils.length(s) > 0) {
+// GS/ [ADD TemplateParameters] avoid unnecessary processing
+//        if (StringUtils.length(s) > 0) {
+        if (StringUtils.length(s) > 0 && s.indexOf(TemplateProcessor.PLACEHOLDER_ENTITY_CHAR) >= 0) {
             s = s.replaceAll("%LT", "<");
             s = s.replaceAll("%GT", ">");
             s = s.replaceAll("%NL", "\n");
