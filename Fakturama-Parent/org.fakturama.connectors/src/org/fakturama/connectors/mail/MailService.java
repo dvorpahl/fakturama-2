@@ -127,7 +127,6 @@ public class MailService implements IPdfPostProcessor {
             // ignore silently...
             return true;
         }
-        
 
         // Collect some settings...
         MailSettings settings = createSettings(inputDocument.get());
@@ -150,6 +149,7 @@ public class MailService implements IPdfPostProcessor {
             partService.showPart(mainPart.getElementId(), PartState.ACTIVATE);
             mainPart.setVisible(true);
             partService.bringToTop(mainPart);
+            modelService.bringToTop(mailAppDialog);
             mailAppDialog.setOnTop(true);
 
             mailAppDialog.setVisible(true);

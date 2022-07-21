@@ -40,7 +40,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
@@ -94,7 +93,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
             @Override
             public void runWithEvent(Event event) {
                 super.runWithEvent(event);
-                boolean isActive = ((Button)event.widget).getSelection();
+                boolean isActive = ((CheckBoxGroup)event.widget).getSelection();
                 setEmptyStringAllowed(!isActive);
                 
                 if(!isActive) {
@@ -108,7 +107,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         group.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                Button eventSource = (Button) e.getSource();
+                CheckBoxGroup eventSource = (CheckBoxGroup) e.getSource();
                 boolean selection = eventSource.getSelection();
                 booleanPropertyAction.setChecked(selection);
                 Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(selection));
