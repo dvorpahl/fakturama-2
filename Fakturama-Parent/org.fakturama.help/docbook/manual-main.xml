@@ -26,17 +26,16 @@
 				<surname>Fakturama Team</surname>
 			</author>
 		</authorgroup>
-		<edition>Benutzerhandbuch für Fakturama v2.1.2</edition>
+		<edition>Benutzerhandbuch für Fakturama v2.1.3</edition>
 		<pubdate>
 			<?dbtimestamp format="d.m.Y"?>
 		</pubdate>
 		<copyright>
-			<year>2011-2021</year>
+			<year>2011-2022</year>
 			<holder>Fakturama.org</holder>
 		</copyright>
 
 		<legalnotice>
-
 			<para>Alle Grafiken, die Hilfetexte und das Handbuch stehen unter der <link linkend="license_creative_commons">Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported Lizenz</link>
 			</para>
 		</legalnotice>
@@ -131,7 +130,7 @@
 				<para>Diese "Commons Deed" ist lediglich eine vereinfachte Zusammenfassung des <link xl:href="http://creativecommons.org/licenses/by-nc-nd/3.0/de/legalcode">rechtsverbindlichen Lizenzvertrages</link> in allgemeinverständlicher Sprache.</para>
 		</legalnotice>
 
-		<releaseinfo>Version 2.1.2</releaseinfo>
+		<releaseinfo>Version 2.1.3</releaseinfo>
 	</bookinfo>
 
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/01_introduction/01_introduction.xml"/>

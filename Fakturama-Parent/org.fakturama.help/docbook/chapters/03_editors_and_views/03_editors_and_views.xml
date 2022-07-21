@@ -411,10 +411,10 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="40%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-					</inlinemediaobject>Zahlungsarten</term>
+					</inlinemediaobject>Zahlungsbedingungen</term>
 
 				<listitem>
-					<para>Öffnet eine Liste mit allen Zahlungsarten im Übersichtsfenster.</para>
+					<para>Öffnet eine Liste mit allen Zahlungsbedingungen im Übersichtsfenster.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -700,10 +700,10 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="40%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-					</inlinemediaobject>Neue Zahlungsart</term>
+					</inlinemediaobject>Neue Zahlungsbedingung</term>
 
 				<listitem>
-					<para>Erstellt eine neue Zahlungsart und öffnet diese in einem Editorfenster.</para>
+					<para>Erstellt eine neue Zahlungsbedingung und öffnet diese in einem Editorfenster.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -1384,8 +1384,8 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="50%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-				</inlinemediaobject> Zahlungsarten</subtitle>
-			<para>Öffnet eine Liste mit allen Zahlungsarten im Übersichtsfenster.</para>
+				</inlinemediaobject> Zahlungsbedingungen</subtitle>
+			<para>Öffnet eine Liste mit allen Zahlungsbedingungen im Übersichtsfenster.</para>
 			<para>Siehe auch <link linkend="application_overview">Übersichtsfenster</link>
 			</para>
 		</section>
@@ -1697,7 +1697,7 @@
 						<para>Über das Icon "Kontakt" kann eine Liste mit allen Debitoradressen geöffnet 
 						und die gewünschte Adresse ausgewählt werden (mit <keycombo action='simul'><keycap>STRG</keycap><mousebutton>Klick</mousebutton></keycombo> wird die Kreditoren-Auswahl geöffnet). Dann wird mit dem Adresstext 
 						intern auch eine Verknüpfung zu dieser Adresse hergestellt. Dadurch können beispielsweise Zusatzinformationen (Kontonummer usw.) 
-						beim Ausdruck der Rechnung mit eingeblendet werden. Ist bei dem entsprechenden Kontakt eine Zahlungsart hinterlegt, wird diese 
+						beim Ausdruck der Rechnung mit eingeblendet werden. Ist bei dem entsprechenden Kontakt eine Zahlungsbedingung hinterlegt, wird diese 
 						ebenfalls mit übernommen.</para>
 						<para>Die Adressen im Auswahldialog werden nach der entsprechenden Dokumentenart gefiltert. Wird gerade ein Rechnungsdokument bearbeitet,
 						werden nur Rechnungsadressen angezeigt. Bei einem Lieferschein werden dementsprechend nur Lieferadressen angezeigt. Wurde das Feld
@@ -1943,9 +1943,9 @@
 			<para>Markierung, ob die Rechnung bezahlt wurde.</para>
 		</section>
 		<section>
-			<subtitle>Zahlungsart</subtitle>
-			<para>Auswahl der Zahlungsart. Je nach Zahlungsart wird auf die Rechnung der entsprechende Text gedruckt. Wenn ein Kontakt ausgewählt wurde, bei dem bereits eine bestimmte Zahlungsart hinterlegt wurde, wird diese hier vorausgewählt.</para>
-			<para>Siehe <link linkend="editor_editor_payment">Editor Zahlungsart</link>
+			<subtitle>Zahlungsbedingung</subtitle>
+			<para>Auswahl der Zahlungsbedingung. Je nach Zahlungsbedingung wird auf die Rechnung der entsprechende Text gedruckt. Wenn ein Kontakt ausgewählt wurde, bei dem bereits eine bestimmte Zahlungsbedingung hinterlegt wurde, wird diese hier vorausgewählt.</para>
+			<para>Siehe <link linkend="editor_editor_payment">Editor Zahlungsbedingung</link>
 			</para>
 		</section>
 		<section>
@@ -2202,8 +2202,8 @@
 			neues E-Mail-Fenster geöffnet.</para>
 		</section>
 		<section>
-			<subtitle>Zahlungsart</subtitle>
-			<para>Zahlungsart des Kunden. Wird beim Anlegen eines neues Dokumentes mit diesem Kunden verwendet.</para>
+			<subtitle>Zahlungsbedingung</subtitle>
+			<para>Zahlungsbedingung des Kunden. Wird beim Anlegen eines neues Dokumentes mit diesem Kunden verwendet.</para>
 		</section>
 		<section>
 			<subtitle>Bonität</subtitle>
@@ -2257,7 +2257,7 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="editor_editor_payment"/>
-		<title>Editor Zahlungsart</title>
+		<title>Editor Zahlungsbedingung</title>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -2270,11 +2270,11 @@
 		</informalfigure>
 		<section>
 			<subtitle>Name</subtitle>
-			<para>Eindeutiger Name der Zahlungsart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
+			<para>Eindeutiger Name der Zahlungsbedingung. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
 		</section>
 		<section>
 			<subtitle>Konto</subtitle>
-			<para>Konto, auf das alle Rechnungen mit dieser Zahlungsart gebucht werden.Zum Beispiel <emphasis role="bold">Bank, Kreditkarte, privat verauslagt</emphasis>. Ein neues Konto wird automatisch angelegt, wenn der Kontoname in die Auswahlliste eingetragen wird. Beim Anlegen eines Belegs wird das zuletzt ausgewählte Konto bereits voreingestellt.</para>
+			<para>Konto, auf das alle Rechnungen mit dieser Zahlungsbedingung gebucht werden.Zum Beispiel <emphasis role="bold">Bank, Kreditkarte, privat verauslagt</emphasis>. Ein neues Konto wird automatisch angelegt, wenn der Kontoname in die Auswahlliste eingetragen wird. Beim Anlegen eines Belegs wird das zuletzt ausgewählte Konto bereits voreingestellt.</para>
 		</section>
 		<section>
 			<subtitle>Beschreibung</subtitle>
@@ -2433,11 +2433,11 @@
 		</section>
 		<section>
 			<subtitle>Standard</subtitle>
-			<para>Zeigt den Namen derjenigen Zahlungsart, die momentan die Standardzahlungsart ist.</para>
+			<para>Zeigt den Namen derjenigen Zahlungsbedingung, die momentan die Standardzahlungsbedingung ist.</para>
 		</section>
 		<section>
 			<subtitle>zum Standard machen</subtitle>
-			<para>Macht die aktuell angezeigte Zahlungsart zur Standardzahlungsart. Die Zahlungsart muss zuvor gespeichert worden sein.</para>
+			<para>Macht die aktuell angezeigte Zahlungsbedingung zur Standardzahlungsbedingung. Die Zahlungsbedingung muss zuvor gespeichert worden sein.</para>
 		</section>
 	</section>
 	<section>

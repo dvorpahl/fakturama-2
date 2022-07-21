@@ -611,26 +611,30 @@ public class TemplateProcessor {
             return;
         
         // Get all available placeholders and set them
-        Arrays.asList(Placeholder.values()).forEach(p -> setCommonProperty(p, document, documentSummary));
+        Arrays.asList(Placeholder.values())
+            .stream()
+            // 
+            .filter(p -> allPlaceholders.contains(String.format("%s%s%s", PlaceholderNavigation.PLACEHOLDER_PREFIX, p.getKey(), PlaceholderNavigation.PLACEHOLDER_SUFFIX)))
+            .forEach(p -> setCommonProperty(p, document, documentSummary));
     }
     
     private void replaceNodeText(final PlaceholderNode placeholderNode) {
         // Get the placeholder's text
         String placeholderDisplayText = placeholderNode.getNodeText().toUpperCase();
         String text = replaceText(placeholderDisplayText);
-        if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE && !text.isBlank()) {
-            try {
-                int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
-                int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
-                placeholderNode.replaceWith(Path.of(text).toUri(), 
-                        width, 
-                        height);
-            } catch (NumberFormatException e) {
-                // fallback without width and height
-                placeholderNode.replaceWith(Path.of(text).toUri()); 
+        if (StringUtils.isNotBlank(text)) {
+            if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE) {
+                try {
+                    int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
+                    int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
+                    placeholderNode.replaceWith(Path.of(text).toUri(), width, height);
+                } catch (NumberFormatException e) {
+                    // fallback without width and height
+                    placeholderNode.replaceWith(Path.of(text).toUri());
+                }
+            } else {
+                placeholderNode.replaceWith(text);
             }
-        } else {
-            placeholderNode.replaceWith(text);
         }
     }
 
@@ -793,7 +797,11 @@ public class TemplateProcessor {
                 else return "";
             }
         } catch (InvalidParameterException e) {
-            MessageDialog.openError(null, msg.dialogMessageboxTitleError, e.getMessage());
+            StringBuilder msgDetail = new StringBuilder("Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
+            
+            Arrays.stream(StringUtils.split(e.getMessage(), '\n')).forEach(m -> addDetailError(msgDetail, m));
+            
+            MessageDialog.openError(null, msg.dialogMessageboxTitleError, msgDetail.toString());
             return "";
         }
 
@@ -988,6 +996,43 @@ public class TemplateProcessor {
 
 		return null;
 	}
+	
+    private void addDetailError(StringBuilder msgDetail, String errorMessage) {
+        if(errorMessage.contains(":")) {
+            String[] splittedString = errorMessage.split(":");
+            msgDetail.append(getMsgKey(splittedString[0]))
+            .append(": ")
+            .append(getMessageDetail(splittedString[1]))
+            .append('\n');
+        }
+    }
+    
+    private String getMsgKey(String messageDetail) {
+        switch (messageDetail.trim()) {
+        case "account":
+            return msg.commonFieldAccount;
+        case "creditor.addressLine1":
+            return "creditor address first line";
+        case "creditor.postalCode":
+            return msg.commonFieldZipcode;
+        case "creditor.town":
+            return msg.commonFieldCity;
+        default:
+            return messageDetail;
+        }
+    }
+    
+     private String getMessageDetail(String messageKey) {
+       switch (messageKey.trim()) {
+        case "account_iban_invalid":
+            return "invalid IBAN";
+        case "address_type_conflict":
+            return "wrong address type";
+        default:
+            return messageKey;
+        }
+    }
+    
     private Optional<String> checkAddressPlaceholders(DocumentReceiver contact, String key, ContactType billing) {
 	    if(key.startsWith(billing.getName())) {
 	        key = key.replaceAll(billing.getName() + "\\.", "");
@@ -1837,7 +1882,7 @@ public class TemplateProcessor {
 //          textContentService.insertTextContent(iText.getTextCursorService().getTextCursor().getEnd(), textDocumentImage);
 
         }
-        catch (IOException e) {
+        catch (IOException | IllegalArgumentException e) {
             log.error("Can't create temporary image file. Reason: " + e);
         }
         return imageFile;

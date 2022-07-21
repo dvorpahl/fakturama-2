@@ -15,9 +15,8 @@
 			<listitem>Mac OS X (ab Version 10.10 Yosemite)</listitem>
 			<listitem>Linux (64Bit)</listitem>
 		</itemizedlist>
-		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 11 notwendig. Zum Erstellen der Druckvorlagen und 
-		der PDFs sind OpenOffice.org bzw. LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im 
-		OpenOffice-Format ist kein OpenOffice/LibreOffice notwendig.</para>
+		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 11 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und 
+		der PDFs sind OpenOffice.org bzw. LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im OpenOffice-Format ist kein OpenOffice/LibreOffice notwendig (nur für die PDF-Dokumente).</para>
 		<itemizedlist>
 			<listitem>Downloadseite OpenOffice.org: <link xl:href="http://www.openoffice.org/">http://www.openoffice.org/</link></listitem>
 			<listitem>Downloadseite LibreOffice <link xl:href="http://www.libreoffice.org/">http://www.libreoffice.org/</link></listitem>
@@ -101,14 +100,13 @@
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
 				</inlinemediaobject> Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte OpenOffice (oder LibreOffice) und Java (ab Version 11) installiert sein. Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
-			<para>Alternativ können Sie auch die gepackte Archivdatei (*.tar.gz) herunterladen und in einem beliebigen Verzeichnis entpacken. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
-			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle 
-		Dokumente und Vorlagen abgelegt. Beispiel:</para>
+			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte OpenOffice (oder LibreOffice). Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk2</code> bzw. <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
+			<para>Alternativ kann auch die gepackte Archivdatei (*.tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
+			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle Dokumente und Vorlagen abgelegt. Beispiel:</para>
 			<programlisting>/home/Benutzername/Dokumente/MeineFirma/</programlisting>
 			<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
 			</para>
-			<para>Nach der Installation finden Sie Fakturama im Startmenü in der Rubrik "Büroanwendungen" (bzw. "Office"):
+			<para>Nach der Installation findet man Fakturama im Startmenü in der Rubrik "Büroanwendungen" (bzw. "Office"):
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
