@@ -48,7 +48,6 @@ public class QRSwissCodeGenerator {
     @Inject
     private IEclipseContext context;
 
- //   @Inject
     private ContactUtil contactUtil;
 
     public byte[] createSwissCodeQR(Document document) {

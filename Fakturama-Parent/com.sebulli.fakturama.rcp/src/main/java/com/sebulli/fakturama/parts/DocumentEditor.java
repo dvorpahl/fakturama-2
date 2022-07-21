@@ -408,7 +408,7 @@ public class DocumentEditor extends Editor<Document> {
 		// set focus outside of address tab
 		txtCustomerRef.setFocus();
 
-		if (newDocument) {
+		if (newDocument || document.getId() == 0) {
 			// Check if the document number is the next one
 			if (!document.getBillingType().isLETTER()) {
 				int result = getNumberGenerator().setNextFreeNumberInPrefStore(txtName.getText(), getEditorID());
@@ -1028,7 +1028,6 @@ public class DocumentEditor extends Editor<Document> {
 					break;
 				}
 		    	getMDirtyablePart().setDirty(true);
-		    	
 		    }
         }
 
@@ -1037,9 +1036,9 @@ public class DocumentEditor extends Editor<Document> {
 		Document parentDoc = document;
 		boolean duplicated = BooleanUtils.toBoolean(tmpDuplicate);
 
-		// The document is new, if there is no document, or if the
-		// flag for duplicated was set.
-		newDocument = (document == null) || duplicated;
+		// The document is new, if there is no document or if the
+		// flag for duplicated was set or if the document is a copy of another.
+		newDocument = document == null || duplicated;
 
 		// If new ..
 		if (newDocument) {
