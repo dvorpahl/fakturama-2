@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.e4.core.contexts.ContextInjectionFactory;
+import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.sebulli.fakturama.dao.ContactsDAO;
@@ -17,6 +19,7 @@ import com.sebulli.fakturama.model.Contact;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.DocumentReceiver;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
+import com.sebulli.fakturama.util.ContactUtil;
 
 import net.codecrete.qrbill.generator.Bill;
 import net.codecrete.qrbill.generator.BillFormat;
@@ -41,11 +44,19 @@ public class QRSwissCodeGenerator {
     
     @Inject
     private ContactsDAO contactsDAO;
+    
+    @Inject
+    private IEclipseContext context;
+
+ //   @Inject
+    private ContactUtil contactUtil;
 
     public byte[] createSwissCodeQR(Document document) {
+        this.contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+
         DocumentReceiver documentReceiver = addressManager.getBillingAdress(document);
         Contact debitor = contactsDAO.findById(documentReceiver.getOriginContactId());
-        if (debitor != null && debitor.getBankAccount() != null) {
+        if (debitor != null) {
 
             // Setup bill
             Bill bill = new Bill();
@@ -56,7 +67,8 @@ public class QRSwissCodeGenerator {
             // Set creditor
             net.codecrete.qrbill.generator.Address creditor = new net.codecrete.qrbill.generator.Address();
             creditor.setName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
-            creditor.setAddressLine1(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET));
+            creditor.setStreet(contactUtil.getStreetName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
+            creditor.setHouseNo(contactUtil.getStreetNo(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
             
             creditor.setPostalCode(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP));
             creditor.setTown(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
@@ -67,8 +79,8 @@ public class QRSwissCodeGenerator {
             
             bill.setCreditor(creditor);
 
-            // only add a reference if the IBAN is a valid QR-IBAN
-            if (debitor.getBankAccount().getIban() != null && Payments.isQRIBAN(debitor.getBankAccount().getIban())) {
+            // only add a reference if the customer reference is a valid QR-IBAN
+            if (document.getCustomerRef() != null && Payments.isQRIBAN(document.getCustomerRef())) {
                 bill.setReference(document.getCustomerRef());
             }
             bill.setUnstructuredMessage(document.getMessage());
