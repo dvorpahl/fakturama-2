@@ -78,6 +78,10 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
     private Group subjectGroup;
 
     private CheckBoxGroup group;
+
+    private StringFieldEditor mailtoCC;
+
+    private StringFieldEditor mailtoBCC;
     
     public MailServicePreferences() {
         super(GRID);
@@ -110,13 +114,14 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
                 CheckBoxGroup eventSource = (CheckBoxGroup) e.getSource();
                 boolean selection = eventSource.getSelection();
                 booleanPropertyAction.setChecked(selection);
-                Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(selection));
+                enableFields(selection);
                 
                 Event event = new Event();
                 event.widget = eventSource;
                 booleanPropertyAction.runWithEvent(event);
                 super.widgetSelected(e);
             }
+
         });
         
         mailHost = new ExtendedStringFieldEditor(MailServiceConstants.PREFERENCES_MAIL_HOST, messages.mailservicePreferencesServerHost, group.getContent());
@@ -137,8 +142,10 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         settingFields = Arrays.asList(mailServerPassword, mailHost, mailUser);
         setEmptyStringAllowed(!group.getSelection());
         
-        addField(getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_CC_FIX, "CC", getFieldEditorParent()));
-        addField(getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_BCC_FIX, "BCC", getFieldEditorParent()));
+        mailtoCC = getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_CC_FIX, "CC", getFieldEditorParent());
+        addField(mailtoCC);
+        mailtoBCC = getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_BCC_FIX, "BCC", getFieldEditorParent());
+        addField(mailtoBCC);
 
         subjectGroup = new Group(getFieldEditorParent(), SWT.NONE);
         subjectGroup.setText(messages.mailservicePreferencesSubjectLabel);
@@ -154,9 +161,15 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         createSubjectField(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_PROFORMA, BillingType.PROFORMA);
         subjectGroup.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).create());
         subjectGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create());
-        Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(group.getSelection()));
+        enableFields(group.getSelection());
     }
     
+    private void enableFields(boolean selection) {
+        Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(selection));
+        mailtoCC.getTextControl(getFieldEditorParent()).setEnabled(selection);
+        mailtoBCC.getTextControl(getFieldEditorParent()).setEnabled(selection);
+    }
+
     private StringFieldEditor getEmailValidationDecoratedField(String preferenceName, String title, Composite parentEditor) {
 
         StringFieldEditor emailField = new StringFieldEditor(preferenceName, title, parentEditor);
@@ -196,7 +209,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         super.performDefaults();
         boolean isMailServiceActivePerDefault = getPreferenceStore().getDefaultBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE);
         group.setSelection(isMailServiceActivePerDefault);
-        Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(isMailServiceActivePerDefault));
+        enableFields(isMailServiceActivePerDefault);
     }
     
     private void createSubjectField(String pref, BillingType billingType) {

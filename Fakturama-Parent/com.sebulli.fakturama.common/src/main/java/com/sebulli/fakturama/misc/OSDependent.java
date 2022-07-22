@@ -17,6 +17,7 @@ package com.sebulli.fakturama.misc;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 
 import org.eclipse.jface.util.Util;
 
@@ -64,7 +65,6 @@ public class OSDependent {
 			return getProgramFolder() + "LibreOffice 7";
 
 		return "";
-
 	}
 
 	/**
@@ -95,6 +95,13 @@ public class OSDependent {
 		}
 		
 		return retval;
+	}
+	
+	public static String getPDFProgramCall(String pdfDocument) {
+	    String retval = "{0}";
+	    if (Util.isLinux() || Util.isMotif())
+            retval = "xdg-open {0}";
+	    return MessageFormat.format(retval, pdfDocument);
 	}
 
 	/**

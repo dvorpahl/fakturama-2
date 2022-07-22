@@ -65,6 +65,7 @@ import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.OSDependent;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.FileOrganizer.PathOption;
@@ -209,7 +210,8 @@ public class OfficeDocument {
                 if(generatedPdf != null) {
                     if (preferences.getBoolean(Constants.PREFERENCES_OPENPDF)) {
                         sync.asyncExec(() -> {
-                            if(!Program.launch(generatedPdf.toString())) {
+                            String pdfProgramCall = OSDependent.getPDFProgramCall(generatedPdf.toString());
+                            if(!Program.launch(pdfProgramCall)) {
                                 MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
                             }
                         });
