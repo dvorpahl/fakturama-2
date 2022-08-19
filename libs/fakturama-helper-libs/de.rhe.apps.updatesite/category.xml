@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature id="org.hsql.jdbc.feature">
-      <category name="de.rhe.apps.osgi.drivers"/>
-   </feature>
    <feature id="org.javamoney.feature">
       <category name="de.rhe.libs.additional"/>
    </feature>
@@ -12,11 +9,11 @@
    <feature id="org.slf4j.osgi.feature">
       <category name="de.rhe.libs.additional"/>
    </feature>
-   <feature id="org.apache.odftoolkit.feature">
-      <category name="de.rhe.libs.apache"/>
-   </feature>
    <feature id="net.glxn.qrgen.feature">
       <category name="de.rhe.libs.additional"/>
+   </feature>
+   <feature id="org.apache.odftoolkit.feature">
+      <category name="de.rhe.libs.apache"/>
    </feature>
    <category-def name="de.rhe.apps.osgi.drivers" label="JDBC drivers for OSGi plugins">
       <description>
