@@ -21,24 +21,15 @@
 		<unit id="org.eclipse.gemini.jpa.feature.feature.group" version="1.2.0"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="http://p2.fakturama.info/gemini-dbaccess/1.2.0"/>
-		<unit id="org.eclipse.gemini.dbaccess.derby.feature.feature.group" version="1.2.0"/>
-		<unit id="org.eclipse.gemini.dbaccess.feature.feature.group" version="1.2.0"/>
-		<unit id="org.eclipse.gemini.dbaccess.h2.feature.feature.group" version="1.2.0"/>
-		<unit id="org.eclipse.gemini.dbaccess.hsqldb.feature.feature.group" version="1.2.0"/>
-		<unit id="org.eclipse.gemini.dbaccess.mysql.feature.feature.group" version="1.2.0"/>
-	</location>
-	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://p2.fakturama.info/gemini-di/1.2.0"/>
 		<unit id="org.eclipse.gemini.ext.di.feature.feature.group" version="1.2.0"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://p2.fakturama.info/2.1.2"/>
 		<unit id="com.mysql.jdbc.feature.feature.group" version="5.1.48"/>
-		<unit id="org.apache.odftoolkit.feature.feature.group" version="1.0.0.202106142350"/>
-		<unit id="org.hsql.jdbc.feature.feature.group" version="2.5.1"/>
 		<unit id="org.javamoney.feature.feature.group" version="1.0.2"/>
 		<unit id="org.slf4j.osgi.feature.feature.group" version="1.7.30"/>
+		<unit id="org.apache.odftoolkit.feature.feature.group" version="1.0.0.202208190954"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/nattable/releases/2.0.2/repository/"/>
@@ -134,6 +125,15 @@
 		<repository location="https://www.opcoach.com/repository/2021-12"/>
 		<unit id="com.opcoach.e4.preferences.feature.feature.group" version="1.3.1"/>
 		<unit id="com.opcoach.e4.preferences.feature.source.feature.group" version="1.3.1"/>
+	</location>
+	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="http://p2.fakturama.info/gemini.dbaccess/1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.derby.feature.feature.group" version="1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.feature.feature.group" version="1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.h2.feature.feature.group" version="1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.hsqldb.feature.feature.group" version="1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.mariadb.feature.feature.group" version="1.2.1"/>
+		<unit id="org.eclipse.gemini.dbaccess.mysql.feature.feature.group" version="1.2.1"/>
 	</location>
 	<location includeDependencyScope="compile" includeSource="true" missingManifest="generate" type="Maven">
 		<groupId>org.bouncycastle</groupId>
@@ -247,6 +247,12 @@
 		<groupId>org.liquibase</groupId>
 		<artifactId>liquibase-core</artifactId>
 		<version>4.5.0</version>
+		<type>jar</type>
+	</location>
+	<location includeSource="true" missingManifest="generate" type="Maven">
+		<groupId>org.mariadb.jdbc</groupId>
+		<artifactId>mariadb-java-client</artifactId>
+		<version>3.0.7</version>
 		<type>jar</type>
 	</location>
 </locations>

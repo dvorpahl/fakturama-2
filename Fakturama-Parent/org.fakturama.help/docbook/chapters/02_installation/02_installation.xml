@@ -213,6 +213,8 @@
 		Für die Erstellung von ZUGFeRD-Dokumenten müssen Sie einmalig im LibreOffice einen PDF-Export eines beliebigen Dokumentes durchführen und dabei als Option PDF/A einstellen.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">OpenOffice.org / LibreOffice Vorlagen</link>
 		</para>
+		<para>Für die Aktualisierung des Programms genügt es, den neuen Installer zu starten und dann die Option zum Aktualisieren der bestehenden Installation zu nutzen. Der Installer wurde jetzt so angepaßt, daß die Einstellungsdatei für die Darstellung der Oberfläche (<computeroutput>.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</computeroutput>) gelöscht wird. Allerdings funktioniert das nur für Standard-Installationen, da bei der Installation oder dem Update von Fakturama nicht festgestellt werden kann, welches Einstellungsverzeichnis verwendet wird (das können bei mehreren Mandanten auch mehrere Verzeichnisse sein). In dem Fall müßte die Datei manuell entfernt werden.		
+		</para>
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="install_startparameter"/>

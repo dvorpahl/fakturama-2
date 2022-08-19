@@ -31,13 +31,15 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.widgets.ButtonFactory;
+import org.eclipse.jface.widgets.LabelFactory;
+import org.eclipse.jface.widgets.TextFactory;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -140,13 +142,18 @@ public class InitialStartupDialog extends TitleAreaDialog {
 		            // Derby
 		            // jdbc:derby://localhost:1527/<databasename>;user=<username>;password=<password>
 		            // jdbc:derby://localhost:1527/c:/my-db-dir/my-db-name;user=<username>;password=<password>
-		            jdbcUrlMap.put(driverClass, "jdbc:derby://localhost:1527/<databasename>");
+		            jdbcUrlMap.put(driverClass, "jdbc:derby://localhost:1527/<database>");
 					break;
 				case "com.mysql.jdbc.Driver":
 		            // MySQL
 		            // jdbc:mysql://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
 		            jdbcUrlMap.put(driverClass, "jdbc:mysql://<host>[:<port>]/<database>");
 		            break;
+				case "org.mariadb.jdbc.Driver":
+				    // MariaDB
+				    // jdbc:mariadb://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
+				    jdbcUrlMap.put(driverClass, "jdbc:mariadb://<host>[:<port>]/<database>");
+				    break;
 				default:
 					log.warn(String.format("unknown database driver found in service registry; class name=[%s]",driverClass));
 					break;
@@ -190,25 +197,32 @@ public class InitialStartupDialog extends TitleAreaDialog {
 		setMessage(msg.startFirstSelectWorkdirVerbose, IMessageProvider.INFORMATION);
 		
 		// 2nd row
-		Label lblWorkDir = new Label(container, SWT.NONE);
-		lblWorkDir.setText(msg.startFirstSelectWorkdirShort);
-		txtWorkdir = new Text(container, SWT.BORDER);
+		LabelFactory.newLabel(SWT.NONE)
+		    .text(msg.startFirstSelectWorkdirShort)
+		    .create(container);
+		
 		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		layoutData.minimumWidth = 450;
-		txtWorkdir.setText(StringUtils.defaultIfEmpty(workspace, ""));
-		txtWorkdir.setLayoutData(layoutData);
+		txtWorkdir = TextFactory.newText(SWT.BORDER)
+	        .layoutData(layoutData)
+	        .text(StringUtils.defaultIfEmpty(workspace, ""))
+		    .create(container);
 
-		final Button btnDirChooser = new Button(container, SWT.NONE);
-		btnDirChooser.setText("...");
-		btnDirChooser.setToolTipText(msg.startFirstSelectWorkdirVerbose);
-		btnDirChooser.addSelectionListener(new DirectoryChooser(txtWorkdir, false));
+		ButtonFactory.newButton(SWT.NONE)
+		    .text("...")
+		    .tooltip(msg.startFirstSelectWorkdirVerbose)
+		    .onSelect(e -> new DirectoryChooser(txtWorkdir, false))
+		    .create(container);
 		
 		// 2.1st row
-		Label lblOldWorkDir = new Label(container, SWT.NONE);
-		lblOldWorkDir.setText(msg.startFirstSelectOldworkdirShort);
-		txtOldWorkdir = new Text(container, SWT.BORDER);
-		txtOldWorkdir.setLayoutData(layoutData);
-		txtOldWorkdir.setText(getOldWorkDir());
+        LabelFactory.newLabel(SWT.NONE)
+            .text(msg.startFirstSelectOldworkdirShort)
+            .create(container);
+        
+		txtOldWorkdir = TextFactory.newText(SWT.BORDER)
+    		.layoutData(layoutData)
+    		.text(getOldWorkDir())
+    		.create(container);
 		txtOldWorkdir.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -227,28 +241,30 @@ public class InitialStartupDialog extends TitleAreaDialog {
             }
         });
 		
-		final Button btnOldDirChooser = new Button(container, SWT.NONE);
-		btnOldDirChooser.setText("...");
-		btnOldDirChooser.setToolTipText(msg.startFirstSelectOldworkdirVerbose);
-		btnOldDirChooser.addSelectionListener(new DirectoryChooser(txtOldWorkdir, true));
+		ButtonFactory.newButton(SWT.NONE)
+		    .text("...")
+		    .tooltip(msg.startFirstSelectOldworkdirVerbose)
+		    .onSelect(e -> new DirectoryChooser(txtOldWorkdir, true))
+	        .create(container);
 		
-        btnUseDefaultDb = new Button(container, SWT.CHECK);
-        btnUseDefaultDb.setText(msg.startFirstSelectDbUsedefault);
+		btnUseDefaultDb = ButtonFactory.newButton(SWT.CHECK)
+	        .text(msg.startFirstSelectDbUsedefault)
+	        .onSelect(e -> dbSettings.setVisible(!((Button)e.getSource()).getSelection()))
+	        .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1))
+	        .tooltip(msg.startFirstSelectDbUsedefaultTooltip)
+	        .create(container);
         btnUseDefaultDb.setSelection(true);
-        btnUseDefaultDb.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-        btnUseDefaultDb.setToolTipText(msg.startFirstSelectDbUsedefaultTooltip);
-        btnUseDefaultDb.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> { 
-                dbSettings.setVisible(!((Button)e.getSource()).getSelection());
-        }));
 		
 		dbSettings = new Composite(container, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns(3).applyTo(dbSettings);
         dbSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
         dbSettings.setVisible(false);  // hide initially
+        
 		// 3rd row
-		Label lblDatabase = new Label(dbSettings, SWT.NONE);
-		lblDatabase.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblDatabase.setText(msg.startFirstSelectDbCredentialsName);
+		LabelFactory.newLabel(SWT.NONE)
+	        .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
+	        .text(msg.startFirstSelectDbCredentialsName)
+	        .create(dbSettings);
 		
 		comboDriver = new ComboViewer(dbSettings, SWT.NONE | SWT.READ_ONLY);
 		comboDriver.setContentProvider(ArrayContentProvider.getInstance());
@@ -284,9 +300,10 @@ public class InitialStartupDialog extends TitleAreaDialog {
 		combo.select(jdbcClassComboIndex);
 
 		// 4th row
-		Label lblJdbcurl = new Label(dbSettings, SWT.NONE);
-		lblJdbcurl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblJdbcurl.setText(msg.startFirstSelectDbCredentialsJdbc);
+		LabelFactory.newLabel(SWT.NONE)
+    		.layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
+    		.text(msg.startFirstSelectDbCredentialsJdbc)
+		    .create(dbSettings);
 		
 		txtJdbcUrl = new Text(dbSettings, SWT.BORDER);
 		// if an old value is set, we use it, else use the first entry from combo box
@@ -297,16 +314,19 @@ public class InitialStartupDialog extends TitleAreaDialog {
 		txtJdbcUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 
 		// 5th row
-		Label lblUser = new Label(dbSettings, SWT.NONE);
-		lblUser.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblUser.setText(msg.startFirstSelectDbCredentialsUser);
+        LabelFactory.newLabel(SWT.NONE)
+            .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
+            .text(msg.startFirstSelectDbCredentialsUser)
+            .create(dbSettings);
+
 		txtUser = new Text(dbSettings, SWT.BORDER);
 		txtUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		txtUser.setText(preferences.get(PersistenceUnitProperties.JDBC_USER, ""));
 
-		Label lblPassword = new Label(dbSettings, SWT.NONE);
-		lblPassword.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblPassword.setText(msg.startFirstSelectDbCredentialsPassword);
+        LabelFactory.newLabel(SWT.NONE)
+           .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
+           .text(msg.startFirstSelectDbCredentialsPassword)
+           .create(dbSettings);
 
 		txtPassword = new Text(dbSettings, SWT.BORDER | SWT.PASSWORD);
 		txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -347,9 +367,10 @@ public class InitialStartupDialog extends TitleAreaDialog {
             }
         });
         
-        new Label(dbSettings, SWT.NONE); // blind label
-        databaseInfoText = new Label(dbSettings, SWT.NONE);
-        databaseInfoText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        LabelFactory.newLabel(SWT.NONE).create(dbSettings); // blind label
+        databaseInfoText = LabelFactory.newLabel(SWT.NONE)
+                .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
+                .create(dbSettings);
 
 	    return container;
 	}
