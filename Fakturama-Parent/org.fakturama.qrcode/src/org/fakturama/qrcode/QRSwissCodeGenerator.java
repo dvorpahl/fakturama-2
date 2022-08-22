@@ -61,6 +61,7 @@ public class QRSwissCodeGenerator {
             Bill bill = new Bill();
             bill.setAccount(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
             bill.setAmountFromDouble(document.getTotalValue());
+            bill.setUnstructuredMessage("Invoice number: " + document.getName());
             bill.setCurrency(DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode());
 
             // Set creditor
@@ -82,7 +83,6 @@ public class QRSwissCodeGenerator {
             if (document.getCustomerRef() != null && Payments.isQRIBAN(document.getCustomerRef())) {
                 bill.setReference(document.getCustomerRef());
             }
-            bill.setUnstructuredMessage(document.getMessage());
 
             // Set debtor
             net.codecrete.qrbill.generator.Address debtor = new net.codecrete.qrbill.generator.Address();
