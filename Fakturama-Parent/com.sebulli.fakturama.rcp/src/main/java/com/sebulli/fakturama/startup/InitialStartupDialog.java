@@ -152,7 +152,7 @@ public class InitialStartupDialog extends TitleAreaDialog {
 				case "org.mariadb.jdbc.Driver":
 				    // MariaDB
 				    // jdbc:mariadb://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
-				    jdbcUrlMap.put(driverClass, "jdbc:mariadb://<host>[:<port>]/<database>");
+				    jdbcUrlMap.put(driverClass, "jdbc:mariadb://<host>[:<port>]/<database>?useMysqlMetadata=true");
 				    break;
 				default:
 					log.warn(String.format("unknown database driver found in service registry; class name=[%s]",driverClass));
@@ -273,9 +273,10 @@ public class InitialStartupDialog extends TitleAreaDialog {
 			@SuppressWarnings("unchecked")
 			@Override
 			public String getText(Object element) {
-				String driverName = (String) ((ServiceReference<DataSourceFactory>)element).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME);
-				String jdbcVersion = (String) ((ServiceReference<DataSourceFactory>)element).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION);
-				String scope = StringUtils.substringAfterLast((String) ((ServiceReference<DataSourceFactory>)element).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS), ".");
+				ServiceReference<DataSourceFactory> serviceRefElement = (ServiceReference<DataSourceFactory>)element;
+                String driverName = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME);
+				String jdbcVersion = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION);
+				String scope = StringUtils.substringAfterLast((String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS), ".");
 				if(jdbcVersion != null) {
 					driverName = String.format("%s (%s), %s", driverName, jdbcVersion, scope);
 				}
@@ -305,39 +306,39 @@ public class InitialStartupDialog extends TitleAreaDialog {
     		.text(msg.startFirstSelectDbCredentialsJdbc)
 		    .create(dbSettings);
 		
-		txtJdbcUrl = new Text(dbSettings, SWT.BORDER);
 		// if an old value is set, we use it, else use the first entry from combo box
 		@SuppressWarnings("unchecked")
 		String firstEntry = (String) ((ServiceReference<DataSourceFactory>)comboDriver.getElementAt(jdbcClassComboIndex)).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
 		firstEntry = StringUtils.defaultString(jdbcUrlMap.get(firstEntry), "");
-		txtJdbcUrl.setText(preferences.get(PersistenceUnitProperties.JDBC_URL, firstEntry));
-		txtJdbcUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-
+		txtJdbcUrl =  TextFactory.newText(SWT.BORDER)
+    		.text(preferences.get(PersistenceUnitProperties.JDBC_URL, firstEntry))
+    		.layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
+    		.create(dbSettings);
+		
 		// 5th row
         LabelFactory.newLabel(SWT.NONE)
             .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
             .text(msg.startFirstSelectDbCredentialsUser)
             .create(dbSettings);
 
-		txtUser = new Text(dbSettings, SWT.BORDER);
-		txtUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		txtUser.setText(preferences.get(PersistenceUnitProperties.JDBC_USER, ""));
-
+        txtUser = TextFactory.newText(SWT.BORDER)
+            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
+            .text(preferences.get(PersistenceUnitProperties.JDBC_USER, ""))
+            .create(dbSettings);               
+		
         LabelFactory.newLabel(SWT.NONE)
            .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
            .text(msg.startFirstSelectDbCredentialsPassword)
            .create(dbSettings);
 
-		txtPassword = new Text(dbSettings, SWT.BORDER | SWT.PASSWORD);
-		txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		txtPassword.setText(preferences.get(PersistenceUnitProperties.JDBC_PASSWORD, ""));
+        txtPassword = TextFactory.newText(SWT.BORDER | SWT.PASSWORD)
+            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1))
+            .text(preferences.get(PersistenceUnitProperties.JDBC_PASSWORD, ""))
+            .create(dbSettings);
         
-        Button connectionChecker = new Button(dbSettings, SWT.PUSH);
-        connectionChecker.setText(msg.startFirstSelectDbCheck);
-        connectionChecker.addSelectionListener(new SelectionAdapter() {
-            
-            @Override
-            public void widgetSelected(SelectionEvent e) {
+        ButtonFactory.newButton(SWT.PUSH)
+            .text(msg.startFirstSelectDbCheck)
+            .onSelect(e -> {
                 try {
                     IStructuredSelection selection = comboDriver.getStructuredSelection();
                     ServiceReference<DataSourceFactory> sr = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
@@ -365,12 +366,13 @@ public class InitialStartupDialog extends TitleAreaDialog {
                     MessageDialog.openError(getShell(), msg.dialogMessageboxTitleError, "Can't create database connection. Reason:\n" + k.getMessage());
                 }
             }
-        });
+        )
+        .create(dbSettings);
         
         LabelFactory.newLabel(SWT.NONE).create(dbSettings); // blind label
         databaseInfoText = LabelFactory.newLabel(SWT.NONE)
-                .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
-                .create(dbSettings);
+            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
+            .create(dbSettings);
 
 	    return container;
 	}
