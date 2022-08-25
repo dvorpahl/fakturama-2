@@ -83,11 +83,12 @@
         <setEntry value="org.apache.felix.gogo.runtime@default:default"/>
         <setEntry value="org.apache.felix.gogo.shell@default:default"/>
         <setEntry value="org.apache.felix.scr@2:true"/>
+        <setEntry value="org.apache.log4j@default:default"/>
+        <setEntry value="org.apache.logging.log4j.api@default:default"/>
         <setEntry value="org.apache.odftoolkit@default:default"/>
         <setEntry value="org.apache.xerces*2.9.0.v201101211617@default:default"/>
         <setEntry value="org.apache.xml.resolver@default:default"/>
         <setEntry value="org.apache.xml.serializer@default:default"/>
-        <setEntry value="org.apache.xmlbeans@default:default"/>
         <setEntry value="org.apache.xmlgraphics@default:default"/>
         <setEntry value="org.bouncycastle.bcpg@default:default"/>
         <setEntry value="org.bouncycastle.bcprov@default:default"/>
@@ -263,7 +264,10 @@
         <setEntry value="wrapped.com.google.zxing.javase@default:default"/>
         <setEntry value="wrapped.io.nayuki.qrcodegen@default:default"/>
         <setEntry value="wrapped.net.codecrete.qrbill.qrbill-generator@default:default"/>
+        <setEntry value="wrapped.org.apache.poi.poi-ooxml-lite@default:default"/>
+        <setEntry value="wrapped.org.apache.poi.poi-ooxml@default:default"/>
         <setEntry value="wrapped.org.apache.poi.poi@default:default"/>
+        <setEntry value="wrapped.org.apache.xmlbeans.xmlbeans@default:default"/>
     </setAttribute>
     <setAttribute key="selected_workspace_bundles">
         <setEntry value="com.sebulli.fakturama.common@default:default"/>
