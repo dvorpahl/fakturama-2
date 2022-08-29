@@ -5,34 +5,7 @@
 # by Andy Maloney
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 
-wait_while_in_progress() 
-{
-	uuid=`cat tmp | grep -Eo '\w{8}-(\w{4}-){3}\w{12}$'`
-	while true; do
-	    echo "checking for notarization..."
-	 
-	    xcrun altool --notarization-info "$uuid" -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} &> tmp
-	    r=`cat tmp`
-	    t=`echo "$r" | grep "success"`
-	    f=`echo "$r" | grep "invalid"`
-	    if [[ "$t" != "" ]]; then
-	        echo "notarization done!"
-#	        xcrun stapler staple "APP_NAME.app"
-	        xcrun stapler staple ../install/${DMG_FINAL}
-	        echo "stapler done!"
-	        break
-	    fi
-	    if [[ "$f" != "" ]]; then
-	        echo "$r"
-	        return 1
-	    fi
-	    echo "not finish yet, sleep 2m then check again..."
-	    sleep 120
-	done
-}
-
-
-export PLUGIN_ROOT=/Users/rheydenr/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site
+export PLUGIN_ROOT=/Users/rheydenreich/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site
 export INSTALL_MAIN_DIR=${PLUGIN_ROOT}/install/mac
 
 # make sure we are in the correct dir when we double-click a .command file
@@ -44,14 +17,14 @@ fi
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
 
-export VERSION=2.1.2-BETA
+export VERSION=2.1.3-BETA
 
 DMG_BACKGROUND_IMG="Background_${APP_NAME}.png"
 
 # you should not need to change these
 APP_EXE="${APP_NAME}.app/Contents/MacOS/Fakturama"
 
-VOL_NAME="Installer_Fakturama_macos_x64_${VERSION}"   # volume name will be "Installer_Fakturama_macos_x64_2.0.0”
+VOL_NAME="Installer_Fakturama_macos_x64_${VERSION}"   # volume name will be "Installer_Fakturama_macos_x64_2.1.0”
 DMG_TMP="${VOL_NAME}-temp.dmg"
 DMG_FINAL="${VOL_NAME}.dmg" # final DMG name will be "Installer_Fakturama_macos_x64_2.1.1.dmg"
 STAGING_DIR="./Install"             # we copy all our stuff into this dir
@@ -81,7 +54,9 @@ mkdir -p "${STAGING_DIR}"
 echo "staging dir created: ${STAGING_DIR}"
 
 # prepare the correct directory structure
-cp -rpf ${PLUGIN_ROOT}/target/products/Fakturama.ID/macosx/cocoa/x86_64/"${APP_NAME}".app "${STAGING_DIR}"
+# cp -rpf ${PLUGIN_ROOT}/target/products/Fakturama.ID/macosx/cocoa/x86_64/"${APP_NAME}".app "${STAGING_DIR}"
+tar -xf ${PLUGIN_ROOT}/target/products/Fakturama.ID-macosx.cocoa.x86_64.tar.gz -C "${STAGING_DIR}"
+
 # ... cp anything else you want in the DMG - documentation, etc.
 
 # copy current JRE into the product
@@ -206,9 +181,9 @@ xcrun altool --notarize-app --verbose --primary-bundle-id org.fakturama.Fakturam
 #############################################################################################
 
 
-# xcrun altool --notarization-info "39e1af56-578b-4d19-9169-62936e5d8010" -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} 
-# xcrun stapler staple ../install/${DMG_FINAL}
-# spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
+xcrun altool --notarization-info "fb851407-20ef-4049-84ea-94443445607a" -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} 
+xcrun stapler staple ../install/${DMG_FINAL}
+spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
 
 echo 'moving installer (tar.gz) to installer directory'
 mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz

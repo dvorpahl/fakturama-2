@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="9.0.2" transformSequenceNumber="9">
-  <directoryPresets config="../../../../../Documents/Zertifikat/Fakturama.org.p12" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.2-beta" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="11" jdkName="JDK 1.8 x64">
+<install4j version="9.0.6" transformSequenceNumber="9">
+  <directoryPresets config="../../../../../Documents/Zertifikate/Fakturama.org.p12" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3beta" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="11" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -23,8 +23,8 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikat/Fakturama.org.p12" />
-    <jreBundles jdkProviderId="Zulu" release="16/16.0.1" />
+    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/Fakturama.org.p12" />
+    <jreBundles jdkProviderId="Zulu" release="17/17.0.1" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git" preserveSymlinks="false">
     <filesets>
@@ -124,7 +124,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2020 Fakturama.org</property>
+                <property name="labelText" type="string">(c) 2022 Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -270,10 +270,15 @@ return console.askOkCancel(message, true);
             <actions>
               <action id="525" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="1">
+                  <property name="files" type="array" class="java.io.File" length="2">
                     <element index="0">
                       <object class="java.io.File">
                         <string>${installer:sys.installationDir}/plugins</string>
+                      </object>
+                    </element>
+                    <element index="1">
+                      <object class="java.io.File">
+                        <string>${installer:sys.userHome}/.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</string>
                       </object>
                     </element>
                   </property>
@@ -407,7 +412,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2020 Fakturama.org</property>
+                <property name="labelText" type="string">(c) 2022 Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -747,7 +752,10 @@ return console.askYesNo(message, true);
         <entry filesetId="32" />
         <entry filesetId="41" />
       </exclude>
-      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications ..
+      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
+sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
@@ -760,7 +768,10 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
         <entry filesetId="32" />
         <entry filesetId="41" />
       </exclude>
-      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications ..
+      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
+sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
@@ -776,8 +787,6 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
     </macosFolderArchive>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="59" />
-    <mediaSet refId="119" />
-    <mediaSet refId="120" />
+    <mediaSet refId="45" />
   </buildIds>
 </install4j>
