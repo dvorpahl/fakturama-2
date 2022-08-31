@@ -197,6 +197,7 @@
         <setEntry value="org.eclipse.equinox.simpleconfigurator.nl_de@default:false"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator@1:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.hsqldb@2:true"/>
+        <setEntry value="org.eclipse.gemini.dbaccess.mariadb@2:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.mysql@2:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.util@default:default"/>
         <setEntry value="org.eclipse.gemini.ext.di@default:default"/>
@@ -277,8 +278,6 @@
         <setEntry value="com.sebulli.fakturama.resources.icons@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources.templates@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources@default:default"/>
-        <setEntry value="net.glxn.qrgen@default:default"/>
-        <setEntry value="org.eclipse.gemini.dbaccess.mariadb@2:true"/>
         <setEntry value="org.fakturama.connectors@default:default"/>
         <setEntry value="org.fakturama.e4.ui.dialogs.ext@default:default"/>
         <setEntry value="org.fakturama.export@default:default"/>
