@@ -83,7 +83,6 @@
         <setEntry value="org.apache.felix.gogo.runtime@default:default"/>
         <setEntry value="org.apache.felix.gogo.shell@default:default"/>
         <setEntry value="org.apache.felix.scr@2:true"/>
-        <setEntry value="org.apache.log4j@default:default"/>
         <setEntry value="org.apache.logging.log4j.api@default:default"/>
         <setEntry value="org.apache.odftoolkit@default:default"/>
         <setEntry value="org.apache.xerces*2.9.0.v201101211617@default:default"/>
@@ -198,6 +197,7 @@
         <setEntry value="org.eclipse.equinox.simpleconfigurator.nl_de@default:false"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator@1:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.hsqldb@2:true"/>
+        <setEntry value="org.eclipse.gemini.dbaccess.mariadb@2:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.mysql@2:true"/>
         <setEntry value="org.eclipse.gemini.dbaccess.util@default:default"/>
         <setEntry value="org.eclipse.gemini.ext.di@default:default"/>
@@ -252,6 +252,7 @@
         <setEntry value="org.sat4j.core@default:default"/>
         <setEntry value="org.sat4j.pb@default:default"/>
         <setEntry value="org.slf4j.api@default:default"/>
+        <setEntry value="org.slf4j.apis.log4j@default:default"/>
         <setEntry value="org.slf4j.ext@default:default"/>
         <setEntry value="org.slf4j.jul@default:default"/>
         <setEntry value="org.tukaani.xz@default:default"/>
@@ -277,8 +278,6 @@
         <setEntry value="com.sebulli.fakturama.resources.icons@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources.templates@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources@default:default"/>
-        <setEntry value="net.glxn.qrgen@default:default"/>
-        <setEntry value="org.eclipse.gemini.dbaccess.mariadb@2:true"/>
         <setEntry value="org.fakturama.connectors@default:default"/>
         <setEntry value="org.fakturama.e4.ui.dialogs.ext@default:default"/>
         <setEntry value="org.fakturama.export@default:default"/>

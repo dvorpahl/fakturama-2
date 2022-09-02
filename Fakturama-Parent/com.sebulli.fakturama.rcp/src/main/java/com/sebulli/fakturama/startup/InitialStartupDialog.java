@@ -40,6 +40,7 @@ import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -208,10 +209,11 @@ public class InitialStartupDialog extends TitleAreaDialog {
 	        .text(StringUtils.defaultIfEmpty(workspace, ""))
 		    .create(container);
 
+		DirectoryChooser newDirectoryChooser = new DirectoryChooser(txtWorkdir, false);
 		ButtonFactory.newButton(SWT.NONE)
 		    .text("...")
 		    .tooltip(msg.startFirstSelectWorkdirVerbose)
-		    .onSelect(e -> new DirectoryChooser(txtWorkdir, false))
+		    .onSelect(newDirectoryChooser::widgetSelected)
 		    .create(container);
 		
 		// 2.1st row
@@ -241,10 +243,11 @@ public class InitialStartupDialog extends TitleAreaDialog {
             }
         });
 		
+		DirectoryChooser directoryChooser = new DirectoryChooser(txtOldWorkdir, true);
 		ButtonFactory.newButton(SWT.NONE)
 		    .text("...")
 		    .tooltip(msg.startFirstSelectOldworkdirVerbose)
-		    .onSelect(e -> new DirectoryChooser(txtOldWorkdir, true))
+		    .onSelect(directoryChooser::widgetSelected)
 	        .create(container);
 		
 		btnUseDefaultDb = ButtonFactory.newButton(SWT.CHECK)
@@ -254,6 +257,9 @@ public class InitialStartupDialog extends TitleAreaDialog {
 	        .tooltip(msg.startFirstSelectDbUsedefaultTooltip)
 	        .create(container);
         btnUseDefaultDb.setSelection(true);
+        btnUseDefaultDb.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> { 
+            dbSettings.setVisible(!((Button)e.getSource()).getSelection());
+    }));
 		
 		dbSettings = new Composite(container, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns(3).applyTo(dbSettings);
@@ -409,7 +415,7 @@ public class InitialStartupDialog extends TitleAreaDialog {
 	protected void okPressed() {
 		IStructuredSelection selection = comboDriver.getStructuredSelection();
 		ServiceReference<DataSourceFactory> firstElement = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
-		String driver = selection.isEmpty() ? DEFAULT_JDBC_CLASS : (String) firstElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
+		String driver = selection.isEmpty() || btnUseDefaultDb.getSelection() ? DEFAULT_JDBC_CLASS : (String) firstElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
 
 		// storing DB credentials
 		try {
