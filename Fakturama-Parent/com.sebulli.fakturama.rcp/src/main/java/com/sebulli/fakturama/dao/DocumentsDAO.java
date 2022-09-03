@@ -592,7 +592,7 @@ public List<AccountEntry> findAccountedDocuments(VoucherCategory account, Date s
                         cb.equal(root.<Integer>get(Document_.transactionId), transaction)));
         List<Document> resultList = getEntityManager().createQuery(cq).getResultList();
         List<String> stringList = resultList.stream().map(d -> d.getName()).collect(Collectors.toList());
-        return StringUtils.join(stringList, ",");
+        return StringUtils.join(stringList, ", ");
     }
 
     /**
