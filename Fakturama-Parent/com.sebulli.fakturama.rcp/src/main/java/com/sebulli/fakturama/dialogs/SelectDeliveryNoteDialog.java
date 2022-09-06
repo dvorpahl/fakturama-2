@@ -40,6 +40,7 @@ import org.osgi.service.event.Event;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.model.Delivery;
+import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.parts.DocumentEditor;
 import com.sebulli.fakturama.views.datatable.documents.DocumentsListTable;
 
@@ -133,14 +134,14 @@ public class SelectDeliveryNoteDialog extends AbstractSelectionDialog<Delivery> 
      */
     @Override
     protected void okPressed() {
-        if (deliveriesListTable.getSelectedObject() != null) {
+        final Document[] selectedObjects = deliveriesListTable.getSelectedObjects();
+        if (selectedObjects != null) {
             Map<String, Object> eventParams = new HashMap<>();
             eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
-            
-            eventParams.put(DocumentsListTable.SELECTED_DELIVERY_ID, deliveriesListTable.getSelectedObjects());
+            eventParams.put(DocumentsListTable.SELECTED_DELIVERY_ID, selectedObjects);
             evtBroker.post("DialogSelection/Delivery", eventParams);
-//            setResult(deliveriesListTable.getSelectedObjects());
-            selectionService.setSelection(deliveriesListTable.getSelectedObjects());
+//            setResult(selectedObject);
+            selectionService.setSelection(selectedObjects);
         }
         super.okPressed();
     }
