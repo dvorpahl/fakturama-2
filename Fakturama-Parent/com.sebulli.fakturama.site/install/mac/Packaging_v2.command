@@ -17,6 +17,9 @@ fi
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
 
+#ARCHITECTURE=aarch64
+ARCHITECTURE=x86_64
+
 export VERSION=2.1.3-BETA
 
 DMG_BACKGROUND_IMG="Background_${APP_NAME}.png"
@@ -24,7 +27,7 @@ DMG_BACKGROUND_IMG="Background_${APP_NAME}.png"
 # you should not need to change these
 APP_EXE="${APP_NAME}.app/Contents/MacOS/Fakturama"
 
-VOL_NAME="Installer_Fakturama_macos_x64_${VERSION}"   # volume name will be "Installer_Fakturama_macos_x64_2.1.0”
+VOL_NAME="Installer_Fakturama_macos_${ARCHITECTURE}_${VERSION}"   # volume name will be "Installer_Fakturama_macos_x64_2.1.0”
 DMG_TMP="${VOL_NAME}-temp.dmg"
 DMG_FINAL="${VOL_NAME}.dmg" # final DMG name will be "Installer_Fakturama_macos_x64_2.1.1.dmg"
 STAGING_DIR="./Install"             # we copy all our stuff into this dir
@@ -54,15 +57,14 @@ mkdir -p "${STAGING_DIR}"
 echo "staging dir created: ${STAGING_DIR}"
 
 # prepare the correct directory structure
-# cp -rpf ${PLUGIN_ROOT}/target/products/Fakturama.ID/macosx/cocoa/x86_64/"${APP_NAME}".app "${STAGING_DIR}"
-tar -xf ${PLUGIN_ROOT}/target/products/Fakturama.ID-macosx.cocoa.x86_64.tar.gz -C "${STAGING_DIR}"
+tar -xf ${PLUGIN_ROOT}/target/products/Fakturama.ID-macosx.cocoa.${ARCHITECTURE}.tar.gz -C "${STAGING_DIR}"
 
 # ... cp anything else you want in the DMG - documentation, etc.
 
 # copy current JRE into the product
-# echo "copy JRE 15 into product..."
+# echo "copy JRE 17 into product..."
 # mkdir "${STAGING_DIR}"/${APP_NAME}.app/jre
-# cp -R /Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/* "${STAGING_DIR}"/${APP_NAME}.app/jre/Contents
+# cp -R /Library/Java/JavaVirtualMachines/temurin-17.jdk/* "${STAGING_DIR}"/${APP_NAME}.app/jre/Contents
 
 # enable some L10N (specific to MacOS)
 cd "${STAGING_DIR}"/${APP_NAME}.app/Contents/Resources
@@ -171,29 +173,23 @@ echo 'signing application...'
 xcrun codesign --force --verbose --options runtime --entitlements entitlement.xml --timestamp --sign "Developer ID" ../install/${DMG_FINAL}
 
 echo 'notarize application...'
-xcrun altool --notarize-app --verbose --primary-bundle-id org.fakturama.Fakturama -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} --file ../install/${DMG_FINAL}
-
-########## alternative method to check the success of notarization: ########################
-# no --verbose output
-# xcrun altool --notarize-app  --primary-bundle-id org.fakturama.Fakturama -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} --file ../install/${DMG_FINAL} --output-format xml &> tmp
-# xcrun altool --notarization-info `/usr/libexec/PlistBuddy -c "Print :notarization-upload:RequestUUID" ${UPLOAD_INFO_PLIST}` -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} --output-format xml > $(REQUEST_INFO_PLIST)
-# wait_while_in_progress
-#############################################################################################
-
-
-xcrun altool --notarization-info "fb851407-20ef-4049-84ea-94443445607a" -u "apple-dev@fakturama.net" -p ${DEVELOPER_PASSWORD} 
+xcrun notarytool submit ../install/${DMG_FINAL} --keychain-profile "Fakturama-Build" --wait
 xcrun stapler staple ../install/${DMG_FINAL}
 spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
 
-echo 'moving installer (tar.gz) to installer directory'
-mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz
+if [[-f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz]]
+then
+	echo 'moving installer (tar.gz) to installer directory'
+	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz
+fi
 
-echo 'create ZIP file for Windows installer...'
-zip -m -o -v -j ../install/Installer_Fakturama_windows_x64_${VERSION}.zip ../install/Installer_Fakturama_windows-x64_${VERSION}.exe
+if [[-f ../install/Installer_Fakturama_windows-x64_${VERSION}.exe]]
+then
+	echo 'create ZIP file for Windows installer...'
+	zip -m -o -v -j ../install/Installer_Fakturama_windows_x64_${VERSION}.zip ../install/Installer_Fakturama_windows-x64_${VERSION}.exe
+fi
 
 echo 'Done.'
-
-echo 'NOTE: You have to check the notarization success manually!'
 
 # exit
 
