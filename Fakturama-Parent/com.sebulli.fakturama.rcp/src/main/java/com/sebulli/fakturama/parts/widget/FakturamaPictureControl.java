@@ -31,6 +31,12 @@ import com.sebulli.fakturama.resources.core.IconSize;
  */
 public class FakturamaPictureControl extends PictureControl {
     
+    private static final String PICTURE_CONTROL_SETTING = "PICTURE_CONTROL";
+
+    private static final String PICTURE_CONTROL_LAST_USED_PATH = "PICTURE_CONTROL_LAST_USED_PATH";
+
+    private static final String PICTURE_CONTROL_LAST_USED_FILTER = "PICTURE_CONTROL_LAST_USED_FILTER";
+
     @Inject
     private IDialogSettings settings;
 
@@ -66,14 +72,14 @@ public class FakturamaPictureControl extends PictureControl {
     @Override
     protected void configure(FileDialog fd) {
         super.configure(fd);
-        IDialogSettings dialogSettings = getDialogSettings("PICTURE_CONTROL");
-        String lastUsedPath = dialogSettings.get("PICTURE_CONTROL_LAST_USED_PATH");
+        IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
+        String lastUsedPath = dialogSettings.get(PICTURE_CONTROL_LAST_USED_PATH);
         String filterPath = StringUtils.isNotBlank(lastUsedPath) ? lastUsedPath : defaultValuePrefs.getString(Constants.GENERAL_WORKSPACE);
         fd.setFilterPath(filterPath);
 
         int lastUsedIndex;
         try {
-            lastUsedIndex = dialogSettings.getInt("PICTURE_CONTROL_LAST_USED_FILTER");
+            lastUsedIndex = dialogSettings.getInt(PICTURE_CONTROL_LAST_USED_FILTER);
         } catch (NumberFormatException e) {
             lastUsedIndex = 0;
         }
@@ -107,9 +113,9 @@ public class FakturamaPictureControl extends PictureControl {
     }
 	
     private void saveDialogSettings(String currentPath, int filterIndex) {
-        IDialogSettings dialogSettings = getDialogSettings("PICTURE_CONTROL");
-        dialogSettings.put("PICTURE_CONTROL_LAST_USED_PATH", currentPath);
-        dialogSettings.put("PICTURE_CONTROL_LAST_USED_FILTER", filterIndex);
+        IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
+        dialogSettings.put(PICTURE_CONTROL_LAST_USED_PATH, currentPath);
+        dialogSettings.put(PICTURE_CONTROL_LAST_USED_FILTER, filterIndex);
     }
     private IDialogSettings getDialogSettings(String section) {
         if(settings.getSection(section) == null) {
