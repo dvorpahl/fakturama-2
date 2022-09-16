@@ -9,10 +9,12 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Contact;
@@ -49,6 +51,10 @@ public class QRSwissCodeGenerator {
     private IEclipseContext context;
 
     private ContactUtil contactUtil;
+    
+    @Inject
+    @Translation
+    private Messages msg;
 
     public byte[] createSwissCodeQR(Document document) {
         this.contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
@@ -61,7 +67,7 @@ public class QRSwissCodeGenerator {
             Bill bill = new Bill();
             bill.setAccount(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
             bill.setAmountFromDouble(document.getTotalValue());
-            bill.setUnstructuredMessage("Invoice number: " + document.getName());
+            bill.setUnstructuredMessage(String.format("%s %s", msg.exporterDataInvoiceno, document.getName()));
             bill.setCurrency(DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode());
 
             // Set creditor
