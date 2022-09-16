@@ -3212,8 +3212,12 @@ public class DocumentEditor extends Editor<Document> {
             case "Delivery":
                 // select a delivery note for creating a collective invoice 
                 Document[] selectedDeliveries = (Document[]) event.getProperty(DocumentsListTable.SELECTED_DELIVERY_ID);
+                
+                // sort by document date
+                List<Document> sortedList = Arrays.stream(selectedDeliveries).sorted((o1, o2) -> o1.getDocumentDate().compareTo(o2.getDocumentDate())).collect(Collectors.toList());
+                
                 // Get the array list of all selected elements
-                for (Document deliveryNote : selectedDeliveries) {
+                for (Document deliveryNote : sortedList) {
                     // Get all items by ID from the item string
                     List<DocumentItem> deliveryItems = deliveryNote.getItems().stream()
                             .sorted(Comparator.comparing(DocumentItem::getPosNr))
