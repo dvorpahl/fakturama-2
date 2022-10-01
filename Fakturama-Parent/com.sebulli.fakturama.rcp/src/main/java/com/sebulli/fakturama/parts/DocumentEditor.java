@@ -852,7 +852,6 @@ public class DocumentEditor extends Editor<Document> {
         comboViewerPayment = new ComboViewer(comboPayment);
         comboViewerPayment.setContentProvider(new EntityComboProvider());
         
- //       getCtx().getBindings()
         comboViewerPayment.setLabelProvider(new EntityLabelProvider());
         GridDataFactory.swtDefaults().hint(80, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(comboPayment);
 
@@ -1958,8 +1957,16 @@ public class DocumentEditor extends Editor<Document> {
 		if (paymentid != null) {
 			//Use the payment method of the customer
 			document.setPayment(paymentid);
+			int index = 0;
 			if (comboPayment != null) {
-				comboPayment.setText(paymentid.getName());
+			    for (int i = 0; i < comboPayment.getItems().length; i++) {
+                    if(comboPayment.getItems()[i].equals(paymentid.getDescription())) {
+                        index = i;
+                        break;
+                    }
+                    
+                }
+			    comboPayment.select(index);
 			}
 
 			usePayment(paymentid);
