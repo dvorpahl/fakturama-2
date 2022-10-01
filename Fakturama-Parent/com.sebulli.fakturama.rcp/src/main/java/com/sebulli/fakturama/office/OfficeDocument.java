@@ -28,6 +28,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -70,6 +71,7 @@ import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.FileOrganizer.PathOption;
 import com.sebulli.fakturama.parts.DocumentEditor;
+import com.sebulli.fakturama.util.DocumentTypeUtil;
 
 public class OfficeDocument {
 
@@ -240,7 +242,11 @@ public class OfficeDocument {
 
         boolean wasSaved = false;
         textdoc.getOfficeMetadata().setCreator(msg.applicationName);
-        textdoc.getOfficeMetadata().setTitle(String.format("%s - %s", document.getBillingType().getName(), document.getName()));
+        textdoc.getOfficeMetadata().setTitle(String.format("%s - %s", 
+                msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(document.getBillingType()).getSingularKey()), 
+                document.getName()));
+        textdoc.getOfficeMetadata().setCreator(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
+        textdoc.getOfficeMetadata().setCreationDate(Calendar.getInstance());
 
         documentPath = fo.getDocumentPath(pathOptions, TargetFormat.ODT, document);
         Path origFileName = documentPath.getFileName();
