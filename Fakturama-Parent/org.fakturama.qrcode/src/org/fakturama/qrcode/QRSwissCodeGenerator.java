@@ -90,11 +90,15 @@ public class QRSwissCodeGenerator {
                 bill.setReference(document.getCustomerRef());
             }
 
-            // Set debtor
+            // Set debtor - structured SwissCode address
+            // If AddressLine1 or AddressLine2 ist set, the type changes to UNSTRUCTURED and then
+            // you don't have to set street, town, postalCode and houseNo.
             net.codecrete.qrbill.generator.Address debtor = new net.codecrete.qrbill.generator.Address();
             debtor.setName(document.getAddressFirstLine());
-            debtor.setAddressLine1(documentReceiver.getStreet());
-            debtor.setAddressLine2(documentReceiver.getCity());
+            debtor.setStreet(contactUtil.getStreetName(documentReceiver.getStreet()));
+            debtor.setHouseNo(contactUtil.getStreetNo(documentReceiver.getStreet()));
+            debtor.setTown(documentReceiver.getCity());
+            debtor.setPostalCode(documentReceiver.getZip());
             debtor.setCountryCode(documentReceiver.getCountryCode());
             bill.setDebtor(debtor);
 
@@ -104,6 +108,7 @@ public class QRSwissCodeGenerator {
             format.setOutputSize(OutputSize.QR_BILL_ONLY);
             
             net.codecrete.qrbill.generator.Language lang;
+            // TODO change in Java 17 to value switch!
             switch (localeUtil.getDefaultLocale().getLanguage()) {
             case "de":
                 lang = Language.DE;
