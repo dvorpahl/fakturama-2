@@ -109,7 +109,7 @@ public class QRSwissCodeGenerator {
             
             net.codecrete.qrbill.generator.Language lang;
             // TODO change in Java 17 to value switch!
-            switch (localeUtil.getDefaultLocale().getLanguage()) {
+            switch (localeUtil.getCurrencyLocale().getLanguage()) {
             case "de":
                 lang = Language.DE;
                 break;
@@ -119,7 +119,10 @@ public class QRSwissCodeGenerator {
             case "fr":
                 lang = Language.FR;
                 break;
-            case "ro":
+            case "it":
+                lang = Language.IT;
+                break;
+            case "rm":
                 lang = Language.RM;
                 break;
             default:
