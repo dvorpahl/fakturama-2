@@ -36,6 +36,7 @@
             <para>Ist diese Option angewählt werden beim Öffnen eines neuen Editorfensters automatisch alle anderen Editorfenster geschlossen. Geänderte und noch nicht gespeicherte bleiben weiterhin geöffnet.</para>
         </section>
         <section>
+			<anchor xreflabel="" xml:id="preferences_general_currencylanguage"/>
             <subtitle>Währungsland</subtitle>
             <para>Legt fest, in welcher Währung die Geldbeträge erscheinen sollen. Ein Wechsel des Währungslandes ändert nicht den Wert, sondern nur die Währungseinheit.</para>
             <para>Es ist möglich, nur ein Symbol wie '€' zu verwenden, aber auch einen ISO-Code wie 'EUR' oder gar kein Währungskennzeichen. Im Beispielfeld kann man sehen, wie Beträge mit den ausgewählten Einstellungen angezeigt werden würden. Zu beachten ist, dass sich abhängig vom gewählten Land auch die Darstellung der Betragszahl ändert, da hier die unterschiedlichen länderspezifischen Einstellungen greifen.</para>
@@ -53,7 +54,7 @@
         </section>
 		<section>
 		<subtitle>Backup-Strategie</subtitle>
-		<para>Im Backup-Verzeichnis sammeln sich im Laufe der Zeit sehr viele Sicherungskopien der Datenbank an. Mit dieser Einstellung kann die Anzahl dieser Backuos begrenzt werden. Es kann festgekegt werden, ob nur eine bestimmte Anzahl von Backups aufgehoben werden soll oder ob die Backups nur ein bestimmtes Alter erreichen sollen. Es werden nur Dateien berücksichtigt, die mit "Backup_" beginnen.</para>
+		<para>Im Backup-Verzeichnis sammeln sich im Laufe der Zeit sehr viele Sicherungskopien der Datenbank an. Mit dieser Einstellung kann die Anzahl dieser Backups begrenzt werden. Es kann festgelegt werden, ob nur eine bestimmte Anzahl von Backups aufgehoben werden soll oder ob die Backups nur ein bestimmtes Alter erreichen sollen. Es werden nur Dateien berücksichtigt, die mit "Backup_" beginnen.</para>
 		</section>
         <section>
             <subtitle>Datenbank-Verbindung</subtitle>

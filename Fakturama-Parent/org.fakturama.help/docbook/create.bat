@@ -1,12 +1,17 @@
+@ECHO OFF
 @REM aktuelle Fakturama-Version
 set VERSION=2.1.3
 
 @REM Pfad setzen
-set PATH=d:\Javalibs\fop-1.1\;%PATH%;d:\Programme\Java\jdk1.8\bin;
+set PATH=d:\Javalibs\fop-1.1\;%PATH%;
+@REM d:\Programme\Java\jdk1.8\bin;
 set CLASSPATH=.;d:\Javalibs\xalan-j_2_7_2\serializer.jar;d:\Javalibs\xalan-j_2_7_2\xalan.jar;d:\Javalibs\xalan-j_2_7_2\xercesImpl.jar;d:\Javalibs\xalan-j_2_7_2\xml-apis.jar;%CLASSPATH%
 
 @REM if you want to use FOP 2.1 you have to adapt fakturamaManualPDF.xsl
 @REM set PATH=d:\Javalibs\fop-2.1\;%PATH%;d:\Programme\Java\jdk1.8\bin;
+
+ECHO Creating manual for Fakturama %VERSION%.
+ECHO.
 
 @REM Erstellen des Titlepage-XSL
 java -jar d:\Javalibs\xalan-j_2_7_2\xalan.jar -IN customization\titlepage.spec.xml -XSL d:\Projekte\herold-doclet\docbook-xsl-1.79.2\template\titlepage.xsl -OUT customization/fakturamaManualTitlepage.xsl

@@ -160,7 +160,7 @@
 	<question><para>In der türkischen Lokalisierung startet Fakturama nicht.</para></question>
 	<answer><para>Beim Start von Fakturama werden die Metadaten der Datenbank von EclipseLink aus den Model-Dateien ermittelt.
 Dabei werden alle Attribute in Großbuchstaben konvertiert, allerdings mit der Default-Locale (also tr_TR). Das hat
-zur Folge, daß der Kleinbuchstabe "i" in einen Großbuchstaben "I" (mit einem Punkt darüber) konvertiert wird. Dieses
+zur Folge, daß der Kleinbuchstabe "i" in einen Großbuchstaben <!-- %ISOlat2; &#0130;--> "I" (mit einem Punkt darüber) konvertiert wird. Dieses
 Attribut gibt es natürlich nicht, deswegen kann die Datenbank nicht initialisiert werden. Das Problem ist ab Fakturama 2.1.1 gelöst.</para></answer>
 	</qandaentry>
 	<qandaentry>
