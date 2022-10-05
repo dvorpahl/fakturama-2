@@ -91,7 +91,7 @@ public class QRSwissCodeGenerator {
             }
 
             // Set debtor - structured SwissCode address
-            // If AddressLine1 or AddressLine2 ist set, the type changes to UNSTRUCTURED and then
+            // If AddressLine1 or AddressLine2 is set, the type changes to UNSTRUCTURED and then
             // you don't have to set street, town, postalCode and houseNo.
             net.codecrete.qrbill.generator.Address debtor = new net.codecrete.qrbill.generator.Address();
             debtor.setName(document.getAddressFirstLine());

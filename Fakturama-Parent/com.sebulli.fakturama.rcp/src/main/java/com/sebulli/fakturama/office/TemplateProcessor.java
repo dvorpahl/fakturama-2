@@ -1162,7 +1162,7 @@ public class TemplateProcessor {
             }
         }
         if (key.equals("ADDRESS.NR")) return Optional.ofNullable(contact.getCustomerNumber());
-        if (key.equals("ADDRESS.SUPPLIER.NUMBER")) return Optional.ofNullable(contact.getSupplierNumber());
+        if (key.equals("ADDRESS.SUPPLIER.NUMBER")) return Optional.ofNullable(originContact.getSupplierNumber());
         if (key.equals("ADDRESS.GLN")) return Optional.ofNullable(Optional.ofNullable(contact.getGln()).orElse(Long.valueOf(0)).toString());
         return Optional.empty();
     }
