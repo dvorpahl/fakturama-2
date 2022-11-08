@@ -14,6 +14,7 @@
 package org.fakturama.connectors.mail;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -297,8 +298,10 @@ public class MailService implements IPdfPostProcessor {
             // create a message
             MimeMessage msg = new MimeMessage(session);
             //set From email field
-            msg.setFrom(new InternetAddress(settings.getSender()));
-            msg.setSender(new InternetAddress(settings.getSender()));
+            InternetAddress senderAddr = new InternetAddress(settings.getSender());
+            senderAddr.setPersonal(prefs.get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""));
+			msg.setFrom(senderAddr);
+            msg.setSender(senderAddr);
             
             msg.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
             msg.setRecipients(Message.RecipientType.CC,settings.getReceiversCC());
@@ -355,7 +358,10 @@ public class MailService implements IPdfPostProcessor {
             if ((ex = mex.getNextException()) != null) {
                 log.error(ex, "can't send mail");
             }
-        } finally {
+        } catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} finally {
             closeDialog();
         }
     }
