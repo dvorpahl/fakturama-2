@@ -213,9 +213,10 @@ public class OfficeDocument {
                     if (preferences.getBoolean(Constants.PREFERENCES_OPENPDF)) {
                         sync.asyncExec(() -> {
                             String pdfProgramCall = OSDependent.getPDFProgramCall(generatedPdf.toString());
-                            if(!Program.launch(pdfProgramCall)) {
-                                MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
-                            }
+                            Program programForPdf = Program.findProgram(".pdf");
+                            if (programForPdf == null || !programForPdf.execute(pdfProgramCall)) {
+							    MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
+							}
                         });
                     } else {
                         messages.add(msg.dialogPrintooPdfsuccessful);

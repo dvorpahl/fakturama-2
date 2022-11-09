@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 
+import com.sebulli.fakturama.misc.Constants;
+
 /**
  * Container class for Mail Settings
  */
@@ -33,6 +35,7 @@ public class MailSettings {
     private final List<String> receiversCC = new ArrayList<>();
     private final List<String> receiversBCC = new ArrayList<>();
     private List<String> additionalDocs = new ArrayList<>();
+	private String senderName;
     
     // field list
     public static final String FIELD_RECEIVERS_TO = "receiversTo";
@@ -92,6 +95,11 @@ public class MailSettings {
         this.sender = sender;
         return this;
     }
+
+	public MailSettings withSenderName(String senderName) {
+		this.senderName = senderName;
+		return this;
+	}
 
     public MailSettings withAdditionalDocs(String... additionalDocs) {
         this.additionalDocs = Arrays.stream(additionalDocs).collect(Collectors.toList());
@@ -223,6 +231,14 @@ public class MailSettings {
     public String getSender() {
         return sender;
     }
+    
+    public String getSenderWithName() {
+    	return String.format("%s <%s>", senderName, sender);
+    }
+
+	public String getSenderName() {
+		return senderName;
+	}
 
     public void removeFromAdditionalDocs(String additionalDoc) {
         this.additionalDocs.remove(additionalDoc);

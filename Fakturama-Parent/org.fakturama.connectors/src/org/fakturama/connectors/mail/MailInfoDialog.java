@@ -119,7 +119,7 @@ public class MailInfoDialog {
         LabelFactory.newLabel(SWT.NONE).text(settings.getHost()).create(top);
 
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogFrom).create(top);
-        LabelFactory.newLabel(SWT.NONE).text(settings.getSender()).create(top);
+        LabelFactory.newLabel(SWT.NONE).text(settings.getSenderWithName()).create(top);
 
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogTo).create(top);
         receiverTo = TextFactory.newText(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(top);

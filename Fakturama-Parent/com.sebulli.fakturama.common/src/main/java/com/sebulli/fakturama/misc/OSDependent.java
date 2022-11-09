@@ -99,8 +99,8 @@ public class OSDependent {
 	
 	public static String getPDFProgramCall(String pdfDocument) {
 	    String retval = "{0}";
-	    if (Util.isLinux() || Util.isMotif())
-            retval = "/usr/bin/xdg-open {0}";
+//	    if (Util.isLinux() || Util.isMotif())
+//            retval = "/usr/bin/xdg-open {0}";
 	    return MessageFormat.format(retval, pdfDocument);
 	}
 

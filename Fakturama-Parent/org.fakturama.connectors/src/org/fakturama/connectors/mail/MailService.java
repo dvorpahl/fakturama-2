@@ -170,6 +170,7 @@ public class MailService implements IPdfPostProcessor {
 
         MailSettings settings = new MailSettings()
                 .withSender(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_EMAIL, ""))
+                .withSenderName(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""))
                 .withUser(prefs.get(MailServiceConstants.PREFERENCES_MAIL_USER, "")) 
                 .withPassword(prefs.get(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, "")) 
                 .withHost(prefs.get(MailServiceConstants.PREFERENCES_MAIL_HOST, ""))
@@ -299,7 +300,7 @@ public class MailService implements IPdfPostProcessor {
             MimeMessage msg = new MimeMessage(session);
             //set From email field
             InternetAddress senderAddr = new InternetAddress(settings.getSender());
-            senderAddr.setPersonal(prefs.get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""));
+            senderAddr.setPersonal(settings.getSenderName());
 			msg.setFrom(senderAddr);
             msg.setSender(senderAddr);
             
