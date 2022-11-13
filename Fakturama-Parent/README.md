@@ -15,8 +15,8 @@ h1. Features
 * Customer and contact manager: manage a database of customers
 * Comes with a built-in calculator for quick calculations
 * Text notes and lists are available and can be setup
-* Webshop integration: Integrated interface to osCommerce, xt:Commerce and xtcModified
-* Cross platform: works with Linux, Windows and Mac: Java powered
+* Web shop integration: Integrated interface to osCommerce, xt:Commerce and xtcModified
+* Cross platform: works with Linux, Windows and Mac OS: Java powered
 
 h1. Available platforms and languages
 

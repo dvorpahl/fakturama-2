@@ -456,15 +456,15 @@ public class PaymentEditor extends Editor<Payment> {
     protected void bindModel() {
 		part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
 		
-        bindModelValue(payment, textName, Payment_.name.getName(), 32);
+        bindModelValue(payment, textName, Payment_.name.getName(), 255);
         fillAndBindCategoryCombo();
-        bindModelValue(payment, textDescription, Payment_.description.getName(), 64);
+        bindModelValue(payment, textDescription, Payment_.description.getName(), 255);
         bindModelValue(payment, textDiscountValue, Payment_.discountValue.getName(), 12);
         bindModelValue(payment, textDiscountDays, Payment_.discountDays.getName(), 8);
         bindModelValue(payment, textNetDays, Payment_.netDays.getName(), 8);
-        bindModelValue(payment, textPaid, Payment_.paidText.getName(), 2000);
-        bindModelValue(payment, textDepositPaid, Payment_.depositText.getName(), 2000);
-        bindModelValue(payment, textUnpaid, Payment_.unpaidText.getName(), 2000);
+        bindModelValue(payment, textPaid, Payment_.paidText.getName(), 1024);
+        bindModelValue(payment, textDepositPaid, Payment_.depositText.getName(), 255);
+        bindModelValue(payment, textUnpaid, Payment_.unpaidText.getName(), 1024);
         
 		part.getTransientData().remove(BIND_MODE_INDICATOR);
     }

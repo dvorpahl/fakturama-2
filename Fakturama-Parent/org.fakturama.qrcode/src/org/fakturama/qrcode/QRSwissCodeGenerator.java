@@ -9,10 +9,12 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Contact;
@@ -49,6 +51,10 @@ public class QRSwissCodeGenerator {
     private IEclipseContext context;
 
     private ContactUtil contactUtil;
+    
+    @Inject
+    @Translation
+    private Messages msg;
 
     public byte[] createSwissCodeQR(Document document) {
         this.contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
@@ -61,7 +67,7 @@ public class QRSwissCodeGenerator {
             Bill bill = new Bill();
             bill.setAccount(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
             bill.setAmountFromDouble(document.getTotalValue());
-            bill.setUnstructuredMessage("Invoice number: " + document.getName());
+            bill.setUnstructuredMessage(String.format("%s %s", msg.exporterDataInvoiceno, document.getName()));
             bill.setCurrency(DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode());
 
             // Set creditor
@@ -84,11 +90,15 @@ public class QRSwissCodeGenerator {
                 bill.setReference(document.getCustomerRef());
             }
 
-            // Set debtor
+            // Set debtor - structured SwissCode address
+            // If AddressLine1 or AddressLine2 is set, the type changes to UNSTRUCTURED and then
+            // you don't have to set street, town, postalCode and houseNo.
             net.codecrete.qrbill.generator.Address debtor = new net.codecrete.qrbill.generator.Address();
             debtor.setName(document.getAddressFirstLine());
-            debtor.setAddressLine1(documentReceiver.getStreet());
-            debtor.setAddressLine2(documentReceiver.getCity());
+            debtor.setStreet(contactUtil.getStreetName(documentReceiver.getStreet()));
+            debtor.setHouseNo(contactUtil.getStreetNo(documentReceiver.getStreet()));
+            debtor.setTown(documentReceiver.getCity());
+            debtor.setPostalCode(documentReceiver.getZip());
             debtor.setCountryCode(documentReceiver.getCountryCode());
             bill.setDebtor(debtor);
 
@@ -98,7 +108,8 @@ public class QRSwissCodeGenerator {
             format.setOutputSize(OutputSize.QR_BILL_ONLY);
             
             net.codecrete.qrbill.generator.Language lang;
-            switch (localeUtil.getDefaultLocale().getLanguage()) {
+            // TODO change in Java 17 to value switch!
+            switch (localeUtil.getCurrencyLocale().getLanguage()) {
             case "de":
                 lang = Language.DE;
                 break;
@@ -108,7 +119,10 @@ public class QRSwissCodeGenerator {
             case "fr":
                 lang = Language.FR;
                 break;
-            case "ro":
+            case "it":
+                lang = Language.IT;
+                break;
+            case "rm":
                 lang = Language.RM;
                 break;
             default:

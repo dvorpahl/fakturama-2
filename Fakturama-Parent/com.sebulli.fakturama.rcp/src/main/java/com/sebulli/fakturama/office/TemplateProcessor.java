@@ -622,19 +622,17 @@ public class TemplateProcessor {
         // Get the placeholder's text
         String placeholderDisplayText = placeholderNode.getNodeText().toUpperCase();
         String text = replaceText(placeholderDisplayText);
-        if (StringUtils.isNotBlank(text)) {
-            if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE) {
-                try {
-                    int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
-                    int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
-                    placeholderNode.replaceWith(Path.of(text).toUri(), width, height);
-                } catch (NumberFormatException e) {
-                    // fallback without width and height
-                    placeholderNode.replaceWith(Path.of(text).toUri());
-                }
-            } else {
-                placeholderNode.replaceWith(text);
+        if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE) {
+            try {
+                int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
+                int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
+                placeholderNode.replaceWith(Path.of(text).toUri(), width, height);
+            } catch (NumberFormatException e) {
+                // fallback without width and height
+                placeholderNode.replaceWith(Path.of(text).toUri());
             }
+        } else {
+            placeholderNode.replaceWith(text);
         }
     }
 
@@ -1164,7 +1162,7 @@ public class TemplateProcessor {
             }
         }
         if (key.equals("ADDRESS.NR")) return Optional.ofNullable(contact.getCustomerNumber());
-        if (key.equals("ADDRESS.SUPPLIER.NUMBER")) return Optional.ofNullable(contact.getSupplierNumber());
+        if (key.equals("ADDRESS.SUPPLIER.NUMBER")) return Optional.ofNullable(originContact.getSupplierNumber());
         if (key.equals("ADDRESS.GLN")) return Optional.ofNullable(Optional.ofNullable(contact.getGln()).orElse(Long.valueOf(0)).toString());
         return Optional.empty();
     }

@@ -797,7 +797,10 @@ public class ProductEditor extends Editor<Product> {
 		photoComposite.setBackground(new Color(null, 255, 255, 255));
 
 		// The picture name label
-		labelProductPicture = new FakturamaPictureControl(photoComposite, defaultValuePrefs, msg);
+        labelProductPicture = new FakturamaPictureControl(photoComposite/*, defaultValuePrefs, msg*/);
+        ContextInjectionFactory.inject(labelProductPicture, context);
+        
+//		labelProductPicture = ContextInjectionFactory.make(FakturamaPictureControl.class, context);
 //		GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).minSize(100, SWT.DEFAULT).grab(true, false).applyTo(photoComposite);
 
 //		 The picture path

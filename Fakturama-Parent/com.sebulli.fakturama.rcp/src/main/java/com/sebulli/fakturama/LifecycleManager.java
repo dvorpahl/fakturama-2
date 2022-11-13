@@ -313,27 +313,25 @@ public class LifecycleManager {
 
     	splashService.worked(1);
        // init UN/CEFACT codes
-        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
-        	initializeCodes(unCefactCodeDAO, modelFactory);
-        } 
+//        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
+//        	initializeCodes(unCefactCodeDAO, modelFactory);
+//        } 
     	splashService.worked(1);
     	
     	// init salutations TODO activate!
-    	if(false) {
-	        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations")) == 0) {
-	        	ItemListTypeCategory salutationCategory = itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
-	        	ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-	        	
-	    		for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
-		        	ItemAccountType salutation = modelFactory.createItemAccountType();
-		        	salutation.setCategory(salutationCategory);
-		        	salutation.setName(msg.commonFieldSalutation + " " + contactUtil.getSalutationString(i));
-		        	salutation.setValue(contactUtil.getSalutationString(i));
-		        	itemAccountTypeDAO.save(salutation);
-	    		} 
-	        } 
-	    	splashService.worked(1);
-    	}
+//        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations")) == 0) {
+//        	ItemListTypeCategory salutationCategory = itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
+//        	ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+//        	
+//    		for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
+//	        	ItemAccountType salutation = modelFactory.createItemAccountType();
+//	        	salutation.setCategory(salutationCategory);
+//	        	salutation.setName(msg.commonFieldSalutation + " " + contactUtil.getSalutationString(i));
+//	        	salutation.setValue(contactUtil.getSalutationString(i));
+//	        	itemAccountTypeDAO.save(salutation);
+//    		} 
+//        } 
+    	splashService.worked(1);
     	
         try {
 			eclipsePrefs.flush();

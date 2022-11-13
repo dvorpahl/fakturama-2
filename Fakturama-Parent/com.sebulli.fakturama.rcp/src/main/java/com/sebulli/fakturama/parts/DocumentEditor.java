@@ -852,7 +852,6 @@ public class DocumentEditor extends Editor<Document> {
         comboViewerPayment = new ComboViewer(comboPayment);
         comboViewerPayment.setContentProvider(new EntityComboProvider());
         
- //       getCtx().getBindings()
         comboViewerPayment.setLabelProvider(new EntityLabelProvider());
         GridDataFactory.swtDefaults().hint(80, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(comboPayment);
 
@@ -1958,8 +1957,16 @@ public class DocumentEditor extends Editor<Document> {
 		if (paymentid != null) {
 			//Use the payment method of the customer
 			document.setPayment(paymentid);
+			int index = 0;
 			if (comboPayment != null) {
-				comboPayment.setText(paymentid.getName());
+			    for (int i = 0; i < comboPayment.getItems().length; i++) {
+                    if(comboPayment.getItems()[i].equals(paymentid.getDescription())) {
+                        index = i;
+                        break;
+                    }
+                    
+                }
+			    comboPayment.select(index);
 			}
 
 			usePayment(paymentid);
@@ -3212,8 +3219,12 @@ public class DocumentEditor extends Editor<Document> {
             case "Delivery":
                 // select a delivery note for creating a collective invoice 
                 Document[] selectedDeliveries = (Document[]) event.getProperty(DocumentsListTable.SELECTED_DELIVERY_ID);
+                
+                // sort by document date
+                List<Document> sortedList = Arrays.stream(selectedDeliveries).sorted((o1, o2) -> o1.getDocumentDate().compareTo(o2.getDocumentDate())).collect(Collectors.toList());
+                
                 // Get the array list of all selected elements
-                for (Document deliveryNote : selectedDeliveries) {
+                for (Document deliveryNote : sortedList) {
                     // Get all items by ID from the item string
                     List<DocumentItem> deliveryItems = deliveryNote.getItems().stream()
                             .sorted(Comparator.comparing(DocumentItem::getPosNr))
