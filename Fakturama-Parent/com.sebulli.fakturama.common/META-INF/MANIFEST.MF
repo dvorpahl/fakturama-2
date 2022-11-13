@@ -2,12 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fakturama Common
 Bundle-SymbolicName: com.sebulli.fakturama.common
-Bundle-Version: 2.1.2
+Bundle-Version: 2.1.3.qualifier
 Export-Package: com.sebulli.fakturama.common,
  com.sebulli.fakturama.exception,
  com.sebulli.fakturama.i18n,
  com.sebulli.fakturama.log,
- com.sebulli.fakturama.misc,
  com.sebulli.fakturama.misc,
  com.sebulli.fakturama.money
 Require-Bundle: org.eclipse.e4.core.services,

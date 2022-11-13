@@ -17,7 +17,6 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -100,9 +99,9 @@ public class ConfigurationManager {
 		// Get the program parameters
 
 		String[] args = (String[]) appContext.getArguments().get(IApplicationContext.APPLICATION_ARGS);
-		Option selectWorkspaceOpt = OptionBuilder.withArgName("workspace").hasArg().withLongOpt("workspace").withDescription(msg.commandSelectworkspaceTooltip).create("w");
-		Option persistState = OptionBuilder.withArgName(IWorkbench.PERSIST_STATE).hasArg().withLongOpt(IWorkbench.PERSIST_STATE).create("r");
-		Option showlocation = OptionBuilder.withArgName("showlocation").withLongOpt("showlocation").create("s");
+		Option selectWorkspaceOpt = Option.builder("w").argName("workspace").hasArg().longOpt("workspace").desc(msg.commandSelectworkspaceTooltip).build();
+		Option persistState = Option.builder("r").argName(IWorkbench.PERSIST_STATE).hasArg().longOpt(IWorkbench.PERSIST_STATE).build();
+		Option showlocation = Option.builder("s").argName("showlocation").longOpt("showlocation").build();
 
         // create Options object
         Options options = new Options();

@@ -185,6 +185,7 @@ public class SalesExporter extends OOCalcExporter {
 		}
 		setCellTextInBold(row, col++, msg.exporterDataInvoiceno);
 		setCellTextInBold(row, col++, msg.exporterDataInvoicedate);
+		setCellTextInBold(row, col++, msg.commonFieldNumber);
 		setCellTextInBold(row, col++, msg.commonFieldFirstname);
 		setCellTextInBold(row, col++, msg.commonFieldLastname);
 		setCellTextInBold(row, col++, msg.commonFieldCompany);
@@ -297,6 +298,7 @@ public class SalesExporter extends OOCalcExporter {
 
 			// Fill the address columns with the contact that corresponds to the addressid
 			if (addressid != null && addressid.getName() != null) {
+				setCellText(row, col++, addressid.getCustomerNumber());
 				setCellText(row, col++, addressid.getFirstName());
 				setCellText(row, col++, addressid.getName());
 				setCellText(row, col++, addressid.getCompany());
@@ -309,12 +311,12 @@ public class SalesExporter extends OOCalcExporter {
 			} else if(addressid != null && addressid.getManualAddress() != null) {
 				setCellText(row, col++, contactUtil.getDataFromAddressField(addressid.getManualAddress(), ContactUtil.KEY_FIRSTNAME));
 				setCellText(row, col++, contactUtil.getDataFromAddressField(addressid.getManualAddress(), ContactUtil.KEY_LASTNAME));
-				col += 3;
+				col += 4;
 			}
 			// ... or use the documents first line
 			else {
 				setCellText(row, col++, document.getAddressFirstLine());
-				col += 4;
+				col += 5;
 			}
 
 			setCellValueAsLocalCurrency(row, col++, Optional.ofNullable(document.getTotalValue()).orElse(Double.valueOf(0.0)));

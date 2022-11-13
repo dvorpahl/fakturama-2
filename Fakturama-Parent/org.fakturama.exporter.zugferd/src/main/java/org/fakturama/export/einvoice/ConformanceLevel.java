@@ -30,7 +30,7 @@ public enum ConformanceLevel {
     ZUGFERD_V2_COMFORT("urn:cen.eu:en16931:2017", "COMFORT"), 
     ZUGFERD_V2_EN16931("urn:cen.eu:en16931:2017", "COMFORT"), 
     
-    XRECHNUNG("urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_1.2", "COMFORT"), 
+    XRECHNUNG("urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.1", "COMFORT"), 
     
     ZUGFERD_V2_EXTENDED("urn:cen.eu:en16931:2017#conformant#urn:zugferd.de:2p0:extended", "EXTENDED"),
 

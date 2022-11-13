@@ -408,7 +408,7 @@ public class DocumentEditor extends Editor<Document> {
 		// set focus outside of address tab
 		txtCustomerRef.setFocus();
 
-		if (newDocument) {
+		if (newDocument || document.getId() == 0) {
 			// Check if the document number is the next one
 			if (!document.getBillingType().isLETTER()) {
 				int result = getNumberGenerator().setNextFreeNumberInPrefStore(txtName.getText(), getEditorID());
@@ -852,7 +852,6 @@ public class DocumentEditor extends Editor<Document> {
         comboViewerPayment = new ComboViewer(comboPayment);
         comboViewerPayment.setContentProvider(new EntityComboProvider());
         
- //       getCtx().getBindings()
         comboViewerPayment.setLabelProvider(new EntityLabelProvider());
         GridDataFactory.swtDefaults().hint(80, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(comboPayment);
 
@@ -1028,7 +1027,6 @@ public class DocumentEditor extends Editor<Document> {
 					break;
 				}
 		    	getMDirtyablePart().setDirty(true);
-		    	
 		    }
         }
 
@@ -1037,9 +1035,9 @@ public class DocumentEditor extends Editor<Document> {
 		Document parentDoc = document;
 		boolean duplicated = BooleanUtils.toBoolean(tmpDuplicate);
 
-		// The document is new, if there is no document, or if the
-		// flag for duplicated was set.
-		newDocument = (document == null) || duplicated;
+		// The document is new, if there is no document or if the
+		// flag for duplicated was set or if the document is a copy of another.
+		newDocument = document == null || duplicated;
 
 		// If new ..
 		if (newDocument) {
@@ -1421,7 +1419,7 @@ public class DocumentEditor extends Editor<Document> {
 		}
 		
 		// Get the sign of this document ( + or -)
-//		int sign = DocumentTypeUtil.findByBillingType(document.getBillingType()).getSign();
+		int sign = DocumentTypeUtil.findByBillingType(document.getBillingType()).getSign();
 		
 		// Get the discount value from the document or (if exists) from control element
 		Double rebate = java.util.Optional.ofNullable(document.getItemsRebate()).orElse(Double.valueOf(0.0));
@@ -1467,7 +1465,8 @@ public class DocumentEditor extends Editor<Document> {
         		.withScaleFactor(Double.valueOf(1.0))
         		.withNetGross(netgross)
         		.withDeposit(deposit)
-        		.withItemsDiscount(rebate);
+        		.withItemsDiscount(rebate)
+        		.withSign(sign);
         	
         } else {
 			sumCalcParam = new DocumentSummaryParam()
@@ -1480,7 +1479,8 @@ public class DocumentEditor extends Editor<Document> {
         		.withScaleFactor(Double.valueOf(1.0))
         		.withNetGross(netgross)
         		.withDeposit(deposit)
-        		.withItemsDiscount(rebate);
+        		.withItemsDiscount(rebate)
+        		.withSign(sign);
         }
         	
         documentSummary = documentSummaryManager.calculate(document, sumCalcParam);
@@ -1957,8 +1957,16 @@ public class DocumentEditor extends Editor<Document> {
 		if (paymentid != null) {
 			//Use the payment method of the customer
 			document.setPayment(paymentid);
+			int index = 0;
 			if (comboPayment != null) {
-				comboPayment.setText(paymentid.getName());
+			    for (int i = 0; i < comboPayment.getItems().length; i++) {
+                    if(comboPayment.getItems()[i].equals(paymentid.getDescription())) {
+                        index = i;
+                        break;
+                    }
+                    
+                }
+			    comboPayment.select(index);
 			}
 
 			usePayment(paymentid);
@@ -3211,8 +3219,12 @@ public class DocumentEditor extends Editor<Document> {
             case "Delivery":
                 // select a delivery note for creating a collective invoice 
                 Document[] selectedDeliveries = (Document[]) event.getProperty(DocumentsListTable.SELECTED_DELIVERY_ID);
+                
+                // sort by document date
+                List<Document> sortedList = Arrays.stream(selectedDeliveries).sorted((o1, o2) -> o1.getDocumentDate().compareTo(o2.getDocumentDate())).collect(Collectors.toList());
+                
                 // Get the array list of all selected elements
-                for (Document deliveryNote : selectedDeliveries) {
+                for (Document deliveryNote : sortedList) {
                     // Get all items by ID from the item string
                     List<DocumentItem> deliveryItems = deliveryNote.getItems().stream()
                             .sorted(Comparator.comparing(DocumentItem::getPosNr))

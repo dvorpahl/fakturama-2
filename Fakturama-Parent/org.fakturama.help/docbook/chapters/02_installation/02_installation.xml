@@ -15,9 +15,8 @@
 			<listitem>Mac OS X (ab Version 10.10 Yosemite)</listitem>
 			<listitem>Linux (64Bit)</listitem>
 		</itemizedlist>
-		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 11 notwendig. Zum Erstellen der Druckvorlagen und 
-		der PDFs sind OpenOffice.org bzw. LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im 
-		OpenOffice-Format ist kein OpenOffice/LibreOffice notwendig.</para>
+		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 11 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und 
+		der PDFs sind OpenOffice.org bzw. LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im OpenOffice-Format ist kein OpenOffice/LibreOffice notwendig (nur für die PDF-Dokumente).</para>
 		<itemizedlist>
 			<listitem>Downloadseite OpenOffice.org: <link xl:href="http://www.openoffice.org/">http://www.openoffice.org/</link></listitem>
 			<listitem>Downloadseite LibreOffice <link xl:href="http://www.libreoffice.org/">http://www.libreoffice.org/</link></listitem>
@@ -101,12 +100,23 @@
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
 				</inlinemediaobject> Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte OpenOffice (oder LibreOffice) und Java (ab Version 11) installiert sein. Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
-			<para>Alternativ können Sie auch die gepackte Archivdatei (*.tar.gz) herunterladen und in einem beliebigen Verzeichnis entpacken. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
-			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle 
-		Dokumente und Vorlagen abgelegt. Beispiel:</para>
+			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte OpenOffice (oder LibreOffice). Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk2</code> bzw. <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
+			<para>Alternativ kann auch die gepackte Archivdatei (*.tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
+			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle Dokumente und Vorlagen abgelegt. Beispiel:</para>
 			<programlisting>/home/Benutzername/Dokumente/MeineFirma/</programlisting>
 			<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
+			</para>
+			<para>Nach der Installation findet man Fakturama im Startmenü in der Rubrik "Büroanwendungen" (bzw. "Office"):
+			<informalfigure>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata fileref="../images/install/Kubuntu_launch_Fakturama.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="70%" fileref="../images/install/Kubuntu_launch_Fakturama.png" format="PNG" scalefit="1"/>
+					</imageobject>
+				</mediaobject>
+			</informalfigure>
 			</para>
 		</sect2>
 	</section>
@@ -202,6 +212,8 @@
 		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien OpenOffice bzw. LibreOffice installiert sein muss. Wenn Sie Ihre Dokumente nur im OpenOffice-Format erzeugen möchten benötigen Sie dieses Programm nicht unbedingt. 
 		Für die Erstellung von ZUGFeRD-Dokumenten müssen Sie einmalig im LibreOffice einen PDF-Export eines beliebigen Dokumentes durchführen und dabei als Option PDF/A einstellen.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">OpenOffice.org / LibreOffice Vorlagen</link>
+		</para>
+		<para>Für die Aktualisierung des Programms genügt es, den neuen Installer zu starten und dann die Option zum Aktualisieren der bestehenden Installation zu nutzen. Der Installer wurde jetzt so angepaßt, daß die Einstellungsdatei für die Darstellung der Oberfläche (<computeroutput>.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</computeroutput>) gelöscht wird. Allerdings funktioniert das nur für Standard-Installationen, da bei der Installation oder dem Update von Fakturama nicht festgestellt werden kann, welches Einstellungsverzeichnis verwendet wird (das können bei mehreren Mandanten auch mehrere Verzeichnisse sein). In dem Fall müßte die Datei manuell entfernt werden.		
 		</para>
 	</section>
 	<section>

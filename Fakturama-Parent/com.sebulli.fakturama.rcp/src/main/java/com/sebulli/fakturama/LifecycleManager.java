@@ -22,6 +22,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -312,27 +313,25 @@ public class LifecycleManager {
 
     	splashService.worked(1);
        // init UN/CEFACT codes
-        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
-        	initializeCodes(unCefactCodeDAO, modelFactory);
-        } 
+//        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
+//        	initializeCodes(unCefactCodeDAO, modelFactory);
+//        } 
     	splashService.worked(1);
     	
     	// init salutations TODO activate!
-    	if(false) {
-	        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations")) == 0) {
-	        	ItemListTypeCategory salutationCategory = itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
-	        	ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-	        	
-	    		for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
-		        	ItemAccountType salutation = modelFactory.createItemAccountType();
-		        	salutation.setCategory(salutationCategory);
-		        	salutation.setName(msg.commonFieldSalutation + " " + contactUtil.getSalutationString(i));
-		        	salutation.setValue(contactUtil.getSalutationString(i));
-		        	itemAccountTypeDAO.save(salutation);
-	    		} 
-	        } 
-	    	splashService.worked(1);
-    	}
+//        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations")) == 0) {
+//        	ItemListTypeCategory salutationCategory = itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
+//        	ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+//        	
+//    		for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
+//	        	ItemAccountType salutation = modelFactory.createItemAccountType();
+//	        	salutation.setCategory(salutationCategory);
+//	        	salutation.setName(msg.commonFieldSalutation + " " + contactUtil.getSalutationString(i));
+//	        	salutation.setValue(contactUtil.getSalutationString(i));
+//	        	itemAccountTypeDAO.save(salutation);
+//    		} 
+//        } 
+    	splashService.worked(1);
     	
         try {
 			eclipsePrefs.flush();
@@ -361,7 +360,8 @@ public class LifecycleManager {
     private void initializeCodes(UnCefactCodeDAO unCefactCodeDAO, FakturamaModelFactory modelFactory) {
     	try(InputStream wbStream = FrameworkUtil.getBundle(TemplateResourceManager.class).getResource(CODELISTS_XLSX).openStream();){
     		log.info("importing code lists from " + CODELISTS_XLSX);
-    		Workbook wb = WorkbookFactory.create(wbStream);
+//    		Workbook wb = WorkbookFactory.create(wbStream);
+    		Workbook wb = new XSSFWorkbook(wbStream);
     		Sheet sheet = wb.getSheetAt(0);
 			int rows = sheet.getPhysicalNumberOfRows();
 			// skip the first n rows

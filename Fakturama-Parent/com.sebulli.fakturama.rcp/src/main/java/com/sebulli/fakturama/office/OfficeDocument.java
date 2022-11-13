@@ -28,6 +28,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -65,10 +66,12 @@ import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.OSDependent;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.FileOrganizer.PathOption;
 import com.sebulli.fakturama.parts.DocumentEditor;
+import com.sebulli.fakturama.util.DocumentTypeUtil;
 
 public class OfficeDocument {
 
@@ -209,9 +212,11 @@ public class OfficeDocument {
                 if(generatedPdf != null) {
                     if (preferences.getBoolean(Constants.PREFERENCES_OPENPDF)) {
                         sync.asyncExec(() -> {
-                            if(!Program.launch(generatedPdf.toString())) {
-                                MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
-                            }
+                            String pdfProgramCall = OSDependent.getPDFProgramCall(generatedPdf.toString());
+                            Program programForPdf = Program.findProgram(".pdf");
+                            if (programForPdf == null || !programForPdf.execute(pdfProgramCall)) {
+							    MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
+							}
                         });
                     } else {
                         messages.add(msg.dialogPrintooPdfsuccessful);
@@ -238,7 +243,11 @@ public class OfficeDocument {
 
         boolean wasSaved = false;
         textdoc.getOfficeMetadata().setCreator(msg.applicationName);
-        textdoc.getOfficeMetadata().setTitle(String.format("%s - %s", document.getBillingType().getName(), document.getName()));
+        textdoc.getOfficeMetadata().setTitle(String.format("%s - %s", 
+                msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(document.getBillingType()).getSingularKey()), 
+                document.getName()));
+        textdoc.getOfficeMetadata().setCreator(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
+        textdoc.getOfficeMetadata().setCreationDate(Calendar.getInstance());
 
         documentPath = fo.getDocumentPath(pathOptions, TargetFormat.ODT, document);
         Path origFileName = documentPath.getFileName();

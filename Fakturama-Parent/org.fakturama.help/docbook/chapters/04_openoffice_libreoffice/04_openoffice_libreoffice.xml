@@ -309,6 +309,15 @@ id="04_openoffice_libreoffice">
 						<entry>Mahnstufe</entry>
 					</row>
 					<row>
+						<entry>INVOICE.SWISSCODE</entry>
+						<entry>Platzhalter für den Zahlschein mit einem Swiss-QRCode. Die Größe der Ausgabegraphik kann durch die Parameter <parameter>WIDTH</parameter>
+						und <parameter>HEIGHT</parameter> beeinflußt werden. Die Sprache innerhalb des SwissCode-Abschnittes kann durch die Einstellungen zur Währungssprache beeinflußt werden. Derzeit werden die folgenden Sprachen unterstützt: italienisch, deutsch, französisch, rätoromanisch, englisch.	Siehe auch <link linkend="preferences_general_currencylanguage">Einstellung Währungsland</link></entry>
+					</row>
+					<row>
+						<entry>INVOICE.GIROCODE</entry>
+						<entry>Platzhalter für einen GiroCode (Überweisungsdaten in einem QR Code)</entry>
+					</row>
+					<row>
 						<entry>SHIPPING.NET</entry>
 						<entry>Versandkosten (netto)</entry>
 					</row>
@@ -769,6 +778,11 @@ id="04_openoffice_libreoffice">
 						<entry>Creditor-ID</entry>
 					</row>
 					<row>
+						<entry>YOURCOMPANY.QRVCARD</entry>
+						<entry>VCard als QR-Code. Damit kann man die eigene Adresse so codieren, daß sie direkt 
+						mit dem Handy als Kontakt gespeichert werden kann.</entry>
+					</row>
+					<row>
 						<entry>ITEMS.DISCOUNT.VALUE</entry>
 						<entry>Bruttowert des skontierten Warenwertes.</entry>
 					</row>
@@ -1188,10 +1202,21 @@ id="04_openoffice_libreoffice">
 					<row>
 						<entry>ITEM.PICTURE</entry>
 						<entry>
-							<para>Platzhalter für das Produktbild. Die Größe des Bilder kann über die Parameter <emphasis role="bold">HEIGHT</emphasis> und <emphasis role="bold">WIDTH</emphasis> festgelegt werden.</para>
+							<para>Platzhalter für das Produktbild. Die Größe des Bildes kann über die Parameter <emphasis role="bold">HEIGHT</emphasis> und <emphasis role="bold">WIDTH</emphasis> festgelegt werden.</para>
 							<para>
 								<emphasis role="italic">Beispiel:</emphasis>
 								<emphasis role="bold">ITEM.PICTURE$WIDTH:200$HEIGHT:150</emphasis> Produktbild wird 200 x 150 Pixel groß.</para>
+						</entry>
+					</row>
+					<row>
+						<entry>ITEM.BARCODE</entry>
+						<entry>
+							<para>Platzhalter für den EAN-Code des Produktes (EAN-13). Die Größe des Bildes kann über die Parameter <emphasis role="bold">HEIGHT</emphasis> und <emphasis role="bold">WIDTH</emphasis> festgelegt werden.</para>
+							<para>
+								<emphasis role="italic">Beispiel:</emphasis>
+								<emphasis role="bold">ITEM.BARCODE$WIDTH:200$HEIGHT:150</emphasis> EAN-Code wird 200 x 150 Pixel groß.
+							</para>
+							<para>Falls die Artikelnummer aus den Artikelstammdaten keine Zahl ist, wird eine Fehlermeldung ausgegeben (im Fehlerfenster). Das Dokument wird aber trotzdem erstellt.</para>
 						</entry>
 					</row>
 					<row>

@@ -60,6 +60,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
@@ -412,7 +413,6 @@ public class ProductEditor extends Editor<Product> {
 			if (editorProduct.getPicture() != null) {
 
 				// Load the image, based on the picture name
-//				Image image = new Image(display, filename1 + filename2);
 				ByteArrayInputStream imgStream = new ByteArrayInputStream(editorProduct.getPicture());
 
 				labelProductPicture.setMaxImageWidth(250);
@@ -429,8 +429,8 @@ public class ProductEditor extends Editor<Product> {
 				}
 			}
 		}
-		catch (IOException e) {
-			// Show an error icon, if the picture is not found
+		catch (SWTException | IOException e) {
+			// Show an error icon if the picture is not found
 			try {
 				Image prodImage = resourceManager.getProgramImage(display, ProgramImages.NOT_FOUND_PICTURE);
 				labelProductPicture.setDefaultImage(prodImage);
@@ -797,7 +797,10 @@ public class ProductEditor extends Editor<Product> {
 		photoComposite.setBackground(new Color(null, 255, 255, 255));
 
 		// The picture name label
-		labelProductPicture = new FakturamaPictureControl(photoComposite, defaultValuePrefs, msg);
+        labelProductPicture = new FakturamaPictureControl(photoComposite/*, defaultValuePrefs, msg*/);
+        ContextInjectionFactory.inject(labelProductPicture, context);
+        
+//		labelProductPicture = ContextInjectionFactory.make(FakturamaPictureControl.class, context);
 //		GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).minSize(100, SWT.DEFAULT).grab(true, false).applyTo(photoComposite);
 
 //		 The picture path
