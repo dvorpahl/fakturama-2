@@ -39,7 +39,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
@@ -120,7 +119,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         group.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                booleanPropertyAction.setChecked(((Button)e.getSource()).getSelection());
+                booleanPropertyAction.setChecked(((CheckBoxGroup)e.getSource()).getSelection());
                 booleanPropertyAction.run();
             }
         });
