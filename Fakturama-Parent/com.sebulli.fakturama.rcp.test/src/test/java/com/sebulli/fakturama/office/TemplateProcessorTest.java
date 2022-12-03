@@ -1,6 +1,7 @@
 package com.sebulli.fakturama.office;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TemplateProcessorTest {
@@ -53,16 +54,23 @@ public class TemplateProcessorTest {
 		Assert.assertEquals("4. placeholder was not correctly substituted with param!", "", p.interpretParameters("DINGSDA$EXRANGE:0,6", "FooBar"));
 		Assert.assertEquals("5. placeholder was not correctly substituted with param!", "F", p.interpretParameters("DINGSDA$EXRANGE:2,nodeal", "FooBar"));
 	}
-
 	
-//	@Test
-//	public void testExtractParam() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testIsPlaceholder() {
-//		fail("Not yet implemented");
-//	}
-
+	@Test
+	@Ignore("can't be testet at the moment because of missing services")
+	public void tetGivenParameterForSubstitution_returnSubstitutedValue() {
+		
+//		IEclipseContext context = EclipseContextFactory.create();
+//		IPreferenceStore prefsMock = Mockito.mock(IPreferenceStore.class);
+//		INumberFormatterService numberServiceMock = new NumberFormatterService();
+//		context.set(IPreferenceStore.class, prefsMock);
+//		TemplateProcessor p = ContextInjectionFactory.make(TemplateProcessor.class, context);
+//		Assert.assertEquals("1. placeholder was not correctly substituted with param!", "Bemerkung:\nToast.", p.interpretParameters("DOCUMENT.MESSAGE$REPLACE:{Bemerkung: , }$PRE:Bemerkung:%NL", "Toast."));
+//		Assert.assertEquals("2. placeholder was not correctly substituted with param!", "3,25", 
+//				p.interpretParameters("ITEM.QUANTITY$FORMAT:0.00", "3.251"));
+//		Assert.assertEquals("3. placeholder was not correctly substituted with param!", "3,25", 
+//				p.interpretParameters("ITEM.QUANTITY$FORMAT:0.00", "3.25"));
+//		Assert.assertEquals("4. placeholder was not correctly substituted with param!", "3,20", 
+//				p.interpretParameters("ITEM.QUANTITY$FORMAT:0.00", "3.2"));
+		
+	}
 }
