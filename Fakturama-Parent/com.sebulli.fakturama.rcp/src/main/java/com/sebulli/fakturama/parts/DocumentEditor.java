@@ -3214,6 +3214,7 @@ public class DocumentEditor extends Editor<Document> {
 	                List<Product> selectedProducts = productsDAO.findSelectedProducts(selectedIds);
 	                addItemsToItemList(selectedProducts);
 	                isChanged = true;
+	                getItemsList().setFocus();
                 }
                 break;
             case "Delivery":
