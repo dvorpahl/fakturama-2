@@ -613,16 +613,30 @@ public class TemplateProcessor {
         // Get all available placeholders and set them
         Arrays.asList(Placeholder.values())
             .stream()
-            // 
-            .filter(p -> allPlaceholders.contains(String.format("%s%s%s", PlaceholderNavigation.PLACEHOLDER_PREFIX, p.getKey(), PlaceholderNavigation.PLACEHOLDER_SUFFIX)))
+            .filter(p -> checkIfPlaceholderIsPresent(p))            
             .forEach(p -> setCommonProperty(p, document, documentSummary));
+    }
+    
+    private boolean checkIfPlaceholderIsPresent(Placeholder placeholder) {
+        for (String string : allPlaceholders) {
+            if(getStrippedPlaceholder(string).equals(placeholder.getKey()))
+                return true;
+        }
+        
+        return false;
+    }
+    
+    private String getStrippedPlaceholder(String placeholder) {
+        return placeholder.contains("$") 
+                ? placeholder.substring(1).split("\\$")[0] 
+                : placeholder.substring(1, placeholder.length() - 1);
     }
     
     private void replaceNodeText(final PlaceholderNode placeholderNode) {
         // Get the placeholder's text
         String placeholderDisplayText = placeholderNode.getNodeText().toUpperCase();
         String text = replaceText(placeholderDisplayText);
-        if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE) {
+        if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE && StringUtils.isNotBlank(text)) {
             try {
                 int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
                 int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
