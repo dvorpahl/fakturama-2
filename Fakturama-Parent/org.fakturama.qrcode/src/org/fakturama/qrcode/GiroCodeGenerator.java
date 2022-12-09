@@ -2,15 +2,17 @@ package org.fakturama.qrcode;
 
 import java.io.ByteArrayOutputStream;
 import java.security.InvalidParameterException;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.Locale;
 
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.IDateFormatterService;
 import com.sebulli.fakturama.misc.INumberFormatterService;
@@ -34,6 +36,10 @@ public class GiroCodeGenerator {
     protected IPreferenceStore defaultValuePrefs;
 
     @Inject
+    @Translation
+    protected Messages msg;
+
+    @Inject
     private ILocaleService localeUtil;
 
     public byte[] createGiroCode(Invoice document, BankAccount companyBankaccount) {
@@ -42,7 +48,7 @@ public class GiroCodeGenerator {
         }
         Girocode girocode = new Girocode();
         
-        NumberFormat numberInstance = NumberFormat.getNumberInstance(Locale.US);
+        NumberFormat numberInstance = NumberFormat.getNumberInstance();
         numberInstance.setMinimumFractionDigits(2);
         numberInstance.setMaximumFractionDigits(2);
         
@@ -55,7 +61,8 @@ public class GiroCodeGenerator {
         girocode.setIban(companyBankaccount.getIban());
         girocode.setName(defaultValuePrefs.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
         girocode.setReference(document.getName());
-        girocode.setText("Rechnung vom " + dateFormatter.getFormattedLocalizedDate(document.getDocumentDate()));
+        String giroText = MessageFormat.format(msg.exporterGirocodePurpose, document.getName(),dateFormatter.getFormattedLocalizedDate(document.getDocumentDate())); 
+        girocode.setText(giroText);
         String generatedString = girocode.generateString();
         
         // since the version is hardcoded ("001") we have to use an ugly hack

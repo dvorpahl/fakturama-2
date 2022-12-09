@@ -474,7 +474,9 @@ public class Messages {
 	public String exporterDataWebshopname;
 	public String exporterDataWeight;
 	public String exporterFilenameTypeCsv;	
-	public String exporterFilename;	
+	public String exporterFilename;
+	public String exporterGirocodePurpose;
+	
 	public String wizardExportCommonFilterlabel;
 	public String wizardExportCommonDescription;
 	public String wizardExportCommonHeadline;
