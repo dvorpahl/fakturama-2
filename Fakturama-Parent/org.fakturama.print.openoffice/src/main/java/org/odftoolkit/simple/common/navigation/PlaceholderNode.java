@@ -139,16 +139,35 @@ public class PlaceholderNode extends Selection {
 	private void fillParams(String content) {
         // add params, if any
         if(content.contains("$")) {
-            String contentWithoutDelimiters = StringUtils.removeStart(StringUtils.removeEnd(content, ">"), "<");
+        	String contentWithoutDelimiters = StringUtils.removeStart(StringUtils.removeEnd(content, ">"), "<");
+// GS/20221209
+/*	reworked, reason:
+		- (1) unsafe re ArrayIndexOutOfBoundsException
+		- (2) misleading interpretation in regard to use of the ':' char in a parameter's value.
+	plus: added some comments for clarification
+*/
+        	// separate the individual parameters (maybe >= 0)
+        	// format: $<paramName>:<paramValue>
+        	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
             String[] splittedContent = contentWithoutDelimiters.split("\\$");
+            // note: splittedContent[0] is placeholderName
             for (int i = 1; i < splittedContent.length; i++) {
-                if(splittedContent[i].contains(":")) {
-                    String[] splittedParam = splittedContent[i].split("\\:");
-                    for (int j = 0; j < splittedParam.length; j=j+2) {
-                        params.put(splittedParam[j], splittedParam[j+1]);
+                if (splittedContent[i].contains(":")) {
+// GS/                    String[] splittedParam = splittedContent[i].split("\\:");
+                	// by definition (PDF documentation) a parameter has exactly one value
+                	// starting after ':' up to the end.
+                	// so, this allows to include the ':' character in the value w/o encoding
+                    String[] splittedParam = splittedContent[i].split("\\:", 2);
+// GS/ exactly ONE value
+//                    for (int j = 0; j < splittedParam.length; j=j+2) {
+//                        params.put(splittedParam[j], splittedParam[j+1]);
+//                    }
+                    if (splittedParam.length >= 1) { // just 2 B on the safe side
+                    	params.put(splittedParam[0], splittedParam[1]);
                     }
                 }
             }
+// GS/ -end-
         }
     }
 

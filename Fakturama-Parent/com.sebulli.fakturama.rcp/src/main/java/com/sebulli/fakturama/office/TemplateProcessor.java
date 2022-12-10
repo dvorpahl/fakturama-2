@@ -334,6 +334,11 @@ public class TemplateProcessor {
 	 * @return
 	 * 		The value modified by the parameters
 	 */
+// GS/20221209
+	String interpretParameters(final PlaceholderNode placeholderNode, final String pValue) {
+		String placeholder = StringUtils.removeStart(StringUtils.removeEnd(placeholderNode.getNode().getTextContent(), ">"), "<");
+		return interpretParameters(placeholder, pValue);
+	}
 	String interpretParameters(final String placeholder, final String pValue) {
 		int paramPos = placeholder.indexOf(PARAMETER_SEPARATOR);
 		
@@ -502,7 +507,9 @@ public class TemplateProcessor {
 	 */
 	public String getDocumentInfo(Document document, Optional<DocumentSummary> documentSummary, Placeholder placeholder) {
 		String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder);
-		return interpretParameters(placeholder.getKey(), value);
+// GS/20221209 totally useless as <placeholder.getKey()> may never contain parameter !!!
+//		return interpretParameters(placeholder.getKey(), value);
+		return value;
 	}
 	
     
@@ -735,6 +742,9 @@ public class TemplateProcessor {
                 placeholderNode.replaceWith(Path.of(text).toUri());
             }
         } else {
+// GS/20221209 here the parameters must be interpreted before
+//        	(I assume that's now the right place ... seems so after test)
+        	text = interpretParameters(placeholderNode, text);
             placeholderNode.replaceWith(text);
         }
     }
