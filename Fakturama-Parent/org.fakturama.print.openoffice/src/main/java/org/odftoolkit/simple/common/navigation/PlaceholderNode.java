@@ -487,7 +487,7 @@ public class PlaceholderNode extends Selection {
 		if (node instanceof OdfElement) {
             String nodeText = TextExtractor.getText((OdfElement) node);
             // only return the "base node text"
-            return nodeText.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
+            return nodeText; //.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
         }
 		return "";
 	}
