@@ -670,10 +670,7 @@ public class TemplateProcessor {
         
         // Convert CRLF to LF 
         value = DataUtils.getInstance().convertCRLF2LF(value);
-        
-        // Set the user defined text field
-//      addUserTextField(key, value);
-        
+
         // Extract parameters
         for (String placeholder : allPlaceholders) {
             if ( (placeholder.equals(PlaceholderNavigation.PLACEHOLDER_PREFIX + key+ PlaceholderNavigation.PLACEHOLDER_SUFFIX)) || 
@@ -730,8 +727,8 @@ public class TemplateProcessor {
         String text = replaceText(placeholderDisplayText);
         if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE && StringUtils.isNotBlank(text)) {
             try {
-                int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
-                int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
+                Integer width =  Integer.parseInt(placeholderNode.getParam("WIDTH"));
+                Integer height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
                 placeholderNode.replaceWith(Path.of(text).toUri(), width, height);
             } catch (NumberFormatException e) {
                 // fallback without width and height
@@ -815,7 +812,8 @@ public class TemplateProcessor {
             case YOURCOMPANY_BANK: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BANK);
             case YOURCOMPANY_IBAN: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN);
             case YOURCOMPANY_BIC: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC);
-            case YOURCOMPANY_QRVCARD: return createImageFile(qrCodeService.createVCardQRCode(document), null, "png").toString();
+			case YOURCOMPANY_QRVCARD:
+				return createImageFile(qrCodeService.createVCardQRCode(document), "png").toString();
             default:
                 break;
             }
@@ -885,30 +883,31 @@ public class TemplateProcessor {
 		if (key.equals("DOCUMENT.ITEMS.COUNT")) return String.format("%d", document.getItems().size());
 		
 		try {
-            if (key.equals("INVOICE.SWISSCODE")) {
-                if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), null, "png");
-                    return imageFile != null ? imageFile.toString() : "";
-                } else {
-                    return "";
-                }
-            }
-            
-            if (key.equals("INVOICE.GIROCODE")) {
-                if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), null, "png");
-                    return imageFile != null ? imageFile.toString() : "";
-                }
-                else return "";
-            }
-        } catch (InvalidParameterException e) {
-            StringBuilder msgDetail = new StringBuilder("Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
-            
-            Arrays.stream(StringUtils.split(e.getMessage(), '\n')).forEach(m -> addDetailError(msgDetail, m));
-            
-            MessageDialog.openError(null, msg.dialogMessageboxTitleError, msgDetail.toString());
-            return "";
-        }
+			if (key.equals("INVOICE.SWISSCODE")) {
+				if (document instanceof Invoice) {
+					Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), "png");
+					return imageFile != null ? imageFile.toString() : "";
+				} else {
+					return "";
+				}
+			}
+
+			if (key.equals("INVOICE.GIROCODE")) {
+				if (document instanceof Invoice) {
+					Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), "png");
+					return imageFile != null ? imageFile.toString() : "";
+				} else
+					return "";
+			}
+		} catch (InvalidParameterException e) {
+			StringBuilder msgDetail = new StringBuilder(
+					"Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
+
+			Arrays.stream(StringUtils.split(e.getMessage(), '\n')).forEach(m -> addDetailError(msgDetail, m));
+
+			MessageDialog.openError(null, msg.dialogMessageboxTitleError, msgDetail.toString());
+			return "";
+		}
 
 		if (key.startsWith("DOCUMENT.WEIGHT")) {
 			if (key.equals("DOCUMENT.WEIGHT.TARA"))
@@ -1494,11 +1493,6 @@ public class TemplateProcessor {
 
         // Set the text
         return cellPlaceholder.replaceWith(textValue);//Matcher.quoteReplacement(textValue)
-
-        // And also add it to the user defined text fields in the OpenOffice
-        // Writer document.
-//      addUserTextField(textKey, textValue, index);
-
     }
     
 
@@ -1799,33 +1793,34 @@ public class TemplateProcessor {
         // Get product picture
         else if (key.startsWith("ITEM.PICTURE")){
             
-            if (item.getPicture() != null) {
+			if (item.getPicture() != null) {
 
-                Pair<Integer, Integer> widthHeight = getCustomImageSize(cellPlaceholder);
-                Path imageFile = createImageFile(item.getPicture(), widthHeight, "JPG");
-                
-                if (imageFile != null) {
-                    // replace the placeholder
-                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
-                }
-                return;
-            }
+				Pair<Integer, Integer> widthHeight = getCustomImageSize(item.getPicture(), cellPlaceholder);
+				Path imageFile = createImageFile(item.getPicture(), "JPG");
+
+				if (imageFile != null) {
+					// replace the placeholder
+					cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+				}
+				return;
+			}
             
             value = "";
         }
         else if (key.startsWith("ITEM.BARCODE")){
             
-            if (item.getItemNumber() != null) {
-                
-                Pair<Integer, Integer> widthHeight = getCustomImageSize(cellPlaceholder);
-                Path imageFile = createImageFile(qrCodeService.createEANCode(item.getItemNumber()), widthHeight, "JPG");
-                
-                if (imageFile != null) {
-                    // replace the placeholder
-                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
-                }
-                return;
-            }
+			if (item.getItemNumber() != null) {
+
+				byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
+				Path imageFile = createImageFile(imageBytes, "JPG");
+
+				if (imageFile != null) {
+					Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
+					// replace the placeholder
+					cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+				}
+				return;
+			}
             
             value = "";
         }
@@ -1855,52 +1850,54 @@ public class TemplateProcessor {
         
         // Convert CRLF to LF 
         value = DataUtils.getInstance().convertCRLF2LF(value);
-
-        // If iText's string is not empty, use that string instead of the template
-//      String iTextString = iText.getText();
-//      if (!iTextString.isEmpty()) {
-//          cellText = iTextString;
-//      }
         
         // Set the text of the cell
 //      placeholderDisplayText = Matcher.quoteReplacement(placeholderDisplayText).replaceAll("\\{", "\\\\{").replaceAll("\\}", "\\\\}");
         cellPlaceholder.replaceWith(value); // Matcher.quoteReplacement(value) ???
-
-        // And also add it to the user defined text fields in the OpenOffice
-        // Writer document.
-//      addUserTextField(key, value, index);
     }
 
-    private Pair<Integer, Integer> getCustomImageSize(PlaceholderNode placeholder) {
-        String width_s = placeholder.getParam("WIDTH");
-        String height_s = placeholder.getParam("HEIGHT");
-        
-        // Default height and with
-        int pixelWidth = 0;
-        int pixelHeight = 0;
+	private Pair<Integer, Integer> getCustomImageSize(byte[] imageBytes, PlaceholderNode placeholder) {
+		String width_s = placeholder.getParam("WIDTH");
+		String height_s = placeholder.getParam("HEIGHT");
 
-        // Use the parameter values
-        try {
-            pixelWidth = Integer.parseInt(width_s);
-            pixelHeight = Integer.parseInt(height_s);
-        } catch (NumberFormatException e) {}
-        
-        // Use default values
-        if (pixelWidth < 1)
-            pixelWidth = 150;
-        if (pixelHeight < 1)
-            pixelHeight = 100;
-        return ImmutablePair.of(pixelWidth, pixelHeight);
-    }
+		// Default height and with
+		int pixelWidth = 0;
+		int pixelHeight = 0;
+
+		// Use the parameter values
+		try {
+			pixelWidth = Integer.parseInt(width_s);
+			pixelHeight = Integer.parseInt(height_s);
+		} catch (NumberFormatException e) {
+		}
+
+		// Use default values
+		try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
+
+			BufferedImage image = ImageIO.read(imgStream);
+			int pictureHeight = image.getHeight();
+			int pictureWidth = image.getWidth();
+
+			if (pixelWidth == 0 && pixelHeight == 0) {
+				pixelWidth = pictureWidth;
+				pixelHeight = pictureHeight;
+			} else {
+
+				if (pixelHeight <= 0 && pictureWidth > 0) {
+					pixelHeight = pictureHeight * pixelWidth / pictureWidth;
+				}
+				if (pixelWidth <= 0 && pictureHeight > 0) {
+					pixelWidth = pictureWidth * pixelHeight / pictureHeight;
+				}
+			}
+		} catch (IOException e) {
+            log.error("Can't get size from temporary image file. Reason: " + e);
+		}
+
+		return ImmutablePair.of(pixelWidth, pixelHeight);
+	}
     
-    private Path createImageFile(byte[] imageBytes, Pair<Integer, Integer> widthHeight, String formatName) {
-        int pictureHeight = 100;
-        int pictureWidth = 100;
-        double pictureRatio = 1.0;
-        double pixelRatio = 1.0;
-        
-        int pixelWidth=widthHeight != null ? widthHeight.getLeft() : 300;
-        int pixelHeight = widthHeight != null ? widthHeight.getRight() : 300;
+	private Path createImageFile(byte[] imageBytes, String formatName) {
         Path imageFile = null;
         
         if(imageBytes == null || imageBytes.length == 0) {
@@ -1911,27 +1908,6 @@ public class TemplateProcessor {
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
             
             BufferedImage image = ImageIO.read(imgStream);
-            pictureHeight = image.getHeight();
-            pictureWidth = image.getWidth();
-
-            // Calculate the ratio of the original image
-            if (pictureHeight > 0) {
-                pictureRatio = (double)pictureWidth/(double)pictureHeight;
-            }
-            
-            // Calculate the ratio of the placeholder
-            if (pixelHeight > 0) {
-                pixelRatio = (double)pixelWidth/(double)pixelHeight;
-            }
-            
-            // Correct the height and width of the placeholder 
-            // to match the original image
-            if ((pictureRatio > pixelRatio) &&  (pictureRatio != 0.0)) {
-                pixelHeight = (int) Math.round(((double)pixelWidth / pictureRatio));
-            }
-            if ((pictureRatio < pixelRatio) &&  (pictureRatio != 0.0)) {
-                pixelWidth = (int) Math.round(((double)pixelHeight * pictureRatio));
-            }
             
             // Generate the image
             String imageName = "tmpImage"+RandomStringUtils.randomAlphanumeric(8);
@@ -1941,22 +1917,6 @@ public class TemplateProcessor {
              * we have to convert it to a temporary image and insert that into the document.
              */
             imageFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), imageName);
-            
-            // FIXME Scaling doesn't work! :-(
-            // Therefore we "scale" the image manually by setting width and height inside result document
-            
-//          java.awt.Image scaledInstance = image.getScaledInstance(pixelWidth, pixelHeight, 0);
-//          BufferedImage bi = new BufferedImage(scaledInstance.getWidth(null),
-//                  scaledInstance.getHeight(null),
-//                  BufferedImage.TYPE_4BYTE_ABGR);
-//
-//          Graphics2D grph = (Graphics2D) bi.getGraphics();
-//          grph.scale(pictureRatio, pictureRatio);
-//
-//          // everything drawn with grph from now on will get scaled.
-//          grph.drawImage(image, 0, 0, null);
-//          grph.dispose();
-            // ============================================
 
             ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
             if (iis != null) {
@@ -1972,29 +1932,13 @@ public class TemplateProcessor {
             }
 
             ImageIO.write(image, formatName, imageFile.toFile());
-            
-            // with NoaLibre:
-//          GraphicInfo graphicInfo = null;
-//          graphicInfo = new GraphicInfo(new FileInputStream(imagePath),
-//                  pixelWidth,
-//                  true,
-//                  pixelHeight,
-//                  true,
-//                  VertOrientation.TOP,
-//                  HoriOrientation.LEFT,
-//                  TextContentAnchorType.AT_PARAGRAPH);
-//
-//          ITextContentService textContentService = textDocument.getTextService().getTextContentService();
-//          ITextDocumentImage textDocumentImage = textContentService.constructNewImage(graphicInfo);
-//          textContentService.insertTextContent(iText.getTextCursorService().getTextCursor().getEnd(), textDocumentImage);
-
-        }
+          }
         catch (IOException | IllegalArgumentException e) {
             log.error("Can't create temporary image file. Reason: " + e);
         }
         return imageFile;
     }
-    
+
     private void setUseSalesEquationTaxForDocument(boolean isSET) {
         this.useSET = isSET;
     }
@@ -2033,4 +1977,3 @@ public class TemplateProcessor {
         return properties;
     }
 }
-

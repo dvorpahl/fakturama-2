@@ -14,6 +14,7 @@
 
 package com.sebulli.fakturama.office;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystemException;
@@ -43,6 +44,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.events.IEventBroker;
@@ -369,7 +371,7 @@ public class OfficeDocument {
     private void cleanup() throws IOException {
         // remove temp images
         final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
-                "glob:"+preferences.getString(Constants.GENERAL_WORKSPACE).replaceAll("\\\\", "/")+"tmpImage*");
+                "glob:"+StringUtils.appendIfMissing(preferences.getString(Constants.GENERAL_WORKSPACE), String.valueOf(File.separatorChar)).replaceAll("\\\\", "/")+"tmpImage*");
         
         Files.walkFileTree(Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE)), new SimpleFileVisitor<Path>() {
             

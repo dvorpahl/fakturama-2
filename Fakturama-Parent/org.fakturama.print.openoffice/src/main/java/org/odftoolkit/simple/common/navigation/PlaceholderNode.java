@@ -140,12 +140,6 @@ public class PlaceholderNode extends Selection {
         // add params, if any
         if(content.contains("$")) {
         	String contentWithoutDelimiters = StringUtils.removeStart(StringUtils.removeEnd(content, ">"), "<");
-// GS/20221209
-/*	reworked, reason:
-		- (1) unsafe re ArrayIndexOutOfBoundsException
-		- (2) misleading interpretation in regard to use of the ':' char in a parameter's value.
-	plus: added some comments for clarification
-*/
         	// separate the individual parameters (maybe >= 0)
         	// format: $<paramName>:<paramValue>
         	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
@@ -153,7 +147,6 @@ public class PlaceholderNode extends Selection {
             // note: splittedContent[0] is placeholderName
             for (int i = 1; i < splittedContent.length; i++) {
                 if (splittedContent[i].contains(":")) {
-// GS/                    String[] splittedParam = splittedContent[i].split("\\:");
                 	// by definition (PDF documentation) a parameter has exactly one value
                 	// starting after ':' up to the end.
                 	// so, this allows to include the ':' character in the value w/o encoding
@@ -167,7 +160,6 @@ public class PlaceholderNode extends Selection {
                     }
                 }
             }
-// GS/ -end-
         }
     }
 
