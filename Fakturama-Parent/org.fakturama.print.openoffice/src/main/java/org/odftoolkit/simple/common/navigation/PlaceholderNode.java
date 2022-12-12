@@ -139,7 +139,16 @@ public class PlaceholderNode extends Selection {
 	private void fillParams(String content) {
         // add params, if any
         if(content.contains("$")) {
+        	// separate the individual parameters (maybe >= 0)
+        	// format: $<paramName>:<paramValue>
+        	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
         	String contentWithoutDelimiters = StringUtils.removeStart(StringUtils.removeEnd(content, ">"), "<");
+// GS/20221209
+/*	reworked, reason:
+		- (1) unsafe re ArrayIndexOutOfBoundsException
+		- (2) misleading interpretation in regard to use of the ':' char in a parameter's value.
+	plus: added some comments for clarification
+*/
         	// separate the individual parameters (maybe >= 0)
         	// format: $<paramName>:<paramValue>
         	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
@@ -498,7 +507,7 @@ public class PlaceholderNode extends Selection {
 		if (node instanceof OdfElement) {
             String nodeText = TextExtractor.getText((OdfElement) node);
             // only return the "base node text"
-            return nodeText; //.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
+            return nodeText.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
         }
 		return "";
 	}
