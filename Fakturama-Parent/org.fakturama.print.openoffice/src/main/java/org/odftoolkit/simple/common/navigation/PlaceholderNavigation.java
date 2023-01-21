@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -260,7 +259,11 @@ public class PlaceholderNavigation extends Navigation {
 			} else {
 				placeholderNode = new PlaceholderNode(item);
 				placeholderNode.setOwnerDocument(mDocument);
-				if(isImageIdentifier(placeholderNode.getNodeText())) {
+// GS/ [TPR]
+//				if (isImageIdentifier(placeholderNode.getNodeText())) {
+//				if (isImageIdentifier(PLACEHOLDER_PREFIX + placeholderNode.getPlaceholderKey() + PLACEHOLDER_SUFFIX)) {
+				if (isImageIdentifier(placeholderNode.getPlaceholderKey())) {
+// GS/ [TPR] -end-
 				    placeholderNode.setNodeType(PlaceholderNodeType.IMAGE_NODE);
 				}
 			}
@@ -295,10 +298,14 @@ public class PlaceholderNavigation extends Navigation {
         return tableIdentifierStrings;
     }
     
-    public boolean isImageIdentifier(String identifier) {
-        return Arrays.stream(imageIdentifiers)
-                .anyMatch(i -> StringUtils.appendIfMissing(StringUtils.prependIfMissing(i, PLACEHOLDER_PREFIX), PLACEHOLDER_SUFFIX).equalsIgnoreCase(identifier));
-    }
+	public boolean isImageIdentifier(String identifier) {
+// GS/ [TPR]
+//		return Arrays.stream(imageIdentifiers)
+//				.anyMatch(i -> StringUtils
+//						.appendIfMissing(StringUtils.prependIfMissing(i, PLACEHOLDER_PREFIX), PLACEHOLDER_SUFFIX)
+//						.equalsIgnoreCase(identifier));
+		return Arrays.asList(imageIdentifiers).contains(identifier);
+	}
 
     private Node getContainerNode(Node item, String urn, Class<?> clazz) {
 		if (item == null || item.getParentNode() == null) {
@@ -440,10 +447,12 @@ public class PlaceholderNavigation extends Navigation {
 	 * @param property
 	 * @return
 	 */
-	public void replaceEachWithValue(Properties properties) {
+// GS/ [TPR] seems unused?
+/*	public void replaceEachWithValue(Properties properties) {
 		while (hasNext()) {
 			PlaceholderNode item = nextSelection();
 			item.replaceWith(properties.getProperty(item.getNodeText()));
 		}
 	}
+*/
 }

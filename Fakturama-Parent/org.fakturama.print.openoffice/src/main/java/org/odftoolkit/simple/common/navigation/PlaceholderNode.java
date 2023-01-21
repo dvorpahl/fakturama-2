@@ -4,10 +4,8 @@
 package org.odftoolkit.simple.common.navigation;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
@@ -25,6 +23,7 @@ import org.odftoolkit.simple.draw.Image;
 import org.odftoolkit.simple.text.Span;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 
 /**
  * Container for a placeholder. With some additional information.
@@ -77,8 +76,35 @@ public class PlaceholderNode extends Selection {
 	 * flag which indicates that this node is inside the styles section
 	 */
 	private boolean styleNode;
+
+	/**
+	 * the extracted and uppercased placeholder key
+	 * null if node is no placeholder (node text is empty or does not start with placeholder prefix "<")
+	 */
+	final String placeholderKey;
+
+	public String getPlaceholderKey() {
+		return this.placeholderKey;
+	}
 	
-	final private Map<String, String> params = new HashMap<>();
+	/**
+	 * @param placeholder
+	 * @return true if placeholderKey != null
+	 */
+	public boolean isPlaceholder() {
+		return this.placeholderKey != null;
+	}
+	/**
+	 * @param placeholder
+	 * @return true if isPlaceholder() && placeholderKey.equals(placeholder)
+	 */
+	public boolean isPlaceholder(String placeholder) {
+		return (this.isPlaceholder() && this.placeholderKey.equals(placeholder));
+	}
+	
+// GS/ [TPR]
+	final private PlaceholderParameters params;
+//	final private Map<String, String> params = new HashMap<>();
 	
 	private Document ownerDocument;
 
@@ -124,6 +150,16 @@ public class PlaceholderNode extends Selection {
 		this.nodeType = nodeType;
 		// determine table type, if any
 		String content = node.getTextContent();
+// GS/ [TPR]
+		// w/o < and >
+		String theKey = null;
+		if (StringUtils.isNotBlank(content) && content.startsWith(PlaceholderNavigation.PLACEHOLDER_PREFIX)) {
+			theKey = StringUtils.removeStart(StringUtils.removeEnd(content, PlaceholderNavigation.PLACEHOLDER_SUFFIX), PlaceholderNavigation.PLACEHOLDER_PREFIX);
+			// w/ parameter(s)
+			theKey = theKey.contains("$") ? theKey.split("\\"+PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() : theKey.toUpperCase();
+		}
+		this.placeholderKey = theKey;
+// GS/ [TPR] -end-
 		if (tableType == null && nodeType == PlaceholderNodeType.TABLE_NODE && node != null
 		        && node.getNodeType() == Node.ELEMENT_NODE) {
 			if (StringUtils.defaultString(content).startsWith("<ITEM.")) {
@@ -133,44 +169,11 @@ public class PlaceholderNode extends Selection {
 			this.tableType = tableType;
 		}
 		this.styleNode = styleNode;
-		fillParams(content);
+// GS/ [TPR]
+//		fillParams(content);
+		params = PlaceholderParameters.of(content);
 	}
 
-	private void fillParams(String content) {
-        // add params, if any
-        if(content.contains("$")) {
-        	// separate the individual parameters (maybe >= 0)
-        	// format: $<paramName>:<paramValue>
-        	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
-        	String contentWithoutDelimiters = StringUtils.removeStart(StringUtils.removeEnd(content, ">"), "<");
-// GS/20221209
-/*	reworked, reason:
-		- (1) unsafe re ArrayIndexOutOfBoundsException
-		- (2) misleading interpretation in regard to use of the ':' char in a parameter's value.
-	plus: added some comments for clarification
-*/
-        	// separate the individual parameters (maybe >= 0)
-        	// format: $<paramName>:<paramValue>
-        	// '$' is not allowed in paramValue (must be encoded as "%DOLLAR")
-            String[] splittedContent = contentWithoutDelimiters.split("\\$");
-            // note: splittedContent[0] is placeholderName
-            for (int i = 1; i < splittedContent.length; i++) {
-                if (splittedContent[i].contains(":")) {
-                	// by definition (PDF documentation) a parameter has exactly one value
-                	// starting after ':' up to the end.
-                	// so, this allows to include the ':' character in the value w/o encoding
-                    String[] splittedParam = splittedContent[i].split("\\:", 2);
-// GS/ exactly ONE value
-//                    for (int j = 0; j < splittedParam.length; j=j+2) {
-//                        params.put(splittedParam[j], splittedParam[j+1]);
-//                    }
-                    if (splittedParam.length >= 1) { // just 2 B on the safe side
-                    	params.put(splittedParam[0], splittedParam[1]);
-                    }
-                }
-            }
-        }
-    }
 
     /**
 	 * Replace the text content of this placeholder with a new string. If the string is a multiline string (with 
@@ -316,52 +319,55 @@ public class PlaceholderNode extends Selection {
     }
     
 	public Node replaceWith(URI uri, Integer width, Integer height) {
-	    // find paragraph
+		// find paragraph
 		TextParagraphElementBase paragraphElement = (TextParagraphElementBase) findParentNode(
-		        TextPElement.ELEMENT_NAME.getQName(), getNode());
+				TextPElement.ELEMENT_NAME.getQName(), getNode());
 		// get selection
 		ImageSelection sel = new ImageSelection(getTextSelection(paragraphElement));
 		// replace image from URI
-        Image img = sel.replaceWithImage(uri);
-        
-        if(img == null) {
-            return null;
-        }
-        
-        // if scaling is needed
-        if(width != null) {
-        	img.getFrame().getDrawFrameElement().setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
-        }
-        
-        if(height != null) {
-        	img.getFrame().getDrawFrameElement().setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
-        }
-        
-        /* cleanup:
-         * The image was inserted inside the Placeholder tags. Therefore it wouldn't be visible if you
-         * open the document. Thus, we change the parent of the Frame element so that it hangs right
-         * before the placeholder tags. After this we have to delete the (now empty) placeholder tag
-         * because else some brackets would be left.
-        */
-        Node parentNode = getNode().getParentNode();
-        parentNode.insertBefore(img.getFrame().getDrawFrameElement(), getNode());
-        // if the placeholder has siblings only delete the placeholder
-        if (getNode().getPreviousSibling() != null || getNode().getNextSibling() != null) {
-            parentNode.removeChild(getNode());
-        } else {
-            // remove the placeholder node and all empty parent nodes up to the
-            // parent paragraph
-            Node currentNode = getNode();
-            while (!currentNode.getNodeName().contentEquals(TextPElement.ELEMENT_NAME.getQName())) {
-                if (currentNode.getNodeName().contentEquals(TextPlaceholderElement.ELEMENT_NAME.getQName()) || currentNode.getPreviousSibling() == null
-                        || currentNode.getNextSibling() == null) {
-                    parentNode = currentNode.getParentNode();
-                    parentNode.removeChild(currentNode);
-                }
-                currentNode = parentNode;
-            }
-            parentNode = currentNode.getParentNode();
-        }
+		Image img = sel.replaceWithImage(uri);
+
+		if (img == null) {
+			return null;
+		}
+
+		// if scaling is needed
+		if (width != null) {
+			img.getFrame().getDrawFrameElement()
+					.setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
+		}
+
+		if (height != null) {
+			img.getFrame().getDrawFrameElement()
+					.setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
+		}
+
+		/*
+		 * cleanup: The image was inserted inside the Placeholder tags. Therefore it
+		 * wouldn't be visible if you open the document. Thus, we change the parent of
+		 * the Frame element so that it hangs right before the placeholder tags. After
+		 * this we have to delete the (now empty) placeholder tag because else some
+		 * brackets would be left.
+		 */
+		Node parentNode = getNode().getParentNode();
+		parentNode.insertBefore(img.getFrame().getDrawFrameElement(), getNode());
+		// if the placeholder has siblings only delete the placeholder
+		if (getNode().getPreviousSibling() != null || getNode().getNextSibling() != null) {
+			parentNode.removeChild(getNode());
+		} else {
+			// remove the placeholder node and all empty parent nodes up to the
+			// parent paragraph
+			Node currentNode = getNode();
+			while (!currentNode.getNodeName().contentEquals(TextPElement.ELEMENT_NAME.getQName())) {
+				if (currentNode.getNodeName().contentEquals(TextPlaceholderElement.ELEMENT_NAME.getQName())
+						|| currentNode.getPreviousSibling() == null || currentNode.getNextSibling() == null) {
+					parentNode = currentNode.getParentNode();
+					parentNode.removeChild(currentNode);
+				}
+				currentNode = parentNode;
+			}
+			parentNode = currentNode.getParentNode();
+		}
 		return parentNode;
 	}
 
@@ -505,10 +511,16 @@ public class PlaceholderNode extends Selection {
 		if (node.getNodeType() == Node.TEXT_NODE)
 			return node.getNodeValue();
 		if (node instanceof OdfElement) {
-            String nodeText = TextExtractor.getText((OdfElement) node);
-            // only return the "base node text"
-            return nodeText.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
-        }
+// GS/ [TPR] always return the real (complete) text of the node as expected
+//				otherwise it might iterfere elsewere unexpected (as was with param handling)
+//				If needed, the extraction of the node/placeholder's key is done
+//				also the field placeholderKey was introduced.
+//			String nodeText = TextExtractor.getText((OdfElement) node);
+			// only return the "base node text"
+//			return nodeText.contains("$") ? StringUtils.appendIfMissing(nodeText.split("\\$")[0], ">") : nodeText;
+			return TextExtractor.getText((OdfElement) node);
+// GS/ [TPR] -end-
+		}
 		return "";
 	}
 
@@ -564,7 +576,9 @@ public class PlaceholderNode extends Selection {
     public void setOwnerDocument(Document ownerDocument) {
         this.ownerDocument = ownerDocument;
     }
-    
+
+// GS/ [TPR]
+/*
     public void addParam(String key, String value) {
         params.put(key, value);
     }
@@ -572,5 +586,14 @@ public class PlaceholderNode extends Selection {
     public String getParam(String key) {
         return params.get(key);
     }
+*/
+	public String getParameter(String key) {
+		return params.getParameterBody(key, null);
+	}
+	
+	public PlaceholderParameters getParameters(){
+		return this.params;
+	}
+// GS/ [TPR] -end-
 
 }
