@@ -55,7 +55,6 @@ public class PlaceholderNode extends Selection {
         public final String getKey() {
             return key;
         }
-		
 	}
 
 	private Node node;
@@ -102,9 +101,7 @@ public class PlaceholderNode extends Selection {
 		return (this.isPlaceholder() && this.placeholderKey.equals(placeholder));
 	}
 	
-// GS/ [TPR]
 	final private PlaceholderParameters params;
-//	final private Map<String, String> params = new HashMap<>();
 	
 	private Document ownerDocument;
 
@@ -150,7 +147,6 @@ public class PlaceholderNode extends Selection {
 		this.nodeType = nodeType;
 		// determine table type, if any
 		String content = node.getTextContent();
-// GS/ [TPR]
 		// w/o < and >
 		String theKey = null;
 		if (StringUtils.isNotBlank(content) && content.startsWith(PlaceholderNavigation.PLACEHOLDER_PREFIX)) {
@@ -159,7 +155,6 @@ public class PlaceholderNode extends Selection {
 			theKey = theKey.contains("$") ? theKey.split("\\"+PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() : theKey.toUpperCase();
 		}
 		this.placeholderKey = theKey;
-// GS/ [TPR] -end-
 		if (tableType == null && nodeType == PlaceholderNodeType.TABLE_NODE && node != null
 		        && node.getNodeType() == Node.ELEMENT_NODE) {
 			if (StringUtils.defaultString(content).startsWith("<ITEM.")) {
@@ -169,8 +164,6 @@ public class PlaceholderNode extends Selection {
 			this.tableType = tableType;
 		}
 		this.styleNode = styleNode;
-// GS/ [TPR]
-//		fillParams(content);
 		params = PlaceholderParameters.of(content);
 	}
 
@@ -512,7 +505,7 @@ public class PlaceholderNode extends Selection {
 			return node.getNodeValue();
 		if (node instanceof OdfElement) {
 // GS/ [TPR] always return the real (complete) text of the node as expected
-//				otherwise it might iterfere elsewere unexpected (as was with param handling)
+//				otherwise it might interfere elsewhere unexpected (as was with param handling)
 //				If needed, the extraction of the node/placeholder's key is done
 //				also the field placeholderKey was introduced.
 //			String nodeText = TextExtractor.getText((OdfElement) node);
@@ -577,23 +570,11 @@ public class PlaceholderNode extends Selection {
         this.ownerDocument = ownerDocument;
     }
 
-// GS/ [TPR]
-/*
-    public void addParam(String key, String value) {
-        params.put(key, value);
-    }
-    
-    public String getParam(String key) {
-        return params.get(key);
-    }
-*/
-	public String getParameter(String key) {
+    public String getParameter(String key) {
 		return params.getParameterBody(key, null);
 	}
 	
 	public PlaceholderParameters getParameters(){
 		return this.params;
 	}
-// GS/ [TPR] -end-
-
 }

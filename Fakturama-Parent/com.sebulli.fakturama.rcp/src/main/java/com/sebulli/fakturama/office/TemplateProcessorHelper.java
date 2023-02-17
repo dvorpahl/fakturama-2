@@ -116,11 +116,7 @@ public class TemplateProcessorHelper {
 	 * @param s String to convert
 	 * @return Converted
 	 */
-// GS/ [TPR] renamed as the functionality here is DEcode not ENcode!
-//	String encodeEntities(String s) {
 	static String decodeEntities(String s) {
-// GS/ [ADD TemplateParameters] avoid unnecessary processing
-//		if (StringUtils.length(s) > 0) {
 		if (StringUtils.length(s) > 0 && s.indexOf(PlaceholderParameters.PLACEHOLDER_ENTITY_CHAR) >= 0) {
 			s = s.replaceAll("%LT", "<");
 			s = s.replaceAll("%GT", ">");

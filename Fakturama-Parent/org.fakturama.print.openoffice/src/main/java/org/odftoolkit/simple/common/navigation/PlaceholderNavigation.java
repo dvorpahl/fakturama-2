@@ -259,11 +259,7 @@ public class PlaceholderNavigation extends Navigation {
 			} else {
 				placeholderNode = new PlaceholderNode(item);
 				placeholderNode.setOwnerDocument(mDocument);
-// GS/ [TPR]
-//				if (isImageIdentifier(placeholderNode.getNodeText())) {
-//				if (isImageIdentifier(PLACEHOLDER_PREFIX + placeholderNode.getPlaceholderKey() + PLACEHOLDER_SUFFIX)) {
 				if (isImageIdentifier(placeholderNode.getPlaceholderKey())) {
-// GS/ [TPR] -end-
 				    placeholderNode.setNodeType(PlaceholderNodeType.IMAGE_NODE);
 				}
 			}
@@ -299,11 +295,6 @@ public class PlaceholderNavigation extends Navigation {
     }
     
 	public boolean isImageIdentifier(String identifier) {
-// GS/ [TPR]
-//		return Arrays.stream(imageIdentifiers)
-//				.anyMatch(i -> StringUtils
-//						.appendIfMissing(StringUtils.prependIfMissing(i, PLACEHOLDER_PREFIX), PLACEHOLDER_SUFFIX)
-//						.equalsIgnoreCase(identifier));
 		return Arrays.asList(imageIdentifiers).contains(identifier);
 	}
 
@@ -311,7 +302,6 @@ public class PlaceholderNavigation extends Navigation {
 		if (item == null || item.getParentNode() == null) {
 			return null;
 		} else {
-			//if (StringUtils.equals(item.getParentNode().getNamespaceURI(), urn)) {
 			if (clazz.isInstance(item)) {
 				return item;
 			} else {
@@ -415,8 +405,6 @@ public class PlaceholderNavigation extends Navigation {
 		if (placeholderNode.getNodeType() == PlaceholderNodeType.TABLE_NODE) {
 			Node tRow = findContainerNodeWithName(placeholderNode.getNode(),
 			        TableTableRowElement.ELEMENT_NAME.getQName());
-			// PlaceholderTableRow row = new
-			// PlaceholderTableRow((TableTableRowElement) tRow);
 			odfRow = Row.getInstance((TableTableRowElement) tRow);
 		}
 		return odfRow;
@@ -440,19 +428,4 @@ public class PlaceholderNavigation extends Navigation {
 	public List<PlaceholderNode> getPlaceHolders() {
 		return placeHolders;
 	}
-
-	/**
-	 * Replaces each placeholder key with the content from the properties hash.
-	 *
-	 * @param property
-	 * @return
-	 */
-// GS/ [TPR] seems unused?
-/*	public void replaceEachWithValue(Properties properties) {
-		while (hasNext()) {
-			PlaceholderNode item = nextSelection();
-			item.replaceWith(properties.getProperty(item.getNodeText()));
-		}
-	}
-*/
 }

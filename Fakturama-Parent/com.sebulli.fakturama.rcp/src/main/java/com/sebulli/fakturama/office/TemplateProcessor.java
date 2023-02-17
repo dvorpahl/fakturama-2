@@ -68,6 +68,7 @@ import org.odftoolkit.simple.common.navigation.PlaceholderNode;
 import org.odftoolkit.simple.common.navigation.PlaceholderNode.PlaceholderNodeType;
 import org.odftoolkit.simple.common.navigation.PlaceholderNode.PlaceholderTableType;
 import org.odftoolkit.simple.common.navigation.PlaceholderParameters;
+import org.odftoolkit.simple.common.navigation.TemplateParameter;
 import org.odftoolkit.simple.table.Cell;
 import org.odftoolkit.simple.table.Row;
 import org.odftoolkit.simple.table.Table;
@@ -108,7 +109,6 @@ import com.sebulli.fakturama.model.DocumentReceiver;
 import com.sebulli.fakturama.model.Dunning;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
 import com.sebulli.fakturama.model.Invoice;
-//import com.sebulli.fakturama.model.ModelObject;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.qrcode.QRCodeService;
@@ -204,49 +204,22 @@ public class TemplateProcessor {
 	 *  	The string without them
 	 */
 	private String removeQuotationMarks(String s) {
-// GS/ [TPR] simplified
 		return StringUtils.removeStart(StringUtils.removeEnd(s.trim(), "\""), "\"");
-/*
-		// remove leading and trailing spaces
-		s = s.trim();
-
-		// Remove the leading
-		if (s.startsWith("\""))
-			s = s.substring(1);
-
-		// Remove the trailing
-		if (s.endsWith("\""))
-			s = s.substring(0, s.length() - 1);
-
-		return s;
-*/
 	}
 
 	/**
 	 * Replace the placeholder values by a value in a list
 	 * 
 	 * @param replacements
-	 * 		A list of replacements, separates by a ";"
-	 * 		eg: {"Belgien","BEL";"Dänemark","DNK"}
+	 * 		A list of replacements, separated by a ";"
+	 * 		e.g.: {"Belgien","BEL";"Dänemark","DNK"}
 	 * @param value
 	 * 		The input value
 	 * @return
 	 * 		The modified value
 	 */
 	private String replaceValues(String replacements, String value) {
-// GS/ [TPR] simplified
 		replacements = StringUtils.removeEnd(StringUtils.removeStart(replacements.trim(), "{"), "}");
-/*
-		// Remove spaces
-		replacements = replacements.trim();
-
-		// Remove the leading {
-		if (replacements.startsWith("{")) replacements = eplacements.substring(1);
-
-		// Remove the trailing }
-		if (replacements.endsWith("}")) replacements = replacements.substring(0, replacements.length() - 1);
-*/
-
 		String parts[] = replacements.split(";");
 
 		// Nothing to do
@@ -314,48 +287,48 @@ public class TemplateProcessor {
 	 * 		the parameters container object
 	 * @return
 	 * 		The value modified by the parameters</br>
-	 * 		or the unmodified value if params.isEmpty() == true
+	 * 		or the unmodified value if <code>params.isEmpty() == true</code>
 	 */
 	String applyParameters(final String value, final PlaceholderParameters params) {
 		String retval = value;
 		if (!params.isEmpty()) {
-			for(PlaceholderParameters.Parameter param: params.getParameters()) {
-				if (StringUtils.isNotBlank(param.key)) {
+			for(TemplateParameter param: params.getParameters()) {
+				if (StringUtils.isNotBlank(param.getKey())) {
 					// process the parameter
 					//   note: currently there are no (valid) params with an empty body
-					if (StringUtils.isNotEmpty(param.body)) {
+					if (StringUtils.isNotEmpty(param.getBody())) {
 						if (StringUtils.isEmpty(retval)) {
 							// params operating on an empty value
 							//   note: this switch is currently not really needed, just in place for easy extension
-							switch (param.key) {
+							switch (param.getKey()) {
 								case "EMPTY":
-									retval = param.body;
+									retval = param.getBody();
 									break;
 								default:
 									break; // do nothing
 							}
 						} else {
 							// params operating on a non-empty value
-							switch (param.key) {
+							switch (param.getKey()) {
 								case "PRE":
-									retval = param.body + retval;
+									retval = param.getBody() + retval;
 									break;
 								case "POST":
-									retval += param.body;
+									retval += param.getBody();
 									break;
 								case "INONELINE":
-									retval = StringInOneLine(retval, param.body);
+									retval = StringInOneLine(retval, param.getBody());
 									break;
 								case "REPLACE":
-									retval = replaceValues(param.body , retval);
+									retval = replaceValues(param.getBody() , retval);
 									break;
 								case "REPLACEREGEX": // GS/ [ADD TemplateParameters]
-									retval = replaceRegex(param.body , retval);
+									retval = replaceRegex(param.getBody() , retval);
 									break;
 								case "FORMAT":
 									try {
 										Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
-										retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.body);
+										retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.getBody());
 									}
 									catch (ParseException e) {
 										retval = "### NVL ###";
@@ -364,28 +337,28 @@ public class TemplateProcessor {
 								case "DFORMAT":
 									try {
 										GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-										SimpleDateFormat sdf = new SimpleDateFormat(param.body);
+										SimpleDateFormat sdf = new SimpleDateFormat(param.getBody());
 										retval = sdf.format(checkDate.getTime());
 									} catch (IllegalArgumentException e) {
 										retval = "### NVL ###";
 									}
 									break;
 								case "FIRST":
-									Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.body, retval.length());
+									Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
 									if (lengthFIRST.compareTo(Integer.valueOf(0)) >= 0) {
 										int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
 										retval = retval.substring(0, len);
 									}
 									break;
 								case "LAST":
-									Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.body, retval.length());
+									Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
 									if (lengthLAST.compareTo(Integer.valueOf(0)) >= 0) {
 										int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
 										retval = retval.substring(retval.length() - len);
 									}
 									break;
 								case "RANGE":
-									String[] boundariesRANGE = param.body.split(",");
+									String[] boundariesRANGE = param.getBody().split(",");
 									if(boundariesRANGE.length == 2) {
 										// for customer convenience we start counting from 1
 										Integer start = TemplateProcessorHelper.parseInteger(boundariesRANGE[0], 0) - 1;
@@ -397,8 +370,8 @@ public class TemplateProcessor {
 									}
 									break;
 								case "EXRANGE":
-									if (!param.body.isEmpty()) {
-										String[] boundariesEXRANGE = param.body.split(",");
+									if (!param.getBody().isEmpty()) {
+										String[] boundariesEXRANGE = param.getBody().split(",");
 										if (boundariesEXRANGE.length == 2) {
 											// for customer convenience we start counting from 1
 											Integer start = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[0], 0) - 1;
@@ -423,10 +396,10 @@ public class TemplateProcessor {
 							// so the retval is ready ('clean') for more processing (or return)
 							retval = TemplateProcessorHelper.decodeEntities(retval);
 						}
-					} // if (!paramBody.isEmpty())
-				} // if (!param.key.isEmpty())
+					}
+				} 
 			}
-		} // if (!params.isEmpty())
+		} 
 		return retval;
 	}
 
@@ -503,8 +476,7 @@ public class TemplateProcessor {
 				}
 				return result.toString();
 			} catch (ParserConfigurationException pcE) {
-				// TODO Auto-generated catch block
-				pcE.printStackTrace();
+				log.error(pcE, "Cannot parse template " + StringUtils.wrapIfMissing(template, "'"));
 				return template + "\nParserConfigurationException:\n"+pcE;
 			}
 		} else {
@@ -922,7 +894,6 @@ public class TemplateProcessor {
         if (key2.equals("ADDRESS.FIRSTLINE")) return document.getAddressFirstLine();
 		
 		// Get the contact of the UniDataSet document
-	
 		DocumentReceiver contact = billingAdress;
 		// There is a reference to a contact. Use this (but only if it's a valid contact!)
 		if (contact != null && (key.startsWith("ADDRESS") || key.startsWith(deliveryPrefix))) {
@@ -1357,10 +1328,9 @@ public class TemplateProcessor {
      * @return 
      */
 	private Node fillVatTableWithData(VatSummaryItem vatSummaryItem, PlaceholderNode cellPlaceholder) {
-// GS/ [TPR]
 		String key = vatSummaryItem.getVatName();
 		String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
-		// Get the text of the column. This is to determine, if it is the column
+		// Get the text of the column. This is to determine if it is the column
 		// with the VAT description or with the VAT value
 		String textValue = "";
 
@@ -1380,14 +1350,13 @@ public class TemplateProcessor {
 		}
 
 		// Set the text
-		return cellPlaceholder.replaceWith(textValue);// Matcher.quoteReplacement(textValue)
+		return cellPlaceholder.replaceWith(textValue);
 
     }
     
 
     private Node fillSalesEqualizationTaxTableWithData(VatSummaryItem vatSummaryItem, PlaceholderNode cellPlaceholder) {
-// GS/ [TPR]
-		// Get the text of the column. This is to determine, if it is the column
+		// Get the text of the column. This is to determine if it is the column
 		// with the VAT description or with the VAT value
 		String textValue = "";
 
@@ -1404,7 +1373,7 @@ public class TemplateProcessor {
 		}
 
 		// Set the text
-		return cellPlaceholder.replaceWith(textValue); // Matcher.quoteReplacement(textValue)
+		return cellPlaceholder.replaceWith(textValue);
     }
 
 	/**
@@ -1727,16 +1696,13 @@ public class TemplateProcessor {
 		}
 
         // Interpret all parameters
-// GS/ [TPR]
-//        value = interpretParameters(placeholder,value);
         value = applyParameters(value, cellPlaceholder.getParameters());
         
         // Convert CRLF to LF 
         value = DataUtils.getInstance().convertCRLF2LF(value);
 
         // Set the text of the cell
-//      placeholderDisplayText = Matcher.quoteReplacement(placeholderDisplayText).replaceAll("\\{", "\\\\{").replaceAll("\\}", "\\\\}");
-        cellPlaceholder.replaceWith(value); // Matcher.quoteReplacement(value) ???
+        cellPlaceholder.replaceWith(value);
     }
 
 	private Pair<Integer, Integer> getCustomImageSize(byte[] imageBytes, PlaceholderNode placeholder) {
@@ -1768,7 +1734,7 @@ public class TemplateProcessor {
 
         return ImmutablePair.of(pixelWidth, pixelHeight);
     }
-// GS/ [TPR] for GIROCODE and SWISSCODE
+
 	private Pair<Integer, Integer> getCustomImageSize(URI imageFileURI, PlaceholderNode placeholder) {
         // get height and with from parameters (if set), defaults to 0
         int pixelWidth = TemplateProcessorHelper.parseInt(placeholder.getParameter("WIDTH"), 0);
@@ -1863,14 +1829,12 @@ public class TemplateProcessor {
 	 * @param testPlaceholder
 	 * 		The placeholder to test
 	 * @return
-	 * 		TRUE, if the placeholder is in the list
+	 * 		TRUE if the placeholder is in the list
 	 */
 	public boolean isPlaceholder(String testPlaceholder) {
 		String placeholderKey = TemplateProcessorHelper.extractPlaceholderKey(testPlaceholder);
 		
 		// Test all placeholders
-// GS [TPR]
-//		return Arrays.stream(Placeholder.values()).anyMatch(p -> placeholderName.equals(p.getKey()));
 		return Placeholder.valueOfKey(placeholderKey) != null;
 	}
 

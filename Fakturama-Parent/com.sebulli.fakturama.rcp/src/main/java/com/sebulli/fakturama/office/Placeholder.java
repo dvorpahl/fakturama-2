@@ -227,7 +227,8 @@ public enum Placeholder {
 	DEBITOR_MANDATREF("DEBITOR.MANDATREF");
 
 	/*
-	 * only for completeness (not used / unnecessary placeholders) -VOUCHER_DONTBOOK
+	 * only for completeness (not used / unnecessary placeholders) 
+	 * -VOUCHER_DONTBOOK
 	 * -ADDRESS_RELIABILITY
 	 */
 
@@ -245,9 +246,8 @@ public enum Placeholder {
 		return Arrays.stream(values()).filter(p -> p.getKey().equalsIgnoreCase(key)).findFirst().orElse(null);
 	}
 
-// GS/ [TPR] for lookup
 	public static Placeholder valueOfKey(String key) {
-	    for (Placeholder p : values()) {
+		for (Placeholder p : values()) {
 	        if (p.key.equalsIgnoreCase(key)) {
 	            return p;
 	        }
