@@ -572,7 +572,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 		// (see Bug FAK-510)
 		// and if the number isn't assigned yet
 		if(StringUtils.isNotBlank(contact.getId())) {
-			if(contactsDAO.getContactWithSameNumber(contact.getId()) == null) {
+			if(contactsDAO.getContactWithSameNumber(contact.getId()) == null || preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER)) {
 				contactItem.setCustomerNumber(contact.getId());
 			} else {
 				log.error("Contact with customer number [" + contact.getId() + "] already exists! Please assign another customer number!");
@@ -772,7 +772,11 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 			 */
 			item.setName(newOrExistingProduct.getName());
 			item.setItemNumber(newOrExistingProduct.getItemNumber());
-			item.setDescription(newOrExistingProduct.getDescription() + prefixSb.toString());
+			String newDescription = newOrExistingProduct.getDescription() + prefixSb.toString();
+			if(StringUtils.isNotBlank(newDescription)) {
+				StringUtils.appendIfMissing(newDescription, "\n");
+			}
+			item.setDescription(newDescription + itemType.getShortDescription());
 			item.setQuantity(Double.valueOf(itemType.getQuantity()));
 			item.setQuantityUnit(StringUtils.isBlank(itemType.getQunit()) ? newOrExistingProduct.getQuantityUnit() : itemType.getQunit());
 			item.setValidFrom(today);

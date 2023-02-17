@@ -81,6 +81,7 @@ public class Constants {
      * 
      */
     public static final String PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR = "WEBSHOP_USE_EAN_AS_ITEMNR";
+    public static final String PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER = "WEBSHOP_OVERWRITE_CUSTOMERNUMBER";
     /**
      * 
      */

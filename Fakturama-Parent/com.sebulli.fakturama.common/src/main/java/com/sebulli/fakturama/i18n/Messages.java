@@ -829,6 +829,7 @@ public class Messages {
 	public String preferencesWebshopModifiedproducts;
 	public String preferencesWebshopNotifycustomerOnprogress;
 	public String preferencesWebshopNotifycustomerOnshipped;
+	public String preferencesWebshopOverwritecustno;
 	public String preferencesWebshopSettings;
 	public String preferencesWebshopUrl;
 	public String preferencesWebshopUser;
