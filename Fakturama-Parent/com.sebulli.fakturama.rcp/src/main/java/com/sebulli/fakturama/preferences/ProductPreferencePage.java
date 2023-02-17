@@ -77,35 +77,35 @@ public class ProductPreferencePage extends FieldEditorPreferencePage implements 
 
 		//T: Preference page "Product" - Label "Use description"
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_DESCRIPTION, msg.preferencesProductUsedescription, getFieldEditorParent()));
-
-		//T: Preference page "Product" - Label "Use gross or net or both"
-		addField(new RadioGroupFieldEditor(Constants.PREFERENCES_PRODUCT_USE_NET_GROSS, msg.preferencesProductNetorgrossprices, 3, new String[][] { 
-				{ msg.productDataNet, Integer.toString(Constants.PRODUCT_USE_NET) },
-				{ msg.productDataGross, Integer.toString(Constants.PRODUCT_USE_GROSS) },
-				//T: Preference page "Product" - Label "Use both: net and gross"
-				{ msg.preferencesProductNetandgross, Integer.toString(Constants.PRODUCT_USE_NET_AND_GROSS) } }, getFieldEditorParent()));
-
-		//T: Preference page "Product" - Label "Use scaled prices"
-		addField(new ComboFieldEditor(Constants.PREFERENCES_PRODUCT_SCALED_PRICES, msg.preferencesProductScaledprices, new String[][] { { "--", "1" }, { "2", "2" }, { "3", "3" }, { "4", "4" },
-				{ "5", "5" } }, getFieldEditorParent()));
-
+		
 		//T: Preference page "Product" - Label "Possibility to select the VAT"
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_VAT, msg.preferencesProductSelectvat, getFieldEditorParent()));
-
+		
 		//T: Preference page "Product" - Label "Use weight"
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_WEIGHT, msg.preferencesProductUseweight, getFieldEditorParent()));
 		
 		useQuantityCheckbox = new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_QUANTITY, msg.preferencesProductUsequantity, getFieldEditorParent());
 		addField(useQuantityCheckbox);
 		
+		//T: Preference page "Product" - Label "Use product picture"
+		addField(new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_PICTURE, msg.preferencesProductUsepicture, getFieldEditorParent()));
+
+		//T: Preference page "Product" - Label "Use scaled prices"
+		addField(new ComboFieldEditor(Constants.PREFERENCES_PRODUCT_SCALED_PRICES, msg.preferencesProductScaledprices, new String[][] { { "--", "1" }, { "2", "2" }, { "3", "3" }, { "4", "4" },
+				{ "5", "5" } }, getFieldEditorParent()));
+		
+		//T: Preference page "Product" - Label "Use gross or net or both"
+		addField(new RadioGroupFieldEditor(Constants.PREFERENCES_PRODUCT_USE_NET_GROSS, msg.preferencesProductNetorgrossprices, 3, new String[][] { 
+			{ msg.productDataNet, Integer.toString(Constants.PRODUCT_USE_NET) },
+			{ msg.productDataGross, Integer.toString(Constants.PRODUCT_USE_GROSS) },
+			//T: Preference page "Product" - Label "Use both: net and gross"
+			{ msg.preferencesProductNetandgross, Integer.toString(Constants.PRODUCT_USE_NET_AND_GROSS) } }, getFieldEditorParent()));
+
 		radioGroupQtyChange = new RadioGroupFieldEditor(Constants.PREFERENCES_PRODUCT_CHANGE_QTY, msg.preferencesProductQtyHeader, 3, new String[][] { 
 			{ msg.preferencesProductQtyChangeOrder, Constants.PREFERENCES_PRODUCT_CHANGE_QTY_ORDER },
 			{ msg.preferencesProductQtyChangeDelivery, Constants.PREFERENCES_PRODUCT_CHANGE_QTY_DELIVERY },
 			{ msg.preferencesProductQtyChangeInvoice, Constants.PREFERENCES_PRODUCT_CHANGE_QTY_INVOICE } }, getFieldEditorParent());
 		addField(radioGroupQtyChange);
-		
-		//T: Preference page "Product" - Label "Use product picture"
-		addField(new BooleanFieldEditor(Constants.PREFERENCES_PRODUCT_USE_PICTURE, msg.preferencesProductUsepicture, getFieldEditorParent()));
 	}
 	
 	@Override

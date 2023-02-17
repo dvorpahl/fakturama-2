@@ -698,6 +698,7 @@ public class Messages {
     public String preferencesDocumentCopydescfield;
     public String preferencesDocumentCopymsgfield;
     public String preferencesDocumentDisplaypreview;
+    public String preferencesDocumentImmediatelyovertake;
     public String preferencesDocumentLabelCompare;
     public String preferencesDocumentLabelDepositrow;
     public String preferencesDocumentLabelFinalrow;
