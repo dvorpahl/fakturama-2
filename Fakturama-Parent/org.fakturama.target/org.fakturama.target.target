@@ -30,6 +30,7 @@
 		<unit id="org.javamoney.feature.feature.group" version="1.0.2"/>
 		<unit id="org.slf4j.osgi.feature.feature.group" version="1.7.30"/>
 		<unit id="org.apache.odftoolkit.feature.feature.group" version="1.0.0.202208190954"/>
+		<unit id="org.mariadb.jdbc.feature.feature.group" version="3.0.7"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/nattable/releases/2.0.2/repository/"/>
@@ -361,6 +362,16 @@
 				<groupId>org.apache.xmlbeans</groupId>
 				<artifactId>xmlbeans</artifactId>
 				<version>5.1.0</version>
+				<type>jar</type>
+			</dependency>
+		</dependencies>
+	</location>
+	<location includeDependencyDepth="none" includeSource="true" missingManifest="generate" type="Maven">
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derby</artifactId>
+				<version>10.16.1.1</version>
 				<type>jar</type>
 			</dependency>
 		</dependencies>
