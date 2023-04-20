@@ -1264,7 +1264,7 @@ public class DocumentEditor extends Editor<Document> {
 		retval.setCustomerRef(parentDoc.getCustomerRef());
 		
 		// set current date as a default for service date
-	    retval.setServiceDate(Calendar.getInstance().getTime());
+	    retval.setServiceDate(parentDoc.getServiceDate());
 		retval.setOrderDate(parentDoc.getOrderDate());
 		if(parentDoc.getBillingType().isINVOICE()) {
 			retval.setInvoiceReference((Invoice) parentDoc);
