@@ -93,7 +93,7 @@ for arg in "$@"; do
    # enable some L10N (specific to MacOS)
    cd "${STAGING_DIR}"/${APP_NAME}.app/Contents/Resources
    echo "creating L10N directories..."
-   mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
+   mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj nl.proj no.proj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
    cd -
    
    # cp DS_Store ${STAGING_DIR}/.DS_Store
