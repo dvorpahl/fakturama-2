@@ -778,7 +778,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
   </mediaSets>
-  <buildIds buildAll="false">
+  <buildIds>
     <mediaSet refId="45" />
   </buildIds>
 </install4j>

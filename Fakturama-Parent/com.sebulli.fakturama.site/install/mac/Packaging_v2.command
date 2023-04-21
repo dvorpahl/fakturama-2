@@ -24,7 +24,7 @@ fi
 
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
-VERSION=2.1.3
+VERSION=2.1.3c
    
 # if not enough args displayed, display an error and die
 [ $# -eq 0 ] && die "Usage: $0 1|2 
@@ -202,6 +202,7 @@ for arg in "$@"; do
    if [ -f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ]; then
    	echo 'moving installer (tar.gz) to installer directory'
    	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz
+   	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.aarch64.tar.gz ../install/Installer_Fakturama_linux_aarch64_${VERSION}.tar.gz
    fi
    
    if [ -f ../install/Installer_Fakturama_windows-x64_${VERSION}.exe ]; then
