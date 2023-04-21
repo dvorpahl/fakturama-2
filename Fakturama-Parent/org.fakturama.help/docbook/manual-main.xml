@@ -194,6 +194,10 @@ Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
 <answer><para>
 siehe dazu den entsprechenden <link xl:href="https://www.fakturama.info/community/fakturama-2/umschalten-auf-mysql/">Foreneintrag</link>.
 Wichtig ist hier, als <code>bind-addr</code> <code>0.0.0.0</code> anzugeben.</para></answer></qandaentry>
+
+<qandaentry><question><para>Fehler: The table data is read only</para></question>
+<answer><para>Dies kann daran liegen, wenn eine Synchronisation auf ein entferntes Laufwerk (z. B. mit Seafile) eingerichtet ist. Das sorgt dafür, daß die Datenbank-Dateien gesperrt werden.
+Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß läuft, der die Tabellen gesperrt hat.</para></answer></qandaentry>
 	</qandadiv>
 	
 	<qandadiv>

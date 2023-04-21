@@ -10,6 +10,7 @@
  * 
  * Contributors:
  *     Gerd Bartelt - initial API and implementation
+ *     Gerd Schrick - 202301 major rework
  */
 
 package com.sebulli.fakturama.office;
@@ -17,6 +18,7 @@ package com.sebulli.fakturama.office;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
@@ -33,7 +35,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,9 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -63,6 +67,8 @@ import org.odftoolkit.simple.common.navigation.PlaceholderNavigation;
 import org.odftoolkit.simple.common.navigation.PlaceholderNode;
 import org.odftoolkit.simple.common.navigation.PlaceholderNode.PlaceholderNodeType;
 import org.odftoolkit.simple.common.navigation.PlaceholderNode.PlaceholderTableType;
+import org.odftoolkit.simple.common.navigation.PlaceholderParameters;
+import org.odftoolkit.simple.common.navigation.TemplateParameter;
 import org.odftoolkit.simple.table.Cell;
 import org.odftoolkit.simple.table.Row;
 import org.odftoolkit.simple.table.Table;
@@ -75,6 +81,7 @@ import org.w3c.dom.NodeList;
 import com.ibm.icu.text.NumberFormat;
 import com.ibm.icu.util.ULocale;
 import com.sebulli.fakturama.Activator;
+import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
 import com.sebulli.fakturama.converter.CommonConverter;
 import com.sebulli.fakturama.dao.AddressDAO;
 import com.sebulli.fakturama.dao.ContactsDAO;
@@ -102,7 +109,6 @@ import com.sebulli.fakturama.model.DocumentReceiver;
 import com.sebulli.fakturama.model.Dunning;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
 import com.sebulli.fakturama.model.Invoice;
-//import com.sebulli.fakturama.model.ModelObject;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.qrcode.QRCodeService;
@@ -115,69 +121,63 @@ import com.sebulli.fakturama.util.DocumentTypeUtil;
  */
 public class TemplateProcessor {
 
-    public static final int COUNT_OF_LAST_SHOWN_DIGITS = 3; 
-	    
-    @Inject
-    @Translation
-    protected Messages msg;
+	public static final int COUNT_OF_LAST_SHOWN_DIGITS = 3;
 
-    @Inject
-    private IEclipseContext context;
-    
+	@Inject
+	@Translation
+	protected Messages msg;
+
+	@Inject
+	private IEclipseContext context;
+
 	@Inject
 	private ContactsDAO contactsDAO;
 
 	@Inject
 	private AddressDAO addressDAO;
 
-    @Inject
-    private ILogger log;
-    
-    @Inject
-    private DocumentReceiverDAO documentReceiverDao;
+	@Inject
+	private ILogger log;
 
-    @Inject
-    private IDateFormatterService dateFormatterService;
-    
+	@Inject
+	private DocumentReceiverDAO documentReceiverDao;
+
+	@Inject
+	private IDateFormatterService dateFormatterService;
+
 	@Inject
 	private INumberFormatterService numberFormatterService;
 
 	@Inject
 	private ILocaleService localeUtil;
 
-    @Inject
-    private IPreferenceStore preferences;
-    
-    @Inject
-    private IDocumentAddressManager addressManager;
-    
-    private QRCodeService qrCodeService;
-    
-    /**
+	@Inject
+	private IPreferenceStore preferences;
+
+	@Inject
+	private IDocumentAddressManager addressManager;
+
+	private QRCodeService qrCodeService;
+
+	/**
      * Checks if the current editor uses sales equalization tax (this is only needed for some customers).
-     */
-    private boolean useSET = false;
+	 */
+	private boolean useSET = false;
 
-    private List<String> allPlaceholders;
-
-    /** A list of properties that represents the placeholders of the
-     OpenOffice Writer template */
-    private Properties properties;
 	private static NumberFormat localizedNumberFormat = NumberFormat.getInstance(ULocale.getDefault());
 
-    private ContactUtil contactUtil;
+	private ContactUtil contactUtil;
 
-    private final TemplateProcessorHelper templateProcessorHelper = new TemplateProcessorHelper();
+	@PostConstruct
+	public void init() throws InvalidSyntaxException {
+		contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+		ServiceReference<QRCodeService> serviceReference = Activator.getContext().getServiceReference(QRCodeService.class);
+		if (serviceReference != null) {
+			qrCodeService = Activator.getContext().getService(serviceReference);
+			ContextInjectionFactory.inject(qrCodeService, context);
+		}
+	}
 
-    @PostConstruct
-    public void init() throws InvalidSyntaxException {
-        contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-        ServiceReference<QRCodeService> serviceReference = Activator.getContext().getServiceReference(QRCodeService.class);
-        if(serviceReference != null) {
-            qrCodeService = Activator.getContext().getService(serviceReference);
-            ContextInjectionFactory.inject(qrCodeService, context);
-        }
-    }
 	/**
 	 * Replaces all line breaks by a "-"
 	 * 
@@ -189,7 +189,7 @@ public class TemplateProcessor {
 	 * 	The string in one line, seperated by a "-"
 	 */
 	private String StringInOneLine(String s, String replacement) {
-		// Convert CRLF to LF 
+		// Convert CRLF to LF
 		s = DataUtils.getInstance().convertCRLF2LF(s).trim();
 		// Replace line feeds by a " - "
 		s = s.replaceAll("\\n", replacement);
@@ -197,208 +197,224 @@ public class TemplateProcessor {
 	}
 
 	/**
-	 * Removes the quotation marks of a String
+	 * Trims the String and removes the quotation marks (if any)
 	 * @param s
-	 * 	The string with quotation marks
+	 * 		The string with quotation marks
 	 * @return
-	 *  The string without them
+	 *  	The string without them
 	 */
 	private String removeQuotationMarks(String s) {
-		
-		// remove leading and trailing spaces
-		s = s.trim();
-		
-		// Remove the leading
-		if (s.startsWith("\""))
-			s = s.substring(1);
-
-		// Remove the trailing
-		if (s.endsWith("\""))
-			s = s.substring(0, s.length() - 1);
-		
-		return s;
+		return StringUtils.removeStart(StringUtils.removeEnd(s.trim(), "\""), "\"");
 	}
-	
+
 	/**
 	 * Replace the placeholder values by a value in a list
 	 * 
 	 * @param replacements
-	 * 		A list of replacements, separates by a ";"
-	 * 		eg: {"Belgien","BEL";"Dänemark","DNK"}
+	 * 		A list of replacements, separated by a ";"
+	 * 		e.g.: {"Belgien","BEL";"Dänemark","DNK"}
 	 * @param value
 	 * 		The input value
 	 * @return
 	 * 		The modified value
 	 */
 	private String replaceValues(String replacements, String value) {
-		
-		// Remove spaces
-		replacements = replacements.trim();
-		
-		// Remove the leading {
-		if (replacements.startsWith("{"))
-			replacements = replacements.substring(1);
-
-		// Remove the trailing }
-		if (replacements.endsWith("}"))
-			replacements = replacements.substring(0, replacements.length() - 1);
-
+		replacements = StringUtils.removeEnd(StringUtils.removeStart(replacements.trim(), "{"), "}");
 		String parts[] = replacements.split(";");
 
 		// Nothing to do
 		if (parts.length < 1)
 			return value;
-		
+
 		// get all parts
 		for (String part : parts) {
 			String twoStrings[] = part.split(",");
 			if (twoStrings.length == 2) {
-				
-				//Escape sequences...
-				twoStrings[0] = templateProcessorHelper.encodeEntities(removeQuotationMarks(twoStrings[0]));
-			    
+
+				// Escape sequences...
+				twoStrings[0] = TemplateProcessorHelper.decodeEntities(removeQuotationMarks(twoStrings[0]));
+
 				// Replace the value, if it is equal to the entry
-				if (DataUtils.getInstance().replaceAllAccentedChars(templateProcessorHelper.encodeEntities(value)).equalsIgnoreCase(
-				        DataUtils.getInstance().replaceAllAccentedChars(twoStrings[0]))) {
+				if (DataUtils.getInstance().replaceAllAccentedChars(TemplateProcessorHelper.decodeEntities(value)).equalsIgnoreCase(
+						DataUtils.getInstance().replaceAllAccentedChars(twoStrings[0]))) {
 					value = removeQuotationMarks(twoStrings[1]);
 					return value;
 				}
 			}
 		}
-		
+
 		return value;
+	}
+
+	/**
+	 * Replace the placeholder value by use of Java's {@link String#replaceAll(String, String)}
+	 * 
+	 * @param replacement
+	 * 		format: "regex", "replacement"
+	 * @param value
+	 * 		The input value
+	 * @return
+	 * 		The modified value
+	 */
+	private String replaceRegex(String replacement, String value) {
+		// split (comma may be used in the parameters)
+		String parts[] = replacement.split("\"\\s*,\\s*\"");
+
+		// prepare params
+		String regex = TemplateProcessorHelper.decodeEntities(parts[0]);
+		if (regex.length() < 1) {
+			// nothing to do
+			return value;
+		}
+		String replaceBy = parts.length >= 2 ? parts[1] : "";
+		replaceBy = TemplateProcessorHelper.decodeEntities(replaceBy);
+		
+		try {
+			return value.replaceAll(regex, replaceBy);
+		} catch (Exception e) {
+			log.error("\nException in $REPLACEREGEX:"+replacement+"\nReason: " + e);
+			return value;
+		}
 	}
 	
 	/**
-	 * Interprets the placeholder parameters
+	 * Applies the parameters to the value</br>
+	 * (parameters in placeholder can be chained/repeated)
+	 * 
+	 * @param value
+	 * 		The value the parameters are applied to
+	 * @param params
+	 * 		the parameters container object
+	 * @return
+	 * 		The value modified by the parameters</br>
+	 * 		or the unmodified value if <code>params.isEmpty() == true</code>
+	 */
+	String applyParameters(final String value, final PlaceholderParameters params) {
+		String retval = value;
+		if (!params.isEmpty()) {
+			for(TemplateParameter param: params.getParameters()) {
+				if (StringUtils.isNotBlank(param.getKey())) {
+					// process the parameter
+					//   note: currently there are no (valid) params with an empty body
+					if (StringUtils.isNotEmpty(param.getBody())) {
+						if (StringUtils.isEmpty(retval)) {
+							// params operating on an empty value
+							//   note: this switch is currently not really needed, just in place for easy extension
+							switch (param.getKey()) {
+								case "EMPTY":
+									retval = param.getBody();
+									break;
+								default:
+									break; // do nothing
+							}
+						} else {
+							// params operating on a non-empty value
+							switch (param.getKey()) {
+								case "PRE":
+									retval = param.getBody() + retval;
+									break;
+								case "POST":
+									retval += param.getBody();
+									break;
+								case "INONELINE":
+									retval = StringInOneLine(retval, param.getBody());
+									break;
+								case "REPLACE":
+									retval = replaceValues(param.getBody() , retval);
+									break;
+								case "REPLACEREGEX": // GS/ [ADD TemplateParameters]
+									retval = replaceRegex(param.getBody() , retval);
+									break;
+								case "FORMAT":
+									try {
+										Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
+										retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.getBody());
+									}
+									catch (ParseException e) {
+										retval = "### NVL ###";
+									}
+									break;
+								case "DFORMAT":
+									try {
+										GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
+										SimpleDateFormat sdf = new SimpleDateFormat(param.getBody());
+										retval = sdf.format(checkDate.getTime());
+									} catch (IllegalArgumentException e) {
+										retval = "### NVL ###";
+									}
+									break;
+								case "FIRST":
+									Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
+									if (lengthFIRST.compareTo(Integer.valueOf(0)) >= 0) {
+										int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
+										retval = retval.substring(0, len);
+									}
+									break;
+								case "LAST":
+									Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
+									if (lengthLAST.compareTo(Integer.valueOf(0)) >= 0) {
+										int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
+										retval = retval.substring(retval.length() - len);
+									}
+									break;
+								case "RANGE":
+									String[] boundariesRANGE = param.getBody().split(",");
+									if(boundariesRANGE.length == 2) {
+										// for customer convenience we start counting from 1
+										Integer start = TemplateProcessorHelper.parseInteger(boundariesRANGE[0], 0) - 1;
+										Integer end = TemplateProcessorHelper.parseInteger(boundariesRANGE[1], retval.length());
+										if (end.compareTo(Integer.valueOf(0)) >= 0 ) {
+											int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+											retval = len == 0 ? "" : retval.substring(start, len);
+										}
+									}
+									break;
+								case "EXRANGE":
+									if (!param.getBody().isEmpty()) {
+										String[] boundariesEXRANGE = param.getBody().split(",");
+										if (boundariesEXRANGE.length == 2) {
+											// for customer convenience we start counting from 1
+											Integer start = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[0], 0) - 1;
+											Integer end = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[1], retval.length());
+											if (end.compareTo(Integer.valueOf(0)) >= 0) {
+												int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+												if (len == 0) {
+													retval = "";
+												} else {
+													String first = retval.substring(0, Math.max(0, start));
+													String last = retval.substring(len, retval.length());
+													retval = first + last;
+												}
+											}
+										}
+									}
+									break;
+								default:
+									break; // do nothing
+							}
+							// intermediate encode special entities that may have been added by a parameter processing
+							// so the retval is ready ('clean') for more processing (or return)
+							retval = TemplateProcessorHelper.decodeEntities(retval);
+						}
+					}
+				} 
+			}
+		} 
+		return retval;
+	}
+
+	/**
+	 * GS/ [TPR] legacy - only called in TemplateProcessorTest (shall be updated)
 	 * 
 	 * @param placeholder
-	 * 		Name of the placeholder
+	 * 		The placeholder with parameter(s)
 	 * @param value
 	 * 		The value
 	 * @return
 	 * 		The value modified by the parameters
 	 */
-	String interpretParameters(final String placeholder, final String pValue) {
-		String par;
-		String retval = pValue;
-		
-		if (retval == null)
-			return retval;
-		
-		// The parameters "PRE" and "POST" are only used if the
-		// placeholder value is not empty
-		if (!retval.isEmpty()) {
-			
-			// Parameter "PRE"
-			par = templateProcessorHelper.extractParam(placeholder,"PRE");
-			if (!par.isEmpty())
-					retval =  removeQuotationMarks(par) + retval;
-
-			// Parameter "POST"
-			par = templateProcessorHelper.extractParam(placeholder,"POST");
-			if (!par.isEmpty())
-					retval += removeQuotationMarks(par);
-
-			// Parameter "INONELINE"
-			par = templateProcessorHelper.extractParam(placeholder,"INONELINE");
-			if (!par.isEmpty())
-				retval = StringInOneLine(retval, removeQuotationMarks(par));
-
-			// Parameter "REPLACE"
-			par = templateProcessorHelper.extractParam(placeholder,"REPLACE");
-			if (!par.isEmpty())
-				retval = replaceValues(removeQuotationMarks(par) , retval);
-
-			// Parameter "FORMAT"
-			par = templateProcessorHelper.extractParam(placeholder,"FORMAT");
-			if (!par.isEmpty()) {
-				try {
-					Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
-					retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, par);
-				}
-				catch (ParseException e) {
-					retval = "### NVL ###";
-				}
-			}
-
-			// Parameter "DFORMAT"
-			par = templateProcessorHelper.extractParam(placeholder, "DFORMAT");
-			if (!par.isEmpty()) {
-				try {
-					GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-					SimpleDateFormat sdf = new SimpleDateFormat(par);
-					retval = sdf.format(checkDate.getTime());
-				} catch (IllegalArgumentException e) {
-					retval = "### NVL ###";
-				}
-			}
-			
-			// extract first n characters from string
-			par = templateProcessorHelper.extractParam(placeholder, "FIRST");
-			if (!par.isEmpty()) {
-				Integer length = templateProcessorHelper.extractLengthFromParameter(par, retval.length());
-				if (length.compareTo(Integer.valueOf(0)) >= 0) {
-					int len = length.compareTo(retval.length()) < 0 ? length : retval.length();
-					retval = retval.substring(0, len);
-				}
-			}
-			
-			// extract last n characters from string
-			par = templateProcessorHelper.extractParam(placeholder, "LAST");
-			if (!par.isEmpty()) {
-				Integer length = templateProcessorHelper.extractLengthFromParameter(par, retval.length());
-				if (length.compareTo(Integer.valueOf(0)) >= 0) {
-					int len = length.compareTo(retval.length()) < 0 ? length : retval.length();
-					retval = retval.substring(retval.length() - len);
-				}
-			}
-			
-			// extract range from n to m characters from string
-			par = templateProcessorHelper.extractParam(placeholder, "RANGE");
-			if(!par.isEmpty()) {
-				String[] boundaries = par.split(",");
-				if(boundaries.length == 2) {
-					// for customer convenience we start counting from 1
-					Integer start = templateProcessorHelper.extractLengthFromParameter(boundaries[0], 0) - 1;
-					Integer end = templateProcessorHelper.extractLengthFromParameter(boundaries[1], retval.length());
-					if (end.compareTo(Integer.valueOf(0)) >= 0 ) {
-						int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
-						retval = len == 0 ? "" : retval.substring(start, len);
-					}
-				}
-			}
-			
-			// extract without range from n to m characters from string
-			par = templateProcessorHelper.extractParam(placeholder, "EXRANGE");
-			if (!par.isEmpty()) {
-				String[] boundaries = par.split(",");
-				if (boundaries.length == 2) {
-					// for customer convenience we start counting from 1
-					Integer start = templateProcessorHelper.extractLengthFromParameter(boundaries[0], 0) - 1;
-					Integer end = templateProcessorHelper.extractLengthFromParameter(boundaries[1], retval.length());
-					if (end.compareTo(Integer.valueOf(0)) >= 0) {
-						int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
-						if (len == 0) {
-							retval = "";
-						} else {
-							String first = retval.substring(0, Math.max(0, start));
-							String last = retval.substring(len, retval.length());
-							retval = first + last;
-						}
-					}
-				}
-			}
-		}
-		else {
-			// Parameter "EMPTY"
-			par = templateProcessorHelper.extractParam(placeholder,"EMPTY");
-			if (!par.isEmpty())
-				retval = removeQuotationMarks(par);
-		}
-		
-		// Encode some special characters
-		return templateProcessorHelper.encodeEntities(retval);
+	String applyParameters(final String placeholder, final String pValue) {
+		return applyParameters(pValue, PlaceholderParameters.of(placeholder));
 	}
 	
 	/**
@@ -413,27 +429,61 @@ public class TemplateProcessor {
 	 */
 	public String getDocumentInfo(Document document, Optional<DocumentSummary> documentSummary, Placeholder placeholder) {
 		String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder);
-		return interpretParameters(placeholder.getKey(), value);
+// GS/20221209 totally useless as <placeholder.getKey()> never contains a parameter !!!
+//		return interpretParameters(placeholder.getKey(), value);
+		return value;
 	}
 	
     
-    public String fill(Document document, Optional<DocumentSummary> documentSummary, String template) {
-        String retval = template;
-        if(StringUtils.containsAny(template, PlaceholderNavigation.PLACEHOLDER_PREFIX, PlaceholderNavigation.PLACEHOLDER_SUFFIX)) {
-            allPlaceholders = Arrays.asList(StringUtils.substringsBetween(
-                            template, PlaceholderNavigation.PLACEHOLDER_PREFIX, PlaceholderNavigation.PLACEHOLDER_SUFFIX))
-                    .stream()
-                    .map(s -> String.format("%s%s%s", PlaceholderNavigation.PLACEHOLDER_PREFIX, s, PlaceholderNavigation.PLACEHOLDER_SUFFIX))
-                    .collect(Collectors.toList());
-            setCommonProperties(document, documentSummary);
-    
-            for (String string : allPlaceholders) {
-                retval = StringUtils.replace(retval, string, replaceText(string));
-            }
-        }
-
-        return retval;
-    }
+	public String fill(Document document, Optional<DocumentSummary> documentSummary, String template) {
+		int pStart = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX);
+		if (pStart > -1) {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			// enable summaries in (mail) template
+			Optional<DocumentSummary> ds = documentSummary;
+			if (ds.isEmpty()) {
+				DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory
+						.make(DocumentSummaryCalculator.class, context);
+				ds = Optional.of(documentSummaryCalculator.calculate(document));
+			}
+			try {
+				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+				org.w3c.dom.Document doc = dBuilder.newDocument();
+				int pEnd = -1;
+				String placeholderRaw = null;
+				StringBuffer result = new StringBuffer();
+				while (pStart > -1) {
+					// transfer non-placeholder data
+					if (pStart > pEnd+1) {
+						// at least one char
+						result.append(template.substring(pEnd+1, pStart));
+					}
+					pEnd = template.indexOf(PlaceholderNavigation.PLACEHOLDER_SUFFIX, pStart);
+					if (pEnd > -1) {
+						// now we have start AND end pos of placeholder,
+						// get placeholder w/o < and >
+						placeholderRaw = template.substring(pStart, pEnd+1);
+						// now handle the placeholder = replace with text
+						PlaceholderNode pn = new PlaceholderNode(doc.createTextNode(placeholderRaw));
+						result.append(getTextForPlaceholder(pn, document, ds));
+						pStart = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX, pEnd);
+					} else {
+						// now we have start but NO end pos, so it's not a placeholder
+						// and no more placeholder can follow, so add rest to result and finish
+						result.append(template.substring(pStart));
+						pStart = -1;
+					}
+				}
+				return result.toString();
+			} catch (ParserConfigurationException pcE) {
+				log.error(pcE, "Cannot parse template " + StringUtils.wrapIfMissing(template, "'"));
+				return template + "\nParserConfigurationException:\n"+pcE;
+			}
+		} else {
+			// no placeholder, template = result document
+			return template;
+		}
+	}
 
     /**
 	 * Fill a template document with values 
@@ -443,7 +493,6 @@ public class TemplateProcessor {
 	 * @param documentSummary
 	 */
 	public void processTemplate(TextDocument textdoc, Document document, DocumentSummary documentSummary) {
-
         // check if we have to use sales equalization tax
         setUseSalesEquationTaxForDocument(documentReceiverDao.isSETEnabled(document));
 	    
@@ -460,18 +509,6 @@ public class TemplateProcessor {
                 .build();
         List<PlaceholderNode> placeholderNodes = Collections.unmodifiableList(navi.getPlaceHolders());
         
-        // Create a new ArrayList with all placeholders
-        // Collect all placeholders
-        allPlaceholders = placeholderNodes.stream().map(pn -> pn.getNodeText()).collect(Collectors.toList());
-        
-        //// TEST ONLY *********************************************
-        //for (PlaceholderNode placeholderNode : placeholderNodes) {
-        //    System.out.println(placeholderNode.getNodeText() + " is child of " + placeholderNode.getNode().getParentNode());
-        //}
-        
-        // Fill the property list with the placeholder values
-        setCommonProperties(document, Optional.ofNullable(documentSummary));
-        
         // A reference to the item and vat table
         Set<String> processedTables = new HashSet<>();
         
@@ -484,180 +521,114 @@ public class TemplateProcessor {
         int sign = DocumentTypeUtil.findByBillingType(document.getBillingType()).getSign();
 
         for (PlaceholderNode placeholderNode : placeholderNodes) {
-            if(!StringUtils.startsWith(placeholderNode.getNodeText(), PlaceholderNavigation.PLACEHOLDER_PREFIX)) continue;
-            switch (placeholderNode.getNodeType()) {
-            case NORMAL_NODE:
-                // Remove the discount cells, if there is no discount set
-                // Remove the Deposit & the Finalpayment Row if there is no Deposit
-                if (StringUtils.startsWith(placeholderNode.getNodeText().substring(1), PlaceholderTableType.DISCOUNT_TABLE.getKey()) 
-                        && documentSummary.getDiscountNet().isZero()
-                    || StringUtils.startsWith(placeholderNode.getNodeText().substring(1), PlaceholderTableType.DEPOSIT_TABLE.getKey())
-                        && documentSummary.getDeposit().isZero()
-                    ) {
-                    // store parent node for later removing
-                    // we have to remember the parent node since the current node is replaced (could be orphaned)
-                    TableTableRowElement row = (TableTableRowElement)placeholderNode.findParentNode(TableTableRowElement.ELEMENT_NAME.getQName(), placeholderNode.getNode());
-                    
-                    // ah, but wait: sometimes the DEPOSIT placeholder isn't placed in a table...
-                    if(row != null) {
-                        nodesMarkedForRemoving.add(row);
-                    }
-                } 
-              // Replace all other placeholders
-                replaceNodeText(placeholderNode);
-                break;
-            case IMAGE_NODE:
-                replaceNodeText(placeholderNode);
-                break;
-            case TABLE_NODE:
-                // process only if that table wasn't processed
-                // but wait: a table (e.g., "ITEM" table) could occur more than once!
-                if(!processedTables.contains(placeholderNode.getNode().getUserData("TABLE_ID"))) {
-                    // get the complete row with placeholders and store it as a template
-                    Row pRowTemplate = navi.getTableRow(placeholderNode);
-                    Table pTable = pRowTemplate.getTable();
-                    // for each item from items list create a row and replace the placeholders
-                    pTable.setCellStyleInheritance(true);
-                    
-                    // which table?
-                    switch (placeholderNode.getTableType()) {
-                    case ITEMS_TABLE:
-                        // Fill the item table with the items
-                        /* Attention: Not only the current placeholderNode is replaced in this step,
-                         * but also *all* other placeholders belonging to this item table!
-                         * Therefore we have to skip all the other items placeholder in this
-                         * table template.
-                         * We distinguish the placeholders for a certain table by its user data field.
-                         */
-                        fillItemTableWithData(itemDataSets, pTable, pRowTemplate, sign);
-                        break;
-                    case VATLIST_TABLE:
-                        fillVatTableWithData(documentSummary, pTable, pRowTemplate,
-                                placeholderNode.getTableType(), false);
-                        break;
-                      
-                    case SALESEQUALIZATIONTAX_TABLE:
-                        fillVatTableWithData(documentSummary, pTable, pRowTemplate, placeholderNode.getTableType(), true);
-                        break;
-                    default:
-                        break;
-                    }
-        
-                    // delete the template row from table
-                    pTable.removeRowsByIndex(pRowTemplate.getRowIndex(), 1);
-        
-                    // determine type of this table and store it
-                    processedTables.add((String) placeholderNode.getNode().getUserData("TABLE_ID"));
-                }
-                break;
-        
-            default:
-                break;
-            }
-        }
-        
-        for (Node removeNode : nodesMarkedForRemoving) {
-            removeNode.getParentNode().removeChild(removeNode);
-        }
-	    
+			if (!placeholderNode.isPlaceholder()) continue;
+			switch (placeholderNode.getNodeType()) {
+			case NORMAL_NODE:
+				// Remove the discount cells, if there is no discount set
+				// Remove the Deposit & the Finalpayment Row if there is no Deposit
+				if (StringUtils.startsWith(placeholderNode.getPlaceholderKey(),
+						PlaceholderTableType.DISCOUNT_TABLE.getKey()) && documentSummary.getDiscountNet().isZero()
+						|| StringUtils.startsWith(placeholderNode.getPlaceholderKey(),
+								PlaceholderTableType.DEPOSIT_TABLE.getKey()) && documentSummary.getDeposit().isZero()) {
+					// store parent node for later removing
+					// we have to remember the parent node since the current node is replaced (could
+					// be orphaned)
+					TableTableRowElement row = (TableTableRowElement) placeholderNode
+							.findParentNode(TableTableRowElement.ELEMENT_NAME.getQName(), placeholderNode.getNode());
+
+					// ah, but wait: sometimes the DEPOSIT placeholder isn't placed in a table...
+					if (row != null) {
+						nodesMarkedForRemoving.add(row);
+					}
+				}
+				// Replace all other placeholders
+				placeholderNode.replaceWith(
+						getTextForPlaceholder(placeholderNode, document, Optional.ofNullable(documentSummary)));
+				break;
+			case IMAGE_NODE:
+				String text = getTextForPlaceholder(placeholderNode, document, Optional.ofNullable(documentSummary));
+				if (StringUtils.isNotBlank(text)) {
+					URI imageFileURI = Path.of(text).toUri();
+					Pair<Integer, Integer> widthHeight = getCustomImageSize(imageFileURI, placeholderNode);
+					placeholderNode.replaceWith(imageFileURI, widthHeight.getLeft(), widthHeight.getRight());
+				}
+				break;
+			case TABLE_NODE:
+				// process only if that table wasn't processed
+				// but wait: a table (e.g., "ITEM" table) could occur more than once!
+				if (!processedTables.contains(placeholderNode.getNode().getUserData("TABLE_ID"))) {
+					// get the complete row with placeholders and store it as a template
+					Row pRowTemplate = navi.getTableRow(placeholderNode);
+					Table pTable = pRowTemplate.getTable();
+					// for each item from items list create a row and replace the placeholders
+					pTable.setCellStyleInheritance(true);
+
+					// which table?
+					switch (placeholderNode.getTableType()) {
+					case ITEMS_TABLE:
+						// Fill the item table with the items
+						/*
+						 * Attention: Not only the current placeholderNode is replaced in this step, but
+						 * also *all* other placeholders belonging to this item table! Therefore we have
+						 * to skip all the other items placeholder in this table template. We
+						 * distinguish the placeholders for a certain table by its user data field.
+						 */
+						fillItemTableWithData(itemDataSets, pTable, pRowTemplate, sign);
+						break;
+					case VATLIST_TABLE:
+						fillVatTableWithData(documentSummary, pTable, pRowTemplate, placeholderNode.getTableType(), false);
+						break;
+					case SALESEQUALIZATIONTAX_TABLE:
+						fillVatTableWithData(documentSummary, pTable, pRowTemplate, placeholderNode.getTableType(), true);
+						break;
+					default:
+						break;
+					}
+
+					// delete the template row from table
+					pTable.removeRowsByIndex(pRowTemplate.getRowIndex(), 1);
+
+					// determine type of this table and store it
+					processedTables.add((String) placeholderNode.getNode().getUserData("TABLE_ID"));
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		for (Node removeNode : nodesMarkedForRemoving) {
+			removeNode.getParentNode().removeChild(removeNode);
+		}
+
 	}
     
-    /**
-     * Set a property and add it to the user defined text fields in the
-     * OpenOffice Writer document.
-     * 
-     * @param key
-     *            The property key
-     * @param value
-     *            The property value
-     */
-    private void setProperty(String key, String value) {
+	/**
+	 * Get the text (replacement) for a placeholder<br>
+	 * from the property in the property list.<br>
+	 * The text is 'ready-to-use' (= parameters already applied)
+	 * 
+	 * @param placeholder
+	 * 		The complete placeholder (incl. parameters, if any) from the document
+	 * @return
+	 * 		the text for the placeholder
+	 */
+	private String getTextForPlaceholder(PlaceholderNode placeholderNode, Document document, Optional<DocumentSummary> documentSummary) {
+		Placeholder p = Placeholder.valueOfKey(placeholderNode.getPlaceholderKey());
+		String text = null;
+		if (p != null) {
+			text = getDocumentInfoByPlaceholder(document, documentSummary, p);
+			// If the String is non empty, replace the OS new line with the OpenOffice new line
+			if (StringUtils.isNotBlank(text)) {
+				text = text.replaceAll("\n", "\r");
+			}
+			if (placeholderNode.getNodeType() == PlaceholderNodeType.NORMAL_NODE)
+				text = applyParameters(text, placeholderNode.getParameters());
+		}
+		return text;
+	}
 
-        if (key == null || value == null)
-            return;
-        
-        // Convert CRLF to LF 
-        value = DataUtils.getInstance().convertCRLF2LF(value);
-        
-        // Set the user defined text field
-//      addUserTextField(key, value);
-        
-        // Extract parameters
-        for (String placeholder : allPlaceholders) {
-            if ( (placeholder.equals(PlaceholderNavigation.PLACEHOLDER_PREFIX + key+ PlaceholderNavigation.PLACEHOLDER_SUFFIX)) || 
-                    placeholder.startsWith(PlaceholderNavigation.PLACEHOLDER_PREFIX + key+"$") && placeholder.endsWith(PlaceholderNavigation.PLACEHOLDER_SUFFIX) ) {
-
-                // Set the placeholder
-                getProperties().setProperty(placeholder.toUpperCase(), interpretParameters(placeholder, value));
-            }
-        }
-    }
-    
-    /**
-     * Set a common property
-     * 
-     * @param key
-     *  Name of the placeholder
-     */
-    private void setCommonProperty(Placeholder placeholder, Document document, Optional<DocumentSummary> documentSummary) {
-        setProperty(placeholder.getKey(), getDocumentInfo(document, documentSummary, placeholder) );
-    }
-    
-    /**
-     * Fill the property list with the placeholder values
-     */
-    private void setCommonProperties(Document document, Optional<DocumentSummary> documentSummary) {
-        if (document == null)
-            return;
-        
-        // Get all available placeholders and set them
-        Arrays.asList(Placeholder.values())
-            .stream()
-            // 
-            .filter(p -> allPlaceholders.contains(String.format("%s%s%s", PlaceholderNavigation.PLACEHOLDER_PREFIX, p.getKey(), PlaceholderNavigation.PLACEHOLDER_SUFFIX)))
-            .forEach(p -> setCommonProperty(p, document, documentSummary));
-    }
-    
-    private void replaceNodeText(final PlaceholderNode placeholderNode) {
-        // Get the placeholder's text
-        String placeholderDisplayText = placeholderNode.getNodeText().toUpperCase();
-        String text = replaceText(placeholderDisplayText);
-        if (placeholderNode.getNodeType() == PlaceholderNodeType.IMAGE_NODE) {
-            try {
-                int width = Integer.parseInt(placeholderNode.getParam("WIDTH"));
-                int height = Integer.parseInt(placeholderNode.getParam("HEIGHT"));
-                placeholderNode.replaceWith(Path.of(text).toUri(), width, height);
-            } catch (NumberFormatException e) {
-                // fallback without width and height
-                placeholderNode.replaceWith(Path.of(text).toUri());
-            }
-        } else {
-            placeholderNode.replaceWith(text);
-        }
-    }
-
-    /**
-     * Replace a placeholder with the content of the property in the property
-     * list.
-     * 
-     * @param placeholder
-     *            The placeholder and the name of the key in the property list
-     */
-    private String replaceText(final String placeholderDisplayText) {
-        
-        // Get the value of the Property list.
-        String text = getProperties().getProperty(placeholderDisplayText);
-        
-        // If the String is non empty, replace the OS new line with the OpenOffice new line
-        if(StringUtils.isNotBlank(text)){
-            text = text.replaceAll("\n", "\r");
-        }
-        
-        // Replace the placeholder with the value of the property list.
-        log.debug(String.format("trying to replace %s with [%s]", placeholderDisplayText, text));
-        return text;
-    }
-	
 	/**
 	 * Get Information from document.
 	 * If there is no reference to a customer, use the address field to
@@ -671,11 +642,10 @@ public class TemplateProcessor {
 	 *  The extracted result
 	 */
 	private String getDocumentInfoByPlaceholder(Document document, Optional<DocumentSummary> documentSummary, Placeholder placeholder) {
-	    // Get the company information from the preferences
-	    
-	    String key = placeholder.getKey(); // Placeholder.valueOf(key.replaceAll("\\.", "_"));
+	    String key = placeholder.getKey();
 	    
 		if (key.startsWith("YOURCOMPANY")) {
+		    // Get the company information from the preferences
 		    String owner = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER);
 		    String streetWithNo = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET);
 		    switch (placeholder) {
@@ -693,12 +663,12 @@ public class TemplateProcessor {
             case YOURCOMPANY_COUNTRY: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_COUNTRY);
             case YOURCOMPANY_EMAIL: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL);
             case YOURCOMPANY_PHONE: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL);
-            case YOURCOMPANY_PHONE_PRE:  return templateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL), true);
-            case YOURCOMPANY_PHONE_POST: return templateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL), false);
+            case YOURCOMPANY_PHONE_PRE:  return TemplateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL), true);
+            case YOURCOMPANY_PHONE_POST: return TemplateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL), false);
             case YOURCOMPANY_MOBILE: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_MOBILE);
             case YOURCOMPANY_FAX: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_FAX);
-            case YOURCOMPANY_FAX_PRE: return templateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_FAX), true);
-            case YOURCOMPANY_FAX_POST: return templateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_FAX), false);
+            case YOURCOMPANY_FAX_PRE: return TemplateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_FAX), true);
+            case YOURCOMPANY_FAX_POST: return TemplateProcessorHelper.getTelPrePost(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_FAX), false);
             case YOURCOMPANY_WEBSITE: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_WEBSITE);
             case YOURCOMPANY_VATNR: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR);
             case YOURCOMPANY_TAXNR: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TAXNR);
@@ -708,7 +678,8 @@ public class TemplateProcessor {
             case YOURCOMPANY_BANK: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BANK);
             case YOURCOMPANY_IBAN: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN);
             case YOURCOMPANY_BIC: return  preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC);
-            case YOURCOMPANY_QRVCARD: return createImageFile(qrCodeService.createVCardQRCode(document), null, "png").toString();
+			case YOURCOMPANY_QRVCARD:
+				return createImageFile(qrCodeService.createVCardQRCode(document), "png").toString();
             default:
                 break;
             }
@@ -780,7 +751,7 @@ public class TemplateProcessor {
 		try {
             if (key.equals("INVOICE.SWISSCODE")) {
                 if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), null, "png");
+					Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), "png");
                     return imageFile != null ? imageFile.toString() : "";
                 } else {
                     return "";
@@ -789,13 +760,14 @@ public class TemplateProcessor {
             
             if (key.equals("INVOICE.GIROCODE")) {
                 if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), null, "png");
+					Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), "png");
                     return imageFile != null ? imageFile.toString() : "";
+				} else
+					return "";
                 }
-                else return "";
-            }
         } catch (InvalidParameterException e) {
-            StringBuilder msgDetail = new StringBuilder("Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
+			StringBuilder msgDetail = new StringBuilder(
+					"Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
             
             Arrays.stream(StringUtils.split(e.getMessage(), '\n')).forEach(m -> addDetailError(msgDetail, m));
             
@@ -922,7 +894,6 @@ public class TemplateProcessor {
         if (key2.equals("ADDRESS.FIRSTLINE")) return document.getAddressFirstLine();
 		
 		// Get the contact of the UniDataSet document
-	
 		DocumentReceiver contact = billingAdress;
 		// There is a reference to a contact. Use this (but only if it's a valid contact!)
 		if (contact != null && (key.startsWith("ADDRESS") || key.startsWith(deliveryPrefix))) {
@@ -1109,21 +1080,21 @@ public class TemplateProcessor {
                     case "ADDRESS.PHONE":
                         return Optional.ofNullable(address.getPhone());
                     case "ADDRESS.PHONE.PRE":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getPhone(), true));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getPhone(), true));
                     case "ADDRESS.PHONE.POST":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getPhone(), false));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getPhone(), false));
                     case "ADDRESS.FAX": 
                         return Optional.ofNullable(address.getFax());
                     case "ADDRESS.FAX.PRE":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getFax(), true));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getFax(), true));
                     case "ADDRESS.FAX.POST":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getFax(), false));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getFax(), false));
                     case "ADDRESS.MOBILE":
                         return Optional.ofNullable(address.getMobile());
                     case "ADDRESS.MOBILE.PRE":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getMobile(), true));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getMobile(), true));
                     case "ADDRESS.MOBILE.POST":
-                        return Optional.ofNullable(templateProcessorHelper.getTelPrePost(address.getMobile(), false));
+                        return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(address.getMobile(), false));
                     default:
                         break;
                     }
@@ -1131,14 +1102,14 @@ public class TemplateProcessor {
             } else {
                 // use OLD contact fields (deprecated!)
                 if (key.equals("ADDRESS.PHONE")) return Optional.ofNullable(contact.getPhone());
-                if (key.equals("ADDRESS.PHONE.PRE")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getPhone(), true));
-                if (key.equals("ADDRESS.PHONE.POST")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getPhone(), false));
+                if (key.equals("ADDRESS.PHONE.PRE")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), true));
+                if (key.equals("ADDRESS.PHONE.POST")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), false));
                 if (key.equals("ADDRESS.FAX")) return Optional.ofNullable(contact.getFax());
-                if (key.equals("ADDRESS.FAX.PRE")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getFax(), true));
-                if (key.equals("ADDRESS.FAX.POST")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getFax(), false));
+                if (key.equals("ADDRESS.FAX.PRE")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), true));
+                if (key.equals("ADDRESS.FAX.POST")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), false));
                 if (key.equals("ADDRESS.MOBILE")) return Optional.ofNullable(contact.getMobile());
-                if (key.equals("ADDRESS.MOBILE.PRE")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getMobile(), true));
-                if (key.equals("ADDRESS.MOBILE.POST")) return Optional.ofNullable(templateProcessorHelper.getTelPrePost(contact.getMobile(), false));
+                if (key.equals("ADDRESS.MOBILE.PRE")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), true));
+                if (key.equals("ADDRESS.MOBILE.POST")) return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), false));
                 if (key.equals("ADDRESS.EMAIL")) return Optional.ofNullable(contact.getEmail());
             }
             BankAccount bankAccount = originContact.getBankAccount();
@@ -1356,125 +1327,110 @@ public class TemplateProcessor {
      *            The cell's text.
      * @return 
      */
-    private Node fillVatTableWithData(VatSummaryItem vatSummaryItem, PlaceholderNode cellPlaceholder) {
-        
-        String placeholderDisplayText = cellPlaceholder.getNodeText().toUpperCase();
-        String placeholder = placeholderDisplayText.substring(1, placeholderDisplayText.length() - 1);
-        
-        String key = vatSummaryItem.getVatName();
-        String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
-        // Get the text of the column. This is to determine, if it is the column
-        // with the VAT description or with the VAT value
-        String textValue = "";
-    
-        // It's the VAT description
-        if (placeholder.equals("VATLIST.DESCRIPTIONS")) {
-            textValue = key;
-        }
-        // It's the VAT value
-        else if (placeholder.equals("VATLIST.VALUES")) {
-            textValue = value;
-        }
-        else if (placeholder.equals("VATLIST.PERCENT")) {
-            textValue = numberFormatterService.DoubleToFormatedPercent(vatSummaryItem.getVatPercent());
-        }
-        else if (placeholder.equals("VATLIST.VATSUBTOTAL")) {
-            textValue = numberFormatterService.formatCurrency(vatSummaryItem.getNet());
-        }
-        else {
-            return null;
-        }
+	private Node fillVatTableWithData(VatSummaryItem vatSummaryItem, PlaceholderNode cellPlaceholder) {
+		String key = vatSummaryItem.getVatName();
+		String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
+		// Get the text of the column. This is to determine if it is the column
+		// with the VAT description or with the VAT value
+		String textValue = "";
 
-        // Set the text
-        return cellPlaceholder.replaceWith(textValue);//Matcher.quoteReplacement(textValue)
+		// It's the VAT description
+		if (cellPlaceholder.isPlaceholder("VATLIST.DESCRIPTIONS")) {
+			textValue = key;
+		}
+		// It's the VAT value
+		else if (cellPlaceholder.isPlaceholder("VATLIST.VALUES")) {
+			textValue = value;
+		} else if (cellPlaceholder.isPlaceholder("VATLIST.PERCENT")) {
+			textValue = numberFormatterService.DoubleToFormatedPercent(vatSummaryItem.getVatPercent());
+		} else if (cellPlaceholder.isPlaceholder("VATLIST.VATSUBTOTAL")) {
+			textValue = numberFormatterService.formatCurrency(vatSummaryItem.getNet());
+		} else {
+			return null;
+		}
 
-        // And also add it to the user defined text fields in the OpenOffice
-        // Writer document.
-//      addUserTextField(textKey, textValue, index);
+		// Set the text
+		return cellPlaceholder.replaceWith(textValue);
 
     }
     
 
     private Node fillSalesEqualizationTaxTableWithData(VatSummaryItem vatSummaryItem, PlaceholderNode cellPlaceholder) {
+		// Get the text of the column. This is to determine if it is the column
+		// with the VAT description or with the VAT value
+		String textValue = "";
 
-        String placeholderDisplayText = cellPlaceholder.getNodeText().toUpperCase();
-        String placeholder = placeholderDisplayText.substring(1, placeholderDisplayText.length() - 1);
+		if (this.useSET && vatSummaryItem.getSalesEqTax() != null) {
+			if (cellPlaceholder.isPlaceholder("SALESEQUALIZATIONTAX.VALUES")) {
+				textValue = numberFormatterService.formatCurrency(vatSummaryItem.getSalesEqTax());
+			} else if (cellPlaceholder.isPlaceholder("SALESEQUALIZATIONTAX.PERCENT")) {
+				textValue = numberFormatterService.DoubleToFormatedPercent(vatSummaryItem.getSalesEqTaxPercent());
+			} else if (cellPlaceholder.isPlaceholder("SALESEQUALIZATIONTAX.SUBTOTAL")) {
+				textValue = numberFormatterService.formatCurrency(vatSummaryItem.getNet());
+			} else {
+				return null;
+			}
+		}
 
-        // Get the text of the column. This is to determine, if it is the column
-        // with the VAT description or with the VAT value
-        String textValue = "";
-
-        if (this.useSET && vatSummaryItem.getSalesEqTax() != null) {
-            if (placeholder.equals("SALESEQUALIZATIONTAX.VALUES")) {
-                textValue = numberFormatterService.formatCurrency(vatSummaryItem.getSalesEqTax());
-            } else if (placeholder.equals("SALESEQUALIZATIONTAX.PERCENT")) {
-                textValue = numberFormatterService.DoubleToFormatedPercent(vatSummaryItem.getSalesEqTaxPercent());
-            } else if (placeholder.equals("SALESEQUALIZATIONTAX.SUBTOTAL")) {
-                textValue = numberFormatterService.formatCurrency(vatSummaryItem.getNet());
-            } else {
-                return null;
-            }
-        }
-
-        // Set the text
-        return cellPlaceholder.replaceWith(textValue);  //Matcher.quoteReplacement(textValue)
+		// Set the text
+		return cellPlaceholder.replaceWith(textValue);
     }
 
-    /**
-     * Fill all cells of the item table with the item data
-     * 
-     * @param column
-     *            The index of the column
-     * @param itemDataSets
-     *            Item data
-     * @param itemsTable
-     *            The item table
-     * @param lastTemplateRow
-     *            Counts the last row of the table
-     * @param cellText
-     *            The cell's text.
-     */
-    private void fillItemTableWithData(List<DocumentItem> itemDataSets, Table pTable, Row pRowTemplate, int sign) {
-        // Get all items
-        for (int row = 0; row < itemDataSets.size(); row++) {
-//               clone one row from template
-            TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
-            // we always insert only ONE row to the table
-            Row tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
-            pTable.getOdfElement().replaceChild(newRowElement, tmpRow.getOdfElement());
-            Row newRow = Row.getInstance(newRowElement);
-            // find all placeholders within row
-            int cellCount = newRowElement.getChildNodes().getLength();
-            for (int j = 0; j < cellCount; j++) {
-                // a template cell
-                Cell currentCell = newRow.getCellByIndex(j);
-                
-                // skip unnecessary cells
-                if(currentCell.getOdfElement() instanceof TableCoveredTableCellElement) continue;
-                
-                // make a copy of the template cell
-                Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
+	/**
+	 * Fill all cells of the item table with the item data
+	 * 
+	 * @param column
+	 *            The index of the column
+	 * @param itemDataSets
+	 *            Item data
+	 * @param itemsTable
+	 *            The item table
+	 * @param lastTemplateRow
+	 *            Counts the last row of the table
+	 * @param cellText
+	 *            The cell's text.
+	 */
+	private void fillItemTableWithData(List<DocumentItem> itemDataSets, Table pTable, Row pRowTemplate, int sign) {
+		// Get all items
+		for (int row = 0; row < itemDataSets.size(); row++) {
+			// clone one row from template
+			TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
+			// we always insert only ONE row to the table
+			Row tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
+			pTable.getOdfElement().replaceChild(newRowElement, tmpRow.getOdfElement());
+			Row newRow = Row.getInstance(newRowElement);
+			// find all placeholders within row
+			int cellCount = newRowElement.getChildNodes().getLength();
+			for (int j = 0; j < cellCount; j++) {
+				// a template cell
+				Cell currentCell = newRow.getCellByIndex(j);
 
-                // find all placeholders in a cell
-                NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
+				// skip unnecessary cells
+				if (currentCell.getOdfElement() instanceof TableCoveredTableCellElement) continue;
 
-                /*
-                 * The appended row only has default cells (without styles etc.). Therefore we have to take
-                 * the template cell and replace the current cell with it.
-                 */
-                newRow.getOdfElement().replaceChild(cellNode, newRow.getCellByIndex(j).getOdfElement());
-                // replace placeholders in this cell with current content
-                int countOfPlaceholders = cellPlaceholders.getLength();
-                for (int k = 0; k < countOfPlaceholders; k++) {
-                  Node item = cellPlaceholders.item(0);
-                  PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
-                  cellPlaceholder.setOwnerDocument(pTable.getOwnerDocument());
-                  fillItemTableWithData(itemDataSets.get(row), cellPlaceholder, sign);
-                }
-            }
-        }
-    }
-    
+				// make a copy of the template cell
+				Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
+
+				// find all placeholders in a cell
+				NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
+
+				/*
+				 * The appended row only has default cells (without styles etc.). Therefore we
+				 * have to take the template cell and replace the current cell with it.
+				 */
+				newRow.getOdfElement().replaceChild(cellNode, newRow.getCellByIndex(j).getOdfElement());
+				// replace placeholders in this cell with current content
+				int countOfPlaceholders = cellPlaceholders.getLength();
+				for (int k = 0; k < countOfPlaceholders; k++) {
+					Node item = cellPlaceholders.item(0);
+					PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
+					cellPlaceholder.setOwnerDocument(pTable.getOwnerDocument());
+					fillItemTableWithData(itemDataSets.get(row), cellPlaceholder, sign);
+				}
+			}
+		}
+	}
+
     /**
      * Fill the cell of the item table with the item data
      * 
@@ -1486,13 +1442,9 @@ public class TemplateProcessor {
      * @return 
      */
     private void fillItemTableWithData(DocumentItem item, PlaceholderNode cellPlaceholder, int sign) {
-
         String value = "";
-        
         String placeholderDisplayText = cellPlaceholder.getNodeText();
-        String placeholder = placeholderDisplayText.substring(1, placeholderDisplayText.length() - 1);
-        String key = placeholder.split("\\$")[0];
-
+        String key = cellPlaceholder.getPlaceholderKey();
         Price price = new Price(item, useSET, sign);
         boolean isReplaceOptionalPrice = item.getOptional() && preferences.getBoolean(Constants.PREFERENCES_OPTIONALITEMS_REPLACE_PRICE);
 
@@ -1526,7 +1478,7 @@ public class TemplateProcessor {
             value = item.getItemNumber();
         }
         
-        // Get the item number
+        // Get the supplier item number
         else if (key.equals("ITEM.SUPPLIERNUMBER")) {
             value = item.getSupplierItemNumber();
         }
@@ -1687,111 +1639,133 @@ public class TemplateProcessor {
             value = numberFormatterService.DoubleToFormatedPercent(item.getItemVat().getTaxValue());
         }
     
-        // Get product picture
-        else if (key.startsWith("ITEM.PICTURE")){
-            
-            if (item.getPicture() != null) {
+		// Get product picture
+		else if (key.startsWith("ITEM.PICTURE")) {
 
-                Pair<Integer, Integer> widthHeight = getCustomImageSize(cellPlaceholder);
-                Path imageFile = createImageFile(item.getPicture(), widthHeight, "JPG");
-                
-                if (imageFile != null) {
-                    // replace the placeholder
-                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
-                }
-                return;
-            }
-            
-            value = "";
-        }
-        else if (key.startsWith("ITEM.BARCODE")){
-            
-            if (item.getItemNumber() != null) {
-                
-                Pair<Integer, Integer> widthHeight = getCustomImageSize(cellPlaceholder);
-                Path imageFile = createImageFile(qrCodeService.createEANCode(item.getItemNumber()), widthHeight, "JPG");
-                
-                if (imageFile != null) {
-                    // replace the placeholder
-                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
-                }
-                return;
-            }
-            
-            value = "";
-        }
-        
-        else if (item.getProduct() != null) {
-            Product product = item.getProduct();
-            // Get the item's category
-            if(key.equals("ITEM.UNIT.CATEGORY")) {
-                value = CommonConverter.getCategoryName(product.getCategories(), "/");
-            } else if(key.equals("ITEM.UNIT.UDF01")) {
-                value = product.getCdf01();
-            } else if(key.equals("ITEM.UNIT.UDF02")) {
-                value = product.getCdf02();
-            } else if(key.equals("ITEM.UNIT.UDF03")) {
-                value = product.getCdf03();
-            } else if(key.equals("ITEM.UNIT.COSTPRICE")) {
-                value = numberFormatterService.DoubleToFormatedPriceRound(Optional.ofNullable(product.getCostPrice()).orElse(Double.valueOf(0.0)));
-            } else {
-                value = "";
-            }
-        } else {
-            value = "";
-        }
+			if (item.getPicture() != null) {
+
+				Pair<Integer, Integer> widthHeight = getCustomImageSize(item.getPicture(), cellPlaceholder);
+				Path imageFile = createImageFile(item.getPicture(), "JPG");
+
+				if (imageFile != null) {
+					// replace the placeholder
+					cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+				}
+				return;
+			}
+
+			value = "";
+		}
+		else if (key.startsWith("ITEM.BARCODE")) {
+
+			if (item.getItemNumber() != null) {
+
+				byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
+				Path imageFile = createImageFile(imageBytes, "JPG");
+
+				if (imageFile != null) {
+					Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
+					// replace the placeholder
+					cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+				}
+				return;
+			}
+
+			value = "";
+		}
+
+		else if (item.getProduct() != null) {
+			Product product = item.getProduct();
+			// Get the item's category
+			if (key.equals("ITEM.UNIT.CATEGORY")) {
+				value = CommonConverter.getCategoryName(product.getCategories(), "/");
+			} else if (key.equals("ITEM.UNIT.UDF01")) {
+				value = product.getCdf01();
+			} else if (key.equals("ITEM.UNIT.UDF02")) {
+				value = product.getCdf02();
+			} else if (key.equals("ITEM.UNIT.UDF03")) {
+				value = product.getCdf03();
+			} else if (key.equals("ITEM.UNIT.COSTPRICE")) {
+				value = numberFormatterService.DoubleToFormatedPriceRound(
+						Optional.ofNullable(product.getCostPrice()).orElse(Double.valueOf(0.0)));
+			} else {
+				value = "";
+			}
+		} else {
+			value = "";
+		}
 
         // Interpret all parameters
-        value = interpretParameters(placeholder,value);
+        value = applyParameters(value, cellPlaceholder.getParameters());
         
         // Convert CRLF to LF 
         value = DataUtils.getInstance().convertCRLF2LF(value);
 
-        // If iText's string is not empty, use that string instead of the template
-//      String iTextString = iText.getText();
-//      if (!iTextString.isEmpty()) {
-//          cellText = iTextString;
-//      }
-        
         // Set the text of the cell
-//      placeholderDisplayText = Matcher.quoteReplacement(placeholderDisplayText).replaceAll("\\{", "\\\\{").replaceAll("\\}", "\\\\}");
-        cellPlaceholder.replaceWith(value); // Matcher.quoteReplacement(value) ???
-
-        // And also add it to the user defined text fields in the OpenOffice
-        // Writer document.
-//      addUserTextField(key, value, index);
+        cellPlaceholder.replaceWith(value);
     }
 
-    private Pair<Integer, Integer> getCustomImageSize(PlaceholderNode placeholder) {
-        String width_s = placeholder.getParam("WIDTH");
-        String height_s = placeholder.getParam("HEIGHT");
-        
-        // Default height and with
-        int pixelWidth = 0;
-        int pixelHeight = 0;
-
-        // Use the parameter values
-        try {
-            pixelWidth = Integer.parseInt(width_s);
-            pixelHeight = Integer.parseInt(height_s);
-        } catch (NumberFormatException e) {}
+	private Pair<Integer, Integer> getCustomImageSize(byte[] imageBytes, PlaceholderNode placeholder) {
+        // get height and with from parameters (if set), defaults to 0
+        int pixelWidth = TemplateProcessorHelper.parseInt(placeholder.getParameter("WIDTH"), 0);
+        int pixelHeight = TemplateProcessorHelper.parseInt(placeholder.getParameter("HEIGHT"), 0);
         
         // Use default values
-        if (pixelWidth < 1)
-            pixelWidth = 150;
-        if (pixelHeight < 1)
-            pixelHeight = 100;
+		try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
+
+			BufferedImage image = ImageIO.read(imgStream);
+			int pictureHeight = image.getHeight();
+			int pictureWidth = image.getWidth();
+
+			if (pixelWidth == 0 && pixelHeight == 0) {
+				pixelWidth = pictureWidth;
+				pixelHeight = pictureHeight;
+			} else {
+				if (pixelHeight <= 0 && pictureWidth > 0) {
+					pixelHeight = pictureHeight * pixelWidth / pictureWidth;
+				}
+				if (pixelWidth <= 0 && pictureHeight > 0) {
+					pixelWidth = pictureWidth * pixelHeight / pictureHeight;
+				}
+			}
+		} catch (IOException e) {
+            log.error("Can't get size from temporary image file. Reason: " + e);
+		}
+
+        return ImmutablePair.of(pixelWidth, pixelHeight);
+    }
+
+	private Pair<Integer, Integer> getCustomImageSize(URI imageFileURI, PlaceholderNode placeholder) {
+        // get height and with from parameters (if set), defaults to 0
+        int pixelWidth = TemplateProcessorHelper.parseInt(placeholder.getParameter("WIDTH"), 0);
+        int pixelHeight = TemplateProcessorHelper.parseInt(placeholder.getParameter("HEIGHT"), 0);
+
+        // Use default values
+		try {
+			BufferedImage image = ImageIO.read(imageFileURI.toURL());
+			int pictureHeight = image.getHeight();
+			int pictureWidth = image.getWidth();
+
+			if (pixelWidth == 0 && pixelHeight == 0) {
+				pixelWidth = pictureWidth;
+				pixelHeight = pictureHeight;
+			} else {
+				if (pixelHeight <= 0 && pictureWidth > 0) {
+					pixelHeight = pictureHeight * pixelWidth / pictureWidth;
+				}
+				if (pixelWidth <= 0 && pictureHeight > 0) {
+					pixelWidth = pictureWidth * pixelHeight / pictureHeight;
+				}
+			}
+		} catch (IOException e) {
+            log.error("Can't get size from temporary image file. Reason: " + e);
+		}
+
         return ImmutablePair.of(pixelWidth, pixelHeight);
     }
     
-    private Path createImageFile(byte[] imageBytes, Pair<Integer, Integer> widthHeight, String formatName) {
-        int pictureHeight = 100;
-        int pictureWidth = 100;
-        double pictureRatio = 1.0;
-        double pixelRatio = 1.0;
-        
-        int pixelWidth=widthHeight != null ? widthHeight.getLeft() : 300;
-        int pixelHeight = widthHeight != null ? widthHeight.getRight() : 300;
+    
+	private Path createImageFile(byte[] imageBytes, String formatName) {
         Path imageFile = null;
         
         if(imageBytes == null || imageBytes.length == 0) {
@@ -1802,27 +1776,6 @@ public class TemplateProcessor {
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
             
             BufferedImage image = ImageIO.read(imgStream);
-            pictureHeight = image.getHeight();
-            pictureWidth = image.getWidth();
-
-            // Calculate the ratio of the original image
-            if (pictureHeight > 0) {
-                pictureRatio = (double)pictureWidth/(double)pictureHeight;
-            }
-            
-            // Calculate the ratio of the placeholder
-            if (pixelHeight > 0) {
-                pixelRatio = (double)pixelWidth/(double)pixelHeight;
-            }
-            
-            // Correct the height and width of the placeholder 
-            // to match the original image
-            if ((pictureRatio > pixelRatio) &&  (pictureRatio != 0.0)) {
-                pixelHeight = (int) Math.round(((double)pixelWidth / pictureRatio));
-            }
-            if ((pictureRatio < pixelRatio) &&  (pictureRatio != 0.0)) {
-                pixelWidth = (int) Math.round(((double)pixelHeight * pictureRatio));
-            }
             
             // Generate the image
             String imageName = "tmpImage"+RandomStringUtils.randomAlphanumeric(8);
@@ -1833,22 +1786,6 @@ public class TemplateProcessor {
              */
             imageFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), imageName);
             
-            // FIXME Scaling doesn't work! :-(
-            // Therefore we "scale" the image manually by setting width and height inside result document
-            
-//          java.awt.Image scaledInstance = image.getScaledInstance(pixelWidth, pixelHeight, 0);
-//          BufferedImage bi = new BufferedImage(scaledInstance.getWidth(null),
-//                  scaledInstance.getHeight(null),
-//                  BufferedImage.TYPE_4BYTE_ABGR);
-//
-//          Graphics2D grph = (Graphics2D) bi.getGraphics();
-//          grph.scale(pictureRatio, pictureRatio);
-//
-//          // everything drawn with grph from now on will get scaled.
-//          grph.drawImage(image, 0, 0, null);
-//          grph.dispose();
-            // ============================================
-
             ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
             if (iis != null) {
                 Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
@@ -1863,29 +1800,13 @@ public class TemplateProcessor {
             }
 
             ImageIO.write(image, formatName, imageFile.toFile());
-            
-            // with NoaLibre:
-//          GraphicInfo graphicInfo = null;
-//          graphicInfo = new GraphicInfo(new FileInputStream(imagePath),
-//                  pixelWidth,
-//                  true,
-//                  pixelHeight,
-//                  true,
-//                  VertOrientation.TOP,
-//                  HoriOrientation.LEFT,
-//                  TextContentAnchorType.AT_PARAGRAPH);
-//
-//          ITextContentService textContentService = textDocument.getTextService().getTextContentService();
-//          ITextDocumentImage textDocumentImage = textContentService.constructNewImage(graphicInfo);
-//          textContentService.insertTextContent(iText.getTextCursorService().getTextCursor().getEnd(), textDocumentImage);
-
         }
         catch (IOException | IllegalArgumentException e) {
             log.error("Can't create temporary image file. Reason: " + e);
         }
         return imageFile;
     }
-    
+
     private void setUseSalesEquationTaxForDocument(boolean isSET) {
         this.useSET = isSET;
     }
@@ -1908,20 +1829,13 @@ public class TemplateProcessor {
 	 * @param testPlaceholder
 	 * 		The placeholder to test
 	 * @return
-	 * 		TRUE, if the placeholder is in the list
+	 * 		TRUE if the placeholder is in the list
 	 */
 	public boolean isPlaceholder(String testPlaceholder) {
-		String placeholderName = templateProcessorHelper.extractPlaceholderName(testPlaceholder);
+		String placeholderKey = TemplateProcessorHelper.extractPlaceholderKey(testPlaceholder);
 		
 		// Test all placeholders
-		return Arrays.stream(Placeholder.values()).anyMatch(p -> placeholderName.equals(p.getKey()));
+		return Placeholder.valueOfKey(placeholderKey) != null;
 	}
 
-    private Properties getProperties() {
-        if(properties == null) {
-            properties = new Properties();
-        }
-        return properties;
-    }
 }
-

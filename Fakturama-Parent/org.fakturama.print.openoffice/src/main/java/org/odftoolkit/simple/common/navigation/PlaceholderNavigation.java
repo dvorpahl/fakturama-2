@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -260,7 +259,7 @@ public class PlaceholderNavigation extends Navigation {
 			} else {
 				placeholderNode = new PlaceholderNode(item);
 				placeholderNode.setOwnerDocument(mDocument);
-				if(isImageIdentifier(placeholderNode.getNodeText())) {
+				if (isImageIdentifier(placeholderNode.getPlaceholderKey())) {
 				    placeholderNode.setNodeType(PlaceholderNodeType.IMAGE_NODE);
 				}
 			}
@@ -295,16 +294,14 @@ public class PlaceholderNavigation extends Navigation {
         return tableIdentifierStrings;
     }
     
-    public boolean isImageIdentifier(String identifier) {
-        return Arrays.stream(imageIdentifiers)
-                .anyMatch(i -> StringUtils.appendIfMissing(StringUtils.prependIfMissing(i, PLACEHOLDER_PREFIX), PLACEHOLDER_SUFFIX).equalsIgnoreCase(identifier));
-    }
+	public boolean isImageIdentifier(String identifier) {
+		return Arrays.asList(imageIdentifiers).contains(identifier);
+	}
 
     private Node getContainerNode(Node item, String urn, Class<?> clazz) {
 		if (item == null || item.getParentNode() == null) {
 			return null;
 		} else {
-			//if (StringUtils.equals(item.getParentNode().getNamespaceURI(), urn)) {
 			if (clazz.isInstance(item)) {
 				return item;
 			} else {
@@ -408,8 +405,6 @@ public class PlaceholderNavigation extends Navigation {
 		if (placeholderNode.getNodeType() == PlaceholderNodeType.TABLE_NODE) {
 			Node tRow = findContainerNodeWithName(placeholderNode.getNode(),
 			        TableTableRowElement.ELEMENT_NAME.getQName());
-			// PlaceholderTableRow row = new
-			// PlaceholderTableRow((TableTableRowElement) tRow);
 			odfRow = Row.getInstance((TableTableRowElement) tRow);
 		}
 		return odfRow;
@@ -432,18 +427,5 @@ public class PlaceholderNavigation extends Navigation {
 	 */
 	public List<PlaceholderNode> getPlaceHolders() {
 		return placeHolders;
-	}
-
-	/**
-	 * Replaces each placeholder key with the content from the properties hash.
-	 *
-	 * @param property
-	 * @return
-	 */
-	public void replaceEachWithValue(Properties properties) {
-		while (hasNext()) {
-			PlaceholderNode item = nextSelection();
-			item.replaceWith(properties.getProperty(item.getNodeText()));
-		}
 	}
 }

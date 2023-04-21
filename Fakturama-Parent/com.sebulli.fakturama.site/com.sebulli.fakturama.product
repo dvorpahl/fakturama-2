@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.1.3.qualifier" useFeatures="true" includeLaunchers="true">
+<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.1.3.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="icon://APP_ABOUT_ICON"/>
@@ -262,7 +262,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_uk"/>
       <feature id="org.eclipse.babel.nls_eclipse_sk"/>
       <feature id="org.eclipse.babel.nls_eclipse_el"/>
-      <feature id="org.eclipse.babel.nls_eclipse_sv"/>
       <feature id="org.eclipse.persistence.moxy"/>
       <feature id="org.eclipse.persistence.jpa" installMode="root"/>
       <feature id="org.eclipse.gemini.dbaccess.feature"/>
@@ -271,6 +270,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.gemini.jpa.feature"/>
       <feature id="org.eclipse.gemini.dbaccess.derby.feature"/>
       <feature id="org.eclipse.gemini.dbaccess.mariadb.feature"/>
+      <feature id="org.eclipse.babel.nls_eclipse_nl"/>
+      <feature id="org.eclipse.babel.nls_eclipse_no"/>
    </features>
 
    <configurations>
@@ -285,12 +286,12 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.gemini.dbaccess.mariadb" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.gemini.dbaccess.mysql" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.gemini.jpa" autoStart="true" startLevel="3" />
-      <property name="org.eclipse.swt.browser.IEVersion" value="12001" os="win32" />
+      <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />
-      <property name="osgi.instance.area" value="@user.home/.fakturama2" />
-      <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
+      <property name="org.eclipse.swt.browser.IEVersion" value="12001" os="win32" />
       <property name="osgi.splashPath" value="file:plugins/com.sebulli.fakturama.rcp" />
+      <property name="osgi.instance.area" value="@user.home/.fakturama2" />
       <property name="eclipse.buildId" value="${unqualifiedVersion}.${buildQualifier}" />
    </configurations>
 

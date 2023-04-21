@@ -91,6 +91,7 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
 		addField(new IntegerFieldEditor(Constants.PREFERENCES_WEBSHOP_MAX_PRODUCTS, msg.preferencesWebshopMaxproducts, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_WEBSHOP_ONLY_MODIFIED_PRODUCTS, msg.preferencesWebshopModifiedproducts, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR, msg.preferencesWebshopEanasitemno, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER, msg.preferencesWebshopOverwritecustno, getFieldEditorParent()));
 
 		Button b = new Button(getFieldEditorParent(), SWT.PUSH);
 		b.setText(msg.pageWebshopsettings);
@@ -121,6 +122,7 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_MAX_PRODUCTS, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_ONLY_MODIFIED_PRODUCTS, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR, write);
+		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER, write);
 		
 	}
     
@@ -157,6 +159,7 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
 		node.setDefault(Constants.PREFERENCES_WEBSHOP_MAX_PRODUCTS, "1000");
 		node.setDefault(Constants.PREFERENCES_WEBSHOP_ONLY_MODIFIED_PRODUCTS, false);
 		node.setDefault(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR, false);
+		node.setDefault(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER, false);
 		
 	}
 }
