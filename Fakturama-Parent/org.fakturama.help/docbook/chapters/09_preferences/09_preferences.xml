@@ -98,6 +98,10 @@
             </informalfigure>
         </section>
         <section>
+            <subtitle>eindeutig gefundene Artikelnummer sofort übernehmen</subtitle>
+			<para>Wird ein Artikel über die Artikelauswahl in das Dokument eingefügt, kann man hier einstellen, daß bei einer eindeutigen Übereinstimmung der Auswahldialog sofort geschlossen und der gefundene Artikel übernommen wird. Dies ist z. B. sinnvoll beim Einsatz eines Produktscanners. In manchen Fällen ist das Verhalten jedoch unerwünscht und kann über diesen Schalter deaktiviert werden.</para>
+        </section>
+        <section>
             <subtitle>Beschreibung aus Produktauswahl-Dialog übernehmen</subtitle>
             <para>In den Dokumenten kann ein neuer Artikel über den Produktauswahl-Dialog eingefügt werden. Diese Einstellung legt fest, ob die Produktbeschreibung mit übernommen wird. Oftmals ist die Produktbeschreibung ein längerer Text und nicht geeignet für die Artikelliste eines Dokumentes. Ist diese Option nicht ausgewählt bleibt das Feld 'Beschreibung' der Artikelliste leer und kann mit zusätzlichen Informationen wie 'Farbe: rot' versehen werden.</para>
             <informalfigure>
@@ -1098,6 +1102,11 @@
             <subtitle>EAN als Artikelnummer importieren</subtitle>
             <para>Die im Webshop hinterlegte EAN wird als Artikelnummer importiert.</para>
             <para>Siehe auch <link linkend="webshop_webshop_connector">Die Schnittstelle zum Webshop</link>
+            </para>
+        </section>
+        <section>
+            <subtitle>Kundennummer darf beim Import überschrieben werden</subtitle>
+            <para>Die aus dem Webshop importierte Kundennummer kann die im System hinterlegte Nummer überschreiben. Das kann beispielsweise verwendet werden, wenn Kundendaten über die XML-Schnittstelle importiert werden.
             </para>
         </section>
     </section>
