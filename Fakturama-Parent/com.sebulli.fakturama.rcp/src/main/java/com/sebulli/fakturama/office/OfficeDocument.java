@@ -102,12 +102,8 @@ public class OfficeDocument {
     @Inject
     protected IEventBroker evtBroker;
     
- // get UISynchronize injected as field
     @Inject UISynchronize sync;
 
-    /** Template name */
-//    private Path template;  
-    
     private DocumentSummary documentSummary;
     private FileOrganizer fo;
     private Shell shell;

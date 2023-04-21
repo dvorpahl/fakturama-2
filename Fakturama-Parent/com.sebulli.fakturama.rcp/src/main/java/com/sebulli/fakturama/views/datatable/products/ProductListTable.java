@@ -33,6 +33,7 @@ import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.nebula.widgets.nattable.NatTable;
 import org.eclipse.nebula.widgets.nattable.config.AbstractRegistryConfiguration;
 import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
@@ -117,7 +118,10 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     @Inject
     private ProductCategoriesDAO productCategoriesDAO;
-	
+
+    @Inject
+    private IPreferenceStore prefStore;
+
     private EventList<Product> productListData;
     private EventList<ProductCategory> categories;
 
@@ -397,7 +401,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         treeFilteredIssues = new FilterList<Product>(textFilteredIssues);
         
         textFilteredIssues.addListEventListener(e -> {
-            if(viewDataTableMode == ViewDataTableMode.DIALOG && textFilteredIssues.size() == 1) {
+            if(viewDataTableMode == ViewDataTableMode.DIALOG && textFilteredIssues.size() == 1
+            		&& prefStore.getBoolean(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG)) {
                 selectedObject = textFilteredIssues.get(0);
                 fireClosingEvent();
             }

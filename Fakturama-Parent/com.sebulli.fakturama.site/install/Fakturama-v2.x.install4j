@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.3" transformSequenceNumber="10">
-  <directoryPresets config="../../../../../Documents/Zertifikate/Fakturama.org.p12" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3a" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="11" jdkName="JDK 1.8 x64">
+<install4j version="10.0.4" transformSequenceNumber="10">
+  <directoryPresets config="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3c" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="11" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
         <language id="ar" />
+        <language id="nl" />
         <language id="en" />
         <language id="fr" />
         <language id="el" />
         <language id="hu" />
         <language id="it" />
+        <language id="no" />
         <language id="pl" />
         <language id="ro" />
         <language id="ru" />
@@ -23,7 +25,7 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/Fakturama.org.p12" />
+    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" />
     <jreBundles jdkProviderId="Zulu" release="17/17.0.1" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git">
@@ -123,7 +125,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2022 Fakturama.info</property>
+                <property name="labelText" type="string">(c) 2023 Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -412,7 +414,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2022 Fakturama.org</property>
+                <property name="labelText" type="string">(c) 2023 Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -776,7 +778,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
   </mediaSets>
-  <buildIds buildAll="false">
+  <buildIds>
     <mediaSet refId="45" />
   </buildIds>
 </install4j>

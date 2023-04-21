@@ -1264,7 +1264,7 @@ public class DocumentEditor extends Editor<Document> {
 		retval.setCustomerRef(parentDoc.getCustomerRef());
 		
 		// set current date as a default for service date
-	    retval.setServiceDate(Calendar.getInstance().getTime());
+	    retval.setServiceDate(parentDoc.getServiceDate());
 		retval.setOrderDate(parentDoc.getOrderDate());
 		if(parentDoc.getBillingType().isINVOICE()) {
 			retval.setInvoiceReference((Invoice) parentDoc);
@@ -1306,9 +1306,8 @@ public class DocumentEditor extends Editor<Document> {
         Document parentDoc = resultingDoc.getSourceDocument();
 
         // at first look for a receiver for the current billing type
-        java.util.Optional<DocumentReceiver> mainReceiver = parentDoc.getReceiver().stream()
-                .filter(r -> r.getBillingType().equals(resultingDoc.getBillingType())).findFirst();
-        if (!mainReceiver.isPresent()) {
+        DocumentReceiver mainReceiver = addressManager.getAdressForBillingType(parentDoc, resultingDoc.getBillingType());
+        if (mainReceiver == null) {
             // no main receiver found, so we look into the contact itself
             // determine parentDoc's main receiver
             DocumentReceiver addressFromParentDoc = addressManager.getAdressForBillingType(parentDoc, parentDoc.getBillingType());
@@ -1326,26 +1325,26 @@ public class DocumentEditor extends Editor<Document> {
                         .filter(r -> r.getOriginAddressId() != null && r.getOriginAddressId().equals(rec.getOriginAddressId())).findFirst();
                 
                 if(existingMatchingReceiver.isPresent()) {
-                    mainReceiver = existingMatchingReceiver;
-                    mainReceiver.get().setBillingType(resultingDoc.getBillingType());
+                    mainReceiver = existingMatchingReceiver.get();
+                    mainReceiver.setBillingType(resultingDoc.getBillingType());
                 } else {
                     // add additional fields which aren't in contact
                     rec.setConsultant(addressFromParentDoc.getConsultant());
-                    mainReceiver = java.util.Optional.ofNullable(rec);
+                    mainReceiver = rec;
                     
                 }
             }
-        }
+        } else {
 
-        // add receiver to receiver's list (if present)
-        if (mainReceiver.isPresent()) {
-            receiverCopy = mainReceiver.get().clone();
+            // add receiver to receiver's list (if present)
+            receiverCopy = mainReceiver.clone();
+            receiverCopy.setBillingType(resultingDoc.getBillingType());
             resultingDoc.getReceiver().add(receiverCopy);
         }
 
         for (DocumentReceiver receiver : parentDoc.getReceiver()) {
             // avoid doubled receivers
-            if (mainReceiver.isPresent() && mainReceiver.get().getId() == receiver.getId()) {
+            if (mainReceiver != null && mainReceiver.getId() == receiver.getId()) {
                 continue;
             }
 

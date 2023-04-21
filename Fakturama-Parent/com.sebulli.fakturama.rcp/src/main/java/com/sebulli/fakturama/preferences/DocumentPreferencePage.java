@@ -81,6 +81,8 @@ public class DocumentPreferencePage extends FieldEditorPreferencePage implements
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_COPY_MESSAGE_FROM_PARENT, msg.preferencesDocumentCopymsgfield, getFieldEditorParent()));
 		//T: Preference page "Document" - Label "Copy the description in product selection dialog."
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_COPY_PRODUCT_DESCRIPTION_FROM_PRODUCTS_DIALOG, msg.preferencesDocumentCopydescfield, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG, msg.preferencesDocumentImmediatelyovertake, getFieldEditorParent()));
+		
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_USE_PREVIEW_PICTURE, msg.preferencesDocumentDisplaypreview, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM, msg.preferencesDocumentUsediscountsingle, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_ALL_ITEMS, msg.preferencesDocumentUsediscountall, getFieldEditorParent()));
@@ -127,6 +129,7 @@ public class DocumentPreferencePage extends FieldEditorPreferencePage implements
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_COPY_MESSAGE_FROM_PARENT, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_COPY_PRODUCT_DESCRIPTION_FROM_PRODUCTS_DIALOG, write);
+		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_USE_PREVIEW_PICTURE, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_ALL_ITEMS, write);
@@ -159,6 +162,7 @@ public class DocumentPreferencePage extends FieldEditorPreferencePage implements
 		node.setDefault(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS, DocumentSummary.ROUND_GROSS_VALUES);
 		node.setDefault(Constants.PREFERENCES_DOCUMENT_COPY_MESSAGE_FROM_PARENT, false);
 		node.setDefault(Constants.PREFERENCES_DOCUMENT_COPY_PRODUCT_DESCRIPTION_FROM_PRODUCTS_DIALOG, false);
+		node.setDefault(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG, true);
 //		node.setDefault(Constants.PREFERENCES_DOCUMENT_USE_ITEM_POS, false);
 		node.setDefault(Constants.PREFERENCES_DOCUMENT_USE_PREVIEW_PICTURE, true);
 		node.setDefault(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM, true);

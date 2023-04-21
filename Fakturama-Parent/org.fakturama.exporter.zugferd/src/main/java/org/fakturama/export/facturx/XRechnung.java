@@ -253,10 +253,11 @@ public class XRechnung extends AbstractEInvoice {
         // TODO tradeSettlement.setPayeeTradeParty(value);   // Zahlungsempfänger
         DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
         Contact contact = getOriginContact(documentReceiver);
+        TradeSettlementPaymentMeansType paymentType;
         if (contact != null) {
             DebtorFinancialAccountType debtorAccount = createDebtorAccount(contact.getBankAccount());
 
-            TradeSettlementPaymentMeansType paymentType = factory.createTradeSettlementPaymentMeansType()
+            paymentType = factory.createTradeSettlementPaymentMeansType()
                     .withTypeCode(createPaymentTypeCode(invoice))
                     .withInformation(createText(invoice.getPayment().getName()))
 //                    .withApplicableTradeSettlementFinancialCard(value)
@@ -264,13 +265,18 @@ public class XRechnung extends AbstractEInvoice {
     //                                .withPaymentReference(createText(invoice.getName())) /* customerref ? */
                     ;
 
-            CreditorFinancialAccountType creditor = createCreditorAccount();
-            if (creditor != null) {
-                paymentType.setPayeePartyCreditorFinancialAccount(creditor);
-                paymentType.setPayeeSpecifiedCreditorFinancialInstitution(createCreditorFinancialInstitution());
-            }
-            tradeSettlement.getSpecifiedTradeSettlementPaymentMeans().add(paymentType);
+        } else {
+            paymentType = factory.createTradeSettlementPaymentMeansType()
+                    .withTypeCode(createPaymentTypeCode(invoice))
+                    .withInformation(createText(invoice.getPayment().getName()))
+                    ;
         }
+        CreditorFinancialAccountType creditor = createCreditorAccount();
+        if (creditor != null) {
+            paymentType.setPayeePartyCreditorFinancialAccount(creditor);
+            paymentType.setPayeeSpecifiedCreditorFinancialInstitution(createCreditorFinancialInstitution());
+        }
+        tradeSettlement.getSpecifiedTradeSettlementPaymentMeans().add(paymentType);
 
         // Get the items of the UniDataSet document
         invoice.getItems().forEach(item -> tradeTransaction.getIncludedSupplyChainTradeLineItem().add(createLineItem(item)));
