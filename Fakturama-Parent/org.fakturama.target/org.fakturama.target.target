@@ -6,12 +6,6 @@
 <unit id="org.eclipse.emf.texo.feature.group" version="0.9.0.v201611141242"/>
 <repository location="http://download.eclipse.org/modeling/emft/texo/updates/interim"/>
 </location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="0.0.0"/>
-<repository location="http://download.eclipse.org/nebula/incubation/snapshot"/>
-</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/rt/eclipselink/updates/"/>
 		<unit id="org.eclipse.persistence.sdk.feature.group" version="2.7.10.v20211216-fe64cd39c3"/>
@@ -39,18 +33,6 @@
 		<unit id="org.eclipse.nebula.widgets.nattable.extension.glazedlists.feature.feature.group" version="2.0.2.202111300816"/>
 		<unit id="org.eclipse.nebula.widgets.nattable.extension.nebula.feature.feature.group" version="2.0.2.202111300816"/>
 		<unit id="org.eclipse.nebula.widgets.nattable.extension.poi.feature.feature.group" version="2.0.2.202111300816"/>
-	</location>
-	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="http://download.eclipse.org/nebula/releases/2.6.0"/>
-		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202202012159"/>
-		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202202012159"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/releases/2022-03"/>
@@ -135,6 +117,25 @@
 		<unit id="org.eclipse.gemini.dbaccess.hsqldb.feature.feature.group" version="1.2.1"/>
 		<unit id="org.eclipse.gemini.dbaccess.mariadb.feature.feature.group" version="1.2.1"/>
 		<unit id="org.eclipse.gemini.dbaccess.mysql.feature.feature.group" version="1.2.1"/>
+	</location>
+	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="https://download.eclipse.org/nebula/releases/latest"/>
+		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202303072132"/>
+		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202303072132"/>
+	</location>
+	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="http://download.eclipse.org/nebula/incubation/latest"/>
+		<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202303072125"/>
+		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.202303072125"/>
+		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.202303072125"/>
+		<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="0.1.0.202303072125"/>
 	</location>
 	<location includeDependencyDepth="infinite" includeDependencyScopes="compile" includeSource="true" missingManifest="generate" type="Maven">
 		<dependencies>
@@ -366,7 +367,7 @@
 			</dependency>
 		</dependencies>
 	</location>
-	<location includeDependencyDepth="none" includeSource="true" missingManifest="generate" type="Maven">
+	<location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" missingManifest="generate" type="Maven">
 		<dependencies>
 			<dependency>
 				<groupId>org.apache.derby</groupId>
