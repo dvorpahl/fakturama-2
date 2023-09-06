@@ -206,9 +206,9 @@
         <setEntry value="org.eclipse.jface.databinding@default:default"/>
         <setEntry value="org.eclipse.jface.nl_de@default:false"/>
         <setEntry value="org.eclipse.jface@default:default"/>
-        <setEntry value="org.eclipse.nebula.cwt*1.1.0.202202012159@default:default"/>
+        <setEntry value="org.eclipse.nebula.cwt*1.1.0.202303072132@default:default"/>
         <setEntry value="org.eclipse.nebula.jface.cdatetime@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.cdatetime*1.5.0.202011020719@default:default"/>
+        <setEntry value="org.eclipse.nebula.widgets.cdatetime*1.5.0.202303072132@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.cdatetime.css@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.formattedtext@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.nattable.core@default:default"/>

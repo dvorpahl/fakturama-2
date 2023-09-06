@@ -120,12 +120,15 @@ public class NumberFormatterService implements INumberFormatterService {
     /* (non-Javadoc)
 	 * @see com.sebulli.fakturama.misc.INumberFormatterService#doubleToFormattedPrice(java.lang.Double)
 	 */
-    @Override
+	@Override
 	public String doubleToFormattedPrice(Double value) {
-        CurrencyUnit currUnit = getCurrencyUnit(getLocaleUtil().getCurrencyLocale());
-        MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(value), currUnit);
-        return formatCurrency(rounded);
-    }
+		if (value != null) {
+			CurrencyUnit currUnit = getCurrencyUnit(getLocaleUtil().getCurrencyLocale());
+			MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(value), currUnit);
+			return formatCurrency(rounded);
+		}
+		return "";
+	}
 
     /* (non-Javadoc)
 	 * @see com.sebulli.fakturama.misc.INumberFormatterService#DoubleToFormatedPercent(java.lang.Double)

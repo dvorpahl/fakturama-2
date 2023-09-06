@@ -433,51 +433,51 @@ public class TemplateProcessor {
 //		return interpretParameters(placeholder.getKey(), value);
 		return value;
 	}
-	
     
-	public String fill(Document document, Optional<DocumentSummary> documentSummary, String template) {
-		int pStart = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX);
-		if (pStart > -1) {
+	public String fill(Document document, Optional<DocumentSummary> documentSummaryOpt, String template) {
+		int startOfPlaceholder = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX);
+		if (startOfPlaceholder > -1) {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+
 			// enable summaries in (mail) template
-			Optional<DocumentSummary> ds = documentSummary;
-			if (ds.isEmpty()) {
+			DocumentSummary documentSummary = documentSummaryOpt.orElseGet(() -> {
 				DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory
 						.make(DocumentSummaryCalculator.class, context);
-				ds = Optional.of(documentSummaryCalculator.calculate(document));
-			}
+				return documentSummaryCalculator.calculate(document);
+			});
+
 			try {
-				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-				org.w3c.dom.Document doc = dBuilder.newDocument();
-				int pEnd = -1;
+				DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+				org.w3c.dom.Document doc = documentBuilder.newDocument();
+				int endIndex = -1;
 				String placeholderRaw = null;
 				StringBuffer result = new StringBuffer();
-				while (pStart > -1) {
+				while (startOfPlaceholder > -1) {
 					// transfer non-placeholder data
-					if (pStart > pEnd+1) {
+					if (startOfPlaceholder > endIndex + 1) {
 						// at least one char
-						result.append(template.substring(pEnd+1, pStart));
+						result.append(template.substring(endIndex + 1, startOfPlaceholder));
 					}
-					pEnd = template.indexOf(PlaceholderNavigation.PLACEHOLDER_SUFFIX, pStart);
-					if (pEnd > -1) {
+					endIndex = template.indexOf(PlaceholderNavigation.PLACEHOLDER_SUFFIX, startOfPlaceholder);
+					if (endIndex > -1) {
 						// now we have start AND end pos of placeholder,
 						// get placeholder w/o < and >
-						placeholderRaw = template.substring(pStart, pEnd+1);
+						placeholderRaw = template.substring(startOfPlaceholder, endIndex + 1);
 						// now handle the placeholder = replace with text
-						PlaceholderNode pn = new PlaceholderNode(doc.createTextNode(placeholderRaw));
-						result.append(getTextForPlaceholder(pn, document, ds));
-						pStart = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX, pEnd);
+						PlaceholderNode placeholderNode = new PlaceholderNode(doc.createTextNode(placeholderRaw));
+						result.append(getTextForPlaceholder(placeholderNode, document, Optional.of(documentSummary)));
+						startOfPlaceholder = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX, endIndex);
 					} else {
 						// now we have start but NO end pos, so it's not a placeholder
 						// and no more placeholder can follow, so add rest to result and finish
-						result.append(template.substring(pStart));
-						pStart = -1;
+						result.append(template.substring(startOfPlaceholder));
+						startOfPlaceholder = -1;
 					}
 				}
 				return result.toString();
 			} catch (ParserConfigurationException pcE) {
 				log.error(pcE, "Cannot parse template " + StringUtils.wrapIfMissing(template, "'"));
-				return template + "\nParserConfigurationException:\n"+pcE;
+				return template + "\nParserConfigurationException:\n" + pcE;
 			}
 		} else {
 			// no placeholder, template = result document
