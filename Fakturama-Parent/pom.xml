@@ -85,12 +85,12 @@
 				<version>${tycho.version}</version>
 			</plugin>
 			
-			<!-- pack plugins with pack200, which are smaller class files (Part I) -->
+			<!-- pack plugins with pack200, which are smaller class files (Part I) 
 			<plugin>
 				<groupId>org.eclipse.tycho.extras</groupId>
 				<artifactId>tycho-pack200b-plugin</artifactId>
 				<version>${tycho-extras.version}</version>
-			</plugin>
+			</plugin>-->
 
             <!-- Materialize Products -->
             <plugin>
