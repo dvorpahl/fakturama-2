@@ -1,17 +1,15 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
-
 
 package com.sebulli.fakturama.views.datatable.vouchers;
 
@@ -70,24 +68,22 @@ import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.matchers.MatcherEditor;
 import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
 
-
-
 /**
  * View with the table of all receipt vouchers
  * 
  * @author Gerd Bartelt
  * 
  */
-public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, VoucherCategory>{
-	
-	// ID of this view
-	public static final String ID = "fakturama.views.receiptVoucherTable";
+public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, VoucherCategory> {
+
+    // ID of this view
+    public static final String ID = "fakturama.views.receiptVoucherTable";
     protected static final String POPUP_ID = "com.sebulli.fakturama.receiptVoucherlist.popup";
 
-/**    this is for synchronizing the UI thread */
-    @Inject    
+    /** this is for synchronizing the UI thread */
+    @Inject
     private UISynchronize sync;
-    
+
     @Inject
     private ReceiptVouchersDAO receiptVouchersDAO;
 
@@ -107,15 +103,14 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
     //create a new ConfigRegistry which will be needed for GlazedLists handling
     private ConfigRegistry configRegistry = new ConfigRegistry();
     protected FilterList<Voucher> treeFilteredIssues;
-	private VoucherMatcher currentFilter;
+    private VoucherMatcher currentFilter;
 
     /**
      * Creates the SWT controls for this workbench part.
      * 
-     * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
      */
     @PostConstruct
-    public Control createPartControl(Composite parent, MPart listTablePart) {
+    public Control createPartControl(final Composite parent, final MPart listTablePart) {
         log.info("create ReceiptVoucher list part");
         this.listTablePart = listTablePart;
         super.createPartControl(parent, Voucher.class, true, ID);
@@ -127,7 +122,7 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
     }
 
     @Override
-    protected void postConfigureNatTable(NatTable natTable) {
+    protected void postConfigureNatTable(final NatTable natTable) {
         //as the autoconfiguration of the NatTable is turned off, we have to add the 
         //DefaultNatTableStyleConfiguration and the ConfigRegistry manually 
         natTable.setConfigRegistry(configRegistry);
@@ -147,62 +142,67 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
         // Change the default sort key bindings. Note that 'auto configure' was turned off
         // for the SortHeaderLayer (setup in the GlazedListsGridLayer)
         natTable.addConfiguration(new SingleClickSortConfiguration());
-        
+
         // register right click as a selection event for the whole row
-        natTable.getUiBindingRegistry().registerMouseDownBinding(
-                new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
+        natTable.getUiBindingRegistry().registerMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
 
                 new IMouseAction() {
 
                     ViewportSelectRowAction selectRowAction = new ViewportSelectRowAction(false, false);
-                                
+
                     @Override
-                    public void run(NatTable natTable, MouseEvent event) {
+                    public void run(final NatTable natTable, final MouseEvent event) {
                         int rowPosition = natTable.getRowPositionByY(event.y);
-                        if(!gridListLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
+                        if (!gridListLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
                             selectRowAction.run(natTable, event);
-                        }                   
+                        }
                     }
                 });
         natTable.configure();
     }
 
-    private IColumnPropertyAccessor<Voucher> createColumnPropertyAccessor(String[] propertyNames) {
-        final IColumnPropertyAccessor<Voucher> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<Voucher>(propertyNames);
-        
-        // Add derived 'default' column
-        final IColumnPropertyAccessor<Voucher> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<Voucher>() {
+    private IColumnPropertyAccessor<Voucher> createColumnPropertyAccessor(final String[] propertyNames) {
+        final IColumnPropertyAccessor<Voucher> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<>(propertyNames);
 
-            public Object getDataValue(Voucher rowObject, int columnIndex) {
+        // Add derived 'default' column
+        final IColumnPropertyAccessor<Voucher> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<>() {
+
+            @Override
+            public Object getDataValue(final Voucher rowObject, final int columnIndex) {
                 ReceiptvoucherListDescriptor descriptor = ReceiptvoucherListDescriptor.getDescriptorFromColumn(columnIndex);
                 switch (descriptor) {
-                    // alternative: return rowObject.getFirstName();
+                // alternative: return rowObject.getFirstName();
                 default:
                     return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
                 }
             }
 
-            public void setDataValue(Voucher rowObject, int columnIndex, Object newValue) {
+            @Override
+            public void setDataValue(final Voucher rowObject, final int columnIndex, final Object newValue) {
                 throw new UnsupportedOperationException("you can't change a value in list view!");
             }
 
+            @Override
             public int getColumnCount() {
                 return ReceiptvoucherListDescriptor.getVoucherPropertyNames().length;
             }
 
-            public String getColumnProperty(int columnIndex) {
+            @Override
+            public String getColumnProperty(final int columnIndex) {
                 ReceiptvoucherListDescriptor descriptor = ReceiptvoucherListDescriptor.getDescriptorFromColumn(columnIndex);
                 return msg.getMessageFromKey(descriptor.getMessageKey());
             }
 
-            public int getColumnIndex(String propertyName) {
+            @Override
+            public int getColumnIndex(final String propertyName) {
                 return columnPropertyAccessor.getColumnIndex(propertyName);
             }
         };
         return derivedColumnPropertyAccessor;
     }
-    
-    public NatTable createListTable(Composite searchAndTableComposite) {
+
+    @Override
+    public NatTable createListTable(final Composite searchAndTableComposite) {
 
         receiptVoucherListData = GlazedLists.eventList(receiptVouchersDAO.findAll(true));
 
@@ -218,59 +218,58 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
         searchColumns[1] = "nr";
         searchColumns[2] = "documentnr";
         searchColumns[3] = "date";
- */
-        final MatcherEditor<Voucher> textMatcherEditor = new TextWidgetMatcherEditor<Voucher>(searchText.getTextControl(), 
-                GlazedLists.textFilterator(Voucher.class, Voucher_.name.getName(), Voucher_.voucherNumber.getName(),
-                        Voucher_.voucherDate.getName(), Voucher_.documentNumber.getName()));
-        
+        */
+        final MatcherEditor<Voucher> textMatcherEditor = new TextWidgetMatcherEditor<>(searchText.getTextControl(), GlazedLists.textFilterator(
+                Voucher.class, Voucher_.name.getName(), Voucher_.voucherNumber.getName(), Voucher_.voucherDate.getName(), Voucher_.documentNumber.getName()));
+
         // Filtered list for Search text field filter
-        final FilterList<Voucher> textFilteredIssues = new FilterList<Voucher>(receiptVoucherListData, textMatcherEditor);
+        final FilterList<Voucher> textFilteredIssues = new FilterList<>(receiptVoucherListData, textMatcherEditor);
 
         // build the list for the tree-filtered values (i.e., the value list which is affected by
         // tree selection)
-        treeFilteredIssues = new FilterList<Voucher>(textFilteredIssues);
-       
+        treeFilteredIssues = new FilterList<>(textFilteredIssues);
+
         gridListLayer = new EntityGridListLayer<>(treeFilteredIssues, propertyNames, derivedColumnPropertyAccessor, configRegistry);
-        
+
         DataLayer tableDataLayer = gridListLayer.getBodyDataLayer();
         tableDataLayer.setColumnPercentageSizing(true);
-//        tableDataLayer.setColumnWidthPercentageByPosition(0, 5);
-//        tableDataLayer.setColumnWidthPercentageByPosition(1, 15);
-//        tableDataLayer.setColumnWidthPercentageByPosition(2, 75);
-//        tableDataLayer.setColumnWidthPercentageByPosition(3, 5);
+        //        tableDataLayer.setColumnWidthPercentageByPosition(0, 5);
+        //        tableDataLayer.setColumnWidthPercentageByPosition(1, 15);
+        //        tableDataLayer.setColumnWidthPercentageByPosition(2, 75);
+        //        tableDataLayer.setColumnWidthPercentageByPosition(3, 5);
 
         ColumnOverrideLabelAccumulator columnLabelAccumulator = new ColumnOverrideLabelAccumulator(gridListLayer.getBodyLayerStack());
         columnLabelAccumulator.registerColumnOverrides(ReceiptvoucherListDescriptor.DONOTBOOK.getPosition(), VoucherTableConfiguration.DONOTBOOK_LABEL);
         columnLabelAccumulator.registerColumnOverrides(ReceiptvoucherListDescriptor.TOTAL.getPosition(), MONEYVALUE_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(ReceiptvoucherListDescriptor.DATE.getPosition(), DATE_CELL_LABEL);
 
-       
         // Register label accumulator
         gridListLayer.getBodyLayerStack().setConfigLabelAccumulator(columnLabelAccumulator);
 
         //turn the auto configuration off as we want to add our header menu configuration
         NatTable natTable = new NatTable(searchAndTableComposite, gridListLayer.getGridLayer(), false);
-       
+
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
 
         return natTable;
     }
-    
+
     /**
      * @return the gridLayer
      */
+    @Override
     protected EntityGridListLayer<Voucher> getGridLayer() {
         return gridListLayer;
     }
 
     @Override
-    protected TopicTreeViewer<VoucherCategory> createCategoryTreeViewer(Composite top) {
+    protected TopicTreeViewer<VoucherCategory> createCategoryTreeViewer(final Composite top) {
         context.set(TopicTreeViewer.PARENT_COMPOSITE, top);
         context.set(TopicTreeViewer.USE_DOCUMENT_AND_CONTACT_FILTER, false);
         context.set(TopicTreeViewer.USE_ALL, true);
-        
-    	topicTreeViewer = (TopicTreeViewer<VoucherCategory>)ContextInjectionFactory.make(TopicTreeViewer.class, context);
+
+        topicTreeViewer = ContextInjectionFactory.make(TopicTreeViewer.class, context);
         categories = GlazedLists.eventList(voucherCategoriesDAO.findAll());
         topicTreeViewer.setInput(categories);
         // TODO boolean useDocumentAndContactFilter, boolean useAll könnte man eigentlich zusammenfassen.
@@ -278,29 +277,33 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
         topicTreeViewer.setLabelProvider(new TreeCategoryLabelProvider());
         return topicTreeViewer;
     }
-    
+
     /**
-     * Handle an incoming refresh command. This could be initiated by an editor 
-     * which has just saved a new element (document, Voucher, payment etc). Here we ONLY
-     * listen to "VatEditor" events.<br />
-     * The tree of {@link VoucherCategory}s is updated because we use a GlazedList for
-     * the source of the tree. The tree has a listener to the GlazedLists object (<code>categories</code> in this case) which will
-     * react on every change of the underlying list (here in the field <code>categories</code>).
-     * If the content of <code>categories</code> changes, the change event is fired and the 
-     * {@link TopicTreeViewer} is updated.
+     * Handle an incoming refresh command. This could be initiated by an editor
+     * which has just saved a new element (document, Voucher, payment etc). Here
+     * we ONLY listen to "VatEditor" events.<br />
+     * The tree of {@link VoucherCategory}s is updated because we use a
+     * GlazedList for the source of the tree. The tree has a listener to the
+     * GlazedLists object (<code>categories</code> in this case) which will
+     * react on every change of the underlying list (here in the field
+     * <code>categories</code>). If the content of <code>categories</code>
+     * changes, the change event is fired and the {@link TopicTreeViewer} is
+     * updated.
      * 
-     * @param message an incoming message
+     * @param message
+     *            an incoming message
      */
-    @Inject @Optional
-    public void handleRefreshEvent(@UIEventTopic(ReceiptVoucherEditor.EDITOR_ID) String message) {
-    	if(StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
-	        sync.syncExec(() -> top.setRedraw(false));
-	        // As the eventlist has a GlazedListsEventLayer this layer reacts on the change
-	        GlazedLists.replaceAll(receiptVoucherListData, GlazedLists.eventList(receiptVouchersDAO.findAll(true)), false);
-	        GlazedLists.replaceAll(categories, GlazedLists.eventList(voucherCategoriesDAO.findAll(true)), false);
-	        treeFilteredIssues.setMatcher(currentFilter);
-	        sync.syncExec(() -> top.setRedraw(true));
-    	}
+    @Inject
+    @Optional
+    public void handleRefreshEvent(@UIEventTopic(ReceiptVoucherEditor.EDITOR_ID) final String message) {
+        if (StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
+            sync.syncExec(() -> top.setRedraw(false));
+            // As the eventlist has a GlazedListsEventLayer this layer reacts on the change
+            GlazedLists.replaceAll(receiptVoucherListData, GlazedLists.eventList(receiptVouchersDAO.findAll(true)), false);
+            GlazedLists.replaceAll(categories, GlazedLists.eventList(voucherCategoriesDAO.findAll(true)), false);
+            treeFilteredIssues.setMatcher(currentFilter);
+            sync.syncExec(() -> top.setRedraw(true));
+        }
     }
 
     /**
@@ -311,13 +314,15 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
      * @param treeObjectType
      *            the {@link TreeObjectType}
      */
-    public void setCategoryFilter(String filter, TreeObjectType treeObjectType) {
+    @Override
+    public void setCategoryFilter(final String filter, final TreeObjectType treeObjectType) {
         currentFilter = new VoucherMatcher(filter, treeObjectType, createRootNodeDescriptor(filter));
-		treeFilteredIssues.setMatcher(currentFilter);
+        treeFilteredIssues.setMatcher(currentFilter);
 
         //Refresh is done automagically...
     }
 
+    @Override
     protected boolean isHeaderLabelEnabled() {
         return false;
     }
@@ -326,7 +331,7 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
     public String getTableId() {
         return ID;
     }
-    
+
     @Override
     protected MToolBar getMToolBar() {
         return listTablePart.getToolbar();
@@ -349,7 +354,8 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
     protected String getEditorTypeId() {
         return ReceiptVoucherEditor.class.getSimpleName();
     }
-    
+
+    @Override
     protected String getPopupId() {
         return POPUP_ID;
     }
@@ -358,10 +364,9 @@ public class ReceiptVoucherListTable extends AbstractViewDataTable<Voucher, Vouc
     protected AbstractDAO<Voucher> getEntityDAO() {
         return receiptVouchersDAO;
     }
-    
+
     @Override
     protected Class<Voucher> getEntityClass() {
-    	return Voucher.class;
+        return Voucher.class;
     }
 }
-

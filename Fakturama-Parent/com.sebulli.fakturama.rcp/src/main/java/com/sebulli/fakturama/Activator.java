@@ -14,12 +14,16 @@
 package com.sebulli.fakturama;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.core.runtime.IBundleGroup;
 import org.eclipse.core.runtime.IBundleGroupProvider;
+import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.jface.window.Window;
+import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.swt.SWT;
 import org.eclipse.update.configurator.IPlatformConfiguration;
 import org.eclipse.update.internal.configurator.FeatureEntry;
@@ -33,6 +37,8 @@ import org.osgi.framework.ServiceRegistration;
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
 import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
 
+import jakarta.persistence.Persistence;
+
 // import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 /**
@@ -42,15 +48,14 @@ import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
  */
 public class Activator implements BundleActivator, IBundleGroupProvider {
 
-
-	// The bundle ID (Bundle-SymbolicName)
+    // The bundle ID (Bundle-SymbolicName)
     public static final String PLUGIN_ID = "com.sebulli.fakturama.rcp";
 
     // The shared instance
     private static BundleContext context;
-    ServiceRegistration<?> bundleGroupProviderSR; 
-	private PlatformConfiguration configuration;
-	 
+    ServiceRegistration<?> bundleGroupProviderSR;
+    private PlatformConfiguration configuration;
+
     /**
      * Returns the shared instance
      * 
@@ -68,59 +73,95 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
      * )
      */
     @Override
-    public void start(BundleContext bundleContext) throws Exception {
+    public void start(final BundleContext bundleContext) throws Exception {
         Activator.context = bundleContext;
         // background color for focused widgets
-//        JFaceResources.getColorRegistry().put(Constants.COLOR_BGYELLOW, new RGB(255, 255, 225));
-        
+        //        JFaceResources.getColorRegistry().put(Constants.COLOR_BGYELLOW, new RGB(255, 255, 225));
+
         // perhaps: set RTL mode and configure the Workbench like so:
-        if(BooleanUtils.toBoolean(System.getProperty("force.rtl"))) {
-                Window.setDefaultOrientation(SWT.RIGHT_TO_LEFT);
+        if (BooleanUtils.toBoolean(System.getProperty("force.rtl"))) {
+            Window.setDefaultOrientation(SWT.RIGHT_TO_LEFT);
         }
 
         // background for Browser
-//		JFaceResources.getColorRegistry().put(Constants.COLOR_WHITE, new RGB(0xff, 0xff, 0xff));
-		registerBundleGroupProvider();
-		
-		// register preference store provider
-		bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
-	}
-	
-	private void registerBundleGroupProvider() {
-		final String serviceName = IBundleGroupProvider.class.getName();
-		try {
-			//don't register the service if this bundle has already registered it declaratively
-			ServiceReference<?>[] refs = getContext().getServiceReferences(serviceName, null);
-			if (refs != null) {
-				for (int i = 0; i < refs.length; i++)
-					if (PLUGIN_ID.equals(refs[i].getBundle().getSymbolicName()))
-						return;
-			}
-		} catch (InvalidSyntaxException e) {
-			//can't happen because we don't pass a filter
-		}
-		bundleGroupProviderSR = getContext().registerService(serviceName, this, null);
-	} 
-	
-	@Override
-	public String getName() {
-		return "Bundle Group Provider";
-	} 
-	
-	@Override
-	public IBundleGroup[] getBundleGroups() {
-		if (configuration == null)
-			return new IBundleGroup[0];
+        //		JFaceResources.getColorRegistry().put(Constants.COLOR_WHITE, new RGB(0xff, 0xff, 0xff));
+        registerBundleGroupProvider();
 
-		IPlatformConfiguration.IFeatureEntry[] features = configuration.getConfiguredFeatureEntries();
-		List<IBundleGroup> bundleGroups = new ArrayList<>(features.length);
-		for (int i = 0; i < features.length; i++) {
-			if (features[i] instanceof FeatureEntry && ((FeatureEntry) features[i]).hasBranding())
-				bundleGroups.add((IBundleGroup) features[i]);
-		}
-		return bundleGroups.toArray(new IBundleGroup[bundleGroups.size()]);
-	}
- 
+        // register preference store provider
+        bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
+        //        generatePersistenceUnits();
+    }
+
+    /**
+     * 
+     */
+    private void generatePersistenceUnits() {
+
+        // create old datasource
+        Map<String, Object> oldProperties = new HashMap<>();
+        oldProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get("OLD_JDBC_URL", ""));
+        oldProperties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
+        oldProperties.put(PersistenceUnitProperties.JDBC_USER, "sa");
+        oldProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
+        oldProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
+        oldProperties.put(PersistenceUnitProperties.WEAVING, "false");
+        oldProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
+
+        Persistence.createEntityManagerFactory("origin-datasource", oldProperties);
+
+        // create new datasource
+        Map<String, Object> newProperties = new HashMap<>();
+        newProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_DRIVER, ""));
+        newProperties.put(PersistenceUnitProperties.JDBC_DRIVER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_URL, ""));
+        newProperties.put(PersistenceUnitProperties.JDBC_USER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_USER, ""));
+        newProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_PASSWORD, ""));
+        newProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
+        //        newProperties.put(PersistenceUnitProperties.WEAVING, "false");
+        newProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
+
+        Persistence.createEntityManagerFactory("unconfigured2", newProperties);
+
+    }
+
+    private void registerBundleGroupProvider() {
+        final String serviceName = IBundleGroupProvider.class.getName();
+        try {
+            //don't register the service if this bundle has already registered it declaratively
+            ServiceReference<?>[] refs = getContext().getServiceReferences(serviceName, null);
+            if (refs != null) {
+                for (int i = 0; i < refs.length; i++) {
+                    if (PLUGIN_ID.equals(refs[i].getBundle().getSymbolicName())) {
+                        return;
+                    }
+                }
+            }
+        } catch (InvalidSyntaxException e) {
+            //can't happen because we don't pass a filter
+        }
+        bundleGroupProviderSR = getContext().registerService(serviceName, this, null);
+    }
+
+    @Override
+    public String getName() {
+        return "Bundle Group Provider";
+    }
+
+    @Override
+    public IBundleGroup[] getBundleGroups() {
+        if (configuration == null) {
+            return new IBundleGroup[0];
+        }
+
+        IPlatformConfiguration.IFeatureEntry[] features = configuration.getConfiguredFeatureEntries();
+        List<IBundleGroup> bundleGroups = new ArrayList<>(features.length);
+        for (int i = 0; i < features.length; i++) {
+            if (features[i] instanceof FeatureEntry && ((FeatureEntry) features[i]).hasBranding()) {
+                bundleGroups.add((IBundleGroup) features[i]);
+            }
+        }
+        return bundleGroups.toArray(new IBundleGroup[bundleGroups.size()]);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -129,7 +170,7 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
      * )
      */
     @Override
-    public void stop(BundleContext bundleContext) throws Exception {
+    public void stop(final BundleContext bundleContext) throws Exception {
         Activator.context = null;
     }
 }

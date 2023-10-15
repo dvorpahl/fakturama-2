@@ -17,12 +17,9 @@
         <encoding>UTF-8</encoding>
     </properties>
     <modules>
-        <module>org.apache.odftoolkit</module>
-        <module>org.apache.odftoolkit.feature</module>
-        
+     
         <module>com.mysql.jdbc</module>
         <module>com.mysql.jdbc.feature</module>
-        <module>org.slf4j.osgi.feature</module>
         <module>net.glxn.qrgen</module>
         <module>net.glxn.qrgen.feature</module>
         
@@ -148,7 +145,7 @@
         <repository>
             <id>2021-03</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/2021-03</url>
+            <url>http://download.eclipse.org/releases/2023-06</url>
         </repository>
     </repositories>
 

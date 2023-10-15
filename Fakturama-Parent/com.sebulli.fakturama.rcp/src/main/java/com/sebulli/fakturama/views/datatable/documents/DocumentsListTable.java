@@ -14,7 +14,6 @@ import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -111,6 +110,7 @@ import ca.odell.glazedlists.FilterList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.matchers.MatcherEditor;
 import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
+import jakarta.persistence.PersistenceException;
 
 /**
  * Builds the Document list table.
@@ -122,44 +122,44 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     private UISynchronize sync;
 
     // ID of this view
-    public static final String ID = "fakturama.views.documentTable";     
-    
+    public static final String ID = "fakturama.views.documentTable";
+
     protected static final String POPUP_ID = "com.sebulli.fakturama.document.popup";
     public static final String SELECTED_DELIVERY_ID = "fakturama.deliverylist.selecteddeliveryid";
 
     @Inject
     private IEclipseContext context;
-    
-	@Inject
-	private ILocaleService localeUtil;
-	
-	@Inject
-	private IDocumentAddressManager addressManager;
-	
+
     @Inject
-    @Preference   //(value=InstanceScope.SCOPE)
+    private ILocaleService localeUtil;
+
+    @Inject
+    private IDocumentAddressManager addressManager;
+
+    @Inject
+    @Preference //(value=InstanceScope.SCOPE)
     private IEclipsePreferences eclipsePrefs;
-    
+
     private EventList<Document> documentListData;
     private EventList<DummyStringCategory> categories;
-    
+
     @Inject
     private DocumentsDAO documentsDAO;
-    
+
     @Inject
     private DocumentReceiverDAO contactsDAO;
-    
-	@Inject
-	private INumberFormatterService numberFormatterService;
-	
+
+    @Inject
+    private INumberFormatterService numberFormatterService;
+
     @Inject
     private ITemplateResourceManager resourceManager;
 
     private EntityGridListLayer<Document> gridLayer;
-    
-//    @Inject
-//    private EHelpService helpService;
-    
+
+    //    @Inject
+    //    private EHelpService helpService;
+
     //create a new ConfigRegistry which will be needed for GlazedLists handling
     private ConfigRegistry configRegistry = new ConfigRegistry();
     protected FilterList<Document> treeFilteredIssues;
@@ -173,64 +173,62 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @Inject
     protected MessageRegistry registry;
 
-	private DocumentMatcher currentFilter;
-	
+    private DocumentMatcher currentFilter;
+
     @PostConstruct
-    public Control createPartControl(Composite parent, MPart listTablePart) {
+    public Control createPartControl(final Composite parent, final MPart listTablePart) {
         log.debug("create Document list part");
         this.listTablePart = listTablePart;
-        if(!eclipsePrefs.get(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, "").isEmpty()) {
-        	return null;
+        if (!eclipsePrefs.get(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, "").isEmpty()) {
+            return null;
         }
         super.createPartControl(parent, Document.class, true, ID);
 
         // if another click handler is set we use it
         // Listen to double clicks
         Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
-        if(commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
+        if (commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
             hookDoubleClickCommand(natTable, getGridLayer(), (String) commandId);
         } else {
             hookDoubleClickCommand2(natTable, getGridLayer());
-	        topicTreeViewer.setTable(this);
-	        
-	        // On creating, set the unpaid invoices
-	        topicTreeViewer.selectItemByName(
-	                String.format("%s/%s", 
-	                        msg.getMessageFromKey(DocumentType.INVOICE.getPluralDescription()), 
-	                        msg.documentOrderStateUnpaid)
-	                );
+            topicTreeViewer.setTable(this);
+
+            // On creating, set the unpaid invoices
+            topicTreeViewer
+                    .selectItemByName(String.format("%s/%s", msg.getMessageFromKey(DocumentType.INVOICE.getPluralDescription()), msg.documentOrderStateUnpaid));
         }
 
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);        
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(top);
         contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-        
+
         return top;
     }
-    
-    private void hookDoubleClickCommand(final NatTable nattable, final EntityGridListLayer<Document> gridLayer, String commandId) {
-        
+
+    private void hookDoubleClickCommand(final NatTable nattable, final EntityGridListLayer<Document> gridLayer, final String commandId) {
+
         if (commandId != null) {
             // if we are in "selectdelivery" mode we have to register a single click mouse event
             nattable.getUiBindingRegistry().registerFirstSingleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
-                public void run(NatTable natTable, MouseEvent event) {
+                @Override
+                public void run(final NatTable natTable, final MouseEvent event) {
                     int rowPos = natTable.getRowPositionByY(event.y);
                     int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
                     selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
                     // see comment below
-//                    selectionService.setSelection(selectionService);
+                    //                    selectionService.setSelection(selectionService);
                 }
             });
         }
-        
+
         // TODO refactor the IMouseAction into a new class. Then add a new KeyBinding for RETURN key so that
         // the user can select an entry with one keystroke.
-        
+
         // Add a double click listener
         nattable.getUiBindingRegistry().registerDoubleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
 
             @Override
-            public void run(NatTable natTable, MouseEvent event) {
+            public void run(final NatTable natTable, final MouseEvent event) {
                 //get the row position for the click in the NatTable
                 int rowPos = natTable.getRowPositionByY(event.y);
                 //transform the NatTable row position to the row position of the body layer stack
@@ -243,7 +241,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 // from PartDescriptor
                 Map<String, Object> params = new HashMap<>();
                 ParameterizedCommand parameterizedCommand;
-                if(commandId != null) {
+                if (commandId != null) {
                     // If we don't give a target document number the event will be caught by *all*
                     // open editors which listens to this event. This is (obviously :-) ) not
                     // the intended behavior...
@@ -254,12 +252,12 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     // TODO how about multiple selections?
                     List<Document> resultList = Arrays.asList(getSelectedObjects());
                     eventParams.put(SELECTED_DELIVERY_ID, resultList);
-//                    // alternatively use the Selection Service
+                    //                    // alternatively use the Selection Service
                     // ==> no! Because this SelectionService has another context than 
                     // the receiver of this topic. Therefore the receiver's SelectionService
                     // is empty :-(
-//                    selectionService.setSelection(selectedObject);
-                    
+                    //                    selectionService.setSelection(selectedObject);
+
                     // selecting an entry and closing the dialog are two different actions.
                     // the "CloseContact" event is caught by SelectContactDialog#handleDialogDoubleClickClose. 
                     evtBroker.post("DialogAction/CloseDelivery", eventParams);
@@ -267,7 +265,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     // if we come from the list view then we should open a new editor 
                     params.put(CallEditor.PARAM_OBJ_ID, Long.toString(selectedObject.getId()));
                     params.put(CallEditor.PARAM_EDITOR_TYPE, getEditorId());
-                    params.put(CallEditor.PARAM_FOLLOW_UP, null);  // could be set from a previous call
+                    params.put(CallEditor.PARAM_FOLLOW_UP, null); // could be set from a previous call
                     params.putAll(getAdditionalParameters());
                     parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
                     handlerService.executeHandler(parameterizedCommand);
@@ -275,7 +273,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             }
         });
     }
-    
+
     @Override
     protected void hookDoubleClickCommand2(final NatTable nattable, final EntityGridListLayer<Document> gridLayer) {
         hookDoubleClickCommand(nattable, gridLayer, null);
@@ -286,13 +284,13 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
      */
     @Override
     protected Map<String, Object> getAdditionalParameters() {
-    	Map<String, Object> params = new HashMap<>();
-        params.put(CallEditor.PARAM_CATEGORY, ((Document)selectedObject).getBillingType().getName());
+        Map<String, Object> params = new HashMap<>();
+        params.put(CallEditor.PARAM_CATEGORY, selectedObject.getBillingType().getName());
         return params;
     }
-    
+
     @Override
-    protected void postConfigureNatTable(NatTable natTable) {
+    protected void postConfigureNatTable(final NatTable natTable) {
         //as the autoconfiguration of the NatTable is turned off, we have to add the 
         //DefaultNatTableStyleConfiguration and the ConfigRegistry manually 
         natTable.setConfigRegistry(configRegistry);
@@ -307,30 +305,31 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         // Change the default sort key bindings. Note that 'auto configure' was turned off
         // for the SortHeaderLayer (setup in the GlazedListsGridLayer)
         natTable.addConfiguration(new SingleClickSortConfiguration());
-        
+
         /*
          * add feedback behavior to nattable (i.e., if a cell is selected, inform the
          * TreeTable about it) 
          */
         natTable.addLayerListener(new ILayerListener() {
             // Default selection behavior selects cells by default.
-            public void handleLayerEvent(ILayerEvent event) {
+            @Override
+            public void handleLayerEvent(final ILayerEvent event) {
                 if (event instanceof CellSelectionEvent) {
                     CellSelectionEvent cellEvent = (CellSelectionEvent) event;
-                    
+
                     //transform the NatTable row position to the row position of the body layer stack
                     int bodyRowPos = LayerUtil.convertRowPosition(natTable, cellEvent.getRowPosition(), gridLayer.getBodyDataLayer());
-                    if(bodyRowPos > -1) {
+                    if (bodyRowPos > -1) {
                         // extract the selected Object
                         Document selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
-                        
+
                         // Set the transaction and the contact filter
                         if (selectedObject != null && topicTreeViewer != null) {
-                            if(selectedObject.getTransactionId() != null) {
+                            if (selectedObject.getTransactionId() != null) {
                                 topicTreeViewer.setTransaction(selectedObject.getTransactionId());
                             } else {
-                            	// reset transaction id
-                            	topicTreeViewer.setTransaction(Long.valueOf(-1));
+                                // reset transaction id
+                                topicTreeViewer.setTransaction(Long.valueOf(-1));
                             }
                             topicTreeViewer.setContactFromDocument(selectedObject);
                             changePopupEntries(null);
@@ -339,9 +338,9 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 }
             }
         });
-        
+
         gridLayer.getSelectionLayer().getSelectionModel().setMultipleSelectionAllowed(true);
-        
+
         E4SelectionListener<Document> esl = new E4SelectionListener<>(selectionService, gridLayer.getSelectionLayer(), gridLayer.getBodyDataProvider());
         gridLayer.getSelectionLayer().addLayerListener(esl);
 
@@ -350,39 +349,39 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
          * it would be overwritten with default configurations.
          */
         natTable.setBackground(GUIHelper.COLOR_WHITE);
-        
+
         // register right click as a selection event for the whole row
-        natTable.getUiBindingRegistry().registerMouseDownBinding(
-                new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
+        natTable.getUiBindingRegistry().registerMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
 
                 new IMouseAction() {
 
                     ViewportSelectRowAction selectRowAction = new ViewportSelectRowAction(false, false);
-                                
+
                     @Override
-                    public void run(NatTable natTable, MouseEvent event) {
+                    public void run(final NatTable natTable, final MouseEvent event) {
                         int rowPosition = natTable.getRowPositionByY(event.y);
-                        if(!gridLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
+                        if (!gridLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
                             selectRowAction.run(natTable, event);
                             changePopupEntries(null);
-                        }                   
+                        }
                     }
                 });
 
         natTable.configure();
     }
-    
+
     @Override
     protected Class<Document> getEntityClass() {
-    	return Document.class;
+        return Document.class;
     }
-    
-    private IColumnPropertyAccessor<Document> createColumnPropertyAccessor(String[] propertyNames) {
-        final IColumnPropertyAccessor<Document> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<Document>(propertyNames);
-        final SpecialCellValueProvider specialCellValueProvider = new SpecialCellValueProvider(msg);
-        final IColumnPropertyAccessor<Document> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<Document>() {
 
-            public Object getDataValue(Document rowObject, int columnIndex) {
+    private IColumnPropertyAccessor<Document> createColumnPropertyAccessor(final String[] propertyNames) {
+        final IColumnPropertyAccessor<Document> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<>(propertyNames);
+        final SpecialCellValueProvider specialCellValueProvider = new SpecialCellValueProvider(msg);
+        final IColumnPropertyAccessor<Document> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<>() {
+
+            @Override
+            public Object getDataValue(final Document rowObject, final int columnIndex) {
                 DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
                 switch (descriptor) {
                 case ICON:
@@ -392,11 +391,11 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 case DATE:
                     return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
                 case DOCUMENT:
-                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex-1);
+                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex - 1);
                 case NAME:
                     return columnPropertyAccessor.getDataValue(rowObject, 1);
                 case CUSTREF:
-                    return columnPropertyAccessor.getDataValue(rowObject, 4); 
+                    return columnPropertyAccessor.getDataValue(rowObject, 4);
                 case TOTAL:
                     // alternative: return rowObject.getFirstName();
                     return columnPropertyAccessor.getDataValue(rowObject, 3);
@@ -406,20 +405,24 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 return null;
             }
 
-            public void setDataValue(Document rowObject, int columnIndex, Object newValue) {
+            @Override
+            public void setDataValue(final Document rowObject, final int columnIndex, final Object newValue) {
                 throw new UnsupportedOperationException("you can't change a value in list view!");
             }
 
+            @Override
             public int getColumnCount() {
                 return DocumentListDescriptor.getDocumentPropertyNames().length;
             }
 
-            public String getColumnProperty(int columnIndex) {
+            @Override
+            public String getColumnProperty(final int columnIndex) {
                 DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
                 return msg.getMessageFromKey(descriptor.getMessageKey());
             }
 
-            public int getColumnIndex(String propertyName) {
+            @Override
+            public int getColumnIndex(final String propertyName) {
                 if (DocumentListDescriptor.ICON.getPropertyName().equals(propertyName)) {
                     return DocumentListDescriptor.ICON.getPosition();
                 } else {
@@ -429,28 +432,29 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         };
         return derivedColumnPropertyAccessor;
     }
-    
-    protected NatTable createListTable(Composite searchAndTableComposite) {
+
+    @Override
+    protected NatTable createListTable(final Composite searchAndTableComposite) {
         // fill the underlying data source (GlazedList)
-    	if(this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER) != null) {
-    		// if a click handler is set we are in "dialog" mode which only uses delivery notes.
-    		documentListData = GlazedLists.eventList(documentsDAO.findAllDeliveriesWithoutInvoice());
-    	} else {
-    		documentListData = GlazedLists.eventList(documentsDAO.findAll(true));
-    	}
-    	
-//    	
-//    	ObjectDuplicator objectDuplicator = new ObjectDuplicator();
-//    	objectDuplicator.einTest(documentListData.get(0));
+        if (this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER) != null) {
+            // if a click handler is set we are in "dialog" mode which only uses delivery notes.
+            documentListData = GlazedLists.eventList(documentsDAO.findAllDeliveriesWithoutInvoice());
+        } else {
+            documentListData = GlazedLists.eventList(documentsDAO.findAll(true));
+        }
+
+        //    	
+        //    	ObjectDuplicator objectDuplicator = new ObjectDuplicator();
+        //    	objectDuplicator.einTest(documentListData.get(0));
 
         // get the visible properties to show in list view
         String[] propertyNames = documentsDAO.getVisibleProperties();
         // Add derived 'default' column
         final IColumnPropertyAccessor<Document> derivedColumnPropertyAccessor = createColumnPropertyAccessor(propertyNames);
 
-//        //build the column header layer
-//        // Column header data provider includes derived properties
-//        IDataProvider columnHeaderDataProvider = new ListViewColumnHeaderDataProvider<Document>(propertyNames, derivedColumnPropertyAccessor); 
+        //        //build the column header layer
+        //        // Column header data provider includes derived properties
+        //        IDataProvider columnHeaderDataProvider = new ListViewColumnHeaderDataProvider<Document>(propertyNames, derivedColumnPropertyAccessor); 
 
         /*
         // Mark the columns that are used by the search function.
@@ -459,23 +463,23 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         searchColumns[1] = "date";
         searchColumns[2] = "addressfirstline";
         searchColumns[3] = "total";
- */
-        final MatcherEditor<Document> textMatcherEditor = new TextWidgetMatcherEditor<Document>(searchText.getTextControl(), GlazedLists.textFilterator(Document.class,
-                Document_.name.getName(), Document_.addressFirstLine.getName(), Document_.customerRef.getName()));
-        
+        */
+        final MatcherEditor<Document> textMatcherEditor = new TextWidgetMatcherEditor<>(searchText.getTextControl(),
+                GlazedLists.textFilterator(Document.class, Document_.name.getName(), Document_.addressFirstLine.getName(), Document_.customerRef.getName()));
+
         // Filtered list for Search text field filter
-        final FilterList<Document> textFilteredIssues = new FilterList<Document>(documentListData, textMatcherEditor);
+        final FilterList<Document> textFilteredIssues = new FilterList<>(documentListData, textMatcherEditor);
 
         // build the list for the tree-filtered values (i.e., the value list which is affected by
         // tree selection)
-        treeFilteredIssues = new FilterList<Document>(textFilteredIssues);
-        
+        treeFilteredIssues = new FilterList<>(textFilteredIssues);
+
         //build the grid layer
         gridLayer = new EntityGridListLayer<>(treeFilteredIssues, propertyNames, derivedColumnPropertyAccessor, configRegistry);
         DataLayer tableDataLayer = gridLayer.getBodyDataLayer();
         tableDataLayer.setColumnPercentageSizing(true);
-//        Arrays.stream(DocumentListDescriptor.values()).forEach(
-//                descriptor -> tableDataLayer.setColumnWidthPercentageByPosition(descriptor.getPosition(), descriptor.getDefaultWidth()));
+        //        Arrays.stream(DocumentListDescriptor.values()).forEach(
+        //                descriptor -> tableDataLayer.setColumnWidthPercentageByPosition(descriptor.getPosition(), descriptor.getDefaultWidth()));
 
         // now is the time where we can create the NatTable itself
 
@@ -489,79 +493,83 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.DATE.getPosition(), DATE_CELL_LABEL);
 
         final NatTable natTable = new NatTable(searchAndTableComposite/*, 
-                SWT.NO_REDRAW_RESIZE | SWT.DOUBLE_BUFFERED | SWT.BORDER*/, gridLayer.getGridLayer(), false);
+                                                                      SWT.NO_REDRAW_RESIZE | SWT.DOUBLE_BUFFERED | SWT.BORDER*/, gridLayer.getGridLayer(),
+                false);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
-        
+
         // Register label accumulator
         gridLayer.getBodyLayerStack().setConfigLabelAccumulator(columnLabelAccumulator);
 
         return natTable;
     }
-    
+
     /**
      * @return the gridLayer
      */
+    @Override
     protected EntityGridListLayer<Document> getGridLayer() {
         return gridLayer;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected TopicTreeViewer<DummyStringCategory> createCategoryTreeViewer(Composite top) {
+    protected TopicTreeViewer<DummyStringCategory> createCategoryTreeViewer(final Composite top) {
         Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
-        if(commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
-        	topicTreeViewer = null;
+        if (commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
+            topicTreeViewer = null;
         } else {
-	        context.set("useDocumentAndContactFilter", true);
-	        context.set("useAll", false);
-	        try {
-				categories = GlazedLists.eventList(documentsDAO.getCategoryStrings());
+            context.set("useDocumentAndContactFilter", true);
+            context.set("useAll", false);
+            try {
+                categories = GlazedLists.eventList(documentsDAO.getCategoryStrings());
 
-		        context.set(TopicTreeViewer.PARENT_COMPOSITE, top);
-		        context.set(TopicTreeViewer.USE_DOCUMENT_AND_CONTACT_FILTER, true);
-		        context.set(TopicTreeViewer.USE_ALL, false);
-				
-				topicTreeViewer = (TopicTreeViewer<DummyStringCategory>)ContextInjectionFactory.make(TopicTreeViewer.class, context);
-				topicTreeViewer.setAddressManager(addressManager);
-				topicTreeViewer.disableSorting();
-				topicTreeViewer.setInput(categories);
-				
-				Function<DummyStringCategory, String> categorySummarizer = cat -> {
-				    java.util.Optional<Double> sum = documentsDAO.sumAllDocumentsWithinCategory(cat);
-				    return sum.isPresent() ? numberFormatterService.doubleToFormattedPrice(sum.get()) : "--";
-				};
-				
-				TreeCategoryLabelProvider treeTableLabelProvider = new TreeCategoryLabelProvider(categorySummarizer);
-				ContextInjectionFactory.inject(treeTableLabelProvider, context);
+                context.set(TopicTreeViewer.PARENT_COMPOSITE, top);
+                context.set(TopicTreeViewer.USE_DOCUMENT_AND_CONTACT_FILTER, true);
+                context.set(TopicTreeViewer.USE_ALL, false);
+
+                topicTreeViewer = ContextInjectionFactory.make(TopicTreeViewer.class, context);
+                topicTreeViewer.setAddressManager(addressManager);
+                topicTreeViewer.disableSorting();
+                topicTreeViewer.setInput(categories);
+
+                Function<DummyStringCategory, String> categorySummarizer = cat -> {
+                    java.util.Optional<Double> sum = documentsDAO.sumAllDocumentsWithinCategory(cat);
+                    return sum.isPresent() ? numberFormatterService.doubleToFormattedPrice(sum.get()) : "--";
+                };
+
+                TreeCategoryLabelProvider treeTableLabelProvider = new TreeCategoryLabelProvider(categorySummarizer);
+                ContextInjectionFactory.inject(treeTableLabelProvider, context);
                 topicTreeViewer.setLabelProvider(treeTableLabelProvider);
-			} catch (PersistenceException e) {
-				// if no database is created an exception occurs at this point
-				log.warn("Category tree couldn't be created, perhaps because of initially startup?");
-			}
+            } catch (PersistenceException e) {
+                // if no database is created an exception occurs at this point
+                log.warn("Category tree couldn't be created, perhaps because of initially startup?");
+            }
         }
         return topicTreeViewer;
     }
-    
+
     /**
-     * Handle an incoming refresh command. This could be initiated by an editor 
-     * which has just saved a new element (document, Document, payment etc). Here we ONLY
-     * listen to "DocumentEditor" events.<br />
-     * The tree of Categories is not updated because it is a (more or less) static tree.
+     * Handle an incoming refresh command. This could be initiated by an editor
+     * which has just saved a new element (document, Document, payment etc).
+     * Here we ONLY listen to "DocumentEditor" events.<br />
+     * The tree of Categories is not updated because it is a (more or less)
+     * static tree.
      * 
-     * @param message an incoming message
+     * @param message
+     *            an incoming message
      */
     @Inject
     @Optional
-    public void handleRefreshEvent(@UIEventTopic(DocumentEditor.EDITOR_ID) String message) {
-    	if(StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
-	        sync.syncExec(() -> top.setRedraw(false));
-	        // As the eventlist has a GlazedListsEventLayer this layer reacts on the change
-	        GlazedLists.replaceAll(documentListData, GlazedLists.eventList(documentsDAO.findAll(true)), false);
-	        treeFilteredIssues.setMatcher(currentFilter);
-	        GlazedLists.replaceAll(categories, GlazedLists.eventList(documentsDAO.getCategoryStrings()), false);
-	        sync.syncExec(() -> top.setRedraw(true));
-    	}
+    public void handleRefreshEvent(@UIEventTopic(DocumentEditor.EDITOR_ID) final String message) {
+        if (StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
+            sync.syncExec(() -> top.setRedraw(false));
+            // As the eventlist has a GlazedListsEventLayer this layer reacts on the change
+            GlazedLists.replaceAll(documentListData, GlazedLists.eventList(documentsDAO.findAll(true)), false);
+            treeFilteredIssues.setMatcher(currentFilter);
+            GlazedLists.replaceAll(categories, GlazedLists.eventList(documentsDAO.getCategoryStrings()), false);
+            sync.syncExec(() -> top.setRedraw(true));
+        }
     }
 
     /**
@@ -572,15 +580,16 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
      * @param treeObjectType
      *            the {@link TreeObjectType}
      */
-    public void setCategoryFilter(String filter, TreeObjectType treeObjectType) {
+    @Override
+    public void setCategoryFilter(final String filter, final TreeObjectType treeObjectType) {
         // Set the label with the filter string
         if (!filter.equals(NO_CATEGORY_LABEL)) {
-        // Display the localized list names.
-        // or the document type
+            // Display the localized list names.
+            // or the document type
             if (isHeaderLabelEnabled()) {
                 // TreeObjectType.CONTACTS_ROOTNODE and TreeObjectType.TRANSACTIONS_ROOTNODE
                 // both have the same default name, therefore we only test for one of these node types.
-                if(filter.endsWith(TreeObjectType.CONTACTS_ROOTNODE.getDefaultName())) {
+                if (filter.endsWith(TreeObjectType.CONTACTS_ROOTNODE.getDefaultName())) {
                     filterLabel.setText(" ");
                 } else {
                     if (treeObjectType == TreeObjectType.TRANSACTIONS_ROOTNODE) {
@@ -592,20 +601,19 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     }
                 }
             }
- 
-        currentFilter = new DocumentMatcher(filter, 
-			        treeObjectType,
-			        msg);
-		treeFilteredIssues.setMatcher(currentFilter);
-//        filterLabel.setToolTipText("ouch!");
+
+            currentFilter = new DocumentMatcher(filter, treeObjectType, msg);
+            treeFilteredIssues.setMatcher(currentFilter);
+            //        filterLabel.setToolTipText("ouch!");
         }
 
-       filterLabel.pack(true);
+        filterLabel.pack(true);
 
         //Refresh is done automagically...
     }
-    
-    public void changeToolbarItem(TreeObject treeObject) {
+
+    @Override
+    public void changeToolbarItem(final TreeObject treeObject) {
         MToolBar toolbar = listTablePart.getToolbar();
         for (MToolBarElement tbElem : toolbar.getChildren()) {
             if (tbElem.getElementId().contentEquals(getToolbarAddItemCommandId())) {
@@ -616,8 +624,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 if (treeObject.getDocType() != null) {
                     toolItem.setTooltip(msg.commandNewTooltip + " " + msg.getMessageFromKey(treeObject.getDocType().getSingularKey()));
                     parameterMap.put(CallEditor.PARAM_CATEGORY, treeObject.getDocType().name());
-                }
-                else {
+                } else {
                     // default "add" document type is "Order"
                     toolItem.setTooltip(msg.commandNewTooltip + " " + msg.getMessageFromKey(DocumentType.ORDER.getSingularKey()));
                     parameterMap.put(CallEditor.PARAM_CATEGORY, DocumentType.ORDER.name());
@@ -626,8 +633,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
                 if (wbCommand != null) {
                     wbCommand = ParameterizedCommand.generateCommand(wbCommand.getCommand(), parameterMap);
-                }
-                else {
+                } else {
                     // during the initialization phase the command is null, therefore we have to create a 
                     // new command
                     parameterMap.put(CallEditor.PARAM_EDITOR_TYPE, DocumentEditor.ID);
@@ -643,66 +649,55 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
      * @param documentType
      * @param part
      */
-    protected void changePopupEntries(DocumentType documentType) {
+    protected void changePopupEntries(final DocumentType documentType) {
         BillingType selectedObjectType = (getSelectedObject() != null) ? getSelectedObject().getBillingType() : BillingType.NONE;
 
         // for controlling of the visibility of popup commands
         // according to the supplementary information (tag name) the visibility is set for the
         // appropriate commands.
-        listTablePart.getMenus()
-                .stream()
-                .filter(menu -> menu.getElementId().contentEquals(POPUP_ID))
-                .forEach(popupMenu -> popupMenu.getChildren().stream()
-                		.filter(entry -> entry.getTags().contains("orderActive"))
-                        .forEach(foundEntry -> foundEntry.setVisible(documentType == DocumentType.ORDER
-                                || selectedObjectType == BillingType.ORDER)));
-        listTablePart.getMenus()
-                .stream()
-                .filter(menu -> menu.getElementId().contentEquals(POPUP_ID))
-                .forEach(
-                        popupMenu -> popupMenu.getChildren().stream().filter(entry -> entry.getTags().contains("deliveryActive"))
-                                .forEach(foundEntry -> foundEntry.setVisible(documentType == DocumentType.DELIVERY
-                                || selectedObjectType == BillingType.DELIVERY)));
-        
+        listTablePart.getMenus().stream().filter(menu -> menu.getElementId().contentEquals(POPUP_ID))
+                .forEach(popupMenu -> popupMenu.getChildren().stream().filter(entry -> entry.getTags().contains("orderActive"))
+                        .forEach(foundEntry -> foundEntry.setVisible(documentType == DocumentType.ORDER || selectedObjectType == BillingType.ORDER)));
+        listTablePart.getMenus().stream().filter(menu -> menu.getElementId().contentEquals(POPUP_ID))
+                .forEach(popupMenu -> popupMenu.getChildren().stream().filter(entry -> entry.getTags().contains("deliveryActive"))
+                        .forEach(foundEntry -> foundEntry.setVisible(documentType == DocumentType.DELIVERY || selectedObjectType == BillingType.DELIVERY)));
+
         boolean canBePaid = java.util.Optional.ofNullable(documentType).orElse(DocumentType.NONE).canBePaid()
                 || DocumentType.findByKey(selectedObjectType.getValue()).canBePaid();
-        listTablePart.getMenus()
-                .stream()
-                .filter(menu -> menu.getElementId().contentEquals(POPUP_ID))
-                .forEach(
-                        popupMenu -> popupMenu.getChildren().stream().filter(entry -> entry.getTags().contains("canBePaidActive"))
-                                .forEach(foundEntry -> foundEntry.setVisible(canBePaid)));
+        listTablePart.getMenus().stream().filter(menu -> menu.getElementId().contentEquals(POPUP_ID)).forEach(popupMenu -> popupMenu.getChildren().stream()
+                .filter(entry -> entry.getTags().contains("canBePaidActive")).forEach(foundEntry -> foundEntry.setVisible(canBePaid)));
     }
-    
+
     @Override
-    public void setContactFilter(long filter) {
+    public void setContactFilter(final long filter) {
         // Set the label with the filter string
-      DocumentReceiver contact = contactsDAO.findById(filter);
-      if(contact != null) {
-        setCategoryFilter(contactUtil.getNameWithCompany(contact), TreeObjectType.CONTACTS_ROOTNODE);
-//          filterLabel.setText(contactUtil.getNameWithCompany(contact));
-//          filterLabel.pack(true);
-      }
+        DocumentReceiver contact = contactsDAO.findById(filter);
+        if (contact != null) {
+            setCategoryFilter(contactUtil.getNameWithCompany(contact), TreeObjectType.CONTACTS_ROOTNODE);
+            //          filterLabel.setText(contactUtil.getNameWithCompany(contact));
+            //          filterLabel.pack(true);
+        }
 
         // Reset transaction and category filter, set contact filter
-      
-//      contentProvider.setContactFilter(filter);
-//      contentProvider.setTransactionFilter(-1);
-//      contentProvider.setCategoryFilter("");
 
-//      // Reset the addNew action. 
-//      if (addNewAction != null) {
-//          addNewAction.setCategory("");
-//      }
+        //      contentProvider.setContactFilter(filter);
+        //      contentProvider.setTransactionFilter(-1);
+        //      contentProvider.setCategoryFilter("");
 
-//        this.refresh();
+        //      // Reset the addNew action. 
+        //      if (addNewAction != null) {
+        //          addNewAction.setCategory("");
+        //      }
+
+        //        this.refresh();
     }
-    
+
     @Override
-    public void setTransactionFilter(long filter,  TreeObject treeObject) {
+    public void setTransactionFilter(final long filter, final TreeObject treeObject) {
         setCategoryFilter(Long.toString(filter), TreeObjectType.TRANSACTIONS_ROOTNODE);
     }
-    
+
+    @Override
     protected boolean isHeaderLabelEnabled() {
         return true;
     }
@@ -719,7 +714,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     protected String getEditorId() {
         return DocumentEditor.ID;
     }
-    
+
     @Override
     protected String getEditorTypeId() {
         return DocumentEditor.class.getSimpleName();
@@ -728,7 +723,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     class DocumentTableConfiguration extends AbstractRegistryConfiguration {
 
         @Override
-        public void configureRegistry(IConfigRegistry configRegistry) {
+        public void configureRegistry(final IConfigRegistry configRegistry) {
             Style styleLeftAligned = new Style();
             styleLeftAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
             Style styleRightAligned = new Style();
@@ -738,64 +733,37 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             CellPainterWrapper painter = new PaddingDecorator(new TextPainter(), 0, 7, 0, 7);
 
             // default style for most of the cells
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE, // attribute to apply
-                    styleLeftAligned,                // value of the attribute
-                    DisplayMode.NORMAL,              // apply during normal rendering i.e not during selection or edit
-                    GridRegion.BODY.toString());     // apply the above for all cells with this label
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER,
-                    painter,
-                    DisplayMode.NORMAL,
-                    GridRegion.BODY.toString());
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, // attribute to apply
+                    styleLeftAligned, // value of the attribute
+                    DisplayMode.NORMAL, // apply during normal rendering i.e not during selection or edit
+                    GridRegion.BODY.toString()); // apply the above for all cells with this label
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, painter, DisplayMode.NORMAL, GridRegion.BODY.toString());
 
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER, 
-                    new CellImagePainter(resourceManager),
-                    DisplayMode.NORMAL, ICON_CELL_LABEL);
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                    styleCentered,      
-                    DisplayMode.NORMAL,             
-                    ICON_CELL_LABEL); 
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, new CellImagePainter(resourceManager), DisplayMode.NORMAL,
+                    ICON_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleCentered, DisplayMode.NORMAL, ICON_CELL_LABEL);
 
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER, 
-                    new CellPainterDecorator(new TextPainter(), CellEdgeEnum.LEFT, new CellImagePainter(resourceManager)),
-                    DisplayMode.NORMAL, STATE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new StateDisplayConverter(),
-                    DisplayMode.NORMAL,
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER,
+                    new CellPainterDecorator(new TextPainter(), CellEdgeEnum.LEFT, new CellImagePainter(resourceManager)), DisplayMode.NORMAL,
                     STATE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new StateDisplayConverter(), DisplayMode.NORMAL, STATE_CELL_LABEL);
 
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL,             
-                    MONEYVALUE_CELL_LABEL ); 
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new MoneyDisplayConverter(numberFormatterService),
-                    DisplayMode.NORMAL,
-                    MONEYVALUE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new MoneyDisplayConverter(numberFormatterService),
+                    DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL);
 
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL,             
-                    DATE_CELL_LABEL ); 
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, DATE_CELL_LABEL);
             SimpleDateFormat dateFormat = (SimpleDateFormat) SimpleDateFormat.getDateInstance(DateFormat.MEDIUM, localeUtil.getDefaultLocale());
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new DefaultDateDisplayConverter(dateFormat.toPattern()),
-                    DisplayMode.NORMAL,
-                    DATE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultDateDisplayConverter(dateFormat.toPattern()),
+                    DisplayMode.NORMAL, DATE_CELL_LABEL);
         }
     }
-    
+
     @Override
     public Document[] getSelectedObjects() {
         List<Document> selectedObjects = new ArrayList<>();
         int[] fullySelectedRowPositions = gridLayer.getSelectionLayer().getFullySelectedRowPositions();
-        if(fullySelectedRowPositions.length > 0 && fullySelectedRowPositions[0] > -1) {
+        if (fullySelectedRowPositions.length > 0 && fullySelectedRowPositions[0] > -1) {
             for (int i = 0; i < fullySelectedRowPositions.length; i++) {
                 selectedObjects.add(gridLayer.getBodyDataProvider().getRowObject(fullySelectedRowPositions[i]));
             }
@@ -806,14 +774,14 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         selectionService.setSelection(selectedObjects);
         return retArr;
     }
-    
-    
+
     @Override
     public Document getSelectedObject() {
         Document[] selectedObjects = getSelectedObjects();
         return selectedObjects != null && selectedObjects.length > 0 ? selectedObjects[0] : null;
     }
 
+    @Override
     protected String getPopupId() {
         return POPUP_ID;
     }
@@ -821,17 +789,17 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     class StateDisplayConverter implements IDisplayConverter {
 
         @Override
-        public Object canonicalToDisplayValue(Object canonicalValue) {
+        public Object canonicalToDisplayValue(final Object canonicalValue) {
             return "!!!CHECK StateDisplayConverter " + canonicalValue;
         }
 
-        public Object displayToCanonicalValue(Object displayValue) {
+        @Override
+        public Object displayToCanonicalValue(final Object displayValue) {
             throw new UnsupportedOperationException("can't change the state in a list view!");
         }
 
         @Override
-        public Object canonicalToDisplayValue(ILayerCell cell,
-                IConfigRegistry configRegistry, Object canonicalValue) {
+        public Object canonicalToDisplayValue(final ILayerCell cell, final IConfigRegistry configRegistry, final Object canonicalValue) {
             String retval = "";
             if (canonicalValue != null) {
                 Icon value = (Icon) canonicalValue;
@@ -847,7 +815,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     break;
                 case COMMAND_CHECKED:
                     retval = msg.documentOrderStatePaid;
-//                    retval = msg.documentOrderStateClosed;
+                    //                    retval = msg.documentOrderStateClosed;
                     break;
                 case COMMAND_ERROR:
                     /* only for dunnings: We have to show the count of current dunning.
@@ -855,8 +823,8 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                      * look at the dunning level.
                      */
                     Document rowObject = gridLayer.getBodyDataProvider().getRowObject(cell.getRowIndex());
-                    if(rowObject.getBillingType() == BillingType.DUNNING) {
-                        int dunningLevel = ((Dunning)rowObject).getDunningLevel();
+                    if (rowObject.getBillingType() == BillingType.DUNNING) {
+                        int dunningLevel = ((Dunning) rowObject).getDunningLevel();
                         //T: Marking of a dunning in the document table.
                         //T: Format: "Dunning No. xx"
                         retval = MessageFormat.format(msg.documentDunningStatemarkerName, dunningLevel);
@@ -872,22 +840,21 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         }
 
         @Override
-        public Object displayToCanonicalValue(ILayerCell cell,
-                IConfigRegistry configRegistry, Object displayValue) {
+        public Object displayToCanonicalValue(final ILayerCell cell, final IConfigRegistry configRegistry, final Object displayValue) {
             return displayToCanonicalValue(displayValue);
         }
     }
-    
+
     @Override
-	protected Document handleCascadeDelete(Document tmpDocument) {
-	// before deletion first update stock
-		if(BooleanUtils.isTrue(tmpDocument.getPrinted())) {
-			tmpDocument.getItems().stream().forEach(oldItem -> {
-					oldItem.setOriginQuantity(oldItem.getQuantity());
-					oldItem.setQuantity(null);
-			});
-		}
-			
+    protected Document handleCascadeDelete(final Document tmpDocument) {
+        // before deletion first update stock
+        if (BooleanUtils.isTrue(tmpDocument.getPrinted())) {
+            tmpDocument.getItems().stream().forEach(oldItem -> {
+                oldItem.setOriginQuantity(oldItem.getQuantity());
+                oldItem.setQuantity(null);
+            });
+        }
+
         StockUpdateHandler stockUpdateHandler = ContextInjectionFactory.make(StockUpdateHandler.class, context);
         stockUpdateHandler.updateStockQuantity(top.getShell(), null, tmpDocument);
         return tmpDocument;

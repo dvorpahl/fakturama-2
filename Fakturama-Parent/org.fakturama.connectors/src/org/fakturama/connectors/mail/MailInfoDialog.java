@@ -80,7 +80,7 @@ public class MailInfoDialog {
     @Inject
     @Translation
     protected Messages msg;
-    
+
     @Inject
     @Translation
     protected MailServiceMessages mailServiceMessages;
@@ -91,22 +91,19 @@ public class MailInfoDialog {
     private Button sendButton;
 
     @PostConstruct
-    protected Control createDialogArea(@Active Shell shell, Composite parent) {
+    protected Control createDialogArea(@Active final Shell shell, final Composite parent) {
         this.shell = shell;
-        
-        emailValidationStrategy.setBeforeSetValidator((String emailAddress) -> {
+
+        emailValidationStrategy.setBeforeSetValidator((final String emailAddress) -> {
             // either To, CC or BCC has to have at least one entry
             boolean isValid;
-            if (StringUtils.isBlank(emailAddress)
-                   && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank())) {
+            if (StringUtils.isBlank(emailAddress) && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank())) {
                 return ValidationStatus.ok();
             }
 
-            isValid = Arrays.asList(emailAddress.split(MailSettings.ADDRESS_SEPARATOR_CHAR))
-                    .stream()
-                    .allMatch(e -> StringUtils.isBlank(e)
-                                && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank()) 
-                                || EmailValidator.getInstance().isValid(e));
+            isValid = Arrays.asList(emailAddress.split(MailSettings.ADDRESS_SEPARATOR_CHAR)).stream().allMatch(
+                    e -> StringUtils.isBlank(e) && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank())
+                            || EmailValidator.getInstance().isValid(e));
 
             sendButton.setEnabled(isValid);
             return isValid ? ValidationStatus.ok() : ValidationStatus.error(msg.editorContactFieldEmailValidationerror);
@@ -123,55 +120,40 @@ public class MailInfoDialog {
 
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogTo).create(top);
         receiverTo = TextFactory.newText(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(top);
-        
+
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogCc).create(top);
         receiverCC = TextFactory.newText(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(top);
 
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogBcc).create(top);
         receiverBCC = TextFactory.newText(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(top);
-        
+
         LabelFactory.newLabel(SWT.NONE).text(mailServiceMessages.mailserviceDialogSubject).create(top);
         subject = TextFactory.newText(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(top);
 
         body = TextFactory.newText(SWT.BORDER | SWT.WRAP).layoutData(GridDataFactory.fillDefaults().span(2, 1).grab(true, true).minSize(80, 100).create())
                 .create(top);
 
-        Composite attachmentPanel = CompositeFactory.newComposite(SWT.BORDER)
-                .layoutData(GridDataFactory.fillDefaults().span(2, 1).grab(true, true).create())
+        Composite attachmentPanel = CompositeFactory.newComposite(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().span(2, 1).grab(true, true).create())
                 .layout(GridLayoutFactory.fillDefaults().numColumns(2).create()).create(top);
-        
+
         addAttachmentListViewer(attachmentPanel);
         addButtons(attachmentPanel);
-        
-        Composite bottomPanel = CompositeFactory.newComposite(SWT.NONE)
-                .layoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create())
-                .layout(GridLayoutFactory.swtDefaults().numColumns(3).equalWidth(true).create())
-                .create(top);
-        LabelFactory.newLabel(SWT.NONE)
-            .layoutData(GridDataFactory.fillDefaults().grab(true, false).create())
-            .create(bottomPanel); // invisible label
-        LabelFactory.newLabel(SWT.NONE)
-            .layoutData(GridDataFactory.fillDefaults().grab(true, false).create())
-            .create(bottomPanel); // invisible label
-        
+
+        Composite bottomPanel = CompositeFactory.newComposite(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create())
+                .layout(GridLayoutFactory.swtDefaults().numColumns(3).equalWidth(true).create()).create(top);
+        LabelFactory.newLabel(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(bottomPanel); // invisible label
+        LabelFactory.newLabel(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(bottomPanel); // invisible label
+
         Composite buttonPanel = CompositeFactory.newComposite(SWT.NONE)
-                .layoutData(GridDataFactory.fillDefaults().grab(true, false).align(SWT.END, SWT.FILL).create())
-                .layout(new FillLayout())
-                .create(bottomPanel);
+                .layoutData(GridDataFactory.fillDefaults().grab(true, false).align(SWT.END, SWT.FILL).create()).layout(new FillLayout()).create(bottomPanel);
 
-        sendButton = ButtonFactory.newButton(SWT.PUSH)
-                .layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
-                .text(mailServiceMessages.mailserviceDialogSend)
-                .onSelect(t -> mailService.sendMail(settings))
-                .create(buttonPanel);
+        sendButton = ButtonFactory.newButton(SWT.PUSH).layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
+                .text(mailServiceMessages.mailserviceDialogSend).onSelect(t -> mailService.sendMail(settings)).create(buttonPanel);
 
-        ButtonFactory.newButton(SWT.PUSH)
-                .layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
-                .text(mailServiceMessages.mailserviceDialogCancel)
-                .onSelect(t -> {
+        ButtonFactory.newButton(SWT.PUSH).layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
+                .text(mailServiceMessages.mailserviceDialogCancel).onSelect(t -> {
                     closeDialog();
-                })
-                .create(buttonPanel);
+                }).create(buttonPanel);
 
         bindFields();
 
@@ -206,27 +188,28 @@ public class MailInfoDialog {
 
         IObservableList<String> attachmentList = listFactory.createObservable(listViewer.getControl());
         IObservableList<String> att = PojoProperties.list(MailSettings.class, MailSettings.FIELD_RECEIVERS_ADDITIONALDOCS, String.class).observe(settings);
-        
+
         Binding recBind = bindingContext.bindValue(rec, receiversTo, emailValidationStrategy, null);
         ControlDecorationSupport.create(recBind, SWT.TOP | SWT.LEFT);
 
         Binding ccBind = bindingContext.bindValue(recCC, receiversCC, emailValidationStrategy, null);
         ControlDecorationSupport.create(ccBind, SWT.TOP | SWT.LEFT);
-        
+
         Binding bccBind = bindingContext.bindValue(recBCC, receiversBCC, emailValidationStrategy, null);
         ControlDecorationSupport.create(bccBind, SWT.TOP | SWT.LEFT);
-        
+
         bindingContext.bindValue(subj, subjString);
         bindingContext.bindValue(bodyWidget, bodyString);
 
         bindingContext.bindList(attachmentList, att);
     }
 
-    private void addAttachmentListViewer(Composite top) {
+    private void addAttachmentListViewer(final Composite top) {
         listViewer = new ListViewer(top, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 
         listViewer.setContentProvider(new IStructuredContentProvider() {
-            public Object[] getElements(Object inputElement) {
+            @Override
+            public Object[] getElements(final Object inputElement) {
                 @SuppressWarnings("unchecked")
                 List<String> v = (ArrayList<String>) inputElement;
                 return v.toArray();
@@ -239,7 +222,7 @@ public class MailInfoDialog {
 
     }
 
-    private void addButtons(Composite top) {
+    private void addButtons(final Composite top) {
         FillLayout fillLayout = new FillLayout(SWT.VERTICAL);
         fillLayout.spacing = 2;
 

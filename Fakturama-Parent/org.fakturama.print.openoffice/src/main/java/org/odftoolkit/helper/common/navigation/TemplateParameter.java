@@ -1,4 +1,4 @@
-package org.odftoolkit.simple.common.navigation;
+package org.odftoolkit.helper.common.navigation;
 
 import org.apache.commons.lang3.StringUtils;
 

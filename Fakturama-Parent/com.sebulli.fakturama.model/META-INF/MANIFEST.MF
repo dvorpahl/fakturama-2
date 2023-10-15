@@ -3,28 +3,29 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DB models
 Bundle-SymbolicName: com.sebulli.fakturama.model;singleton:=true
 Bundle-Version: 2.1.3.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: javax.inject,
  com.sebulli.fakturama.common,
  org.eclipse.persistence.jpa,
- org.eclipse.gemini.ext.di;bundle-version="1.1.2",
- org.eclipse.gemini.jpa;bundle-version="1.2.0",
  org.eclipse.e4.core.di;bundle-version="1.6.100",
  org.eclipse.e4.core.services;bundle-version="1.2.0",
- org.eclipse.emf.texo;bundle-version="0.9.0",
  org.eclipse.emf.ecore;bundle-version="2.10.0",
+ org.eclipse.emf.ecore.xmi,
  com.ibm.icu,
  org.eclipse.equinox.preferences,
- org.javamoney.osgi;bundle-version="1.0.1",
- osgi.enterprise,
  org.eclipse.osgi,
  org.slf4j.api,
  org.yaml.snakeyaml,
- jakarta.persistence;bundle-version="2.2.3";visibility:=reexport,
  javax.annotation;bundle-version="1.3.5",
  jakarta.xml.bind;bundle-version="2.3.3",
  jakarta.xml.bind-api;bundle-version="2.3.2",
- org.liquibase.core;bundle-version="4.5.0"
+ org.liquibase.core;bundle-version="4.5.0",
+ org.osgi.service.jdbc;bundle-version="1.1.0",
+ javax.money;bundle-version="1.1.0",
+ org.javamoney.moneta;bundle-version="1.4.2",
+ org.eclipse.persistence.core;bundle-version="4.0.2",
+ jakarta.persistence-api;bundle-version="3.1.0",
+ wrapped.org.eclipse.persistence.eclipselink;bundle-version="4.0.2"
 Meta-Persistence: META-INF/persistence.xml
 Service-Component: OSGI-INF/dbupdateservice.xml,
  OSGI-INF/documentaddressmanager.xml
@@ -34,7 +35,8 @@ Export-Package: com.sebulli.fakturama.converter,
  com.sebulli.fakturama.dto,
  com.sebulli.fakturama.model,
  com.sebulli.fakturama.oldmodel,
- com.sebulli.fakturama.util
+ com.sebulli.fakturama.util,
+ org.eclipse.emf.texo.model
 Bundle-ActivationPolicy: lazy
 Import-Package: com.opcoach.e4.preferences,
  org.eclipse.e4.core.contexts,

@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.annotations.CanExecute;
@@ -37,104 +34,105 @@ import at.ckvsoft.qrk.QRKPaymentTypes;
 import at.ckvsoft.qrk.type.ObjectFactory;
 import at.ckvsoft.qrk.type.Qrkvoucher;
 import at.ckvsoft.qrk.type.Receipt2Bon;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 
 /**
- * Export handler for exporting documents to "QRK Kasse" (see <a href="http://www.ckvsoft.at">web site</a>). 
- * This handler creates a single JSON file from a document (namely an invoice) and stores it in the exchange directory (given
- * in Preferences).
+ * Export handler for exporting documents to "QRK Kasse" (see
+ * <a href="http://www.ckvsoft.at">web site</a>). This handler creates a single
+ * JSON file from a document (namely an invoice) and stores it in the exchange
+ * directory (given in Preferences).
  *
  */
 public class QRKExportHandler {
 
-	@Inject
-	@Translation
-	protected Messages msg;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	protected IEclipseContext context;
+    @Inject
+    protected IEclipseContext context;
 
-	@Inject
-	@Optional
-	private IPreferenceStore preferences;
+    @Inject
+    @Optional
+    private IPreferenceStore preferences;
 
-	@Inject
-	private ILogger log;
-	
-	@Inject
-	private INumberFormatterService numberFormatter;
+    @Inject
+    private ILogger log;
 
-	@CanExecute
-	public boolean canExecute(EPartService partService) {
-		String qrkImportDirectory = preferences.getString(Constants.PREFERENCES_QRK_EXPORT_PATH);
-		Path qrkImportPath = Paths.get(qrkImportDirectory);
-		if(qrkImportDirectory.isEmpty() || qrkImportPath == null || !Files.isDirectory(qrkImportPath) || !Files.isWritable(qrkImportPath)) {
-			return false;
-		}
+    @Inject
+    private INumberFormatterService numberFormatter;
 
-		MPart activePart = partService.getActivePart();
-		return activePart != null && activePart.getObject() != null
-				&& (activePart.getObject() instanceof DocumentEditor)
-				&& ((DocumentEditor) activePart.getObject()).getDocument().getBillingType().isINVOICE();
-	}
+    @CanExecute
+    public boolean canExecute(final EPartService partService) {
+        String qrkImportDirectory = preferences.getString(Constants.PREFERENCES_QRK_EXPORT_PATH);
+        Path qrkImportPath = Paths.get(qrkImportDirectory);
+        if (qrkImportDirectory.isEmpty() || qrkImportPath == null || !Files.isDirectory(qrkImportPath) || !Files.isWritable(qrkImportPath)) {
+            return false;
+        }
 
-	@Execute
-	public void execute(Shell shell, EPartService partService) {
-		if(!canExecute(partService)) {
-			MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.preferencesQrkExportMissingfolder);
-			return;
-		}
-		
-		MPart activePart = partService.getActivePart();
-		if(activePart != null && activePart.getObject() != null
-				&& (activePart.getObject() instanceof DocumentEditor)
-				&& ((DocumentEditor) activePart.getObject()).getDocument().getBillingType().isINVOICE()) {
+        MPart activePart = partService.getActivePart();
+        return activePart != null && activePart.getObject() != null && (activePart.getObject() instanceof DocumentEditor)
+                && ((DocumentEditor) activePart.getObject()).getDocument().getBillingType().isINVOICE();
+    }
+
+    @Execute
+    public void execute(final Shell shell, final EPartService partService) {
+        if (!canExecute(partService)) {
+            MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.preferencesQrkExportMissingfolder);
+            return;
+        }
+
+        MPart activePart = partService.getActivePart();
+        if (activePart != null && activePart.getObject() != null && (activePart.getObject() instanceof DocumentEditor)
+                && ((DocumentEditor) activePart.getObject()).getDocument().getBillingType().isINVOICE()) {
             JAXBContext jc;
-			try {
-				String qrkImportDirectory = preferences.getString(Constants.PREFERENCES_QRK_EXPORT_PATH);
-				Map<String, Object> properties = new HashMap<>();
-				properties.put(MarshallerProperties.MEDIA_TYPE, "application/json");
-				jc = JAXBContextFactory.createContext(new Class[]{Receipt2Bon.class, ObjectFactory.class}, properties);
-				
-	            ObjectFactory qrkObjectFactory = new ObjectFactory();
-				Document document = ((DocumentEditor) activePart.getObject()).getDocument();
-				Receipt2Bon qrkVouchers = qrkObjectFactory.createReceipt2Bon();
-				Qrkvoucher singleVoucher = qrkObjectFactory.createQrkvoucher()
-						.withCustomerText(document.getCustomerRef())
-						.withGross(numberFormatter.doubleToFormattedQuantity(document.getTotalValue()))
-						.withReceiptNum(document.getName());
-				
-				if(document.getPayment() != null) {
-					java.util.Optional<QRKPaymentTypes> paymentMatch = Arrays.stream(QRKPaymentTypes.values()).filter(payment -> document.getPayment().getName().equalsIgnoreCase(payment.getName())).findFirst();
-					if(paymentMatch.isPresent()) {
-						singleVoucher.setPayedBy(Integer.toString(paymentMatch.get().getId()));
-					} else {
-						logAndShowError(shell, "No payment type matches for document " + document.getName() + ".");
-						return;
-					}
-				} else {
-					logAndShowError(shell, "Document "+ document.getName() + " has no payment type!");
-					return;
-				}
-				
-				qrkVouchers.getR2B().add(singleVoucher);
+            try {
+                String qrkImportDirectory = preferences.getString(Constants.PREFERENCES_QRK_EXPORT_PATH);
+                Map<String, Object> properties = new HashMap<>();
+                properties.put(MarshallerProperties.MEDIA_TYPE, "application/json");
+                jc = JAXBContextFactory.createContext(new Class[] { Receipt2Bon.class, ObjectFactory.class }, properties);
 
-	            Marshaller marshaller = jc.createMarshaller();
-	            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-	            
-	            // now create a file in the import directory of QRK
-	            Path qrkJsonFile = Paths.get(qrkImportDirectory, String.format("r2b-%s.json", document.getName()));
-	            marshaller.marshal(qrkVouchers, qrkJsonFile.toFile());
-	            
-	            MessageDialog.openInformation(shell, msg.dialogMessageboxTitleInfo, msg.commandExportQrkSuccess);
-			} catch (JAXBException e1) {
-				log.error(e1, "Error while exporting document to JSON for QRK. Reason: ");
-			}
-		}
-	}
+                ObjectFactory qrkObjectFactory = new ObjectFactory();
+                Document document = ((DocumentEditor) activePart.getObject()).getDocument();
+                Receipt2Bon qrkVouchers = qrkObjectFactory.createReceipt2Bon();
+                Qrkvoucher singleVoucher = qrkObjectFactory.createQrkvoucher().withCustomerText(document.getCustomerRef())
+                        .withGross(numberFormatter.doubleToFormattedQuantity(document.getTotalValue())).withReceiptNum(document.getName());
 
-	private void logAndShowError(Shell shell, String message) {
-		log.error(message);
-		MessageDialog.openError(shell, msg.dialogMessageboxTitleError, message);
-	}
+                if (document.getPayment() != null) {
+                    java.util.Optional<QRKPaymentTypes> paymentMatch = Arrays.stream(QRKPaymentTypes.values())
+                            .filter(payment -> document.getPayment().getName().equalsIgnoreCase(payment.getName())).findFirst();
+                    if (paymentMatch.isPresent()) {
+                        singleVoucher.setPayedBy(Integer.toString(paymentMatch.get().getId()));
+                    } else {
+                        logAndShowError(shell, "No payment type matches for document " + document.getName() + ".");
+                        return;
+                    }
+                } else {
+                    logAndShowError(shell, "Document " + document.getName() + " has no payment type!");
+                    return;
+                }
+
+                qrkVouchers.getR2B().add(singleVoucher);
+
+                Marshaller marshaller = jc.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+                // now create a file in the import directory of QRK
+                Path qrkJsonFile = Paths.get(qrkImportDirectory, String.format("r2b-%s.json", document.getName()));
+                marshaller.marshal(qrkVouchers, qrkJsonFile.toFile());
+
+                MessageDialog.openInformation(shell, msg.dialogMessageboxTitleInfo, msg.commandExportQrkSuccess);
+            } catch (JAXBException e1) {
+                log.error(e1, "Error while exporting document to JSON for QRK. Reason: ");
+            }
+        }
+    }
+
+    private void logAndShowError(final Shell shell, final String message) {
+        log.error(message);
+        MessageDialog.openError(shell, msg.dialogMessageboxTitleError, message);
+    }
 
 }

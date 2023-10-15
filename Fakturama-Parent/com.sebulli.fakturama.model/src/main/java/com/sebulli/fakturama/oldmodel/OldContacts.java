@@ -2,9 +2,9 @@ package com.sebulli.fakturama.oldmodel;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import org.eclipse.persistence.annotations.ReadOnly;
 

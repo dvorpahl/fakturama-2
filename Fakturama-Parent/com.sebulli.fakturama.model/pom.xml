@@ -14,7 +14,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<release>8</release>
+					<release>17</release>
 					<fork>false</fork>
 					<compilerId>jdt</compilerId>
 					<annotationProcessors>
@@ -37,8 +37,8 @@
 
 			<plugin>
 				<groupId>org.bsc.maven</groupId>
-				<artifactId>maven-processor-plugin</artifactId>
-				<version>3.3.3</version>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>4.5-jdk8</version>
 				<executions>
 					<execution>
 						<id>eclipselink-jpa-metamodel</id>
@@ -48,23 +48,28 @@
 						<phase>generate-sources</phase>
 						<configuration>
 							<compilerArguments>
+                                
 								-Aeclipselink.persistencexml=${project.basedir}/META-INF/persistence.xml
 							</compilerArguments>
-							<processors>
-								<processor>org.eclipse.persistence.internal.jpa.modelgen.CanonicalModelProcessor</processor>
-							</processors>
-							<outputDirectory>${project.build.directory}/src-gen</outputDirectory>
+							
+							<outputDirectory>${project.build.directory}/src-gen/main/java</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
 				<dependencies>
 					<!-- https://mvnrepository.com/artifact/org.eclipse.persistence/org.eclipse.persistence.jpa.modelgen.processor -->
 					<dependency>
-						<groupId>org.eclipse.persistence</groupId>
-						<artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
-						<version>2.7.5</version>
-						<scope>runtime</scope>
-					</dependency>
+                        <groupId>org.eclipse.persistence</groupId>
+                        <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
+                        <version>4.0.2</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.persistence</groupId>
+                        <artifactId>org.eclipse.persistence.jpa</artifactId>
+                        <version>4.0.2</version>
+                    </dependency>
+
+
 				</dependencies>
 			</plugin>
 

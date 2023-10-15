@@ -13,5 +13,3 @@ Export-Package: net.glxn.qrgen.core,
  net.glxn.qrgen.core.image,
  net.glxn.qrgen.core.scheme,
  net.glxn.qrgen.javase
-Require-Bundle: com.google.zxing.core;bundle-version="3.5.0",
- wrapped.com.google.zxing.javase;bundle-version="3.5.0"

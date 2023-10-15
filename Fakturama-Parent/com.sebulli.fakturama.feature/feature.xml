@@ -168,35 +168,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.gemini.dbaccess.derby"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.gemini.dbaccess.h2"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.gemini.dbaccess.hsqldb"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="com.sebulli.fakturama.hsqlconnector"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.gemini.dbaccess.mysql"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -259,22 +231,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
          version="0.0.0"/>
 
    <plugin
-         id="javax.transaction"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"
-         unpack="false"/>
-
-   <plugin
          id="org.fakturama.connectors"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="wrapped.org.hsqldb.hsqldb"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -296,13 +253,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
          unpack="false"/>
 
    <plugin
-         id="org.slf4j.apis.log4j"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.slf4j.ext"
          download-size="0"
          install-size="0"
@@ -311,13 +261,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="org.slf4j.jul"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="com.opencsv"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -339,6 +282,48 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="wrapped.org.apache.xmlbeans.xmlbeans"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="jakarta.transaction-api"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.hsqldb.hsqldb"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.commons-text"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.opencsv"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="jakarta.enterprise.cdi-api"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="jakarta.inject.jakarta.inject-api"
          download-size="0"
          install-size="0"
          version="0.0.0"

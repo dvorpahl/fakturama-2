@@ -16,7 +16,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.logging;bundle-version="1.2.0",
  com.opcoach.e4.preferences,
  org.eclipse.equinox.preferences,
- org.javamoney.osgi,
  com.sebulli.fakturama.common,
  com.sebulli.fakturama.rcp,
  org.eclipse.e4.core.di.extensions,
@@ -25,8 +24,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.persistence.moxy,
  jakarta.xml.bind,
  jakarta.xml.bind-api,
- org.eclipse.nebula.widgets.opal.checkboxgroup
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+ org.eclipse.nebula.widgets.opal.checkboxgroup,
+ javax.money;bundle-version="1.1.0",
+ org.javamoney.moneta;bundle-version="1.4.2"
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Localization: OSGI-INF/l10n/zfbundle
 Export-Package: org.fakturama.export.zugferd
 Bundle-ActivationPolicy: lazy

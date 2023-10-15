@@ -5,15 +5,9 @@ import java.util.Locale;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
-import org.eclipse.e4.core.di.extensions.Preference;
-import org.eclipse.gemini.ext.di.GeminiPersistenceContext;
-import org.eclipse.gemini.ext.di.GeminiPersistenceProperty;
 import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.queries.CursoredStream;
 
@@ -33,339 +27,333 @@ import com.sebulli.fakturama.oldmodel.OldShippings;
 import com.sebulli.fakturama.oldmodel.OldTexts;
 import com.sebulli.fakturama.oldmodel.OldVats;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+
 /**
- * DAO for the old entities. This DAO is for <i>all</i> old entities, since we use it
- * only for migration and therefore we only need some basic finder methods.
+ * DAO for the old entities. This DAO is for <i>all</i> old entities, since we
+ * use it only for migration and therefore we only need some basic finder
+ * methods.
  * 
  */
 @Creatable
 public class OldEntitiesDAO {
 
-	@Inject
-	@GeminiPersistenceContext(unitName = "origin-datasource", properties = {
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_URL, valuePref = @Preference("OLD_JDBC_URL")),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_DRIVER, value = "org.hsqldb.jdbc.JDBCDriver"),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_USER, value = "sa"),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_PASSWORD, value = ""),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.LOGGING_LEVEL, value = "INFO"),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING, value = "false"),
-			@GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING_INTERNAL, value = "false") })
-	private EntityManager em;
+    @Inject
+    @PersistenceContext(unitName = "origin-datasource")
+    private EntityManager em;
 
-	@PreDestroy
-	public void destroy() {
-		if (em != null && em.isOpen()) {
-			em.close();
-		}
-	}
-	
-	/* * * * * * * * * * * * * * * * * * [Contacts section] * * * * * * * * * * * * * * * * * * * * * */ 
+    @PreDestroy
+    public void destroy() {
+        if (em != null && em.isOpen()) {
+            em.close();
+        }
+    }
 
-	/**
-	 * Get all {@link Contact} from Database which are not deleted.
-	 * 
-	 * @return List<Contact>
-	 */
-	public CursoredStream findAllContacts() {
-		Query query = em.createQuery("select c from OldContacts c", OldContacts.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE)
-				.setHint(QueryHints.CURSOR, HintValues.TRUE);
-		return (CursoredStream)query.getSingleResult();
-	}
-	
-	public Long countAllContacts() {
-		return em.createQuery("select count(c) from OldContacts c", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
+    /* * * * * * * * * * * * * * * * * * [Contacts section] * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Finds a {@link Contact} by id.
-	 * 
-	 * @param id
-	 * @return
-	 */
-	public OldContacts findContactById(int id) {
-		return em.find(OldContacts.class, id);
-	}
-
-	/**
-	 * Get a list of all categories stored for {@link Contact}s.
-	 * 
-	 * @return list of all categories
-	 */
-	public List<String> findAllContactCategories() {
-		List<String> result = em.createQuery("select distinct c.category from OldContacts c where c.category <> ''", String.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-		return result;
-	}
-
-	
-	/* * * * * * * * * * * * * * * * * * [Properties] * * * * * * * * * * * * * * * * * * * * * */ 
-
-	public Long countAllProperties() {
-		return em.createQuery("select count(p) from OldProperties p", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public List<OldProperties> findAllProperties() {
-		return em.createQuery("select p from OldProperties p", OldProperties.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
-	public OldProperties findPropertyById(int id) {
-	    return em.find(OldProperties.class, id);
-	}
-	
-	public List<OldProperties> findAllPropertiesWithoutColumnWidthProperties() {
-	    return em.createQuery("select p from OldProperties p where p.name not like 'COLUMNWIDTH_%' order by p.name", OldProperties.class)
-	    		.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
-	public List<OldProperties> findAllColumnWidthProperties() {
-		em.setProperty("eclipselink.read-only", true);
-	    return em.createQuery("select p from OldProperties p where p.name like 'COLUMNWIDTH_%' order by p.name", OldProperties.class)
-	    		.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
-	
-	/* * * * * * * * * * * * * * * * * * [Shippings] * * * * * * * * * * * * * * * * * * * * * */ 
-	
-	public Long countAllShippings() {
-		return em.createQuery("select count(s) from OldShippings s", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public List<OldShippings> findAllShippings() {
-		return em.createQuery("select s from OldShippings s", OldShippings.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
     /**
-     * Finds all Shipping categories from old Shipping entries. They are in the form of "/root/cat1/cat2".
+     * Get all {@link Contact} from Database which are not deleted.
+     * 
+     * @return List<Contact>
+     */
+    public CursoredStream findAllContacts() {
+        Query query = em.createQuery("select c from OldContacts c", OldContacts.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).setHint(QueryHints.CURSOR,
+                HintValues.TRUE);
+        return (CursoredStream) query.getSingleResult();
+    }
+
+    public Long countAllContacts() {
+        return em.createQuery("select count(c) from OldContacts c", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
+    }
+
+    /**
+     * Finds a {@link Contact} by id.
+     * 
+     * @param id
+     * @return
+     */
+    public OldContacts findContactById(final int id) {
+        return em.find(OldContacts.class, id);
+    }
+
+    /**
+     * Get a list of all categories stored for {@link Contact}s.
+     * 
+     * @return list of all categories
+     */
+    public List<String> findAllContactCategories() {
+        List<String> result = em.createQuery("select distinct c.category from OldContacts c where c.category <> ''", String.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+        return result;
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Properties] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllProperties() {
+        return em.createQuery("select count(p) from OldProperties p", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
+    }
+
+    public List<OldProperties> findAllProperties() {
+        return em.createQuery("select p from OldProperties p", OldProperties.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    public OldProperties findPropertyById(final int id) {
+        return em.find(OldProperties.class, id);
+    }
+
+    public List<OldProperties> findAllPropertiesWithoutColumnWidthProperties() {
+        return em.createQuery("select p from OldProperties p where p.name not like 'COLUMNWIDTH_%' order by p.name", OldProperties.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    public List<OldProperties> findAllColumnWidthProperties() {
+        em.setProperty("eclipselink.read-only", true);
+        return em.createQuery("select p from OldProperties p where p.name like 'COLUMNWIDTH_%' order by p.name", OldProperties.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Shippings] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllShippings() {
+        return em.createQuery("select count(s) from OldShippings s", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
+    }
+
+    public List<OldShippings> findAllShippings() {
+        return em.createQuery("select s from OldShippings s", OldShippings.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    /**
+     * Finds all Shipping categories from old Shipping entries. They are in the
+     * form of "/root/cat1/cat2".
      * 
      * @return List of Strings with all old Shipping categories
      */
-	public List<String> findAllShippingCategories() {
-		return em.createQuery("select distinct s.category from OldShippings s where s.category <> ''", String.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
-	public OldShippings findShippingById(int shippingId) {
-	    return em.find(OldShippings.class, shippingId);
-	}
-	/* * * * * * * * * * * * * * * * * * [VATs] * * * * * * * * * * * * * * * * * * * * * */ 
+    public List<String> findAllShippingCategories() {
+        return em.createQuery("select distinct s.category from OldShippings s where s.category <> ''", String.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
 
-	public Long countAllVats() {
-		return em.createQuery("select count(v) from OldVats v", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public List<OldVats> findAllVats() {
-		return em.createQuery("select v from OldVats v", OldVats.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
+    public OldShippings findShippingById(final int shippingId) {
+        return em.find(OldShippings.class, shippingId);
+    }
+    /* * * * * * * * * * * * * * * * * * [VATs] * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Finds all VAT categories from non-deleted old VAT entries. They are in the form of "/root/cat1/cat2".
-	 * 
-	 * @return List of Strings with all old VAT categories
-	 */
-	public List<String> findAllVatCategories() {
-		return em.createQuery("select distinct v.category from OldVats v where v.deleted = false and v.category <> ''", String.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
+    public Long countAllVats() {
+        return em.createQuery("select count(v) from OldVats v", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
+    }
 
-	public OldVats findVatById(int vatid) {
-		return em.find(OldVats.class, vatid);
-	}
-	
-	/* * * * * * * * * * * * * * * * * * [Lists] * * * * * * * * * * * * * * * * * * * * * */ 
-	
-	/**
-	 * Finds all entries from {@link OldList} which represent an account. {@link OldList} also
-	 * contains the country codes for all countries (ISO codes). These codes are not converted because
-	 * we use the country code information from {@link Locale} class.<br>
-	 * We can select all (other) entries because in the old Fakturama application <i>each</i> List entry
-	 * (which is not a country code entry) has a category named 'billing_accounts'. Fakturama doesn't accept
-	 * user defined categories in this area. <br>
-	 * Therefore we can select these entries according to this category. <br>
-	 * The accounts are used in Payments, ReceiptVouchers and ExpenditureVouchers.
-	 * 
-	 * @return 
-	 */
-	public List<OldList> findAllAccounts() {
-		return em.createQuery("select a from OldList a where a.category = 'billing_accounts'", 
-		        OldList.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-	
-	/* * * * * * * * * * * * * * * * * * [Texts] * * * * * * * * * * * * * * * * * * * * * */ 
+    public List<OldVats> findAllVats() {
+        return em.createQuery("select v from OldVats v", OldVats.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
 
-	public Long countAllTexts() {
-		return em.createQuery("select count(t) from OldTexts t where t.deleted = false", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public List<OldTexts> findAllTexts() {
-		return em.createQuery("select t from OldTexts t where t.deleted = false", OldTexts.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-
-	public List<String> findAllTextCategories() {
-		return em.createQuery("select distinct t.category from OldTexts t where t.deleted = false and t.category <> ''", String.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-
-
-	/* * * * * * * * * * * * * * * * * * [Documents section] * * * * * * * * * * * * * * * * * * * * * */ 
-	public Long countAllDocuments() {
-		return em.createQuery("select count(d) from OldDocuments d where d.deleted = false", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public CursoredStream findAllDocuments() {
-		Query query = em.createQuery("select d from OldDocuments d where d.deleted = false", OldDocuments.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE)
-				.setHint(QueryHints.CURSOR, HintValues.TRUE);
-		return (CursoredStream)query.getSingleResult();
-	}
-
-	// there are no categories...
-	
-	/**
-	 * Finds all documents which are invoice related.
-	 * @return
-	 */
-	public List<OldDocuments> findAllInvoiceRelatedDocuments() {
-		return em.createQuery("select d from OldDocuments d where d.deleted = false and d.invoiceid >= 0 and d.invoiceid <> d.id ", OldDocuments.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
-	}
-
-	/**
-	 * Finds an {@link OldDocuments} by its ID.
-	 * @param id
-	 */
-	public OldDocuments findDocumentById(int id) {
-		return em.find(OldDocuments.class, id);
-	}
-
-	/* * * * * * * * * * * * * * * * * * [Document items section] * * * * * * * * * * * * * * * * * * * * * */
-
-	public OldItems findDocumentItem(int id) {
-		return em.find(OldItems.class, id);
-	}
-	
-//  not used!
-//	public List<String> findAllDocumentItemCategories() {
-//		return em.createQuery("select distinct oi.category from OldItems oi where oi.deleted = false and oi.category <> ''", String.class).getResultList();
-//	}
-
-	/* * * * * * * * * * * * * * * * * * [Payments section] * * * * * * * * * * * * * * * * * * * * * */ 
-
-	public Long countAllPayments() {// where p.deleted = false
-		return em.createQuery("select count(p) from OldPayments p", Long.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
-	}
-	
-	public List<OldPayments> findAllPayments() {// where p.deleted = false
-		return em.createQuery("select p from OldPayments p", OldPayments.class).getResultList();
-	}
-    
     /**
-     * Finds all Payment categories from non-deleted old Payment entries. They are in the form of "/root/cat1/cat2".
+     * Finds all VAT categories from non-deleted old VAT entries. They are in
+     * the form of "/root/cat1/cat2".
+     * 
+     * @return List of Strings with all old VAT categories
+     */
+    public List<String> findAllVatCategories() {
+        return em.createQuery("select distinct v.category from OldVats v where v.deleted = false and v.category <> ''", String.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    public OldVats findVatById(final int vatid) {
+        return em.find(OldVats.class, vatid);
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Lists] * * * * * * * * * * * * * * * * * * * * * */
+
+    /**
+     * Finds all entries from {@link OldList} which represent an account.
+     * {@link OldList} also contains the country codes for all countries (ISO
+     * codes). These codes are not converted because we use the country code
+     * information from {@link Locale} class.<br>
+     * We can select all (other) entries because in the old Fakturama
+     * application <i>each</i> List entry (which is not a country code entry)
+     * has a category named 'billing_accounts'. Fakturama doesn't accept user
+     * defined categories in this area. <br>
+     * Therefore we can select these entries according to this category. <br>
+     * The accounts are used in Payments, ReceiptVouchers and
+     * ExpenditureVouchers.
+     * 
+     * @return
+     */
+    public List<OldList> findAllAccounts() {
+        return em.createQuery("select a from OldList a where a.category = 'billing_accounts'", OldList.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE)
+                .getResultList();
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Texts] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllTexts() {
+        return em.createQuery("select count(t) from OldTexts t where t.deleted = false", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE)
+                .getSingleResult();
+    }
+
+    public List<OldTexts> findAllTexts() {
+        return em.createQuery("select t from OldTexts t where t.deleted = false", OldTexts.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE)
+                .getResultList();
+    }
+
+    public List<String> findAllTextCategories() {
+        return em.createQuery("select distinct t.category from OldTexts t where t.deleted = false and t.category <> ''", String.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Documents section] * * * * * * * * * * * * * * * * * * * * * */
+    public Long countAllDocuments() {
+        return em.createQuery("select count(d) from OldDocuments d where d.deleted = false", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE)
+                .getSingleResult();
+    }
+
+    public CursoredStream findAllDocuments() {
+        Query query = em.createQuery("select d from OldDocuments d where d.deleted = false", OldDocuments.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE)
+                .setHint(QueryHints.CURSOR, HintValues.TRUE);
+        return (CursoredStream) query.getSingleResult();
+    }
+
+    // there are no categories...
+
+    /**
+     * Finds all documents which are invoice related.
+     * 
+     * @return
+     */
+    public List<OldDocuments> findAllInvoiceRelatedDocuments() {
+        return em.createQuery("select d from OldDocuments d where d.deleted = false and d.invoiceid >= 0 and d.invoiceid <> d.id ", OldDocuments.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).getResultList();
+    }
+
+    /**
+     * Finds an {@link OldDocuments} by its ID.
+     * 
+     * @param id
+     */
+    public OldDocuments findDocumentById(final int id) {
+        return em.find(OldDocuments.class, id);
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Document items section] * * * * * * * * * * * * * * * * * * * * * */
+
+    public OldItems findDocumentItem(final int id) {
+        return em.find(OldItems.class, id);
+    }
+
+    //  not used!
+    //	public List<String> findAllDocumentItemCategories() {
+    //		return em.createQuery("select distinct oi.category from OldItems oi where oi.deleted = false and oi.category <> ''", String.class).getResultList();
+    //	}
+
+    /* * * * * * * * * * * * * * * * * * [Payments section] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllPayments() {// where p.deleted = false
+        return em.createQuery("select count(p) from OldPayments p", Long.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).getSingleResult();
+    }
+
+    public List<OldPayments> findAllPayments() {// where p.deleted = false
+        return em.createQuery("select p from OldPayments p", OldPayments.class).getResultList();
+    }
+
+    /**
+     * Finds all Payment categories from non-deleted old Payment entries. They
+     * are in the form of "/root/cat1/cat2".
      * 
      * @return List of Strings with all old Payment categories
      */
-	public List<String> findAllPaymentCategories() {
-		return em.createQuery("select distinct p.category from OldPayments p where p.deleted = false and p.category <> ''", String.class).getResultList();
-	}
+    public List<String> findAllPaymentCategories() {
+        return em.createQuery("select distinct p.category from OldPayments p where p.deleted = false and p.category <> ''", String.class).getResultList();
+    }
 
-	public OldPayments findPaymentById(int paymentId) {
-		return em.find(OldPayments.class, paymentId);
-	}
-	
-	/* * * * * * * * * * * * * * * * * * [Expenditures section] * * * * * * * * * * * * * * * * * * * * * */ 
-	
-	public Long countAllExpenditures() {
-		return em.createQuery("select count(e) from OldExpenditures e where e.deleted = false", Long.class).getSingleResult();
-	}
-	
-	public CursoredStream findAllExpenditures() {
-		Query query = em.createQuery("select e from OldExpenditures e where e.deleted = false", OldExpenditures.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE)
-				.setHint(QueryHints.CURSOR, HintValues.TRUE);
-		return (CursoredStream)query.getSingleResult();
-	}
-	
-	public List<String> findAllExpenditureVoucherCategories() {
-		return em.createQuery("select distinct e.category from OldExpenditures e where e.deleted = false and e.category <> ''", String.class).getResultList();
-	}
+    public OldPayments findPaymentById(final int paymentId) {
+        return em.find(OldPayments.class, paymentId);
+    }
 
-	/**
-	 * Finds an Voucher item per reference number.
-	 * 
-	 * @param itemRef
-	 * @return {@link OldExpenditureitems}
-	 */
-	public OldExpenditureitems findExpenditureItem(String itemRef) {
-		return em.find(OldExpenditureitems.class, Integer.valueOf(itemRef));
-	}
-	
-	/* * * * * * * * * * * * * * * * * * [Receiptvouchers section] * * * * * * * * * * * * * * * * * * * * * */ 
-	
-	public Long countAllReceiptvouchers() {
-		return em.createQuery("select count(r) from OldReceiptvouchers r where r.deleted = false", Long.class).getSingleResult();
-	}
-	
-	public List<OldReceiptvouchers> findAllReceiptvouchers() {
-		return em.createQuery("select r from OldReceiptvouchers r where r.deleted = false", OldReceiptvouchers.class).getResultList();
-	}
-	
-	public List<String> findAllReceiptvoucherCategories() {
-		return em.createQuery("select distinct r.category from OldReceiptvouchers r where r.deleted = false and r.category <> ''", String.class).getResultList();
-	}
+    /* * * * * * * * * * * * * * * * * * [Expenditures section] * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Finds all voucher item categories. These are located in the old LIST table, therefore
-	 * we select the values from there and not from Receipt/Voucher value tables. The 
-	 * category is 'billing_accounts' because only these entries are used for item accounts.
-	 * 
-	 * @return List of distinct accounts for voucher items
-	 */
-	public List<OldList> findAllVoucherItemCategories() {
-		return em.createQuery("select distinct vi from OldList vi where vi.category = 'billing_accounts'", OldList.class).getResultList();
-	}
+    public Long countAllExpenditures() {
+        return em.createQuery("select count(e) from OldExpenditures e where e.deleted = false", Long.class).getSingleResult();
+    }
 
-	/**
-	 * Finds a {@link OldReceiptvoucheritems} object by its id. 
-	 * 
-	 * @param itemRef id of {@link OldReceiptvoucheritems} object
-	 * @return the {@link OldReceiptvoucheritems} object 
-	 */
-	public OldReceiptvoucheritems findReceiptvoucherItem(String itemRef) {
-		return em.find(OldReceiptvoucheritems.class, Integer.valueOf(itemRef));
-	}
+    public CursoredStream findAllExpenditures() {
+        Query query = em.createQuery("select e from OldExpenditures e where e.deleted = false", OldExpenditures.class)
+                .setHint(QueryHints.READ_ONLY, HintValues.TRUE).setHint(QueryHints.CURSOR, HintValues.TRUE);
+        return (CursoredStream) query.getSingleResult();
+    }
 
-	
-	/* * * * * * * * * * * * * * * * * * [Products section] * * * * * * * * * * * * * * * * * * * * * */
-	
-	public Long countAllProducts() {
-		return em.createQuery("select count(p) from OldProducts p", Long.class).getSingleResult();
-	}
-	
-	public CursoredStream findAllProducts() {
-		Query query = em.createQuery("select p from OldProducts p", OldProducts.class)
-				.setHint(QueryHints.READ_ONLY, HintValues.TRUE)
-				.setHint(QueryHints.CURSOR, HintValues.TRUE);
-		return (CursoredStream)query.getSingleResult();
-	}
-	
+    public List<String> findAllExpenditureVoucherCategories() {
+        return em.createQuery("select distinct e.category from OldExpenditures e where e.deleted = false and e.category <> ''", String.class).getResultList();
+    }
+
     /**
-     * Finds all Product categories from old Product entries. They are in the form of "/root/cat1/cat2".
+     * Finds an Voucher item per reference number.
+     * 
+     * @param itemRef
+     * @return {@link OldExpenditureitems}
+     */
+    public OldExpenditureitems findExpenditureItem(final String itemRef) {
+        return em.find(OldExpenditureitems.class, Integer.valueOf(itemRef));
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Receiptvouchers section] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllReceiptvouchers() {
+        return em.createQuery("select count(r) from OldReceiptvouchers r where r.deleted = false", Long.class).getSingleResult();
+    }
+
+    public List<OldReceiptvouchers> findAllReceiptvouchers() {
+        return em.createQuery("select r from OldReceiptvouchers r where r.deleted = false", OldReceiptvouchers.class).getResultList();
+    }
+
+    public List<String> findAllReceiptvoucherCategories() {
+        return em.createQuery("select distinct r.category from OldReceiptvouchers r where r.deleted = false and r.category <> ''", String.class)
+                .getResultList();
+    }
+
+    /**
+     * Finds all voucher item categories. These are located in the old LIST
+     * table, therefore we select the values from there and not from
+     * Receipt/Voucher value tables. The category is 'billing_accounts' because
+     * only these entries are used for item accounts.
+     * 
+     * @return List of distinct accounts for voucher items
+     */
+    public List<OldList> findAllVoucherItemCategories() {
+        return em.createQuery("select distinct vi from OldList vi where vi.category = 'billing_accounts'", OldList.class).getResultList();
+    }
+
+    /**
+     * Finds a {@link OldReceiptvoucheritems} object by its id.
+     * 
+     * @param itemRef
+     *            id of {@link OldReceiptvoucheritems} object
+     * @return the {@link OldReceiptvoucheritems} object
+     */
+    public OldReceiptvoucheritems findReceiptvoucherItem(final String itemRef) {
+        return em.find(OldReceiptvoucheritems.class, Integer.valueOf(itemRef));
+    }
+
+    /* * * * * * * * * * * * * * * * * * [Products section] * * * * * * * * * * * * * * * * * * * * * */
+
+    public Long countAllProducts() {
+        return em.createQuery("select count(p) from OldProducts p", Long.class).getSingleResult();
+    }
+
+    public CursoredStream findAllProducts() {
+        Query query = em.createQuery("select p from OldProducts p", OldProducts.class).setHint(QueryHints.READ_ONLY, HintValues.TRUE).setHint(QueryHints.CURSOR,
+                HintValues.TRUE);
+        return (CursoredStream) query.getSingleResult();
+    }
+
+    /**
+     * Finds all Product categories from old Product entries. They are in the
+     * form of "/root/cat1/cat2".
      * 
      * @return List of Strings with all old Product categories
      */
-	public List<String> findAllProductCategories() {
-		return em.createQuery("select distinct p.category from OldProducts p where p.category <> ''", String.class).getResultList();
-	}
+    public List<String> findAllProductCategories() {
+        return em.createQuery("select distinct p.category from OldProducts p where p.category <> ''", String.class).getResultList();
+    }
 
 }

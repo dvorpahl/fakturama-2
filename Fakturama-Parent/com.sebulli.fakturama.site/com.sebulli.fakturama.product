@@ -40,10 +40,10 @@
    </launcher>
 
    <vm>
-      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</linux>
-      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</macos>
+      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
+      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
       <solaris include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</solaris>
-      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</windows>
+      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</windows>
    </vm>
 
    <license>
@@ -236,7 +236,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.fakturama.exporter.zugferd.feature" version="2.1.3.qualifier"/>
       <feature id="org.fakturama.export.feature" version="2.1.3.qualifier"/>
       <feature id="org.fakturama.import.feature" version="2.1.3.qualifier"/>
-      <feature id="org.eclipse.gemini.ext.di.feature"/>
       <feature id="com.mysql.jdbc.feature"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.nebula.widgets.nattable.core.feature"/>
@@ -262,16 +261,9 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_uk"/>
       <feature id="org.eclipse.babel.nls_eclipse_sk"/>
       <feature id="org.eclipse.babel.nls_eclipse_el"/>
-      <feature id="org.eclipse.persistence.moxy"/>
-      <feature id="org.eclipse.persistence.jpa" installMode="root"/>
-      <feature id="org.eclipse.gemini.dbaccess.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.mysql.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.hsqldb.feature"/>
-      <feature id="org.eclipse.gemini.jpa.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.derby.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.mariadb.feature"/>
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature" installMode="root"/>
    </features>
 
    <configurations>
@@ -280,12 +272,9 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="com.sebulli.fakturama.model" autoStart="true" startLevel="4" />
       <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
-      <plugin id="org.eclipse.gemini.dbaccess.derby" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.hsqldb" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.mariadb" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.mysql" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.jpa" autoStart="true" startLevel="3" />
+      <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />
@@ -296,7 +285,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </configurations>
 
    <repositories>
-      <repository location="https://files.fakturama.info/release/update2/" enabled="true" />
       <repository location="https://files.fakturama.info/release/update2/" enabled="true" />
    </repositories>
 

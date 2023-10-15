@@ -3,8 +3,8 @@ package com.sebulli.fakturama.model;
 import java.time.Instant;
 import java.util.Date;
 
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 public class EntityListener {
 //    public static ThreadLocal currentUser = new ThreadLocal();
