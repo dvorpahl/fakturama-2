@@ -9,36 +9,12 @@
   <packaging>eclipse-plugin</packaging>
   	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<release>17</release>
-					<fork>false</fork>
-					<compilerId>jdt</compilerId>
-					<annotationProcessors>
-						<annotationProcessor>tycho590.JSR269Processor</annotationProcessor>
-					</annotationProcessors>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.tycho</groupId>
-						<artifactId>tycho-compiler-jdt</artifactId>
-						<version>${tycho.version}</version>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.tycho.tychoits.TYCHO590</groupId>
-						<artifactId>annotation-processor</artifactId>
-						<version>1.0.0-SNAPSHOT</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+			
 
 			<plugin>
 				<groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
-                <version>4.5-jdk8</version>
+                <version>5.0</version>
 				<executions>
 					<execution>
 						<id>eclipselink-jpa-metamodel</id>

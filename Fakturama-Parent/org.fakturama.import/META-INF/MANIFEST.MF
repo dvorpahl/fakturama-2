@@ -16,11 +16,11 @@ Require-Bundle: javax.inject,
  org.eclipse.nebula.widgets.cdatetime,
  org.eclipse.nebula.widgets.treemapper,
  com.opencsv;bundle-version="5.2.0",
- org.eclipse.nebula.widgets.nattable.core
+ org.eclipse.nebula.widgets.nattable.core,
+ org.apache.commons.lang3;bundle-version="3.13.0"
 Bundle-ActivationPolicy: lazy
 Import-Package: ca.odell.glazedlists;version="1.11.0",
  ca.odell.glazedlists.event;version="1.11.0",
- com.ibm.icu.util,
  com.sebulli.fakturama.i18n,
  com.sebulli.fakturama.log,
  com.sebulli.fakturama.misc,

@@ -10,8 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -29,7 +27,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
@@ -89,7 +86,6 @@ import com.sebulli.fakturama.resources.core.TemplateResourceManager;
 import com.sebulli.fakturama.startup.ConfigurationManager;
 import com.sebulli.fakturama.startup.ISplashService;
 
-import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceException;
 
 /**
@@ -131,18 +127,6 @@ public class LifecycleManager {
 
     @PostContextCreate
     public void checksBeforeStartup(final ISplashService splashService, final IEventBroker eventBroker) {
-        // create old datasource
-        Map<String, Object> oldProperties = new HashMap<>();
-        oldProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get("OLD_JDBC_URL", ""));
-        oldProperties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
-        oldProperties.put(PersistenceUnitProperties.JDBC_USER, "sa");
-        oldProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
-        oldProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
-        oldProperties.put(PersistenceUnitProperties.WEAVING, "false");
-        oldProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
-
-        Persistence.createEntityManagerFactory("origin-datasource", oldProperties);
-
         splashService.setSplashPluginId(Activator.PLUGIN_ID);
         splashService.setTotalWork(40);
         splashService.open();

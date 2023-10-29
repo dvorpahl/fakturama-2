@@ -18,7 +18,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="lib/core-2.7.0-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/javase-2.7.0-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/core-3.0.1.jar" sourcepath="lib/core-3.0.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/javase-3.0.1.jar" sourcepath="lib/javase-3.0.1-sources.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

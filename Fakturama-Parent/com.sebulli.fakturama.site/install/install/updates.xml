@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updateDescriptor baseUrl="">
+  <entry targetMediaFileId="528" updatableVersionMin="2.0" updatableVersionMax="" fileName="Fakturama_macos_2.1.3c.dmg" newVersion="2.1.3c" newMediaFileId="528" fileSize="217911431" md5Sum="89c610819f16acb9c935f0d6671e463b" sha256Sum="c7d6d18ef249c993cd0fdd9ebe5a99ccc5a88113e2e9062bd64a66f1dfa9f944" bundledJre="macos-amd64-17.0.9.tar.gz" archive="false" singleBundle="false">
+    <comment language="de" />
+    <comment language="ar" />
+    <comment language="nl" />
+    <comment language="en" />
+    <comment language="fr" />
+    <comment language="el" />
+    <comment language="hu" />
+    <comment language="it" />
+    <comment language="no" />
+    <comment language="pl" />
+    <comment language="ro" />
+    <comment language="ru" />
+    <comment language="es" />
+    <comment language="sv" />
+    <comment language="tr" />
+  </entry>
+</updateDescriptor>

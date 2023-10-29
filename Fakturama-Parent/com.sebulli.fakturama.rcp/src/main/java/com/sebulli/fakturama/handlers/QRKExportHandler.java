@@ -97,8 +97,10 @@ public class QRKExportHandler {
                 ObjectFactory qrkObjectFactory = new ObjectFactory();
                 Document document = ((DocumentEditor) activePart.getObject()).getDocument();
                 Receipt2Bon qrkVouchers = qrkObjectFactory.createReceipt2Bon();
-                Qrkvoucher singleVoucher = qrkObjectFactory.createQrkvoucher().withCustomerText(document.getCustomerRef())
-                        .withGross(numberFormatter.doubleToFormattedQuantity(document.getTotalValue())).withReceiptNum(document.getName());
+                Qrkvoucher singleVoucher = qrkObjectFactory.createQrkvoucher();
+                singleVoucher.setCustomerText(document.getCustomerRef());
+                singleVoucher.setGross(numberFormatter.doubleToFormattedQuantity(document.getTotalValue()));
+                singleVoucher.setReceiptNum(document.getName());
 
                 if (document.getPayment() != null) {
                     java.util.Optional<QRKPaymentTypes> paymentMatch = Arrays.stream(QRKPaymentTypes.values())

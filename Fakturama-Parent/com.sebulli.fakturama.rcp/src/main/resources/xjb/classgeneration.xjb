@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jxb:bindings version="1.0"
-	xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<jaxb:bindings xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:annox="http://annox.dev.java.net" 
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jaxb https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd"
+    version="3.0">
 
 	<!-- Change since version 2.0 of the j-m-p: Note that the schemaLocation 
 		path must point to the XSD file relative to *this* file, rather than the 
 		basedir. -->
-	<jxb:bindings schemaLocation="../resources/QRK-R2B.xsd"
+	<jaxb:bindings schemaLocation="../resources/QRK-R2B.xsd"
 		node="//xsd:schema">
-		<jxb:schemaBindings>
-			<jxb:package name="at.ckvsoft.qrk.type" />
-		</jxb:schemaBindings>
-	</jxb:bindings>
-	<jxb:bindings
+		<jaxb:schemaBindings>
+			<jaxb:package name="at.ckvsoft.qrk.type" />
+		</jaxb:schemaBindings>
+	</jaxb:bindings>
+	<jaxb:bindings
 		schemaLocation="../resources/webshop-import.xsd" node="//xsd:schema">
-		<jxb:schemaBindings>
-			<jxb:package
+		<jaxb:schemaBindings>
+			<jaxb:package
 				name="com.sebulli.fakturama.webshopimport.type1" />
-		</jxb:schemaBindings>
-	</jxb:bindings>
-</jxb:bindings>
+		</jaxb:schemaBindings>
+	</jaxb:bindings>
+</jaxb:bindings>

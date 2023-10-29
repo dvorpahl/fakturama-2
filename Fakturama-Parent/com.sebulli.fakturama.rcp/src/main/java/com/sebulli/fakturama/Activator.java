@@ -14,16 +14,12 @@
 package com.sebulli.fakturama;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.core.runtime.IBundleGroup;
 import org.eclipse.core.runtime.IBundleGroupProvider;
-import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.jface.window.Window;
-import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.swt.SWT;
 import org.eclipse.update.configurator.IPlatformConfiguration;
 import org.eclipse.update.internal.configurator.FeatureEntry;
@@ -36,8 +32,6 @@ import org.osgi.framework.ServiceRegistration;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
 import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
-
-import jakarta.persistence.Persistence;
 
 // import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -92,36 +86,39 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
         //        generatePersistenceUnits();
     }
 
-    /**
-     * 
-     */
-    private void generatePersistenceUnits() {
-
-        // create old datasource
-        Map<String, Object> oldProperties = new HashMap<>();
-        oldProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get("OLD_JDBC_URL", ""));
-        oldProperties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
-        oldProperties.put(PersistenceUnitProperties.JDBC_USER, "sa");
-        oldProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
-        oldProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
-        oldProperties.put(PersistenceUnitProperties.WEAVING, "false");
-        oldProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
-
-        Persistence.createEntityManagerFactory("origin-datasource", oldProperties);
-
-        // create new datasource
-        Map<String, Object> newProperties = new HashMap<>();
-        newProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_DRIVER, ""));
-        newProperties.put(PersistenceUnitProperties.JDBC_DRIVER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_URL, ""));
-        newProperties.put(PersistenceUnitProperties.JDBC_USER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_USER, ""));
-        newProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_PASSWORD, ""));
-        newProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
-        //        newProperties.put(PersistenceUnitProperties.WEAVING, "false");
-        newProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
-
-        Persistence.createEntityManagerFactory("unconfigured2", newProperties);
-
-    }
+    //    /**
+    //     *  here for backup, needs to be removed
+    //     */
+    //    private void generatePersistenceUnits() {
+    //
+    //        // create old datasource
+    //        Map<String, Object> oldProperties = new HashMap<>();
+    //        oldProperties.put(PersistenceUnitProperties.JDBC_URL, "jdbc:hsqldb:file:///fakturamaDB");//DefaultScope.INSTANCE.getNode("OLD_JDBC_URL").get("OLD_JDBC_URL", ""));
+    //        oldProperties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
+    //        oldProperties.put(PersistenceUnitProperties.JDBC_USER, "sa");
+    //        oldProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
+    //        oldProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
+    //        oldProperties.put(PersistenceUnitProperties.WEAVING, "false");
+    //        oldProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
+    //        PersistenceProvider persistenceProvider = new org.eclipse.persistence.jpa.PersistenceProvider();
+    //        EntityManagerFactory entityManagerFactory = persistenceProvider.createEntityManagerFactory("origin-datasource", oldProperties);
+    //        //        EntityManager entityManager = entityManagerFactory.createEntityManager();
+    //
+    //        Persistence.createEntityManagerFactory("origin-datasource", oldProperties);
+    //
+    //        // create new datasource
+    //        Map<String, Object> newProperties = new HashMap<>();
+    //        newProperties.put(PersistenceUnitProperties.JDBC_URL, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_DRIVER, ""));
+    //        newProperties.put(PersistenceUnitProperties.JDBC_DRIVER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_URL, ""));
+    //        newProperties.put(PersistenceUnitProperties.JDBC_USER, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_USER, ""));
+    //        newProperties.put(PersistenceUnitProperties.JDBC_PASSWORD, DefaultScope.INSTANCE.getNode("").get(PersistenceUnitProperties.JDBC_PASSWORD, ""));
+    //        newProperties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
+    //        //        newProperties.put(PersistenceUnitProperties.WEAVING, "false");
+    //        newProperties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
+    //
+    //        Persistence.createEntityManagerFactory("unconfigured2", newProperties);
+    //
+    //    }
 
     private void registerBundleGroupProvider() {
         final String serviceName = IBundleGroupProvider.class.getName();

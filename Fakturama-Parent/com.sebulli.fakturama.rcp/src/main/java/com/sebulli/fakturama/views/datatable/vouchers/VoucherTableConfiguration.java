@@ -1,5 +1,8 @@
 package com.sebulli.fakturama.views.datatable.vouchers;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import javax.inject.Inject;
 
 import org.eclipse.nebula.widgets.nattable.config.AbstractRegistryConfiguration;
@@ -12,24 +15,22 @@ import org.eclipse.nebula.widgets.nattable.style.DisplayMode;
 import org.eclipse.nebula.widgets.nattable.style.HorizontalAlignmentEnum;
 import org.eclipse.nebula.widgets.nattable.style.Style;
 
-import com.ibm.icu.text.DateFormat;
-import com.ibm.icu.text.SimpleDateFormat;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.misc.INumberFormatterService;
 import com.sebulli.fakturama.views.datatable.common.MoneyDisplayConverter;
 
 class VoucherTableConfiguration extends AbstractRegistryConfiguration {
-    
-	@Inject
-	private ILocaleService localeUtil;
-    
-	@Inject
-	private INumberFormatterService numberFormatterService;
+
+    @Inject
+    private ILocaleService localeUtil;
+
+    @Inject
+    private INumberFormatterService numberFormatterService;
 
     static final String DONOTBOOK_LABEL = "Do_Not_Book_Label";
 
-	@Override
-    public void configureRegistry(IConfigRegistry configRegistry) {
+    @Override
+    public void configureRegistry(final IConfigRegistry configRegistry) {
         Style styleLeftAligned = new Style();
         styleLeftAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
         Style styleRightAligned = new Style();
@@ -39,37 +40,22 @@ class VoucherTableConfiguration extends AbstractRegistryConfiguration {
 
         // default style for the most of the cells
         configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, // attribute to apply
-                                               styleLeftAligned,                // value of the attribute
-                                               DisplayMode.NORMAL,              // apply during normal rendering i.e not during selection or edit
-                                               GridRegion.BODY.toString());     // apply the above for all cells with this label
-        configRegistry.registerConfigAttribute(
-                CellConfigAttributes.CELL_PAINTER, 
-                new DoNotBookStatusPainter(),
-                DisplayMode.NORMAL, VoucherTableConfiguration.DONOTBOOK_LABEL);
-        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                styleCentered,      
-                DisplayMode.NORMAL,             
-                VoucherTableConfiguration.DONOTBOOK_LABEL); 
+                styleLeftAligned, // value of the attribute
+                DisplayMode.NORMAL, // apply during normal rendering i.e not during selection or edit
+                GridRegion.BODY.toString()); // apply the above for all cells with this label
+        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, new DoNotBookStatusPainter(), DisplayMode.NORMAL,
+                VoucherTableConfiguration.DONOTBOOK_LABEL);
+        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleCentered, DisplayMode.NORMAL, VoucherTableConfiguration.DONOTBOOK_LABEL);
 
-        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                styleRightAligned,      
-                DisplayMode.NORMAL,             
-                ExpenditureVoucherListTable.DATE_CELL_LABEL ); 
-        SimpleDateFormat dateFormat = (SimpleDateFormat) SimpleDateFormat.getDateInstance(DateFormat.MEDIUM, localeUtil.getDefaultLocale());
-        configRegistry.registerConfigAttribute(
-                CellConfigAttributes.DISPLAY_CONVERTER,
-                new DefaultDateDisplayConverter(dateFormat.toPattern()),
-                DisplayMode.NORMAL,
+        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL,
                 ExpenditureVoucherListTable.DATE_CELL_LABEL);
+        SimpleDateFormat dateFormat = (SimpleDateFormat) SimpleDateFormat.getDateInstance(DateFormat.MEDIUM, localeUtil.getDefaultLocale());
+        configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultDateDisplayConverter(dateFormat.toPattern()),
+                DisplayMode.NORMAL, ExpenditureVoucherListTable.DATE_CELL_LABEL);
 
-        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                styleRightAligned,      
-                DisplayMode.NORMAL,             
-                ExpenditureVoucherListTable.MONEYVALUE_CELL_LABEL ); 
-        configRegistry.registerConfigAttribute(
-                CellConfigAttributes.DISPLAY_CONVERTER,
-                new MoneyDisplayConverter(numberFormatterService),
-                DisplayMode.NORMAL,
+        configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL,
                 ExpenditureVoucherListTable.MONEYVALUE_CELL_LABEL);
-        }
+        configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new MoneyDisplayConverter(numberFormatterService), DisplayMode.NORMAL,
+                ExpenditureVoucherListTable.MONEYVALUE_CELL_LABEL);
+    }
 }

@@ -21,6 +21,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,8 +80,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.ibm.icu.text.NumberFormat;
-import com.ibm.icu.util.ULocale;
 import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
 import com.sebulli.fakturama.converter.CommonConverter;
@@ -165,7 +165,7 @@ public class TemplateProcessor {
      */
     private boolean useSET = false;
 
-    private static NumberFormat localizedNumberFormat = NumberFormat.getInstance(ULocale.getDefault());
+    private static NumberFormat localizedNumberFormat = NumberFormat.getInstance(Locale.getDefault());
 
     private ContactUtil contactUtil;
 
@@ -1060,7 +1060,7 @@ public class TemplateProcessor {
                 return country;
             }
 
-            Optional<ULocale> locale = localeUtil.findLocaleByDisplayCountry(country);
+            Optional<Locale> locale = localeUtil.findLocaleByDisplayCountry(country);
             if (key2.equals("ADDRESS.COUNTRY.CODE2")) {
                 return locale.orElseGet(() -> localeUtil.getDefaultLocale()).getCountry();
             }
@@ -1173,7 +1173,7 @@ public class TemplateProcessor {
             return Optional.ofNullable(contact.getCountryCode());
         }
 
-        Optional<ULocale> locale = localeUtil.findByCode(contact.getCountryCode());
+        Optional<Locale> locale = localeUtil.findByCode(contact.getCountryCode());
         if (key.equals("ADDRESS.COUNTRY")) {
             return Optional.ofNullable(locale.isPresent() ? locale.get().getDisplayCountry() : "??");
         }

@@ -10,4 +10,6 @@ workspace/
 *.metaprops
 /*/.DS_Store
 /.DS_Store
-.polyglot*
+**/.polyglot*
+*/.m2/
+*.log
