@@ -18,7 +18,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.fakturama.export.einvoice.ZFConstants;
-import org.fakturama.export.facturx.modelgen.CrossIndustryInvoice;
+import org.fakturama.export.facturx.modelgen.CrossIndustryInvoiceType;
 import org.fakturama.export.facturx.modelgen.ObjectFactory;
 
 import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
@@ -32,7 +32,7 @@ import com.sebulli.fakturama.model.Invoice;
 public class ZugferdExtended extends AbstractEInvoice {
 
     @Override
-    public CrossIndustryInvoice getInvoiceXml(final Optional<Invoice> invoiceDoc) {
+    public CrossIndustryInvoiceType getInvoiceXml(final Optional<Invoice> invoiceDoc) {
         if (!invoiceDoc.isPresent()) {
             return null;
         }
@@ -45,7 +45,7 @@ public class ZugferdExtended extends AbstractEInvoice {
 
         Boolean testMode = BooleanUtils.toBooleanObject(eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_TEST, "TRUE"));
 
-        CrossIndustryInvoice root = new CrossIndustryInvoice();
+        CrossIndustryInvoiceType root = new CrossIndustryInvoiceType();
         // at first create a reasonable context
         //        DocumentContextParameterType ctxParam = factory.createDocumentContextParameterType()
         //                .withID(createIdFromString(ConformanceLevel.XRECHNUNG.getUrn())); // TODO get from zugferdProfile?

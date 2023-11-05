@@ -38,7 +38,7 @@ import org.fakturama.export.facturx.modelgen.CountryIDContentType;
 import org.fakturama.export.facturx.modelgen.CountryIDType;
 import org.fakturama.export.facturx.modelgen.CreditorFinancialAccountType;
 import org.fakturama.export.facturx.modelgen.CreditorFinancialInstitutionType;
-import org.fakturama.export.facturx.modelgen.CrossIndustryInvoice;
+import org.fakturama.export.facturx.modelgen.CrossIndustryInvoiceType;
 import org.fakturama.export.facturx.modelgen.CurrencyCodeContentType;
 import org.fakturama.export.facturx.modelgen.CurrencyCodeType;
 import org.fakturama.export.facturx.modelgen.DateTimeType;
@@ -124,7 +124,7 @@ public class XRechnung extends AbstractEInvoice {
     private DocumentAllowances itemAllowances;
 
     @Override
-    public CrossIndustryInvoice getInvoiceXml(final Optional<Invoice> invoiceDoc) {
+    public CrossIndustryInvoiceType getInvoiceXml(final Optional<Invoice> invoiceDoc) {
         if (!invoiceDoc.isPresent()) {
             return null;
         }
@@ -137,7 +137,7 @@ public class XRechnung extends AbstractEInvoice {
         DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, eclipseContext);
         DocumentSummary documentSummary = documentSummaryCalculator.calculate(invoice);
 
-        CrossIndustryInvoice root = new CrossIndustryInvoice();
+        CrossIndustryInvoiceType root = new CrossIndustryInvoiceType();
         // at first create a reasonable context
         DocumentContextParameterType ctxParam = factory.createDocumentContextParameterType();
         ctxParam.setID(createIdFromString(ConformanceLevel.XRECHNUNG.getUrn()));
