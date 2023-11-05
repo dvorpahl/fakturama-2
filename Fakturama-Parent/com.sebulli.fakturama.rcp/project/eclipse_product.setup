@@ -329,8 +329,6 @@
       <requirement
           name="org.eclipse.emf.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.texo.feature.group"/>
-      <requirement
           name="org.eclipse.emf.ecoretools.design.feature.group"/>
       <requirement
           name="com.essiembre.eclipse.rbe.feature.group"/>
@@ -356,8 +354,6 @@
           name="org.eclipse.wst.server_adapters.feature.feature.group"/>
       <repository
           url="http://download.eclipse.org/releases/photon"/>
-      <repository
-          url="http://download.eclipse.org/modeling/emft/texo/updates/interim"/>
       <repository
           url="https://raw.githubusercontent.com/essiembre/eclipse-rbe/master/eclipse-rbe-update-site/site.xml"/>
       <repository
@@ -395,11 +391,21 @@
       <description>AsciiDoctor Editor</description>
     </setupTask>
     <setupTask
-        xsi:type="setup.p2:P2Task">
+        xsi:type="setup.p2:P2Task"
+        label="Oomph Update Site">
       <requirement
           name="org.eclipse.oomph.setup.feature.group"/>
       <repository
           url="${oomph.update.url}"/>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        id="MoreUnit"
+        label="MoreUnit">
+      <requirement
+          name="org.moreunit.feature.group"/>
+      <repository
+          url="https://moreunit.github.io/eclipse-update-site/"/>
     </setupTask>
   </version>
   <description>Eclipse IDE</description>
