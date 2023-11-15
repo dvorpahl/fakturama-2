@@ -1,8 +1,8 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.Date;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -121,6 +121,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @generated
      */
     @Id()
+    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id = 0;
 
@@ -166,7 +167,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            the other object to compare
      * @generated
      */
-    public boolean isSameAs(VAT other) {
+    public boolean isSameAs(final VAT other) {
         boolean retval = true;
         if (other != null) {
             if (taxValue != null && other.getTaxValue() != null) {
@@ -250,7 +251,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setTaxValue(Double newTaxValue) {
+    public void setTaxValue(final Double newTaxValue) {
         firePropertyChange("taxValue", this.taxValue, newTaxValue);
         taxValue = newTaxValue;
     }
@@ -278,7 +279,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setCategory(VATCategory newCategory) {
+    public void setCategory(final VATCategory newCategory) {
         firePropertyChange("category", this.category, newCategory);
         category = newCategory;
     }
@@ -311,7 +312,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            salesEqualizationTax}' feature.
      * @generated
      */
-    public void setSalesEqualizationTax(Double newSalesEqualizationTax) {
+    public void setSalesEqualizationTax(final Double newSalesEqualizationTax) {
         firePropertyChange("salesEqualizationTax", this.salesEqualizationTax, newSalesEqualizationTax);
         salesEqualizationTax = newSalesEqualizationTax;
     }
@@ -324,6 +325,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>description</b></em>' feature
      * @generated
      */
+    @Override
     public String getDescription() {
 
         return description;
@@ -339,7 +341,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            description}' feature.
      * @generated
      */
-    public void setDescription(String newDescription) {
+    @Override
+    public void setDescription(final String newDescription) {
         firePropertyChange("description", this.description, newDescription);
         description = newDescription;
     }
@@ -353,6 +356,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>name</b></em>' feature
      * @generated
      */
+    @Override
     public String getName() {
 
         return name;
@@ -368,7 +372,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            the new value of the '{@link VAT#getName() name}' feature.
      * @generated
      */
-    public void setName(String newName) {
+    @Override
+    public void setName(final String newName) {
         firePropertyChange("name", this.name, newName);
         name = newName;
     }
@@ -382,6 +387,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>dateAdded</b></em>' feature
      * @generated
      */
+    @Override
     public Date getDateAdded() {
 
         return dateAdded;
@@ -398,7 +404,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setDateAdded(Date newDateAdded) {
+    @Override
+    public void setDateAdded(final Date newDateAdded) {
         firePropertyChange("dateAdded", this.dateAdded, newDateAdded);
         dateAdded = newDateAdded;
     }
@@ -411,6 +418,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>modifiedBy</b></em>' feature
      * @generated
      */
+    @Override
     public String getModifiedBy() {
 
         return modifiedBy;
@@ -426,7 +434,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setModifiedBy(String newModifiedBy) {
+    @Override
+    public void setModifiedBy(final String newModifiedBy) {
         firePropertyChange("modifiedBy", this.modifiedBy, newModifiedBy);
         modifiedBy = newModifiedBy;
     }
@@ -439,6 +448,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>modified</b></em>' feature
      * @generated
      */
+    @Override
     public Date getModified() {
 
         return modified;
@@ -454,7 +464,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setModified(Date newModified) {
+    @Override
+    public void setModified(final Date newModified) {
         firePropertyChange("modified", this.modified, newModified);
         modified = newModified;
     }
@@ -467,6 +478,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>id</b></em>' feature
      * @generated
      */
+    @Override
     public long getId() {
 
         return id;
@@ -481,7 +493,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            the new value of the '{@link VAT#getId() id}' feature.
      * @generated
      */
-    public void setId(long newId) {
+    @Override
+    public void setId(final long newId) {
         firePropertyChange("id", this.id, newId);
         id = newId;
     }
@@ -495,6 +508,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>deleted</b></em>' feature
      * @generated
      */
+    @Override
     public Boolean getDeleted() {
 
         return deleted;
@@ -511,7 +525,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setDeleted(Boolean newDeleted) {
+    @Override
+    public void setDeleted(final Boolean newDeleted) {
         firePropertyChange("deleted", this.deleted, newDeleted);
         deleted = newDeleted;
     }
@@ -526,6 +541,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>validFrom</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidFrom() {
 
         return validFrom;
@@ -543,7 +559,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setValidFrom(Date newValidFrom) {
+    @Override
+    public void setValidFrom(final Date newValidFrom) {
         firePropertyChange("validFrom", this.validFrom, newValidFrom);
         validFrom = newValidFrom;
     }
@@ -558,6 +575,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * @return the value of '<em><b>validTo</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidTo() {
 
         return validTo;
@@ -575,7 +593,8 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      *            feature.
      * @generated
      */
-    public void setValidTo(Date newValidTo) {
+    @Override
+    public void setValidTo(final Date newValidTo) {
         firePropertyChange("validTo", this.validTo, newValidTo);
         validTo = newValidTo;
     }

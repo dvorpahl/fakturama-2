@@ -92,9 +92,8 @@ public class ConfigurationManager {
      * has changed.
      * 
      */
-    @SuppressWarnings("static-access")
     public void checkAndUpdateConfiguration() {
-        String requestedWorkspace = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, null);
+        String requestedWorkspace = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
         int restart = STATUS_OK;
         // Get the program parameters
 

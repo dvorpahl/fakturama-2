@@ -358,6 +358,24 @@
 </feature>
         <dependencies>
             <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>2.2.224</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>8.2.0</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derby</artifactId>
+                <version>10.16.1.1</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>eclipselink</artifactId>
                 <version>4.0.0</version>
@@ -373,6 +391,18 @@
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.moxy</artifactId>
                 <version>4.0.2</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>2.7.2</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>3.2.0</version>
                 <type>jar</type>
             </dependency>
         </dependencies>
@@ -437,7 +467,7 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="direct" includeDependencyScopes="compile,runtime" label="Logging" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="infinite" includeDependencyScopes="compile,provided,runtime" label="Logging" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -453,13 +483,13 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
+                <artifactId>osgi-over-slf4j</artifactId>
                 <version>2.0.9</version>
                 <type>jar</type>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-nop</artifactId>
+                <artifactId>slf4j-api</artifactId>
                 <version>2.0.9</version>
                 <type>jar</type>
             </dependency>
@@ -559,7 +589,7 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="direct" includeDependencyScopes="compile,runtime" includeSource="true" label="OSGI" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="direct" includeDependencyScopes="compile,runtime" label="OSGI" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>org.apache.aries.spifly</groupId>
@@ -599,7 +629,7 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="none" label="ICU" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="none" includeDependencyScopes="compile" label="ICU" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>com.ibm.icu</groupId>
@@ -619,18 +649,17 @@
 <targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"/>
     <includeBundles>
         <plugin id="bcpg" version="1.73"/>
-        <plugin id="bcpkix"/>
+        <plugin id="bcpkix" version="1.76"/>
         <plugin id="bcprov" version="1.73"/>
         <plugin id="biz.aQute.bnd.util"/>
         <plugin id="biz.aQute.bndlib"/>
         <plugin id="ca.odell.glazedlists"/>
         <plugin id="ch.qos.logback.classic"/>
         <plugin id="ch.qos.logback.core"/>
-        <plugin id="com.google.guava"/>
+        <plugin id="com.google.guava" version="31.0.1.jre"/>
         <plugin id="com.google.inject"/>
         <plugin id="com.google.zxing.core"/>
         <plugin id="com.jcraft.jsch"/>
-        <plugin id="com.mysql.jdbc"/>
         <plugin id="com.opcoach.e4.preferences"/>
         <plugin id="com.opcoach.e4.preferences.mainmenu"/>
         <plugin id="com.opencsv"/>
@@ -638,7 +667,7 @@
         <plugin id="com.sun.jna" version="5.13.0"/>
         <plugin id="com.sun.jna.platform" version="5.13.0"/>
         <plugin id="com.sun.xml.bind.jaxb-xjc"/>
-        <plugin id="derby"/>
+        <plugin id="derby" version="10.16.1000001.1901046"/>
         <plugin id="derbyclient"/>
         <plugin id="jai-imageio-core"/>
         <plugin id="jakarta.activation-api" version="2.1.2"/>
@@ -649,7 +678,7 @@
         <plugin id="jakarta.persistence-api" version="3.1.0"/>
         <plugin id="jakarta.resource-api"/>
         <plugin id="jakarta.validation.jakarta.validation-api"/>
-        <plugin id="jakarta.ws.rs-api"/>
+        <plugin id="jakarta.ws.rs-api" version="3.1.0"/>
         <plugin id="jakarta.xml.bind-api" version="4.0.1"/>
         <plugin id="jakarta.xml.soap-api"/>
         <plugin id="jakarta.xml.ws-api"/>
@@ -658,7 +687,7 @@
         <plugin id="javax.el-api"/>
         <plugin id="javax.inject" version="1.0.0.v20220405-0441"/>
         <plugin id="javax.money"/>
-        <plugin id="mariadb-java-client"/>
+        <plugin id="mariadb-java-client" version="3.2.0"/>
         <plugin id="net.bytebuddy.byte-buddy"/>
         <plugin id="net.bytebuddy.byte-buddy-agent"/>
         <plugin id="org.aopalliance"/>
@@ -666,8 +695,8 @@
         <plugin id="org.apache.batik.css" version="1.16.0.v20221027-0840"/>
         <plugin id="org.apache.batik.i18n" version="1.16.0.v20221027-0840"/>
         <plugin id="org.apache.batik.util" version="1.16.0.v20221027-0840"/>
-        <plugin id="org.apache.commons.codec" version="1.14.0.v20200818-1422"/>
         <plugin id="org.apache.commons.codec" version="1.14.0.v20221112-0806"/>
+        <plugin id="org.apache.commons.codec" version="1.14.0.v20200818-1422"/>
         <plugin id="org.apache.commons.collections"/>
         <plugin id="org.apache.commons.collections4"/>
         <plugin id="org.apache.commons.commons-beanutils"/>
@@ -3189,11 +3218,10 @@
         <plugin id="org.eclipse.urischeme.nl_uk"/>
         <plugin id="org.hamcrest"/>
         <plugin id="org.hamcrest.core" version="1.3.0.v20180420-1519"/>
-        <plugin id="org.hsqldb.hsqldb"/>
+        <plugin id="org.hsqldb.hsqldb" version="2.7.2"/>
         <plugin id="org.javamoney.moneta"/>
         <plugin id="org.junit" version="4.13.2.v20211018-1956"/>
         <plugin id="org.liquibase.core"/>
-        <plugin id="org.mariadb.jdbc"/>
         <plugin id="org.mockito.mockito-core"/>
         <plugin id="org.objectweb.asm" version="9.6"/>
         <plugin id="org.objectweb.asm.tree" version="9.6"/>
@@ -3225,7 +3253,6 @@
         <plugin id="org.w3c.dom.smil" version="1.0.1.v200903091627"/>
         <plugin id="org.w3c.dom.svg" version="1.1.0.v201011041433"/>
         <plugin id="slf4j.api" version="2.0.9"/>
-        <plugin id="slf4j.nop"/>
         <plugin id="wrapped.com.beust.jcommander"/>
         <plugin id="wrapped.com.google.zxing.javase"/>
         <plugin id="wrapped.io.nayuki.qrcodegen"/>
@@ -3249,7 +3276,7 @@
         <plugin id="org.eclipse.ant.launching"/>
         <plugin id="javax.xml" version="1.4.1.v20220503-2331"/>
         <plugin id="org.eclipse.ant.ui"/>
-        <plugin id="jakarta.servlet-api" version="4.0.0"/>
+        <plugin id="jakarta.servlet-api" version="5.0.0"/>
         <plugin id="org.apache.xml.serializer"/>
         <plugin id="javax.servlet.jsp-api"/>
         <plugin id="org.apache.pdfbox.fontbox"/>
@@ -3320,11 +3347,14 @@
         <plugin id="org.osgi.service.component.annotations"/>
         <plugin id="org.osgi.service.metatype.annotations"/>
         <plugin id="org.osgi.service.jdbc"/>
-        <plugin id="osgi.annotation"/>
+        <plugin id="osgi.annotation" version="8.1.0.202202082230"/>
         <plugin id="org.objectweb.asm.commons" version="9.6"/>
         <plugin id="org.objectweb.asm.util" version="9.6"/>
         <plugin id="org.objectweb.asm.tree.analysis" version="9.6"/>
         <plugin id="com.ibm.icu.localespi"/>
         <plugin id="com.ibm.icu" version="73.2"/>
+        <plugin id="com.h2database"/>
+        <plugin id="com.mysql.cj"/>
+        <plugin id="org.slf4j.osgi-over-slf4j"/>
     </includeBundles>
 </target>

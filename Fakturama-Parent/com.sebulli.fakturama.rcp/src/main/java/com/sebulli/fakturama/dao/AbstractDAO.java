@@ -42,9 +42,10 @@ import com.sebulli.fakturama.model.IDescribableEntity;
 import com.sebulli.fakturama.model.IEntity;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceUnit;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -59,9 +60,10 @@ import jakarta.persistence.criteria.Root;
 public abstract class AbstractDAO<T extends IEntity> {
 
     @Inject
-    @PersistenceContext(unitName = "unconfigured2")
-    private EntityManager em;
+    @PersistenceUnit(unitName = "unconfigured2")
+    private EntityManagerFactory emf;
 
+    private EntityManager em;
     @Inject
     protected ILogger log;
 
@@ -75,7 +77,7 @@ public abstract class AbstractDAO<T extends IEntity> {
     }
 
     protected EntityManager getEntityManager() {
-        return em;
+        return emf.createEntityManager();
     }
 
     public T save(final T object) throws FakturamaStoringException {

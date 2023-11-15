@@ -112,7 +112,7 @@
         </plugins> 
 
     </build>
-    <dependencies>
+   <!-- <dependencies>
         <dependency>
             <groupId>com.glazedlists</groupId>
             <artifactId>glazedlists</artifactId>
@@ -136,11 +136,11 @@
             <artifactId>hamcrest-integration</artifactId>
             <version>1.2.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/net.avh4.util/imagecomparison -->
+         https://mvnrepository.com/artifact/net.avh4.util/imagecomparison 
         <dependency>
             <groupId>net.avh4.util</groupId>
             <artifactId>imagecomparison</artifactId>
             <version>0.3.2</version>
         </dependency>
-    </dependencies>
+    </dependencies>-->
 </project>
