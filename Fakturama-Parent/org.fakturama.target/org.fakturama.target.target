@@ -335,12 +335,18 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" label="Money" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="none" includeDependencyScopes="compile,provided,runtime,test" includeSource="true" label="Money" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>javax.money</groupId>
                 <artifactId>money-api</artifactId>
                 <version>1.1</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.javamoney.moneta</groupId>
+                <artifactId>moneta-convert</artifactId>
+                <version>1.4.2</version>
                 <type>jar</type>
             </dependency>
             <dependency>
@@ -3347,7 +3353,7 @@
         <plugin id="org.osgi.service.component.annotations"/>
         <plugin id="org.osgi.service.metatype.annotations"/>
         <plugin id="org.osgi.service.jdbc"/>
-        <plugin id="osgi.annotation" version="8.1.0.202202082230"/>
+        <plugin id="osgi.annotation"/>
         <plugin id="org.objectweb.asm.commons" version="9.6"/>
         <plugin id="org.objectweb.asm.util" version="9.6"/>
         <plugin id="org.objectweb.asm.tree.analysis" version="9.6"/>
@@ -3356,5 +3362,11 @@
         <plugin id="com.h2database"/>
         <plugin id="com.mysql.cj"/>
         <plugin id="org.slf4j.osgi-over-slf4j"/>
+        <plugin id="org.javamoney.moneta.convert"/>
+        <plugin id="org.eclipse.e4.ui.swt.gtk"/>
+        <plugin id="org.eclipse.swt.gtk.linux.x86_64" version="3.124.0.v20230523-1044"/>
     </includeBundles>
+    <environment>
+        <os>linux</os>
+    </environment>
 </target>
