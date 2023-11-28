@@ -274,7 +274,7 @@
         <repository>
             <id>sonatype</id>
             <name>Repository for Sonatype OSS</name>
-            <url>https://oss.sonatype.org/content/repositories/</url>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
             <layout>default</layout>
             <releases>
                 <enabled>true</enabled>
