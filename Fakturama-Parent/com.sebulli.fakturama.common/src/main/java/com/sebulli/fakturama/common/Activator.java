@@ -16,9 +16,6 @@ package com.sebulli.fakturama.common;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.money.spi.Bootstrap;
-import javax.money.spi.ServiceProvider;
-
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.BundleActivator;
@@ -36,7 +33,6 @@ import org.slf4j.MarkerFactory;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
 import com.sebulli.fakturama.log.LogbackAdapter;
-import com.sebulli.fakturama.money.osgi.OsgiServiceProvider;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -121,15 +117,6 @@ public class Activator implements BundleActivator {
             e.printStackTrace();
         }
 
-        // get Preferences
-        ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
-        preferenceStore = context.getService(serviceReference).getPreferenceStore();
-        EclipseContextFactory.getServiceContext(context).set(IPreferenceStore.class, preferenceStore);
-
-        ServiceProvider sp = new OsgiServiceProvider();
-
-        Bootstrap.init(sp);
-
         // don't close the tracker, else the logger won't work!
         //		logReaderTracker.close();
     }
@@ -138,6 +125,17 @@ public class Activator implements BundleActivator {
      * @return the preferences
      */
     public static IPreferenceStore getPreferenceStore() {
+
+        if (preferenceStore == null) {
+            // get Preferences
+            ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
+            if (serviceReference == null) {
+                System.err.println("no preference store available, Service Ref is very null");
+                return null;
+            }
+            preferenceStore = context.getService(serviceReference).getPreferenceStore();
+            EclipseContextFactory.getServiceContext(context).set(IPreferenceStore.class, preferenceStore);
+        }
 
         // without preferences nothing makes sense...
         if (preferenceStore == null) {
@@ -157,6 +155,9 @@ public class Activator implements BundleActivator {
      * @return the shared instance
      */
     public static BundleContext getContext() {
+        ServiceReference<?>[] ref = context.getBundle().getRegisteredServices();
+        System.out.println(context.getService(ref[0]).getClass().getName());
+        System.out.println("referencies: " + ref.length);
         return context;
     }
 

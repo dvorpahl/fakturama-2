@@ -149,7 +149,7 @@
         <setEntry value="ch.qos.logback.classic@2:true"/>
         <setEntry value="ch.qos.logback.core@2:false"/>
         <setEntry value="com.h2database@2:true"/>
-        <setEntry value="com.ibm.icu.localespi@default:default"/>
+        <setEntry value="com.ibm.icu.localespi@2:true"/>
         <setEntry value="com.ibm.icu@default:default"/>
         <setEntry value="com.opencsv@default:default"/>
         <setEntry value="jakarta.activation-api@default:default"/>
@@ -172,7 +172,6 @@
         <setEntry value="net.rootdev.java-rdfa@default:default"/>
         <setEntry value="org.apache.ant@default:default"/>
         <setEntry value="org.apache.aries.spifly.dynamic.bundle@1:true"/>
-        <setEntry value="org.apache.aries.spifly.dynamic.framework.extension@default:false"/>
         <setEntry value="org.apache.batik.constants@default:default"/>
         <setEntry value="org.apache.batik.css@default:default"/>
         <setEntry value="org.apache.batik.i18n@default:default"/>
@@ -1162,6 +1161,7 @@
         <setEntry value="org.eclipse.equinox.p2.extensionlocation.nl_ru@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.extensionlocation.nl_tr@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.extensionlocation.nl_uk@default:false"/>
+        <setEntry value="org.eclipse.equinox.p2.extensionlocation@default:default"/>
         <setEntry value="org.eclipse.equinox.p2.garbagecollector.nl_ar@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.garbagecollector.nl_de@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.garbagecollector.nl_el@default:false"/>
@@ -1498,7 +1498,6 @@
         <setEntry value="org.eclipse.equinox.simpleconfigurator.nl_tr@default:false"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator.nl_uk@default:false"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator@1:true"/>
-        <setEntry value="org.eclipse.gef.fx.jface@default:default"/>
         <setEntry value="org.eclipse.jdt.apt.core.nl_ar@default:false"/>
         <setEntry value="org.eclipse.jdt.apt.core.nl_de@default:false"/>
         <setEntry value="org.eclipse.jdt.apt.core.nl_el@default:false"/>
@@ -1815,7 +1814,6 @@
         <setEntry value="org.eclipse.osgi.services@default:default"/>
         <setEntry value="org.eclipse.osgi.util@default:default"/>
         <setEntry value="org.eclipse.osgi@1:true"/>
-        <setEntry value="org.eclipse.persistence.asm@default:default"/>
         <setEntry value="org.eclipse.persistence.core@default:default"/>
         <setEntry value="org.eclipse.persistence.jpa.jpql@default:default"/>
         <setEntry value="org.eclipse.persistence.jpa@2:true"/>
@@ -2397,7 +2395,7 @@
         <setEntry value="org.eclipse.urischeme@default:default"/>
         <setEntry value="org.hamcrest.core@default:default"/>
         <setEntry value="org.hsqldb.hsqldb@2:true"/>
-        <setEntry value="org.javamoney.moneta@default:default"/>
+        <setEntry value="org.javamoney.moneta@3:true"/>
         <setEntry value="org.junit@default:default"/>
         <setEntry value="org.objectweb.asm.commons@default:default"/>
         <setEntry value="org.objectweb.asm.tree.analysis@default:default"/>
@@ -2448,7 +2446,7 @@
         <setEntry value="org.fakturama.database.mariadb@2:true"/>
         <setEntry value="org.fakturama.database.mysql@2:true"/>
         <setEntry value="org.fakturama.e4.ui.dialogs.ext@default:default"/>
-        <setEntry value="org.fakturama.export@default:default"/>
+        <setEntry value="org.fakturama.export@default:true"/>
         <setEntry value="org.fakturama.exporter.zugferd@default:default"/>
         <setEntry value="org.fakturama.import@default:default"/>
         <setEntry value="org.fakturama.print.openoffice@default:default"/>

@@ -18,18 +18,19 @@
     </properties>
     <modules>
      
-        <module>com.mysql.jdbc</module>
+        <!--<module>com.mysql.jdbc</module>
         <module>com.mysql.jdbc.feature</module>
         <module>net.glxn.qrgen</module>
         <module>net.glxn.qrgen.feature</module>
-        
+        -->
         <!--  For building this project you have to disable the following two modules. -->
         <!--  After successful build (mvn clean install) you can re-enable 
               these modules and build the project again.
+              
         <module>../../javamoney/javamoney-osgi</module>
-        <module>../../javamoney/javamoney.feature</module> -->
-        
-        <module>de.rhe.apps.updatesite</module>
+        <module>../../javamoney/javamoney.feature</module> 
+        -->
+        <!--<module>de.rhe.apps.updatesite</module>-->
 
     </modules>
     <build>

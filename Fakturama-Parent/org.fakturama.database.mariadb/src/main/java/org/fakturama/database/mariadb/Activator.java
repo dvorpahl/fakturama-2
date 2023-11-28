@@ -26,7 +26,7 @@ public class Activator implements BundleActivator {
     public static final String MARIADB_DRIVER_NAME = "MariaDB";
 
     private static BundleContext context;
-    private ServiceRegistration<?> dsfService;
+    private ServiceRegistration dsfService;
 
     static BundleContext getContext() {
         return context;

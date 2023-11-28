@@ -86,7 +86,7 @@ public class DbUpdateService implements IDbUpdateService {
              * can specify it in your JAVA_OPTS as -Dliquibase.hub.apiKey. 
              */
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            liquibase = new liquibase.Liquibase("/changelog/db.changelog-master.xml", new liquibase.resource.OSGiResourceAccessor(context.getBundle()),
+            liquibase = new liquibase.Liquibase("changelog/db.changelog-master.xml", new liquibase.resource.OSGiResourceAccessor(context.getBundle()),
                     database);
 
             liquibase.update(new Contexts(), new LabelExpression());

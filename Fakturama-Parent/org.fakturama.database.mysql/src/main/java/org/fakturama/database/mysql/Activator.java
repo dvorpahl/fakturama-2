@@ -28,7 +28,7 @@ public class Activator implements BundleActivator {
     public static final String MYSQL_DRIVER_NAME = "MySQL";
 
     private static BundleContext context;
-    private ServiceRegistration<?> dsfService;
+    private ServiceRegistration dsfService;
 
     static BundleContext getContext() {
         return context;

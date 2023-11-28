@@ -21,6 +21,9 @@ import org.eclipse.osgi.service.localization.LocaleProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.misc.Constants;
@@ -28,6 +31,7 @@ import com.sebulli.fakturama.misc.Constants;
 /**
  * Utility class for handling {@link Locale}s.
  */
+@Component(configurationPid = "com.sebulli.fakturama.i18n.LocaleUtil", immediate = true)
 public class LocaleUtil implements ILocaleService {
 
     private final Map<String, Locale> countryLocaleMap = new HashMap<>();
@@ -36,6 +40,18 @@ public class LocaleUtil implements ILocaleService {
     private SortedMap<String, String> localeCountryMap;
     private final Map<String, Locale> localeLookUp = new HashMap<>();
     private Locale currencyLocale = null;
+
+    @Activate
+    public void activate() {
+        // Initialization code, if needed
+        //        getInstance();
+    }
+
+    // Deactivate method to unregister the service
+    @Deactivate
+    public void deactivate() {
+        // Cleanup code, if needed
+    }
 
     /**
      * Returns a reference to the {@link LocaleUtil}. Used for initialization
@@ -48,6 +64,7 @@ public class LocaleUtil implements ILocaleService {
      */
     @SuppressWarnings("restriction")
     public void getInstance() {
+
         String lang = (Activator.getContext() == null ? System.getProperty(EclipseStarter.PROP_NL)
                 : Activator.getContext().getProperty(EclipseStarter.PROP_NL));
 

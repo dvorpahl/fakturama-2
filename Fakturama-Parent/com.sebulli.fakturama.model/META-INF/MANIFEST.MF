@@ -39,7 +39,6 @@ Export-Package: com.sebulli.fakturama.converter,
  com.sebulli.fakturama.util,
  org.eclipse.emf.texo.model
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: com.sebulli.fakturama.activator.ActivateModel
 Import-Package: com.opcoach.e4.preferences,
  org.eclipse.e4.core.contexts,
  org.eclipse.e4.core.di.annotations,
