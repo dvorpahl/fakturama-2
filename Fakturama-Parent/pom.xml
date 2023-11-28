@@ -90,7 +90,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.3.0</version>
+                                    <version>3.8.0</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -240,19 +240,6 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
-            <id>SetProjectRepoPath</id>
-            <activation>
-                <file>
-                    <missing>org.fakturama.target/org.fakturama.target.target</missing>
-                </file>
-            </activation>
-            <properties>
-                <parent.projectLocation>${project.basedir}/..</parent.projectLocation>
-            </properties>
-        </profile>
-    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.codehaus.mojo</groupId>

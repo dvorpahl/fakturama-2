@@ -1,10 +1,6 @@
 package com.sebulli.fakturama.dto;
 
-import java.util.Locale;
-
-import javax.money.CurrencyUnit;
 import javax.money.Monetary;
-import javax.money.MonetaryAmount;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
@@ -18,8 +14,10 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.osgi.framework.FrameworkUtil;
 
 import com.sebulli.fakturama.Activator;
+import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.misc.Constants;
 
 public class PriceTest {
@@ -30,13 +28,13 @@ public class PriceTest {
 
     @Mock
     private IPreferenceStore defaultValuePrefs;
-    CurrencyUnit currencyEUR = Monetary.getCurrency(new Locale("", "GER")); // Germany
-
-    MonetaryAmount testAmount0EUR = Money.of(MoneyUtils.getBigDecimal(0.0), Monetary.getCurrency("EUR"));
-    MonetaryAmount testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency("EUR"));
 
     @Before
     public void setUp() throws Exception {
+        // start common for locale, money for money
+        FrameworkUtil.getBundle(ILocaleService.class).start();
+        FrameworkUtil.getBundle(org.javamoney.moneta.OSGIServiceHelper.class).start();
+
         MockitoAnnotations.initMocks(this);
         ctx = EclipseContextFactory.getServiceContext(Activator.getContext());
 
@@ -45,6 +43,11 @@ public class PriceTest {
         Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS)).thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
         ctx.set(IPreferenceStore.class, defaultValuePrefs);
         ContextInjectionFactory.setDefault(ctx);
+
+        //        CurrencyUnit currencyEUR = Monetary.getCurrency(new Locale("", "GER")); // Germany
+        //
+        //        MonetaryAmount testAmount0EUR = Money.of(MoneyUtils.getBigDecimal(0.0), Monetary.getCurrency("EUR"));
+        //        MonetaryAmount testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency("EUR"));
     }
 
     @Test
