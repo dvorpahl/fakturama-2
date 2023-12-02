@@ -77,7 +77,10 @@ public abstract class AbstractDAO<T extends IEntity> {
     }
 
     protected EntityManager getEntityManager() {
-        return emf.createEntityManager();
+        if (em == null) {
+            em = emf.createEntityManager();
+        }
+        return em;
     }
 
     public T save(final T object) throws FakturamaStoringException {
