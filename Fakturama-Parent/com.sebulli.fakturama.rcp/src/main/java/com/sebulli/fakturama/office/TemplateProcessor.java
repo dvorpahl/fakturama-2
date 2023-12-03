@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -586,9 +587,9 @@ public class TemplateProcessor {
             }
         }
 
-        for (Node removeNode : nodesMarkedForRemoving) {
-            removeNode.getParentNode().removeChild(removeNode);
-        }
+        //        for (Node removeNode : nodesMarkedForRemoving) {
+        //            removeNode.getParentNode().removeChild(removeNode);
+        //        }
 
     }
 
@@ -1317,7 +1318,7 @@ public class TemplateProcessor {
             return Optional.ofNullable(contact.getCustomerNumber());
         }
         if (key.equals("ADDRESS.SUPPLIER.NUMBER")) {
-            return Optional.ofNullable(originContact.getSupplierNumber());
+            return Objects.isNull(originContact) ? Optional.empty() : Optional.ofNullable(originContact.getSupplierNumber());
         }
         if (key.equals("ADDRESS.GLN")) {
             return Optional.ofNullable(Optional.ofNullable(contact.getGln()).orElse(Long.valueOf(0)).toString());

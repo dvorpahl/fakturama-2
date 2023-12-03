@@ -15,6 +15,8 @@ import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
 import org.odftoolkit.odfdom.dom.element.text.TextParagraphElementBase;
 import org.odftoolkit.odfdom.dom.element.text.TextPlaceholderElement;
+import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame;
+import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextExtractor;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextSpan;
 import org.odftoolkit.odfdom.incubator.search.InvalidNavigationException;
@@ -23,6 +25,8 @@ import org.odftoolkit.odfdom.incubator.search.TextNavigation;
 import org.odftoolkit.odfdom.incubator.search.TextSelection;
 import org.odftoolkit.odfdom.pkg.OdfElement;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
+import org.odftoolkit.odfdom.type.Length;
+import org.odftoolkit.odfdom.type.Length.Unit;
 // import org.odftoolkit.simple.common.TextExtractor;
 // import org.odftoolkit.simple.common.navigation.ImageSelection;
 // import org.odftoolkit.simple.draw.Image;
@@ -324,69 +328,75 @@ public class PlaceholderNode extends Selection {
         TextParagraphElementBase paragraphElement = (TextParagraphElementBase) findParentNode(TextPElement.ELEMENT_NAME.getQName(), getNode());
         // get selection
         TextSelection textSelection = getTextSelection(paragraphElement);
+        OdfDrawFrame dfe = (OdfDrawFrame) paragraphElement.newDrawFrameElement();
+        OdfDrawImage die = (OdfDrawImage) dfe.newDrawImageElement();
+        try {
+
+            String imagePackagePath = die.newImage(uri);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         int leftLength = textSelection.getText().length();
         int index = textSelection.getIndex();
         OdfElement parentElement = textSelection.getContainerElement();
+
         //        OdfFileDom ownerDom = (OdfFileDom) parentElement.getOwnerDocument();
         int nodeLength = OdfTextExtractor.newOdfTextExtractor(textSelection.getContainerElement()).getText().length();
         DrawFrameElement imageContainer;
-        //        Image mImage = null;
-        //
-        //        try {
-        //            if (imageContainer == null) {
-        //              delete(index, leftLength, parentElement);
-        //              // PrepareContainer
-        //              imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
-        //              insertOdfElement(imageContainer, index, parentElement);
-        //            }
-        ////            else {
-        ////              NodeList nodeImages = imageContainer.getElementsByTagName("draw:image");
-        ////              Node nodeImage = nodeImages.item(0);
-        ////              DrawImageElement im = (DrawImageElement) nodeImage;
-        ////              Image oldimage = Image.getInstanceof(im);
-        ////              oldimage.remove();
-        ////              // PrepareContainer
-        ////              imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
-        ////              insertOdfElement(imageContainer, index, parentElement);
-        ////            }
-        //            // Insert Image resource to package
-        //            DrawImageElement imageElement = imageContainer.newDrawImageElement();
-        //            String imageRef = uri.toString();
-        //            String mediaType = OdfFileEntry.getMediaTypeString(imageRef);
-        //            OdfSchemaDocument mOdfSchemaDoc = (OdfSchemaDocument) ownerDom.getDocument();
-        //            String packagePath = Image.getPackagePath(mOdfSchemaDoc, imageRef);
-        //            mOdfSchemaDoc.getPackage().insert(uri, packagePath, mediaType);
-        //            packagePath = packagePath.replaceFirst(ownerDom.getDocument().getDocumentPath(), "");
-        //            Image.configureInsertedImage(
-        //                (OdfSchemaDocument) ownerDom.getDocument(), imageElement, packagePath, false);
-        //            // get image object
-        //            mImage = Image.getInstanceof(imageElement);
-        //            mImage.getStyleHandler().setAchorType(AnchorType.AS_CHARACTER);
-        //            mImage.setName("replace" + System.currentTimeMillis());
-        //
-        //          } catch (Exception e) {
-        //            Logger.getLogger(ImageSelection.class.getName()).log(Level.SEVERE, e.getMessage(), e);
-        //          }
-        //
+        //                Image mImage = null;
         //        
-        //        ImageSelection sel = new ImageSelection(textSelection.);
-        //
-        //        // replace image from URI
-        //        Image img = sel.replaceWithImage(uri);
-        //
-        //        if (img == null) {
-        //            return null;
-        //        }
-        //
-        //        // if scaling is needed
-        //        if (width != null) {
-        //            img.getFrame().getDrawFrameElement().setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
-        //        }
-        //
-        //        if (height != null) {
-        //            img.getFrame().getDrawFrameElement().setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
-        //        }
+        //                try {
+        //                    if (imageContainer == null) {
+        //                      delete(index, leftLength, parentElement);
+        //                      // PrepareContainer
+        //                      imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
+        //                      insertOdfElement(imageContainer, index, parentElement);
+        //                    }
+        //        //            else {
+        //        //              NodeList nodeImages = imageContainer.getElementsByTagName("draw:image");
+        //        //              Node nodeImage = nodeImages.item(0);
+        //        //              DrawImageElement im = (DrawImageElement) nodeImage;
+        //        //              Image oldimage = Image.getInstanceof(im);
+        //        //              oldimage.remove();
+        //        //              // PrepareContainer
+        //        //              imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
+        //        //              insertOdfElement(imageContainer, index, parentElement);
+        //        //            }
+        //                    // Insert Image resource to package
+        //                    DrawImageElement imageElement = imageContainer.newDrawImageElement();
+        //                    String imageRef = uri.toString();
+        //                    String mediaType = OdfFileEntry.getMediaTypeString(imageRef);
+        //                    OdfSchemaDocument mOdfSchemaDoc = (OdfSchemaDocument) ownerDom.getDocument();
+        //                    String packagePath = Image.getPackagePath(mOdfSchemaDoc, imageRef);
+        //                    mOdfSchemaDoc.getPackage().insert(uri, packagePath, mediaType);
+        //                    packagePath = packagePath.replaceFirst(ownerDom.getDocument().getDocumentPath(), "");
+        //                    Image.configureInsertedImage(
+        //                        (OdfSchemaDocument) ownerDom.getDocument(), imageElement, packagePath, false);
+        //                    // get image object
+        //                    mImage = Image.getInstanceof(imageElement);
+        //                    mImage.getStyleHandler().setAchorType(AnchorType.AS_CHARACTER);
+        //                    mImage.setName("replace" + System.currentTimeMillis());
+        //        
+        //                  } catch (Exception e) {
+        //                    Logger.getLogger(ImageSelection.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+        //                  }
+        //        
+        //                
+        //                ImageSelection sel = new ImageSelection(textSelection.);
+
+        // replace image from URI
+        //                Image img = sel.replaceWithImage(uri);
+
+        // if scaling is needed
+        if (width != null) {
+            dfe.setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
+        }
+
+        if (height != null) {
+            dfe.setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
+        }
 
         /*
          * cleanup: The image was inserted inside the Placeholder tags. Therefore it

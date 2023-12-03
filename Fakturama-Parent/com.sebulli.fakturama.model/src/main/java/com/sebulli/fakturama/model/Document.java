@@ -1,11 +1,12 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -142,7 +143,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      */
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
     @JoinColumns({ @JoinColumn(name = "FK_DOCUMENT") })
-    private List<DocumentItem> items = new ArrayList<DocumentItem>();
+    private List<DocumentItem> items = new ArrayList<>();
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
@@ -293,7 +294,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      */
     @Basic()
     @Column(name = "PRINTED")
-    private Boolean printed = null;
+    private Boolean printed = false;
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
@@ -323,7 +324,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      */
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
     @JoinColumns({ @JoinColumn(name = "FK_DOCUMENT") })
-    private List<DocumentReceiver> receiver = new ArrayList<DocumentReceiver>();
+    private List<DocumentReceiver> receiver = new ArrayList<>();
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
@@ -546,7 +547,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            the other object to compare
      * @generated
      */
-    public boolean isSameAs(Document other) {
+    public boolean isSameAs(final Document other) {
         boolean retval = true;
         if (other != null) {
             if (getAdditionalInfo() != null) {
@@ -613,9 +614,9 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
             if (pdfPath != null && other.getPdfPath() != null) {
                 retval &= pdfPath.compareTo(other.getPdfPath()) == 0;
             }
-            if (printed != null && other.getPrinted() != null) {
-                retval &= printed.compareTo(other.getPrinted()) == 0;
-            }
+
+            retval &= printed.compareTo(other.getPrinted()) == 0;
+
             if (printTemplate != null && other.getPrintTemplate() != null) {
                 retval &= printTemplate.compareTo(other.getPrintTemplate()) == 0;
             }
@@ -722,7 +723,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            additionalInfo}' feature.
      * @generated
      */
-    public void setAdditionalInfo(IndividualDocumentInfo newAdditionalInfo) {
+    public void setAdditionalInfo(final IndividualDocumentInfo newAdditionalInfo) {
         firePropertyChange("additionalInfo", this.additionalInfo, newAdditionalInfo);
         additionalInfo = newAdditionalInfo;
     }
@@ -755,7 +756,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            addressFirstLine}' feature.
      * @generated
      */
-    public void setAddressFirstLine(String newAddressFirstLine) {
+    public void setAddressFirstLine(final String newAddressFirstLine) {
         firePropertyChange("addressFirstLine", this.addressFirstLine, newAddressFirstLine);
         addressFirstLine = newAddressFirstLine;
     }
@@ -788,7 +789,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            billingType}' feature.
      * @generated
      */
-    public void setBillingType(BillingType newBillingType) {
+    public void setBillingType(final BillingType newBillingType) {
         firePropertyChange("billingType", this.billingType, newBillingType);
         billingType = newBillingType;
     }
@@ -819,7 +820,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            customerRef}' feature.
      * @generated
      */
-    public void setCustomerRef(String newCustomerRef) {
+    public void setCustomerRef(final String newCustomerRef) {
         firePropertyChange("customerRef", this.customerRef, newCustomerRef);
         customerRef = newCustomerRef;
     }
@@ -851,7 +852,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setDeposit(Boolean newDeposit) {
+    public void setDeposit(final Boolean newDeposit) {
         firePropertyChange("deposit", this.deposit, newDeposit);
         deposit = newDeposit;
     }
@@ -880,7 +881,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            documentDate}' feature.
      * @generated
      */
-    public void setDocumentDate(Date newDocumentDate) {
+    public void setDocumentDate(final Date newDocumentDate) {
         firePropertyChange("documentDate", this.documentDate, newDocumentDate);
         documentDate = newDocumentDate;
     }
@@ -908,7 +909,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setDueDays(Integer newDueDays) {
+    public void setDueDays(final Integer newDueDays) {
         firePropertyChange("dueDays", this.dueDays, newDueDays);
         dueDays = newDueDays;
     }
@@ -941,7 +942,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            invoiceReference}' feature.
      * @generated
      */
-    public void setInvoiceReference(Invoice newInvoiceReference) {
+    public void setInvoiceReference(final Invoice newInvoiceReference) {
         firePropertyChange("invoiceReference", this.invoiceReference, newInvoiceReference);
         invoiceReference = newInvoiceReference;
     }
@@ -972,7 +973,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *
      * @generated
      */
-    public boolean addToItems(DocumentItem itemsValue) {
+    public boolean addToItems(final DocumentItem itemsValue) {
         items.add(itemsValue);
         return true;
     }
@@ -985,7 +986,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *
      * @generated
      */
-    public boolean removeFromItems(DocumentItem itemsValue) {
+    public boolean removeFromItems(final DocumentItem itemsValue) {
         if (items.contains(itemsValue)) {
             items.remove(itemsValue);
             return true;
@@ -1016,7 +1017,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setItems(List<DocumentItem> newItems) {
+    public void setItems(final List<DocumentItem> newItems) {
         firePropertyChange("items", this.items, newItems);
         clearItems();
         for (DocumentItem value : newItems) {
@@ -1052,7 +1053,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            itemsRebate}' feature.
      * @generated
      */
-    public void setItemsRebate(Double newItemsRebate) {
+    public void setItemsRebate(final Double newItemsRebate) {
         firePropertyChange("itemsRebate", this.itemsRebate, newItemsRebate);
         itemsRebate = newItemsRebate;
     }
@@ -1080,7 +1081,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setMessage(String newMessage) {
+    public void setMessage(final String newMessage) {
         firePropertyChange("message", this.message, newMessage);
         message = newMessage;
     }
@@ -1108,7 +1109,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setMessage2(String newMessage2) {
+    public void setMessage2(final String newMessage2) {
         firePropertyChange("message2", this.message2, newMessage2);
         message2 = newMessage2;
     }
@@ -1136,7 +1137,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setMessage3(String newMessage3) {
+    public void setMessage3(final String newMessage3) {
         firePropertyChange("message3", this.message3, newMessage3);
         message3 = newMessage3;
     }
@@ -1184,7 +1185,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setNetGross(Integer newNetGross) {
+    public void setNetGross(final Integer newNetGross) {
         firePropertyChange("netGross", this.netGross, newNetGross);
         netGross = newNetGross;
     }
@@ -1217,7 +1218,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            noVatReference}' feature.
      * @generated
      */
-    public void setNoVatReference(VAT newNoVatReference) {
+    public void setNoVatReference(final VAT newNoVatReference) {
         firePropertyChange("noVatReference", this.noVatReference, newNoVatReference);
         noVatReference = newNoVatReference;
     }
@@ -1245,7 +1246,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setOdtPath(String newOdtPath) {
+    public void setOdtPath(final String newOdtPath) {
         firePropertyChange("odtPath", this.odtPath, newOdtPath);
         odtPath = newOdtPath;
     }
@@ -1273,7 +1274,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            orderDate}' feature.
      * @generated
      */
-    public void setOrderDate(Date newOrderDate) {
+    public void setOrderDate(final Date newOrderDate) {
         firePropertyChange("orderDate", this.orderDate, newOrderDate);
         orderDate = newOrderDate;
     }
@@ -1305,7 +1306,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            paidValue}' feature.
      * @generated
      */
-    public void setPaidValue(Double newPaidValue) {
+    public void setPaidValue(final Double newPaidValue) {
         firePropertyChange("paidValue", this.paidValue, newPaidValue);
         paidValue = newPaidValue;
     }
@@ -1333,7 +1334,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setPaid(Boolean newPaid) {
+    public void setPaid(final Boolean newPaid) {
         firePropertyChange("paid", this.paid, newPaid);
         paid = newPaid;
     }
@@ -1365,7 +1366,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setPayDate(Date newPayDate) {
+    public void setPayDate(final Date newPayDate) {
         firePropertyChange("payDate", this.payDate, newPayDate);
         payDate = newPayDate;
     }
@@ -1397,7 +1398,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setPayment(Payment newPayment) {
+    public void setPayment(final Payment newPayment) {
         firePropertyChange("payment", this.payment, newPayment);
         payment = newPayment;
     }
@@ -1425,7 +1426,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setPdfPath(String newPdfPath) {
+    public void setPdfPath(final String newPdfPath) {
         firePropertyChange("pdfPath", this.pdfPath, newPdfPath);
         pdfPath = newPdfPath;
     }
@@ -1438,9 +1439,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>printed</b></em>' feature
      * @generated
      */
-    public Boolean getPrinted() {
-
-        return printed;
+    public boolean getPrinted() {
+        return !Objects.isNull(printed) && printed;
     }
 
     /**
@@ -1454,6 +1454,9 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @generated
      */
     public void setPrinted(Boolean newPrinted) {
+        if (newPrinted == null) {
+            newPrinted = Boolean.FALSE;
+        }
         firePropertyChange("printed", this.printed, newPrinted);
         printed = newPrinted;
     }
@@ -1482,7 +1485,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            printTemplate}' feature.
      * @generated
      */
-    public void setPrintTemplate(String newPrintTemplate) {
+    public void setPrintTemplate(final String newPrintTemplate) {
         firePropertyChange("printTemplate", this.printTemplate, newPrintTemplate);
         printTemplate = newPrintTemplate;
     }
@@ -1514,7 +1517,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setProgress(Integer newProgress) {
+    public void setProgress(final Integer newProgress) {
         firePropertyChange("progress", this.progress, newProgress);
         progress = newProgress;
     }
@@ -1544,7 +1547,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setReceiver(List<DocumentReceiver> newReceiver) {
+    public void setReceiver(final List<DocumentReceiver> newReceiver) {
         firePropertyChange("receiver", this.receiver, newReceiver);
         receiver = newReceiver;
     }
@@ -1573,7 +1576,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            serviceDate}' feature.
      * @generated
      */
-    public void setServiceDate(Date newServiceDate) {
+    public void setServiceDate(final Date newServiceDate) {
         firePropertyChange("serviceDate", this.serviceDate, newServiceDate);
         serviceDate = newServiceDate;
     }
@@ -1605,7 +1608,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setShipping(Shipping newShipping) {
+    public void setShipping(final Shipping newShipping) {
         firePropertyChange("shipping", this.shipping, newShipping);
         shipping = newShipping;
     }
@@ -1634,7 +1637,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            shippingAutoVat}' feature.
      * @generated
      */
-    public void setShippingAutoVat(ShippingVatType newShippingAutoVat) {
+    public void setShippingAutoVat(final ShippingVatType newShippingAutoVat) {
         firePropertyChange("shippingAutoVat", this.shippingAutoVat, newShippingAutoVat);
         shippingAutoVat = newShippingAutoVat;
     }
@@ -1663,7 +1666,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            shippingValue}' feature.
      * @generated
      */
-    public void setShippingValue(Double newShippingValue) {
+    public void setShippingValue(final Double newShippingValue) {
         firePropertyChange("shippingValue", this.shippingValue, newShippingValue);
         shippingValue = newShippingValue;
     }
@@ -1696,7 +1699,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            sourceDocument}' feature.
      * @generated
      */
-    public void setSourceDocument(Document newSourceDocument) {
+    public void setSourceDocument(final Document newSourceDocument) {
         firePropertyChange("sourceDocument", this.sourceDocument, newSourceDocument);
         sourceDocument = newSourceDocument;
     }
@@ -1724,7 +1727,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setTara(Double newTara) {
+    public void setTara(final Double newTara) {
         firePropertyChange("tara", this.tara, newTara);
         tara = newTara;
     }
@@ -1752,7 +1755,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            totalValue}' feature.
      * @generated
      */
-    public void setTotalValue(Double newTotalValue) {
+    public void setTotalValue(final Double newTotalValue) {
         firePropertyChange("totalValue", this.totalValue, newTotalValue);
         totalValue = newTotalValue;
     }
@@ -1787,7 +1790,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            transactionId}' feature.
      * @generated
      */
-    public void setTransactionId(Integer newTransactionId) {
+    public void setTransactionId(final Integer newTransactionId) {
         firePropertyChange("transactionId", this.transactionId, newTransactionId);
         transactionId = newTransactionId;
     }
@@ -1816,7 +1819,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            webshopDate}' feature.
      * @generated
      */
-    public void setWebshopDate(Date newWebshopDate) {
+    public void setWebshopDate(final Date newWebshopDate) {
         firePropertyChange("webshopDate", this.webshopDate, newWebshopDate);
         webshopDate = newWebshopDate;
     }
@@ -1844,7 +1847,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            webshopId}' feature.
      * @generated
      */
-    public void setWebshopId(String newWebshopId) {
+    public void setWebshopId(final String newWebshopId) {
         firePropertyChange("webshopId", this.webshopId, newWebshopId);
         webshopId = newWebshopId;
     }
@@ -1873,7 +1876,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            vestingPeriodStart}' feature.
      * @generated
      */
-    public void setVestingPeriodStart(Date newVestingPeriodStart) {
+    public void setVestingPeriodStart(final Date newVestingPeriodStart) {
         firePropertyChange("vestingPeriodStart", this.vestingPeriodStart, newVestingPeriodStart);
         vestingPeriodStart = newVestingPeriodStart;
     }
@@ -1902,7 +1905,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            vestingPeriodEnd}' feature.
      * @generated
      */
-    public void setVestingPeriodEnd(Date newVestingPeriodEnd) {
+    public void setVestingPeriodEnd(final Date newVestingPeriodEnd) {
         firePropertyChange("vestingPeriodEnd", this.vestingPeriodEnd, newVestingPeriodEnd);
         vestingPeriodEnd = newVestingPeriodEnd;
     }
@@ -1932,7 +1935,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setVersion(Integer newVersion) {
+    public void setVersion(final Integer newVersion) {
         firePropertyChange("version", this.version, newVersion);
         version = newVersion;
     }
@@ -1946,6 +1949,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>name</b></em>' feature
      * @generated
      */
+    @Override
     public String getName() {
 
         return name;
@@ -1962,7 +1966,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setName(String newName) {
+    @Override
+    public void setName(final String newName) {
         firePropertyChange("name", this.name, newName);
         name = newName;
     }
@@ -1976,6 +1981,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>dateAdded</b></em>' feature
      * @generated
      */
+    @Override
     public Date getDateAdded() {
 
         return dateAdded;
@@ -1992,7 +1998,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            dateAdded}' feature.
      * @generated
      */
-    public void setDateAdded(Date newDateAdded) {
+    @Override
+    public void setDateAdded(final Date newDateAdded) {
         firePropertyChange("dateAdded", this.dateAdded, newDateAdded);
         dateAdded = newDateAdded;
     }
@@ -2005,6 +2012,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>modifiedBy</b></em>' feature
      * @generated
      */
+    @Override
     public String getModifiedBy() {
 
         return modifiedBy;
@@ -2020,7 +2028,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            modifiedBy}' feature.
      * @generated
      */
-    public void setModifiedBy(String newModifiedBy) {
+    @Override
+    public void setModifiedBy(final String newModifiedBy) {
         firePropertyChange("modifiedBy", this.modifiedBy, newModifiedBy);
         modifiedBy = newModifiedBy;
     }
@@ -2033,6 +2042,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>modified</b></em>' feature
      * @generated
      */
+    @Override
     public Date getModified() {
 
         return modified;
@@ -2048,7 +2058,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setModified(Date newModified) {
+    @Override
+    public void setModified(final Date newModified) {
         firePropertyChange("modified", this.modified, newModified);
         modified = newModified;
     }
@@ -2061,6 +2072,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>id</b></em>' feature
      * @generated
      */
+    @Override
     public long getId() {
 
         return id;
@@ -2075,7 +2087,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            the new value of the '{@link Document#getId() id}' feature.
      * @generated
      */
-    public void setId(long newId) {
+    @Override
+    public void setId(final long newId) {
         firePropertyChange("id", this.id, newId);
         id = newId;
     }
@@ -2089,6 +2102,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>deleted</b></em>' feature
      * @generated
      */
+    @Override
     public Boolean getDeleted() {
 
         return deleted;
@@ -2105,7 +2119,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setDeleted(Boolean newDeleted) {
+    @Override
+    public void setDeleted(final Boolean newDeleted) {
         firePropertyChange("deleted", this.deleted, newDeleted);
         deleted = newDeleted;
     }
@@ -2120,6 +2135,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>validFrom</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidFrom() {
 
         return validFrom;
@@ -2137,7 +2153,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            validFrom}' feature.
      * @generated
      */
-    public void setValidFrom(Date newValidFrom) {
+    @Override
+    public void setValidFrom(final Date newValidFrom) {
         firePropertyChange("validFrom", this.validFrom, newValidFrom);
         validFrom = newValidFrom;
     }
@@ -2152,6 +2169,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * @return the value of '<em><b>validTo</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidTo() {
 
         return validTo;
@@ -2169,7 +2187,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      *            feature.
      * @generated
      */
-    public void setValidTo(Date newValidTo) {
+    @Override
+    public void setValidTo(final Date newValidTo) {
         firePropertyChange("validTo", this.validTo, newValidTo);
         validTo = newValidTo;
     }
