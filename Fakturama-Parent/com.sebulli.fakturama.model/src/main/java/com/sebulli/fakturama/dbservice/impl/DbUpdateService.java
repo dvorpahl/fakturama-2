@@ -195,7 +195,7 @@ public class DbUpdateService implements IDbUpdateService {
                 //                }
                 properties.put(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "persistence.xml");
                 log.info("loading persistence.xml: {}", prop.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS));
-                properties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");//prop.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS)); //org.hsqldb.jdbc.JDBCDriver
+                properties.put(PersistenceUnitProperties.JDBC_DRIVER, preferenceStore.getString(PersistenceUnitProperties.JDBC_DRIVER));//"org.hsqldb.jdbc.JDBCDriver");//prop.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS)); //org.hsqldb.jdbc.JDBCDriver
                 properties.put(PersistenceUnitProperties.JDBC_URL, prop.getProperty(DataSourceFactory.JDBC_URL));
                 properties.put(PersistenceUnitProperties.JDBC_USER, prop.getProperty(DataSourceFactory.JDBC_USER));
                 properties.put(PersistenceUnitProperties.JDBC_PASSWORD, prop.getProperty(DataSourceFactory.JDBC_PASSWORD));

@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import org.apache.commons.lang3.StringUtils;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
+import org.odftoolkit.odfdom.dom.OdfDocumentNamespace;
+import org.odftoolkit.odfdom.dom.attribute.text.TextAnchorTypeAttribute;
 import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement;
 import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
@@ -333,6 +335,7 @@ public class PlaceholderNode extends Selection {
         try {
 
             String imagePackagePath = die.newImage(uri);
+            //            die.getStyleHandler().setAchorType(AnchorType.AS_CHARACTER);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -388,6 +391,10 @@ public class PlaceholderNode extends Selection {
 
         // replace image from URI
         //                Image img = sel.replaceWithImage(uri);
+
+        // set formating as a character instead of floating in the line
+        TextAnchorTypeAttribute anchorType = (TextAnchorTypeAttribute) dfe.getOdfAttribute(OdfDocumentNamespace.TEXT, "anchor-type");
+        anchorType.setEnumValue(TextAnchorTypeAttribute.Value.AS_CHAR);
 
         // if scaling is needed
         if (width != null) {

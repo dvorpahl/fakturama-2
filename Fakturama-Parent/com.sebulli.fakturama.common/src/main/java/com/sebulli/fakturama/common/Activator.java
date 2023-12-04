@@ -155,9 +155,6 @@ public class Activator implements BundleActivator {
      * @return the shared instance
      */
     public static BundleContext getContext() {
-        ServiceReference<?>[] ref = context.getBundle().getRegisteredServices();
-        System.out.println(context.getService(ref[0]).getClass().getName());
-        System.out.println("referencies: " + ref.length);
         return context;
     }
 
