@@ -12,7 +12,6 @@ import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.dom.OdfDocumentNamespace;
 import org.odftoolkit.odfdom.dom.attribute.text.TextAnchorTypeAttribute;
-import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement;
 import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
 import org.odftoolkit.odfdom.dom.element.text.TextParagraphElementBase;
@@ -328,81 +327,26 @@ public class PlaceholderNode extends Selection {
     public Node replaceWith(final URI uri, final Integer width, final Integer height) {
         // find paragraph
         TextParagraphElementBase paragraphElement = (TextParagraphElementBase) findParentNode(TextPElement.ELEMENT_NAME.getQName(), getNode());
-        // get selection
-        TextSelection textSelection = getTextSelection(paragraphElement);
-        OdfDrawFrame dfe = (OdfDrawFrame) paragraphElement.newDrawFrameElement();
-        OdfDrawImage die = (OdfDrawImage) dfe.newDrawImageElement();
+        OdfDrawFrame odfDrawFrame = (OdfDrawFrame) paragraphElement.newDrawFrameElement();
+        OdfDrawImage odfDrawImage = (OdfDrawImage) odfDrawFrame.newDrawImageElement();
         try {
-
-            String imagePackagePath = die.newImage(uri);
-            //            die.getStyleHandler().setAchorType(AnchorType.AS_CHARACTER);
+            // new image packages this and includes it in the document
+            String imagePackagePath = odfDrawImage.newImage(uri);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        int leftLength = textSelection.getText().length();
-        int index = textSelection.getIndex();
-        OdfElement parentElement = textSelection.getContainerElement();
-
-        //        OdfFileDom ownerDom = (OdfFileDom) parentElement.getOwnerDocument();
-        int nodeLength = OdfTextExtractor.newOdfTextExtractor(textSelection.getContainerElement()).getText().length();
-        DrawFrameElement imageContainer;
-        //                Image mImage = null;
-        //        
-        //                try {
-        //                    if (imageContainer == null) {
-        //                      delete(index, leftLength, parentElement);
-        //                      // PrepareContainer
-        //                      imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
-        //                      insertOdfElement(imageContainer, index, parentElement);
-        //                    }
-        //        //            else {
-        //        //              NodeList nodeImages = imageContainer.getElementsByTagName("draw:image");
-        //        //              Node nodeImage = nodeImages.item(0);
-        //        //              DrawImageElement im = (DrawImageElement) nodeImage;
-        //        //              Image oldimage = Image.getInstanceof(im);
-        //        //              oldimage.remove();
-        //        //              // PrepareContainer
-        //        //              imageContainer = ownerDom.newOdfElement(DrawFrameElement.class);
-        //        //              insertOdfElement(imageContainer, index, parentElement);
-        //        //            }
-        //                    // Insert Image resource to package
-        //                    DrawImageElement imageElement = imageContainer.newDrawImageElement();
-        //                    String imageRef = uri.toString();
-        //                    String mediaType = OdfFileEntry.getMediaTypeString(imageRef);
-        //                    OdfSchemaDocument mOdfSchemaDoc = (OdfSchemaDocument) ownerDom.getDocument();
-        //                    String packagePath = Image.getPackagePath(mOdfSchemaDoc, imageRef);
-        //                    mOdfSchemaDoc.getPackage().insert(uri, packagePath, mediaType);
-        //                    packagePath = packagePath.replaceFirst(ownerDom.getDocument().getDocumentPath(), "");
-        //                    Image.configureInsertedImage(
-        //                        (OdfSchemaDocument) ownerDom.getDocument(), imageElement, packagePath, false);
-        //                    // get image object
-        //                    mImage = Image.getInstanceof(imageElement);
-        //                    mImage.getStyleHandler().setAchorType(AnchorType.AS_CHARACTER);
-        //                    mImage.setName("replace" + System.currentTimeMillis());
-        //        
-        //                  } catch (Exception e) {
-        //                    Logger.getLogger(ImageSelection.class.getName()).log(Level.SEVERE, e.getMessage(), e);
-        //                  }
-        //        
-        //                
-        //                ImageSelection sel = new ImageSelection(textSelection.);
-
-        // replace image from URI
-        //                Image img = sel.replaceWithImage(uri);
-
         // set formating as a character instead of floating in the line
-        TextAnchorTypeAttribute anchorType = (TextAnchorTypeAttribute) dfe.getOdfAttribute(OdfDocumentNamespace.TEXT, "anchor-type");
+        TextAnchorTypeAttribute anchorType = (TextAnchorTypeAttribute) odfDrawFrame.getOdfAttribute(OdfDocumentNamespace.TEXT, "anchor-type");
         anchorType.setEnumValue(TextAnchorTypeAttribute.Value.AS_CHAR);
 
         // if scaling is needed
         if (width != null) {
-            dfe.setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
+            odfDrawFrame.setSvgWidthAttribute(Length.mapToUnit(String.valueOf(width) + "px", Unit.CENTIMETER));
         }
 
         if (height != null) {
-            dfe.setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
+            odfDrawFrame.setSvgHeightAttribute(Length.mapToUnit(String.valueOf(height) + "px", Unit.CENTIMETER));
         }
 
         /*
