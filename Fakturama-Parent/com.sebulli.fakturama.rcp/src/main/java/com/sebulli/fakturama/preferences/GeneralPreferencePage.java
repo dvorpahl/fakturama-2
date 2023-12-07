@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -111,6 +110,8 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     private Button radioButtonKeepNumberBackups;
     private Button radioButtonDeleteBackupsOlderThan;
 
+    private static Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+
     /**
      * Constructor
      */
@@ -138,12 +139,11 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         final Collator collator = Collator.getInstance(Locale.getDefault());
         collator.setStrength(Collator.SECONDARY);
         List<Locale> currencyLocaleList = Arrays.stream(locales).filter(l -> l.getCountry().length() == 2 && StringUtils.length(l.getLanguage()) < 3)
-                .sorted((o1, o2) -> collator.compare(o1.getDisplayCountry(), o2.getDisplayCountry()))
-                // distinguish different Locales by country AND language! 
-                .filter(distinctByKey(l -> l.getDisplayCountry() + l.getDisplayLanguage())).collect(Collectors.toList());
+                .sorted((o1, o2) -> collator.compare(o1.getDisplayCountry(), o2.getDisplayCountry())).filter(distinctByKey(l -> l.getDisplayCountry()))
+                .toList();
         String[][] currencyLocales = new String[currencyLocaleList.size()][2];
         for (Locale locale : currencyLocaleList) {
-            currencyLocales[index][0] = String.format("%s (%s)", locale.getDisplayCountry(), locale.getDisplayLanguage());
+            currencyLocales[index][0] = String.format("%s", locale.getDisplayCountry());
             currencyLocales[index][1] = String.format("%s/%s", locale.getLanguage(), locale.getCountry());
             index++;
         }
@@ -267,7 +267,6 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     }
 
     public static <T> Predicate<T> distinctByKey(final Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
