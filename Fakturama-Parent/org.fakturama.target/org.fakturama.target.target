@@ -72,16 +72,16 @@
 
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="https://download.eclipse.org/nebula/snapshot/"/>
-		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202309281940"/>
-		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202309281940"/>
-    	<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202309281940"/>
+		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202312231739"/>
+		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202312231739"/>
+    	<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202312231739"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/nebula/incubation/latest"/>
@@ -248,25 +248,25 @@
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>fontbox</artifactId>
-                <version>3.0.1-SNAPSHOT</version>
+                <version>3.0.1</version>
                 <type>jar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox-io</artifactId>
-                <version>3.0.1-SNAPSHOT</version>
+                <version>3.0.1</version>
                 <type>jar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
-                <version>3.0.1-SNAPSHOT</version>
+                <version>3.0.1</version>
                 <type>jar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>xmpbox</artifactId>
-                <version>3.0.1-SNAPSHOT</version>
+                <version>3.0.1</version>
                 <type>jar</type>
             </dependency>
         </dependencies>
@@ -307,12 +307,18 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="direct" includeDependencyScopes="compile" includeSource="true" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-core</artifactId>
-                <version>4.5.0</version>
+                <version>4.25.0</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>2.2</version>
                 <type>jar</type>
             </dependency>
         </dependencies>
@@ -391,6 +397,12 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.asm</artifactId>
+                <version>9.6.0</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa</artifactId>
                 <version>4.0.2</version>
                 <type>jar</type>
@@ -465,7 +477,7 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="direct" includeDependencyScopes="compile,provided,runtime,system" missingManifest="generate" type="Maven">
+    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>org.odftoolkit</groupId>
@@ -676,7 +688,7 @@
         <plugin id="com.jcraft.jsch"/>
         <plugin id="com.opcoach.e4.preferences"/>
         <plugin id="com.opcoach.e4.preferences.mainmenu"/>
-        <plugin id="com.opencsv"/>
+        <plugin id="com.opencsv" version="5.8.0"/>
         <plugin id="com.sun.el.javax.el"/>
         <plugin id="com.sun.jna" version="5.13.0"/>
         <plugin id="com.sun.jna.platform" version="5.13.0"/>
@@ -709,18 +721,18 @@
         <plugin id="org.apache.batik.css" version="1.16.0.v20221027-0840"/>
         <plugin id="org.apache.batik.i18n" version="1.16.0.v20221027-0840"/>
         <plugin id="org.apache.batik.util" version="1.16.0.v20221027-0840"/>
-        <plugin id="org.apache.commons.codec" version="1.14.0.v20221112-0806"/>
         <plugin id="org.apache.commons.codec" version="1.14.0.v20200818-1422"/>
+        <plugin id="org.apache.commons.codec" version="1.14.0.v20221112-0806"/>
         <plugin id="org.apache.commons.collections"/>
         <plugin id="org.apache.commons.collections4"/>
         <plugin id="org.apache.commons.commons-beanutils"/>
         <plugin id="org.apache.commons.commons-codec"/>
-        <plugin id="org.apache.commons.commons-collections4"/>
-        <plugin id="org.apache.commons.commons-compress" version="1.24.0"/>
+        <plugin id="org.apache.commons.commons-collections4" version="4.4.0"/>
+        <plugin id="org.apache.commons.commons-compress"/>
         <plugin id="org.apache.commons.commons-csv"/>
         <plugin id="org.apache.commons.commons-io" version="2.14.0"/>
-        <plugin id="org.apache.commons.commons-text"/>
-        <plugin id="org.apache.commons.commons-validator" version="1.7.0"/>
+        <plugin id="org.apache.commons.commons-text" version="1.10.0"/>
+        <plugin id="org.apache.commons.commons-validator"/>
         <plugin id="org.apache.commons.jxpath" version="1.3.0.v200911051830"/>
         <plugin id="org.apache.commons.lang3" version="3.13.0"/>
         <plugin id="org.apache.commons.logging" version="1.2.0.v20180409-1502"/>
@@ -3345,11 +3357,11 @@
         <plugin id="org.eclipse.ant.ui.nl_uk"/>
         <plugin id="org.apache.ant"/>
         <plugin id="org.odftoolkit.odfdom-java"/>
-        <plugin id="json" version="20231013.0.0"/>
-        <plugin id="net.rootdev.java-rdfa" version="1.0.0.BETA1"/>
+        <plugin id="json"/>
+        <plugin id="net.rootdev.java-rdfa"/>
         <plugin id="wrapped.org.apache.jena.jena-arq"/>
         <plugin id="wrapped.org.apache.jena.jena-base"/>
-        <plugin id="wrapped.org.apache.jena.jena-core" version="4.9.0"/>
+        <plugin id="wrapped.org.apache.jena.jena-core"/>
         <plugin id="wrapped.org.apache.jena.jena-iri"/>
         <plugin id="jakarta.transaction-api"/>
         <plugin id="com.sun.istack.commons-runtime" version="4.2.0"/>
@@ -3377,5 +3389,8 @@
         <plugin id="org.eclipse.pde.ds.core"/>
         <plugin id="org.eclipse.pde.ds.annotations"/>
         <plugin id="org.eclipse.nebula.widgets.formattedtext.source"/>
+        <plugin id="org.yaml.snakeyaml"/>
+        <plugin id="com.sun.xml.fastinfoset.FastInfoset"/>
+        <plugin id="wrapped.org.glassfish.jaxb.txw2"/>
     </includeBundles>
 </target>

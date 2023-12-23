@@ -26,7 +26,11 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.pdfbox.xmpbox;bundle-version="3.0.0",
  org.apache.commons.lang3;bundle-version="3.13.0",
  org.apache.pdfbox.io;bundle-version="3.0.0",
- org.apache.pdfbox.fontbox;bundle-version="3.0.0"
+ org.apache.pdfbox.fontbox;bundle-version="3.0.0",
+ org.glassfish.jaxb.runtime;bundle-version="4.0.3";visibility:=reexport,
+ org.glassfish.jaxb.core;bundle-version="4.0.3",
+ com.sun.istack.commons-runtime;bundle-version="4.2.0",
+ wrapped.org.glassfish.jaxb.txw2;bundle-version="4.0.3"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Localization: OSGI-INF/l10n/zfbundle
 Export-Package: org.fakturama.export.zugferd

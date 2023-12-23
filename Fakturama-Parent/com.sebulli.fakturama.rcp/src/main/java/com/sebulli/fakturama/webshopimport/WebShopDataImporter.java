@@ -57,6 +57,8 @@ import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.ImageData;
 import org.javamoney.moneta.FastMoney;
 import org.javamoney.moneta.Money;
 
@@ -289,7 +291,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             InterruptConnection interruptConnection = new InterruptConnection(connection);
             new Thread(interruptConnection).start();
             while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
-                ;
+
             }
 
             // If the connection was interrupted and not finished: return
@@ -1050,14 +1052,22 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         // Connect to the web server
         URI u = URI.create(address);
         try (InputStream in = u.toURL().openStream()) {
-            return IOUtils.toByteArray(in);
+            // first, check if there is an image, if not, return null
+            ImageData image = new ImageData(in);
+            if (image != null) {
+                return image.data;
+            }
         } catch (MalformedURLException e) {
             //T: Status message importing data from web shop
             log.error(e, msg.importWebshopErrorMalformedurl + " " + address);
         } catch (IOException e) {
             //T: Status message importing data from web shop
             log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } catch (SWTException e) {
+            //T: Status message importing data from web shop (cannot transform image)
+            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
         }
+
         return null;
     }
     //

@@ -16,6 +16,8 @@ import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.nebula.widgets.picture.PictureControl;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
@@ -26,11 +28,12 @@ import com.sebulli.fakturama.resources.core.Icon;
 import com.sebulli.fakturama.resources.core.IconSize;
 
 /**
- * a {@link org.eclipse.nebula.widgets.picture.PictureControl} with some modifications.
+ * a {@link org.eclipse.nebula.widgets.picture.PictureControl} with some
+ * modifications.
  *
  */
 public class FakturamaPictureControl extends PictureControl {
-    
+
     private static final String PICTURE_CONTROL_SETTING = "PICTURE_CONTROL";
 
     private static final String PICTURE_CONTROL_LAST_USED_PATH = "PICTURE_CONTROL_LAST_USED_PATH";
@@ -48,29 +51,29 @@ public class FakturamaPictureControl extends PictureControl {
     protected IPreferenceStore defaultValuePrefs;
 
     private String[] filterExtensions = new String[] { "*.png", "*.jpg", "*.bmp" };
-    
-    public FakturamaPictureControl(Composite parent) {
-		super(parent);
-	}
-    
+
+    public FakturamaPictureControl(final Composite parent) {
+        super(parent);
+    }
+
     @PostConstruct
     public void init() {
-		setModifyImageLinkText(msg.editorProductButtonChoosepicName);
-		setDeleteImageLinkText(msg.mainMenuEditDeleteName);
+        setModifyImageLinkText(msg.editorProductButtonChoosepicName);
+        setDeleteImageLinkText(msg.mainMenuEditDeleteName);
     }
-	
-	@Override
-	public void setImageByteArray(byte[] imageByteArray) {
-		super.setImageByteArray(imageByteArray);
-		Menu menu = getPictureLabel().getMenu();
-		menu.getItem(0).setText(msg.mainMenuEditDeleteName);
-		menu.getItem(0).setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
-		menu.getItem(1).setText(msg.editorProductButtonChoosepicName);
-		menu.getItem(1).setImage(Icon.COMMAND_ORDER_PROCESSING.getImage(IconSize.DefaultIconSize));
-	}
 
     @Override
-    protected void configure(FileDialog fd) {
+    public void setImageByteArray(final byte[] imageByteArray) {
+        super.setImageByteArray(imageByteArray);
+        Menu menu = getPictureLabel().getMenu();
+        menu.getItem(0).setText(msg.mainMenuEditDeleteName);
+        menu.getItem(0).setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
+        menu.getItem(1).setText(msg.editorProductButtonChoosepicName);
+        menu.getItem(1).setImage(Icon.COMMAND_ORDER_PROCESSING.getImage(IconSize.DefaultIconSize));
+    }
+
+    @Override
+    protected void configure(final FileDialog fd) {
         super.configure(fd);
         IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
         String lastUsedPath = dialogSettings.get(PICTURE_CONTROL_LAST_USED_PATH);
@@ -88,12 +91,14 @@ public class FakturamaPictureControl extends PictureControl {
         fd.setText(msg.editorProductButtonChoosepicName);
         fd.setFilterExtensions(filterExtensions);
     }
-	
-	/**
-     * Open the Explorer File to select a new image. 
+
+    /**
+     * Open the Explorer File to select a new image.
      * 
-     * copy of org.eclipse.nebula.widgets.picture.AbstractPictureControl.handleModifyImage()
+     * copy of
+     * org.eclipse.nebula.widgets.picture.AbstractPictureControl.handleModifyImage()
      */
+    @Override
     protected void handleModifyImage() {
         FileDialog fd = new FileDialog(this.getShell(), getFileDialogStyle());
         configure(fd);
@@ -102,23 +107,33 @@ public class FakturamaPictureControl extends PictureControl {
             File f = new File(selected);
             String fileExtension = FilenameUtils.getExtension(selected);
             int filterIndex = Arrays.binarySearch(filterExtensions, String.format("*.%s", fileExtension));
-            saveDialogSettings(f.getParent(), filterIndex );
+            saveDialogSettings(f.getParent(), filterIndex);
             try {
                 FileInputStream in = new FileInputStream(f);
-                setImageStream(in);
+                // First, check if image is ok, after this, set it
+                ImageData image = new ImageData(in);
+                if (image != null) {
+                    setImageByteArray(image.data);
+                }
+            } catch (SWTException e) {
+                setImageByteArray(null);
+                handleError(e);
             } catch (Throwable e) {
+                setImageByteArray(null);
                 handleError(e);
             }
+
         }
     }
-	
-    private void saveDialogSettings(String currentPath, int filterIndex) {
+
+    private void saveDialogSettings(final String currentPath, final int filterIndex) {
         IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
         dialogSettings.put(PICTURE_CONTROL_LAST_USED_PATH, currentPath);
         dialogSettings.put(PICTURE_CONTROL_LAST_USED_FILTER, filterIndex);
     }
-    private IDialogSettings getDialogSettings(String section) {
-        if(settings.getSection(section) == null) {
+
+    private IDialogSettings getDialogSettings(final String section) {
+        if (settings.getSection(section) == null) {
             settings.addNewSection(section);
         }
         return settings.getSection(section);

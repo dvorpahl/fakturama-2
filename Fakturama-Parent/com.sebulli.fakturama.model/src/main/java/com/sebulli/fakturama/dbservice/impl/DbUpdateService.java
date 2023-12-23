@@ -16,6 +16,7 @@ package com.sebulli.fakturama.dbservice.impl;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jdbc.DataSourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +88,7 @@ public class DbUpdateService implements IDbUpdateService {
              * can specify it in your JAVA_OPTS as -Dliquibase.hub.apiKey. 
              */
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            liquibase = new liquibase.Liquibase("changelog/db.changelog-master.xml", new liquibase.resource.OSGiResourceAccessor(context.getBundle()),
+            liquibase = new liquibase.Liquibase("/changelog/db.changelog-master.xml", new liquibase.resource.OSGiResourceAccessor(context.getBundle()),
                     database);
 
             liquibase.update(new Contexts(), new LabelExpression());
@@ -229,5 +231,44 @@ public class DbUpdateService implements IDbUpdateService {
     @Override
     public boolean isDbAlive() {
         return currentDbServer != null && currentDbServer.isAlive();
+    }
+
+    @Override
+    public ServiceRegistration initOldDaoEntityFaktory(final String oldJdbcUrl) {
+        BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
+
+        try {
+            ServiceReference<?>[] allServiceReferences = context.getAllServiceReferences(PersistenceProvider.class.getName(), null);
+            ServiceReference<PersistenceProvider> serviceReferencePP = (ServiceReference<PersistenceProvider>) allServiceReferences[0];
+            PersistenceProvider pp = context.getService(serviceReferencePP);
+            Map<String, Object> properties = new HashMap<>();
+            properties.put(PersistenceUnitProperties.CLASSLOADER, this.getClass().getClassLoader());
+
+            log.info("Bundle State: {} with name {}", context.getBundle().getState(), context.getBundle().getSymbolicName());
+            properties.put(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "persistence.xml");
+            properties.put(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
+            properties.put(PersistenceUnitProperties.JDBC_URL, oldJdbcUrl);
+            properties.put(PersistenceUnitProperties.JDBC_USER, "sa");
+            properties.put(PersistenceUnitProperties.LOGGING_LEVEL, "INFO");
+            properties.put(PersistenceUnitProperties.WEAVING, "false");
+            properties.put(PersistenceUnitProperties.WEAVING_INTERNAL, "false");
+
+            EntityManagerFactory emf = pp.createEntityManagerFactory("origin-datasource", properties);
+            Hashtable<String, Object> emfProperties = new Hashtable<>();
+            emfProperties.put("persistence.unit.name", "origin-datasource");
+            return context.registerService(EntityManagerFactory.class, emf, emfProperties);
+        } catch (Exception e) {
+            return null;
+        }
+
+        //        @GeminiPersistenceContext(unitName = "origin-datasource", properties = {
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_URL, valuePref = @Preference("OLD_JDBC_URL")),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_DRIVER, value = "org.hsqldb.jdbc.JDBCDriver"),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_USER, value = "sa"),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_PASSWORD, value = ""),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.LOGGING_LEVEL, value = "INFO"),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING, value = "false"),
+        //                @GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING_INTERNAL, value = "false") })
+
     }
 }

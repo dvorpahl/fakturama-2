@@ -168,7 +168,6 @@ public class ConfigurationManager {
                     // now check if an old database has to be converted
                     context.set(IEclipsePreferences.class, eclipsePrefs);
                     if (eclipsePrefs.get(MIGRATE_OLD_DATA, null) != null) {
-
                         MigrationManager migMan = ContextInjectionFactory.make(MigrationManager.class, context);
                         migMan.migrateOldData(shell);
                         eclipsePrefs.remove(MIGRATE_OLD_DATA);

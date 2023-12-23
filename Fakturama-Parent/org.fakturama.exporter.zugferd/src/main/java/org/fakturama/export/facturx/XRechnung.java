@@ -158,7 +158,7 @@ public class XRechnung extends AbstractEInvoice {
 
         if (documentType.getCode() > 0) {
             DocumentCodeType docTypeCode = factory.createDocumentCodeType();
-            docTypeCode.setValue(DocumentCodeContentType.valueOf(Integer.toString(documentType.getCode())));
+            docTypeCode.setValue(DocumentCodeContentType.fromValue(Integer.toString(documentType.getCode())));
             exchangedDocumentType.setTypeCode(docTypeCode);
         }
         exchangedDocumentType.setIssueDateTime(createDateTime(invoice.getDocumentDate()));
@@ -1094,7 +1094,7 @@ public class XRechnung extends AbstractEInvoice {
         }
         // null values aren't allowed!
         CountryIDType countryTypeId = factory.createCountryIDType();
-        countryTypeId.setValue(CountryIDContentType.valueOf(Optional.ofNullable(countryStr).orElse("DE")));
+        countryTypeId.setValue(CountryIDContentType.fromValue(Optional.ofNullable(countryStr).orElse("DE")));
         return countryTypeId;
     }
 

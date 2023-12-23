@@ -50,11 +50,12 @@ import com.sebulli.fakturama.money.internal.FakturamaMonetaryAmountFormat;
  *
  */
 public class NumberFormatterService implements INumberFormatterService {
-    @Inject
-    private ILocaleService localeUtil;
 
     @Inject
     private ILogger log;
+
+    @Inject
+    private ILocaleService localeUtil;
 
     private IPreferenceStore preferenceStore;
 
@@ -366,7 +367,7 @@ public class NumberFormatterService implements INumberFormatterService {
      */
     public void bindLocaleService(final ILocaleService localeUtil) {
         this.localeUtil = localeUtil;
-        initialize();
+        //        initialize();
     }
 
     /**

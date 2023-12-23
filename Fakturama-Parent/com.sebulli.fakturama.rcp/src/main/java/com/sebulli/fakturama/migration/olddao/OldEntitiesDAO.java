@@ -1,15 +1,20 @@
 package com.sebulli.fakturama.migration.olddao;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.inject.Inject;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.queries.CursoredStream;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 
 import com.sebulli.fakturama.model.Contact;
 import com.sebulli.fakturama.oldmodel.OldContacts;
@@ -28,7 +33,7 @@ import com.sebulli.fakturama.oldmodel.OldTexts;
 import com.sebulli.fakturama.oldmodel.OldVats;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
 
 /**
@@ -40,15 +45,32 @@ import jakarta.persistence.Query;
 @Creatable
 public class OldEntitiesDAO {
 
-    @Inject
-    @PersistenceContext(unitName = "origin-datasource")
+    private EntityManagerFactory emf;
+
     private EntityManager em;
+
+    //    @Inject
+    //    @PersistenceContext(unitName = "origin-datasource")
+    //    private EntityManager em;
 
     @PreDestroy
     public void destroy() {
         if (em != null && em.isOpen()) {
             em.close();
         }
+    }
+
+    @PostConstruct
+    protected void getEntityManager() throws InvalidSyntaxException {
+        BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
+        Collection<ServiceReference<EntityManagerFactory>> emfServiceReference = context.getServiceReferences(EntityManagerFactory.class,
+                "(persistence.unit.name=origin-datasource)");
+        if (emfServiceReference.isEmpty() || emfServiceReference.size() > 1) {
+            throw new RuntimeException("Could not init EMF!");
+        }
+        ServiceReference<EntityManagerFactory> ref = (ServiceReference<EntityManagerFactory>) emfServiceReference.toArray()[0];
+        EntityManagerFactory emf = context.getService(ref);
+        em = emf.createEntityManager();
     }
 
     /* * * * * * * * * * * * * * * * * * [Contacts section] * * * * * * * * * * * * * * * * * * * * * */

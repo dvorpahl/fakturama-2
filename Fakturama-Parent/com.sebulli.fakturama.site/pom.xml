@@ -17,19 +17,19 @@
 					<configuration>
 						<formats>
 							<win32>zip</win32>
-							<linux>tar.gz</linux>
-							<macosx>tar.gz</macosx>
+							<!--<linux>tar.gz</linux>
+							<macosx>tar.gz</macosx>-->
 						</formats>
-						<products>
+						<!--<products>
 							<product>
 								<id>Fakturama.ID</id>
 								<rootFolders>
-									<!-- for MacOSX, make sure you use a folder ending with .app , see 
-										bug 463670 -->
+									 for MacOSX, make sure you use a folder ending with .app , see 
+										bug 463670 
 									<macosx>Fakturama2.app</macosx>
 								</rootFolders>
 							</product>
-						</products>
+						</products>-->
 					</configuration>
 					<executions>
 						<execution>

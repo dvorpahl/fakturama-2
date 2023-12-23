@@ -56,12 +56,21 @@ public class Activator implements BundleActivator {
 
         @Override
         public ConnectionPoolDataSource createConnectionPoolDataSource(final Properties props) throws SQLException {
-            return new MariaDbPoolDataSource();
+            MariaDbPoolDataSource datasource = new MariaDbPoolDataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
         }
 
         @Override
         public XADataSource createXADataSource(final Properties props) throws SQLException {
-            return new MariaDbDataSource();
+            MariaDbDataSource datasource = new MariaDbDataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
+
         }
 
         @Override
@@ -71,8 +80,11 @@ public class Activator implements BundleActivator {
 
         @Override
         public DataSource createDataSource(final Properties props) throws SQLException {
-            return new MariaDbDataSource();
-
+            MariaDbDataSource datasource = new MariaDbDataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
         }
     }
 

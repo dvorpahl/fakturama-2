@@ -73,6 +73,7 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.persistence.queries.CursoredStream;
 import org.eclipse.swt.widgets.Shell;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.sebulli.fakturama.dao.ContactCategoriesDAO;
@@ -92,6 +93,7 @@ import com.sebulli.fakturama.dao.VatCategoriesDAO;
 import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.dao.VoucherCategoriesDAO;
 import com.sebulli.fakturama.dbconnector.OldTableinfo;
+import com.sebulli.fakturama.dbservice.IDbUpdateService;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
@@ -157,6 +159,8 @@ import com.sebulli.fakturama.views.datatable.documents.DocumentsListTable;
 import com.sebulli.fakturama.views.datatable.payments.PaymentListTable;
 import com.sebulli.fakturama.views.datatable.shippings.ShippingListTable;
 import com.sebulli.fakturama.views.datatable.vats.VATListTable;
+
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * Migration Tool for converting old data to new one. This affects only database
@@ -242,6 +246,9 @@ public class MigrationManager {
     @Inject
     private VatCategoriesDAO vatCategoriesDAO;
 
+    @Inject
+    private IDbUpdateService dbUpdateService;
+
     /**
      * the model factory
      */
@@ -311,6 +318,8 @@ public class MigrationManager {
         eclipsePrefs.put("OLD_JDBC_URL", hsqlConnectionString);
         eclipsePrefs.flush();
 
+        ServiceRegistration<EntityManagerFactory> service = dbUpdateService.initOldDaoEntityFaktory(hsqlConnectionString);
+        log.info("THERE WAS A SERVICE CREATED!!!  " + service);
         // old entities only have one DAO for all entities
         oldDao = ContextInjectionFactory.make(OldEntitiesDAO.class, context);
 
