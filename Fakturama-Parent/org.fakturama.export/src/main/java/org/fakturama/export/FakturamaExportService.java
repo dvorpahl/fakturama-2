@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2016 www.fakturama.org
@@ -41,59 +41,58 @@ import com.sebulli.fakturama.log.ILogger;
  */
 public class FakturamaExportService implements IFakturamaWizardService {
 
-	private List<WizardEntry> wizardNodes = new ArrayList<>();
+    private List<WizardEntry> wizardNodes = new ArrayList<>();
 
-//	@Inject
-	private IEclipseContext ctx;
+    //	@Inject
+    private IEclipseContext ctx;
 
-	@Inject
-	private ILogger log;
+    @Inject
+    private ILogger log;
 
-	public void startUp() {
+    public void startUp() {
 
-		Bundle bundle = FrameworkUtil.getBundle(Messages.class);
-		BundleContext bundleContext = bundle.getBundleContext();
-		try {
-			Collection<ServiceReference<IEclipseContext>> serviceReferences = bundleContext
-					.getServiceReferences(IEclipseContext.class, null);
-			ServiceReference<IEclipseContext> next = serviceReferences.iterator().next();
-			ctx = bundleContext.getService(next);
-		} catch (InvalidSyntaxException e) {
-			// log.error(e);
-		}
-	}
+        Bundle bundle = FrameworkUtil.getBundle(Messages.class);
+        BundleContext bundleContext = bundle.getBundleContext();
+        try {
+            Collection<ServiceReference<IEclipseContext>> serviceReferences = bundleContext.getServiceReferences(IEclipseContext.class, null);
+            ServiceReference<IEclipseContext> next = serviceReferences.iterator().next();
+            ctx = bundleContext.getService(next);
+        } catch (InvalidSyntaxException e) {
+            // log.error(e);
+        }
+    }
 
-	public void shutDown() {
-		wizardNodes = null;
-	}
+    public void shutDown() {
+        wizardNodes = null;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.fakturama.export.IFakturamaExportService#getExporterList()
-	 */
-	@Override
-	public List<WizardEntry> getExporterList() {
-		return wizardNodes;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.fakturama.export.IFakturamaExportService#getExporterList()
+     */
+    @Override
+    public List<WizardEntry> getExporterList() {
+        return wizardNodes;
+    }
 
-	@Override
-	public IWorkbenchWizard createWizard(String className) {
-		try {
-			Class wizardClass = Class.forName(className);
-			boolean matches = Arrays.stream(wizardClass.getInterfaces()).anyMatch(c -> c.getName().equals(IExportWizard.class.getName()));
-			if(matches) {
-				return (IWorkbenchWizard) ContextInjectionFactory.make(wizardClass, ctx);
-			}
-		} catch (ClassNotFoundException e) {
-			log.error(e, "error while creating a wizard ("+className+")");
-		}
-		
-		return null;
-	}
+    @Override
+    public IWorkbenchWizard createWizard(final String className) {
+        try {
+            Class wizardClass = Class.forName(className);
+            boolean matches = Arrays.stream(wizardClass.getInterfaces()).anyMatch(c -> c.getName().equals(IExportWizard.class.getName()));
+            if (matches) {
+                return (IWorkbenchWizard) ContextInjectionFactory.make(wizardClass, ctx);
+            }
+        } catch (ClassNotFoundException e) {
+            log.error(e, "error while creating a wizard (" + className + ")");
+        }
 
-	@Override
-	public String getExtensionPointPlugin() {
-		return FrameworkUtil.getBundle(getClass()).getSymbolicName();
-	}
+        return null;
+    }
+
+    @Override
+    public String getExtensionPointPlugin() {
+        return FrameworkUtil.getBundle(getClass()).getSymbolicName();
+    }
 }
