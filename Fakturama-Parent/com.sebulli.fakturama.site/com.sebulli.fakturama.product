@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.1.3.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.1.3.qualifier" useFeatures="false" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="icon://APP_ABOUT_ICON"/>
@@ -14,7 +14,7 @@
    </configIni>
 
    <launcherArgs>
-      <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off
+      <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off -Dslf4j.provider=logback
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Xdock:icon=../Resources/app.icns
       </vmArgsMac>
@@ -38,6 +38,7 @@
             winExtraLargeHigh="app/app_256.bmp"/>
       </win>
    </launcher>
+
 
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
@@ -140,28 +141,52 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <plugins>
+      <plugin id="ch.qos.logback.classic"/>
+      <plugin id="ch.qos.logback.core"/>
       <plugin id="com.ibm.icu"/>
+      <plugin id="com.mysql.cj"/>
+      <plugin id="com.opcoach.e4.preferences"/>
+      <plugin id="com.sebulli.fakturama.common"/>
       <plugin id="com.sebulli.fakturama.hsqlconnector"/>
+      <plugin id="com.sebulli.fakturama.model"/>
       <plugin id="com.sun.jna"/>
       <plugin id="com.sun.jna.platform"/>
       <plugin id="de.fakturama.rcp"/>
+      <plugin id="jakarta.activation-api"/>
+      <plugin id="jakarta.persistence-api"/>
       <plugin id="jakarta.xml.bind"/>
+      <plugin id="jakarta.xml.bind-api"/>
       <plugin id="javax.activation"/>
       <plugin id="javax.annotation"/>
       <plugin id="javax.inject"/>
+      <plugin id="javax.money"/>
       <plugin id="javax.xml"/>
+      <plugin id="json"/>
+      <plugin id="mariadb-java-client"/>
+      <plugin id="net.rootdev.java-rdfa"/>
+      <plugin id="org.apache.aries.spifly.dynamic.bundle"/>
       <plugin id="org.apache.batik.constants"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.i18n"/>
       <plugin id="org.apache.batik.util"/>
       <plugin id="org.apache.batik.util.gui"/>
+      <plugin id="org.apache.commons.collections"/>
+      <plugin id="org.apache.commons.collections4"/>
+      <plugin id="org.apache.commons.commons-beanutils"/>
+      <plugin id="org.apache.commons.commons-compress"/>
       <plugin id="org.apache.commons.commons-io"/>
+      <plugin id="org.apache.commons.commons-validator"/>
+      <plugin id="org.apache.commons.digester"/>
       <plugin id="org.apache.commons.jxpath"/>
+      <plugin id="org.apache.commons.lang3"/>
       <plugin id="org.apache.commons.logging"/>
       <plugin id="org.apache.felix.gogo.command"/>
       <plugin id="org.apache.felix.gogo.runtime"/>
       <plugin id="org.apache.felix.gogo.shell"/>
       <plugin id="org.apache.felix.scr"/>
+      <plugin id="org.apache.xerces"/>
+      <plugin id="org.apache.xml.resolver"/>
+      <plugin id="org.apache.xml.serializer"/>
       <plugin id="org.apache.xmlgraphics"/>
       <plugin id="org.eclipse.ant.core"/>
       <plugin id="org.eclipse.ant.core.nl_ar" fragment="true"/>
@@ -815,9 +840,13 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.jface.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.jface.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.jface.nl_uk" fragment="true"/>
+      <plugin id="org.eclipse.nebula.widgets.formattedtext"/>
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
       <plugin id="org.eclipse.osgi.services"/>
+      <plugin id="org.eclipse.persistence.core"/>
+      <plugin id="org.eclipse.persistence.jpa"/>
+      <plugin id="org.eclipse.persistence.moxy"/>
       <plugin id="org.eclipse.swt"/>
       <plugin id="org.eclipse.swt.carbon.macosx" fragment="true"/>
       <plugin id="org.eclipse.swt.cocoa.macosx" fragment="true"/>
@@ -869,11 +898,23 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.urischeme.nl_ru" fragment="true"/>
       <plugin id="org.eclipse.urischeme.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.urischeme.nl_uk" fragment="true"/>
+      <plugin id="org.fakturama.database.hsql"/>
+      <plugin id="org.fakturama.database.mariadb"/>
+      <plugin id="org.fakturama.database.mysql"/>
+      <plugin id="org.hsqldb.hsqldb"/>
+      <plugin id="org.javamoney.moneta"/>
+      <plugin id="org.liquibase.core"/>
+      <plugin id="org.objectweb.asm"/>
+      <plugin id="org.objectweb.asm.commons"/>
+      <plugin id="org.objectweb.asm.tree"/>
+      <plugin id="org.objectweb.asm.tree.analysis"/>
+      <plugin id="org.objectweb.asm.util"/>
       <plugin id="org.odftoolkit.odfdom-java"/>
       <plugin id="org.osgi.service.cm"/>
       <plugin id="org.osgi.service.component"/>
       <plugin id="org.osgi.service.device"/>
       <plugin id="org.osgi.service.event"/>
+      <plugin id="org.osgi.service.jdbc"/>
       <plugin id="org.osgi.service.metatype"/>
       <plugin id="org.osgi.service.prefs"/>
       <plugin id="org.osgi.service.provisioning"/>
@@ -886,6 +927,11 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
+      <plugin id="org.yaml.snakeyaml"/>
+      <plugin id="slf4j.api"/>
+      <plugin id="wrapped.org.apache.jena.jena-arq"/>
+      <plugin id="wrapped.org.apache.jena.jena-core"/>
+      <plugin id="wrapped.org.apache.jena.jena-iri"/>
    </plugins>
 
    <features>
@@ -893,7 +939,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.fakturama.exporter.zugferd.feature" version="2.1.3.qualifier"/>
       <feature id="org.fakturama.export.feature" version="2.1.3.qualifier"/>
       <feature id="org.fakturama.import.feature" version="2.1.3.qualifier"/>
-      <feature id="com.mysql.jdbc.feature"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.nebula.widgets.nattable.core.feature"/>
       <feature id="org.eclipse.nebula.widgets.nattable.extension.glazedlists.feature"/>
@@ -920,7 +965,10 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_el"/>
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
-      <feature id="eclipselink" installMode="root"/>
+      <feature id="org.eclipse.pde" installMode="root"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature" installMode="root"/>
+      <feature id="org.eclipse.jdt" installMode="root"/>
+      <feature id="org.eclipse.rcp" installMode="root"/>
    </features>
 
    <configurations>
@@ -931,7 +979,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
-      <plugin id="wrapped.org.eclipse.persistence.eclipselink" autoStart="true" startLevel="3" />
       <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />

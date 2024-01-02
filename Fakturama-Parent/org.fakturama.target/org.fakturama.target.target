@@ -71,23 +71,23 @@
 	</location>
 
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="https://download.eclipse.org/nebula/snapshot/"/>
-		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202312231739"/>
-		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202312231739"/>
-    	<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202312231739"/>
+		<repository location="https://download.eclipse.org/nebula/releases/3.1.0/"/>
+		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202312260654"/>
+		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202312260654"/>
+    	<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202312260654"/>
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/nebula/incubation/latest"/>
-		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.202303072125"/>
-		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.202303072125"/>
-		<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="0.1.0.202303072125"/>
+		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.202312260655"/>
+		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.202312260655"/>
+		<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="0.1.0.202312260655"/>
 	</location>
     <location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" label="Bouncycastle" missingManifest="generate" type="Maven">
         <dependencies>
@@ -199,6 +199,12 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.25.0</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
                 <version>1.10.0</version>
                 <type>jar</type>
@@ -206,7 +212,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <type>jar</type>
             </dependency>
             <dependency>
@@ -365,11 +371,7 @@
             </dependency>
         </dependencies>
     </location>
-    <location includeDependencyDepth="direct" includeDependencyScopes="compile" includeSource="true" label="EclipseLink" missingManifest="generate" type="Maven">
-
-        <feature id="eclipselink" label="EclipseLink" version="1.0.0.qualifier">
-
-</feature>
+    <location includeDependencyDepth="direct" includeDependencyScopes="compile" label="EclipseLink" missingManifest="generate" type="Maven">
         <dependencies>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -482,7 +484,7 @@
             <dependency>
                 <groupId>org.odftoolkit</groupId>
                 <artifactId>odfdom-java</artifactId>
-                <version>0.12.0-SNAPSHOT</version>
+                <version>0.12.0</version>
                 <type>jar</type>
             </dependency>
         </dependencies>
@@ -728,7 +730,7 @@
         <plugin id="org.apache.commons.commons-beanutils"/>
         <plugin id="org.apache.commons.commons-codec"/>
         <plugin id="org.apache.commons.commons-collections4" version="4.4.0"/>
-        <plugin id="org.apache.commons.commons-compress"/>
+        <plugin id="org.apache.commons.commons-compress" version="1.25.0"/>
         <plugin id="org.apache.commons.commons-csv"/>
         <plugin id="org.apache.commons.commons-io" version="2.14.0"/>
         <plugin id="org.apache.commons.commons-text" version="1.10.0"/>
@@ -2541,9 +2543,8 @@
         <plugin id="org.eclipse.ltk.ui.refactoring.nl_sk"/>
         <plugin id="org.eclipse.ltk.ui.refactoring.nl_tr"/>
         <plugin id="org.eclipse.ltk.ui.refactoring.nl_uk"/>
-        <plugin id="org.eclipse.nebula.cwt" version="1.1.0.202303072132"/>
+        <plugin id="org.eclipse.nebula.cwt" version="1.1.0.202312260654"/>
         <plugin id="org.eclipse.nebula.jface.cdatetime"/>
-        <plugin id="org.eclipse.nebula.widgets.cdatetime" version="1.5.0.202303072132"/>
         <plugin id="org.eclipse.nebula.widgets.cdatetime.css"/>
         <plugin id="org.eclipse.nebula.widgets.formattedtext"/>
         <plugin id="org.eclipse.nebula.widgets.nattable.core"/>
@@ -3392,5 +3393,7 @@
         <plugin id="org.yaml.snakeyaml"/>
         <plugin id="com.sun.xml.fastinfoset.FastInfoset"/>
         <plugin id="wrapped.org.glassfish.jaxb.txw2"/>
+        <plugin id="org.apache.commons.lang3" version="3.14.0"/>
+        <plugin id="org.eclipse.nebula.widgets.cdatetime" version="1.5.0.202312260654"/>
     </includeBundles>
 </target>

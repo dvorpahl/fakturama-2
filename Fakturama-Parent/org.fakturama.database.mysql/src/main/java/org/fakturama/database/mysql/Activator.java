@@ -58,12 +58,20 @@ public class Activator implements BundleActivator {
 
         @Override
         public ConnectionPoolDataSource createConnectionPoolDataSource(final Properties props) throws SQLException {
-            return new MysqlConnectionPoolDataSource();
+            MysqlConnectionPoolDataSource datasource = new MysqlConnectionPoolDataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
         }
 
         @Override
         public XADataSource createXADataSource(final Properties props) throws SQLException {
-            return new MysqlXADataSource();
+            MysqlXADataSource datasource = new MysqlXADataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
         }
 
         @Override
@@ -73,8 +81,11 @@ public class Activator implements BundleActivator {
 
         @Override
         public DataSource createDataSource(final Properties props) throws SQLException {
-            return new MysqlDataSource();
-
+            MysqlDataSource datasource = new MysqlDataSource();
+            datasource.setUrl(props.getProperty(DataSourceFactory.JDBC_URL, null));
+            datasource.setUser(props.getProperty(DataSourceFactory.JDBC_USER, null));
+            datasource.setPassword(props.getProperty(DataSourceFactory.JDBC_PASSWORD, null));
+            return datasource;
         }
     }
 

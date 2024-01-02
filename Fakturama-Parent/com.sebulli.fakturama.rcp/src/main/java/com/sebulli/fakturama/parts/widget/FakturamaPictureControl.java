@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
@@ -60,6 +61,11 @@ public class FakturamaPictureControl extends PictureControl {
     public void init() {
         setModifyImageLinkText(msg.editorProductButtonChoosepicName);
         setDeleteImageLinkText(msg.mainMenuEditDeleteName);
+    }
+
+    @PreDestroy
+    void cleanUp() {
+        this.dispose();
     }
 
     @Override

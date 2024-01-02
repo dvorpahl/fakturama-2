@@ -2354,7 +2354,7 @@
     <setAttribute key="selected_workspace_bundles">
         <setEntry value="com.sebulli.fakturama.common@default:default"/>
         <setEntry value="com.sebulli.fakturama.hsqlconnector@default:default"/>
-        <setEntry value="com.sebulli.fakturama.rcp*2.1.3.qualifier@default:default"/>
+        <setEntry value="com.sebulli.fakturama.rcp@default:default"/>
         <setEntry value="com.sebulli.fakturama.resources.icons@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources.templates@default:false"/>
         <setEntry value="com.sebulli.fakturama.resources@default:default"/>

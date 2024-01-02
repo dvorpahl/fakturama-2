@@ -28,6 +28,7 @@ import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.di.Focus;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.nebula.widgets.pgroup.PGroup;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -35,6 +36,7 @@ import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -190,7 +192,10 @@ public class NavigationView {
     private void addAction(final PGroup group, final Icon commandIcon, final String commandIconDescriptor, final String commandId,
             final Map<String, Object> parameters) {
         final CLabel label = new CLabel(group, SWT.NORMAL);
-        label.setImage(commandIcon.getImage(IconSize.DefaultIconSize));
+
+        Image swtImage = commandIcon.getImage(IconSize.DefaultIconSize);
+        label.setImage(swtImage);
+        JFaceResources.getImageRegistry().put(commandId + "_" + commandIcon.name(), swtImage);
         label.setToolTipText(msg.getMessageFromKey(commandIconDescriptor + ".tooltip"));
         label.setData(parameters);
 
@@ -219,7 +224,9 @@ public class NavigationView {
         //T: Title of an expand bar in the navigations view
         group.setText(msg.getMessageFromKey(groupName));
         group.setToolTipText(msg.getMessageFromKey(groupName + ".tooltip"));
-        group.setImage(groupIcon.getImageDescriptor(IconSize.ToolbarIconSize).createImage());
+        Image swtImage = groupIcon.getImageDescriptor(IconSize.ToolbarIconSize).createImage();
+        JFaceResources.getImageRegistry().put(groupName + "_" + groupIcon.name(), swtImage);
+        group.setImage(swtImage);
         group.setImagePosition(SWT.LEFT | SWT.TOP);
 
         GridData gd = new GridData();

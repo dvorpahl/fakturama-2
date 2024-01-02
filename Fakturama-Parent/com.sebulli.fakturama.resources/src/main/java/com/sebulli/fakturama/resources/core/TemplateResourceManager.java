@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.internal.services.ResourceBundleHelper;
 import org.eclipse.e4.core.services.translation.TranslationService;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.osgi.framework.Bundle;
@@ -129,9 +130,10 @@ public class TemplateResourceManager implements ITemplateResourceManager {
         Image img = null;
         try (InputStream in = FrameworkUtil.getBundle(getClass()).getResource(imageName.getPath()).openStream();) {
             img = new Image(display, in);
+            JFaceResources.getImageRegistry().put("programm_image_" + imageName.name(), img);
+
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error(e, "error getting image: " + e.getMessage());
         }
         return img;
     }

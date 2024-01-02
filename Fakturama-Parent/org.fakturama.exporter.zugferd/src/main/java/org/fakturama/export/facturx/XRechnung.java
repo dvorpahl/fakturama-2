@@ -114,6 +114,8 @@ import com.sebulli.fakturama.office.TemplateProcessor;
 import com.sebulli.fakturama.util.ContactUtil;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
 
+import jakarta.xml.bind.JAXBElement;
+
 /**
  * Create an XRechnung XML.
  */
@@ -124,7 +126,7 @@ public class XRechnung extends AbstractEInvoice {
     private DocumentAllowances itemAllowances;
 
     @Override
-    public CrossIndustryInvoiceType getInvoiceXml(final Optional<Invoice> invoiceDoc) {
+    public JAXBElement<CrossIndustryInvoiceType> getInvoiceXml(final Optional<Invoice> invoiceDoc) {
         if (!invoiceDoc.isPresent()) {
             return null;
         }
@@ -317,7 +319,7 @@ public class XRechnung extends AbstractEInvoice {
         }
         tradeTransaction.setApplicableHeaderTradeSettlement(tradeSettlement);
         root.setSupplyChainTradeTransaction(tradeTransaction);
-        return root;
+        return new ObjectFactory().createCrossIndustryInvoice(root);
     }
 
     private TradePartyType createBuyer(final Document invoice) {

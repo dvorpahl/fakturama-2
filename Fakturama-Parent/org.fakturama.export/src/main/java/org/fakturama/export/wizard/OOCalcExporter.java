@@ -317,6 +317,7 @@ public class OOCalcExporter {
      */
     protected void setCellTextInRedBold(final int row, final int column, final String text) {
         OdfTableCell cell = setCellText(row, column, text);
+
         //TODO KROEHLE reenable Style
         //        cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.BOLD);
         //        cell.getStyleHandler().getTextPropertiesForWrite().setFontColor(Color.RED);

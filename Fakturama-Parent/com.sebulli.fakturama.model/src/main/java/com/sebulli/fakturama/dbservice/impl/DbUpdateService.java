@@ -20,9 +20,12 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -48,6 +51,7 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.exception.ValidationFailedException;
+import liquibase.resource.OSGiResourceAccessor;
 
 /**
  * Implementation of {@link IDbUpdateService}.
@@ -67,7 +71,8 @@ public class DbUpdateService implements IDbUpdateService {
         boolean retval = true;
 
         // get the preferences for this application
-        BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
+        Bundle bundle = FrameworkUtil.getBundle(DbUpdateService.class);
+        BundleContext context = bundle.getBundleContext();
         ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
         preferenceStore = context.getService(serviceReference).getPreferenceStore();
         Liquibase liquibase = null;
@@ -88,8 +93,7 @@ public class DbUpdateService implements IDbUpdateService {
              * can specify it in your JAVA_OPTS as -Dliquibase.hub.apiKey. 
              */
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            liquibase = new liquibase.Liquibase("/changelog/db.changelog-master.xml", new liquibase.resource.OSGiResourceAccessor(context.getBundle()),
-                    database);
+            liquibase = new liquibase.Liquibase("/changelog/db.changelog-master.xml", new OSGiResourceAccessor(bundle), database);
 
             liquibase.update(new Contexts(), new LabelExpression());
         } catch (ValidationFailedException exc) {
@@ -172,7 +176,7 @@ public class DbUpdateService implements IDbUpdateService {
                         prop.put(DataSourceFactory.JDBC_URL, preferenceStore.getString(PersistenceUnitProperties.JDBC_URL));
                         preferenceStore.putValue(DataSourceFactory.JDBC_DATASOURCE_NAME, (String) activateProps.get(DataSourceFactory.JDBC_DATASOURCE_NAME));
                     } else {
-                        System.err.println("database was already started");
+                        log.info("database was already started");
                     }
                     ServiceReference<IDbConnection> dbConnectionRef = (ServiceReference<IDbConnection>) allServiceReferences[0];
                     IDbConnection dbConnection = context.getService(dbConnectionRef);
@@ -181,22 +185,19 @@ public class DbUpdateService implements IDbUpdateService {
             }
 
             if (conn == null) {
+                log.info("Creating Database connectionä ...");
                 conn = context.getService(serviceReference).createDataSource(prop).getConnection();
             }
 
             if (conn != null) {
+                log.info("Starting database link ...");
                 allServiceReferences = context.getAllServiceReferences(PersistenceProvider.class.getName(), null);
                 ServiceReference<PersistenceProvider> serviceReferencePP = (ServiceReference<PersistenceProvider>) allServiceReferences[0];
                 PersistenceProvider pp = context.getService(serviceReferencePP);
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(PersistenceUnitProperties.CLASSLOADER, this.getClass().getClassLoader());
-                log.info("Bundle State: {} with name {}", context.getBundle().getState(), context.getBundle().getSymbolicName());
-                //                if (res != null) {
-                //                    log.info("resource persistence.xml: {}", res);
-                //                    properties.put(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, res.toString());
-                //                }
+
                 properties.put(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "persistence.xml");
-                log.info("loading persistence.xml: {}", prop.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS));
                 properties.put(PersistenceUnitProperties.JDBC_DRIVER, preferenceStore.getString(PersistenceUnitProperties.JDBC_DRIVER));//"org.hsqldb.jdbc.JDBCDriver");//prop.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS)); //org.hsqldb.jdbc.JDBCDriver
                 properties.put(PersistenceUnitProperties.JDBC_URL, prop.getProperty(DataSourceFactory.JDBC_URL));
                 properties.put(PersistenceUnitProperties.JDBC_USER, prop.getProperty(DataSourceFactory.JDBC_USER));
@@ -218,6 +219,7 @@ public class DbUpdateService implements IDbUpdateService {
     }
 
     @Override
+    @PreDestroy
     public void shutDownDb() {
         if (currentDbServer != null) {
             try {

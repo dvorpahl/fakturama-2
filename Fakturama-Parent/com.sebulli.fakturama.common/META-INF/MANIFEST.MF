@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fakturama Common
-Bundle-SymbolicName: com.sebulli.fakturama.common
+Bundle-SymbolicName: com.sebulli.fakturama.common;singleton:=true
 Bundle-Version: 2.1.3.qualifier
 Export-Package: com.sebulli.fakturama.common,
  com.sebulli.fakturama.exception,
