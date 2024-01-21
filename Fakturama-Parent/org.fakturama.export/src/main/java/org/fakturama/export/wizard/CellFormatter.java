@@ -16,6 +16,8 @@ package org.fakturama.export.wizard;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 import org.odftoolkit.odfdom.doc.table.OdfTableCellRange;
+import org.odftoolkit.odfdom.dom.style.props.OdfTableCellProperties;
+import org.odftoolkit.odfdom.dom.style.props.OdfTextProperties;
 import org.odftoolkit.odfdom.type.Color;
 
 /**
@@ -24,6 +26,15 @@ import org.odftoolkit.odfdom.type.Color;
  * 
  */
 public class CellFormatter {
+
+    /**
+     * 
+     */
+    private static final String BORDER_NONE = "none";
+    /**
+     * 
+     */
+    private static final String BORDER_SOLID_BLACK = "0.75pt solid #000000";
 
     /**
      * Set the border of a cell to a specified color
@@ -51,82 +62,34 @@ public class CellFormatter {
         // Get the cell by the row and the column
         OdfTableCell cell = getCell(spreadsheet, row, column);
 
-        //TODO KROEHLE reenable Style start
+        // Set the top border
+        if (top) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderTop, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderTop, BORDER_NONE);
+        }
 
-        //        // Create an invisible border
-        //        Border noBorderLine = Border.NONE;
-        //
-        //        // Create a single line border
-        //        Border singleBorderLine = new Border(color, 1.0, 0.0, 0.0, SupportedLinearMeasure.PT);
-        //        singleBorderLine.setLineStyle(LineType.SINGLE);
-        //
-        //        // Create a border object to format aOdfTableCell
-        //        //		Border tableBorder = Border.NONE;
-        //
-        //        // Set the top border
-        //        if (top) {
-        //            cell.setBorders(CellBordersType.TOP, singleBorderLine);
-        //        } else {
-        //            cell.setBorders(CellBordersType.TOP, noBorderLine);
-        //            //		tableBorder.IsTopLineValid = true;
-        //        }
-        //
-        //        // Set the bottom border
-        //        if (bottom) {
-        //            cell.setBorders(CellBordersType.BOTTOM, singleBorderLine);
-        //        } else {
-        //            cell.setBorders(CellBordersType.BOTTOM, noBorderLine);
-        //            //		tableBorder.IsBottomLineValid = true;
-        //        }
-        //
-        //        // Set the left border
-        //        if (left) {
-        //            cell.setBorders(CellBordersType.LEFT, singleBorderLine);
-        //        } else {
-        //            cell.setBorders(CellBordersType.LEFT, noBorderLine);
-        //            //		tableBorder.IsLeftLineValid = true;
-        //        }
-        //
-        //        // Set the right border
-        //        if (right) {
-        //            cell.setBorders(CellBordersType.RIGHT, singleBorderLine);
-        //        } else {
-        //            cell.setBorders(CellBordersType.RIGHT, noBorderLine);
-        //            //		tableBorder.IsRightLineValid = true;
-        //        }
+        // Set the bottom border
+        if (bottom) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderBottom, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderBottom, BORDER_NONE);
+        }
 
-        //TODO KROEHLE reenable Style ende
-        // other settings
-        //		tableBorder.HorizontalLine = noBorderLine;
-        //		tableBorder.IsHorizontalLineValid = true;
-        //		tableBorder.VerticalLine = noBorderLine;
-        //		tableBorder.IsVerticalLineValid = true;
+        // Set the left border
+        if (left) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderLeft, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderLeft, BORDER_NONE);
+        }
 
-        // Set the cell property
-        //		setCellProperty(cell, "TableBorder", tableBorder);
-
+        // Set the right border
+        if (right) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderRight, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderRight, BORDER_NONE);
+        }
     }
-    //
-    //	/**
-    //	 * Set the text color of a cell
-    //	 * 
-    //	 * @param spreadsheet
-    //	 *            The Spreadsheet that contains the cell
-    //	 * @param row
-    //	 *            The cell row
-    //	 * @param column
-    //	 *            The cell column
-    //	 * @param color
-    //	 *            The new color of the text
-    //	 */
-    //	public static void setColor(XSpreadsheet spreadsheet, int row, int column, int color) {
-    //
-    //		// Get the cell by the row and the column
-    //		XCell cell = getCell(spreadsheet, row, column);
-    //
-    //		// Set the new color
-    //		setCellProperty(cell, "CharColor", new Integer(color));
-    //	}
 
     /**
      * Set the background color of a cell
@@ -187,65 +150,11 @@ public class CellFormatter {
 
         // Get the cell by the row and the column
         OdfTableCell cell = getCell(spreadsheet, row, column);
-
+        cell.getOdfElement().setProperty(OdfTextProperties.FontWeight, "bold");
         //TODO KROEHLE reenable Style
         // Set the new font weight
         //        cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(OdfFontStyle.BOLD);
     }
-
-    //	/**
-    //	 * Set the font style of a cell to italic
-    //	 * 
-    //	 * @param spreadsheet
-    //	 *            The Spreadsheet that contains the cell
-    //	 * @param row
-    //	 *            The cell row
-    //	 * @param column
-    //	 *            The cell column
-    //	 */
-    //	public static void setItalic(XSpreadsheet spreadsheet, int row, int column) {
-    //
-    //		// Get the cell by the row and the column
-    //		XCell cell = getCell(spreadsheet, row, column);
-    //
-    //		// Set the new font style
-    //		setCellProperty(cell, "CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-    //	}
-    //
-    //	/**
-    //	 * Set the cell format to the local currency
-    //	 * 
-    //	 * @param xSpreadsheetDocument
-    //	 *            The spreadsheet document
-    //	 * @param spreadsheet
-    //	 *            The spreadsheet that contains the cell
-    //	 * @param row
-    //	 *            The cell row
-    //	 * @param column
-    //	 *            The cell column
-    //	 */
-    //	public static void setLocalCurrency(XSpreadsheetDocument xSpreadsheetDocument, XSpreadsheet spreadsheet, int row, int column) {
-    //
-    //		// Get the cell by the row and the column
-    //		XCell cell = getCell(spreadsheet, row, column);
-    //
-    //		// Query the number formats supplier of the spreadsheet document
-    //		com.sun.star.util.XNumberFormatsSupplier xNumberFormatsSupplier = (com.sun.star.util.XNumberFormatsSupplier) UnoRuntime.queryInterface(
-    //				com.sun.star.util.XNumberFormatsSupplier.class, xSpreadsheetDocument);
-    //
-    //		// Get the number formats from the supplier
-    //		com.sun.star.util.XNumberFormats xNumberFormats = xNumberFormatsSupplier.getNumberFormats();
-    //
-    //		// Query the XNumberFormatTypes interface
-    //		com.sun.star.util.XNumberFormatTypes xNumberFormatTypes = (com.sun.star.util.XNumberFormatTypes) UnoRuntime.queryInterface(
-    //				com.sun.star.util.XNumberFormatTypes.class, xNumberFormats);
-    //
-    //		// Get the standard currency of the system
-    //		int nCurrKey = xNumberFormatTypes.getStandardFormat(com.sun.star.util.NumberFormat.CURRENCY, new Locale());
-    //
-    //		// Set the new cell format
-    //		setCellProperty(cell, "NumberFormat", new Integer(nCurrKey));
-    //	}
 
     /**
      * Get a cell by spreadsheet, row and column
@@ -261,7 +170,13 @@ public class CellFormatter {
     public static OdfTableCell getCell(final OdfTable spreadsheet, final int row, final int column) {
 
         // Try to get the cell
-        return spreadsheet.getCellByPosition(column, row);
+        OdfTableCell cellByPosition = spreadsheet.getCellByPosition(column, row);
+        // TODO KROEHLE check how to correcly set default styles
+        if (cellByPosition.getOdfElement().getStyleName() == null) {
+            System.out.println("set style for " + row + ":" + column);
+            cellByPosition.getOdfElement().setStyleName("Default");
+        }
+        return cellByPosition;
     }
 
     /**
@@ -339,5 +254,5 @@ public class CellFormatter {
     }
 
     public static final String ALTERNATE_BACKGROUND_COLOR = "#e8ebed";
-
+    public static final String WHITE_BACKGROUND_COLOR = "#ffffff";
 }

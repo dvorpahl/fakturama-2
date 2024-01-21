@@ -16,7 +16,6 @@ package com.sebulli.fakturama.parts;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -52,6 +51,8 @@ import org.eclipse.jface.databinding.fieldassist.ControlDecorationSupport;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -66,6 +67,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -405,34 +407,40 @@ public class ProductEditor extends Editor<Product> {
      */
     private void setPicture() {
 
-        try {
+       
+            Image image = null;
             // Display the picture, if a product picture is set.
             if (editorProduct.getPicture() != null) {
 
-                // Load the image, based on the picture name
-                ByteArrayInputStream imgStream = new ByteArrayInputStream(editorProduct.getPicture());
-
+                // Load the image, based on the picture name, save to image registry
                 labelProductPicture.setMaxImageWidth(250);
-                labelProductPicture.setImageStream(imgStream);
+                try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
+                    ImageData imageData = new ImageData(bais);
+                    image = new Image(Display.getCurrent(), imageData);
+                    JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
+
+                    labelProductPicture.setDefaultImage(image);
+                } catch (Exception e) {
+                    // catch all exceptions here since we check for errors later
+                    log.error(e, "Icon not found");
+
+                }
             }
-            // Display an empty background if no picture is set.
-            else {
+            // Display an empty background if no picture is set or picture is not found.
+            if ( image == null ) {
                 try {
-                    Image prodImage = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
-                    labelProductPicture.setDefaultImage(prodImage);
+                    ImageDescriptor imageDesc = JFaceResources.getImageRegistry().getDescriptor(ProgramImages.NO_PICTURE.name());
+                    if (imageDesc == null) {
+                        image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
+                        JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
+                    } else {
+                        image = imageDesc.createImage(true);
+                    }
+                    labelProductPicture.setDefaultImage(image);
                 } catch (Exception e1) {
                     log.error(e1, "Icon not found");
                 }
             }
-        } catch (SWTException | IOException e) {
-            // Show an error icon if the picture is not found
-            try {
-                Image prodImage = resourceManager.getProgramImage(display, ProgramImages.NOT_FOUND_PICTURE);
-                labelProductPicture.setDefaultImage(prodImage);
-            } catch (Exception e1) {
-                log.error(e1, "Icon not found");
-            }
-        }
     }
 
     /**

@@ -75,7 +75,7 @@ public class LogbackAdapter implements LogListener {
         String productName = StringUtils.defaultString(System.getProperty(InternalPlatform.PROP_PRODUCT)).replaceAll("\\.product", "");
         String workspaceLoc = InstanceScope.INSTANCE.getNode(productName).get(Constants.GENERAL_WORKSPACE, null);
         Path logFile = getLogfileName(workspaceLoc);
-        if (logFile != null) {
+        if (logFile != null && LoggerFactory.getILoggerFactory() instanceof LoggerContext) {
             // determine the configuration file location
             LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
             // if a workspace is set we can adapt the log configuration file location

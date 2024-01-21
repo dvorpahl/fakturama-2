@@ -166,6 +166,7 @@
         <setEntry value="jakarta.validation.jakarta.validation-api@default:default"/>
         <setEntry value="jakarta.xml.bind-api@default:default"/>
         <setEntry value="javax.money@default:default"/>
+        <setEntry value="mariadb-java-client@default:default"/>
         <setEntry value="net.rootdev.java-rdfa@default:default"/>
         <setEntry value="org.apache.aries.spifly.dynamic.bundle@1:true"/>
         <setEntry value="org.apache.batik.constants@default:default"/>
@@ -314,7 +315,6 @@
         <setEntry value="org.eclipse.core.databinding.observable.nl_ru@default:false"/>
         <setEntry value="org.eclipse.core.databinding.observable.nl_tr@default:false"/>
         <setEntry value="org.eclipse.core.databinding.observable.nl_uk@default:false"/>
-        <setEntry value="org.eclipse.core.databinding.observable@default:default"/>
         <setEntry value="org.eclipse.core.databinding.property.nl_ar@default:false"/>
         <setEntry value="org.eclipse.core.databinding.property.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.databinding.property.nl_el@default:false"/>
@@ -330,8 +330,6 @@
         <setEntry value="org.eclipse.core.databinding.property.nl_ru@default:false"/>
         <setEntry value="org.eclipse.core.databinding.property.nl_tr@default:false"/>
         <setEntry value="org.eclipse.core.databinding.property.nl_uk@default:false"/>
-        <setEntry value="org.eclipse.core.databinding.property@default:default"/>
-        <setEntry value="org.eclipse.core.databinding@default:default"/>
         <setEntry value="org.eclipse.core.expressions.nl_ar@default:false"/>
         <setEntry value="org.eclipse.core.expressions.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.expressions.nl_el@default:false"/>
@@ -1618,7 +1616,6 @@
         <setEntry value="org.eclipse.jface.databinding.nl_ru@default:false"/>
         <setEntry value="org.eclipse.jface.databinding.nl_tr@default:false"/>
         <setEntry value="org.eclipse.jface.databinding.nl_uk@default:false"/>
-        <setEntry value="org.eclipse.jface.databinding@default:default"/>
         <setEntry value="org.eclipse.jface.nl_ar@default:false"/>
         <setEntry value="org.eclipse.jface.nl_de@default:false"/>
         <setEntry value="org.eclipse.jface.nl_el@default:false"/>
@@ -1735,9 +1732,6 @@
         <setEntry value="org.eclipse.nebula.widgets.nattable.core@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.nattable.extension.e4@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.nattable.extension.glazedlists@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.picture@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.radiogroup@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.treemapper@default:default"/>
         <setEntry value="org.eclipse.osgi.services@default:default"/>
         <setEntry value="org.eclipse.osgi@1:true"/>
         <setEntry value="org.eclipse.persistence.core@default:default"/>
@@ -2369,7 +2363,6 @@
         <setEntry value="org.fakturama.print.openoffice@default:default"/>
         <setEntry value="org.fakturama.qrcode@default:default"/>
         <setEntry value="org.fakturama.wizards@default:default"/>
-        <setEntry value="org.odftoolkit.odfdom-java@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
     <booleanAttribute key="tracing" value="false"/>

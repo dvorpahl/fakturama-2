@@ -36,7 +36,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.databinding.Binding;
@@ -612,13 +612,13 @@ public class DocumentEditor extends Editor<Document> {
         // of the document which is set by the address ID.
         // Compare only if current address is from the same origin as the stored adress.
         // (Else the user has selected another address from Contact list.)
-        JaroWinklerDistance jaroWinklerDistance = new JaroWinklerDistance();
+        JaroWinklerSimilarity jaroWinklerSimilarity = new JaroWinklerSimilarity();
         for (CTabItem tabItem : addressAndIconComposite.getItems()) {
             AddressDTO addressDTO = (AddressDTO) tabItem.getControl().getData(ORIGIN_RECEIVER);
             DocumentReceiver documentReceiver = selectedAddresses.get(tabItem.getData(ADDRESS_TAB_BILLINGTYPE));
             String addressAsString = contactUtil.getAddressAsString(addressDTO, System.lineSeparator());
             if (!addressAsString.isEmpty() && addressDTO != null && addressDTO.getAddressId() == documentReceiver.getOriginAddressId()
-                    && jaroWinklerDistance.apply(DataUtils.getInstance().removeCR(addressAsString),
+                    && jaroWinklerSimilarity.apply(DataUtils.getInstance().removeCR(addressAsString),
                             DataUtils.getInstance().removeCR(((Text) tabItem.getControl()).getText())) < 0.75) {
                 MessageDialog.openWarning(top.getShell(),
                         // T: Title of the dialog that appears if the document is assigned to an other
@@ -708,8 +708,7 @@ public class DocumentEditor extends Editor<Document> {
 
             if (spDueDays != null && !spDueDays.isDisposed()) {
                 // value is set by dueDays variable, not directly by binding
-                bindModelValue(document, spDueDays, Document_.dueDays.getName(), new UpdateValueStrategy<>(),
-                        new UpdateValueStrategy<>());
+                bindModelValue(document, spDueDays, Document_.dueDays.getName(), new UpdateValueStrategy<>(), new UpdateValueStrategy<>());
                 spDueDays.setSelection(document.getDueDays());
             }
 

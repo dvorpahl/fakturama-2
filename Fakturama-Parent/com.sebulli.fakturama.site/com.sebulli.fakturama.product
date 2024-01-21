@@ -39,7 +39,6 @@
       </win>
    </launcher>
 
-
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
       <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
@@ -144,17 +143,18 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="ch.qos.logback.classic"/>
       <plugin id="ch.qos.logback.core"/>
       <plugin id="com.ibm.icu"/>
+      <plugin id="com.ibm.icu.localespi"/>
       <plugin id="com.mysql.cj"/>
       <plugin id="com.opcoach.e4.preferences"/>
       <plugin id="com.sebulli.fakturama.common"/>
       <plugin id="com.sebulli.fakturama.hsqlconnector"/>
       <plugin id="com.sebulli.fakturama.model"/>
+      <plugin id="com.sebulli.fakturama.rcp"/>
       <plugin id="com.sun.jna"/>
       <plugin id="com.sun.jna.platform"/>
-      <plugin id="de.fakturama.rcp"/>
       <plugin id="jakarta.activation-api"/>
       <plugin id="jakarta.persistence-api"/>
-      <plugin id="jakarta.xml.bind"/>
+      <plugin id="jakarta.transaction-api"/>
       <plugin id="jakarta.xml.bind-api"/>
       <plugin id="javax.activation"/>
       <plugin id="javax.annotation"/>
@@ -169,7 +169,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.i18n"/>
       <plugin id="org.apache.batik.util"/>
-      <plugin id="org.apache.batik.util.gui"/>
       <plugin id="org.apache.commons.collections"/>
       <plugin id="org.apache.commons.collections4"/>
       <plugin id="org.apache.commons.commons-beanutils"/>
@@ -321,8 +320,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.expressions.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.expressions.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.aix.ppc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.hpux.ia64_32" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.linux.ppc" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.linux.x86" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.linux.x86_64" fragment="true"/>
@@ -343,8 +340,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.filesystem.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_de" fragment="true"/>
@@ -395,7 +390,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.resources.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.core.resources.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.resources.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.core.resources.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.core.resources.win32.x86_64.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.resources.win32.x86_64.nl_de" fragment="true"/>
@@ -414,7 +408,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.resources.win32.x86_64.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.resources.win32.x86_64.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.core.runtime"/>
-      <plugin id="org.eclipse.core.runtime.compatibility.registry" fragment="true"/>
       <plugin id="org.eclipse.core.runtime.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.runtime.nl_de" fragment="true"/>
       <plugin id="org.eclipse.core.runtime.nl_el" fragment="true"/>
@@ -804,7 +797,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.equinox.region" fragment="true"/>
       <plugin id="org.eclipse.equinox.registry"/>
       <plugin id="org.eclipse.equinox.transforms.hook" fragment="true"/>
-      <plugin id="org.eclipse.equinox.util"/>
       <plugin id="org.eclipse.equinox.weaving.hook" fragment="true"/>
       <plugin id="org.eclipse.fx.osgi" fragment="true"/>
       <plugin id="org.eclipse.jface"/>
@@ -857,12 +849,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.swt.gtk.linux.s390x" fragment="true"/>
       <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.gtk.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.aix.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.hpux.ia64_32" fragment="true"/>
       <plugin id="org.eclipse.swt.motif.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.solaris.sparc" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_de" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_el" fragment="true"/>
@@ -879,8 +866,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.swt.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.swt.photon.qnx.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.urischeme"/>
       <plugin id="org.eclipse.urischeme.nl_ar" fragment="true"/>
@@ -932,6 +917,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="wrapped.org.apache.jena.jena-arq"/>
       <plugin id="wrapped.org.apache.jena.jena-core"/>
       <plugin id="wrapped.org.apache.jena.jena-iri"/>
+      <plugin id="wrapped.org.eclipse.persistence.eclipselink"/>
    </plugins>
 
    <features>
@@ -974,11 +960,23 @@ This Agreement is governed by the laws of the State of New York and the intellec
    <configurations>
       <plugin id="ch.qos.logback.classic" autoStart="true" startLevel="2" />
       <plugin id="ch.qos.logback.core" autoStart="false" startLevel="2" />
+      <plugin id="com.ibm.icu.localespi" autoStart="true" startLevel="2" />
+      <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
+      <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
       <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.osgi" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.persistence.jpa" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.hsql" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.mariadb" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.mysql" autoStart="true" startLevel="2" />
+      <plugin id="org.hsqldb.hsqldb" autoStart="true" startLevel="2" />
+      <plugin id="org.javamoney.moneta" autoStart="true" startLevel="3" />
+      <plugin id="org.osgi.service.jdbc" autoStart="true" startLevel="2" />
+      <plugin id="wrapped.org.eclipse.persistence.eclipselink" autoStart="true" startLevel="2" />
       <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />
@@ -989,7 +987,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </configurations>
 
    <repositories>
-      <repository location="https://files.fakturama.info/release/update2/" enabled="true" />
+      <repository location="https://files.fakturama.info/release/update2/" enabled="false" />
    </repositories>
 
    <preferencesInfo>

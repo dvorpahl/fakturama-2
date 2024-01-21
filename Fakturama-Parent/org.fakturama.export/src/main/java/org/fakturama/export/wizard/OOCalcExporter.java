@@ -37,6 +37,7 @@ import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 import org.odftoolkit.odfdom.doc.table.OdfTableRow;
 import org.odftoolkit.odfdom.dom.attribute.office.OfficeValueTypeAttribute;
 import org.odftoolkit.odfdom.dom.style.props.OdfTableRowProperties;
+import org.odftoolkit.odfdom.dom.style.props.OdfTextProperties;
 import org.odftoolkit.odfdom.type.Color;
 
 import com.sebulli.fakturama.dto.AccountEntry;
@@ -237,6 +238,12 @@ public class OOCalcExporter {
         // Get a reference to the Export sheet
         spreadsheet = oOdocument.getSpreadsheetTables().get(0);
         spreadsheet.setTableName(tableName);
+        //        System.out.println("basecells");
+        //        OdfTableCell cell = CellFormatter.getCell(spreadsheet, 0, 0);
+        //        System.out.println("stylename: " + cell.getStyleName());
+        //        StyleStyleElement style = cell.getOdfElement().getOrCreateUnqiueAutomaticStyle(true, OdfStyleFamily.TableCell);
+        //        System.out.println("generated style: " + style);
+
         return true;
 
     }
@@ -302,6 +309,8 @@ public class OOCalcExporter {
     protected void setCellTextInItalic(final int row, final int column, final String text) {
         OdfTableCell cell = setCellText(row, column, text);
         //TODO KROEHLE reenable Style
+        cell.getOdfElement().setProperty(OdfTextProperties.FontStyle, "italic");
+
         //        cell.setgetStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.ITALIC);
     }
 
@@ -317,6 +326,8 @@ public class OOCalcExporter {
      */
     protected void setCellTextInRedBold(final int row, final int column, final String text) {
         OdfTableCell cell = setCellText(row, column, text);
+        cell.getOdfElement().setProperty(OdfTextProperties.FontStyle, "bold");
+        cell.getOdfElement().setProperty(OdfTextProperties.Color, "red");
 
         //TODO KROEHLE reenable Style
         //        cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.BOLD);

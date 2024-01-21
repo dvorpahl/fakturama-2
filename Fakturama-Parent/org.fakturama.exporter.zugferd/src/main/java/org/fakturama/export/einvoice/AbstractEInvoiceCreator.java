@@ -16,9 +16,8 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Serializable;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,9 +36,8 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.xmpbox.schema.XmpSchemaException;
@@ -57,7 +55,6 @@ import com.sebulli.fakturama.dao.CEFACTCodeDAO;
 import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.log.ILogger;
-import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.IDateFormatterService;
 import com.sebulli.fakturama.misc.INumberFormatterService;
 import com.sebulli.fakturama.model.Contact;
@@ -151,7 +148,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
             Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
             Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
-                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, preferences.getString(Constants.GENERAL_WORKSPACE)), invoice);
+                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, preferences.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
             // only to be on the safe side...
             try {
                 Files.deleteIfExists(path);
@@ -161,13 +158,17 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             createXmlFile(root, path);
         } else {
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
-                // create XML from structure
-                DOMResult res = new DOMResult();
-                JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { root.get().getClass() }, null);
-                context.createMarshaller().marshal(root.get(), res);
-                org.w3c.dom.Document zugferdXml = (org.w3c.dom.Document) res.getNode();
-                printDocument(zugferdXml, buffo);
+                // create XML from structure              
+                JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
+                        .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
+                Path file = Files.createTempFile("fakxml", "xml");
+                OutputStream outputStream = Files.newOutputStream(file);
 
+                context.createMarshaller().marshal(root.get(), outputStream);
+                outputStream.flush();
+                outputStream.close();
+
+                printDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
                 PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
 
                 // embed XML
@@ -196,21 +197,16 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
 
     protected abstract IPdfHelper getPdfHelper();
 
-    private void printDocument(final org.w3c.dom.Document doc, final StreamResult streamResult) throws IOException, TransformerException {
+    private void printDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.setOutputProperty(OutputKeys.METHOD, "xml");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, ZFConstants.CHARSET_UTF8_KEY);
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
-        transformer.transform(new DOMSource(doc), streamResult);
-    }
-
-    protected void printDocument(final org.w3c.dom.Document doc, final OutputStream out) throws IOException, TransformerException {
-        StreamResult streamResult = new StreamResult(new OutputStreamWriter(out, ZFConstants.CHARSET_UTF8_KEY));
-        printDocument(doc, streamResult);
+        transformer.transform(streamSource, streamResult);
     }
 
     /**
@@ -222,13 +218,16 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
     protected void createXmlFile(final Supplier<? extends Serializable> root, final Path path) {
         // create directory if it doesn't exist
         createOutputDirectory(path.getParent());
-        try (BufferedWriter newBufferedWriter = Files.newBufferedWriter(path, Charset.forName(ZFConstants.CHARSET_UTF8_KEY), StandardOpenOption.CREATE);) {
 
-            DOMResult res = new DOMResult();
-            JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { root.get().getClass() }, null);
-            testContext.createMarshaller().marshal(root.get(), res);
-            org.w3c.dom.Document doc = (org.w3c.dom.Document) res.getNode();
-            printDocument(doc, new StreamResult(newBufferedWriter));
+        try (BufferedWriter newBufferedWriter = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE);) {
+            Path file = Files.createTempFile("fakxml", "xml");
+            OutputStream outputStream = Files.newOutputStream(file);
+            JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory
+                    .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
+            testContext.createMarshaller().marshal(root.get(), outputStream);
+            outputStream.flush();
+            outputStream.close();
+            printDocument(new StreamSource(file.toFile()), new StreamResult(newBufferedWriter));
         } catch (JAXBException | IOException | TransformerException e) {
             log.error(e);
         }

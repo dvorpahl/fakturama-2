@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,9 +22,7 @@ import org.eclipse.osgi.service.localization.LocaleProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.misc.Constants;
@@ -40,18 +39,6 @@ public class LocaleUtil implements ILocaleService {
     private SortedMap<String, String> localeCountryMap;
     private final Map<String, Locale> localeLookUp = new HashMap<>();
     private Locale currencyLocale = null;
-
-    @Activate
-    public void activate() {
-        // Initialization code, if needed
-        //        getInstance();
-    }
-
-    // Deactivate method to unregister the service
-    @Deactivate
-    public void deactivate() {
-        // Cleanup code, if needed
-    }
 
     /**
      * Returns a reference to the {@link LocaleUtil}. Used for initialization
@@ -135,14 +122,14 @@ public class LocaleUtil implements ILocaleService {
         if (StringUtils.isNotBlank(lang)) {
             // the language code are the letters before "_"
             String splittedString[] = lang.split("_");
-            //            Builder builder = new Locale.Builder().setLanguage(splittedString[0]);
-            //            if (splittedString.length > 1) {
-            //                builder.setRegion(splittedString[1]);
-            //            }
-            //            Locale b = builder.build();
-            //            if (b != null) {
-            //                defaultLocale = b;
-            //            }
+            Locale.Builder builder = new Locale.Builder().setLanguage(splittedString[0]);
+            if (splittedString.length > 1) {
+                builder.setRegion(splittedString[1]);
+            }
+            Locale b = builder.build();
+            if (b != null) {
+                defaultLocale = b;
+            }
         }
 
         // fill some helper maps
@@ -212,9 +199,9 @@ public class LocaleUtil implements ILocaleService {
             initLocaleUtil(getDefaultLocale().toString());
             Map<String, String> tmpMap = getCountryLocaleMap().entrySet().stream()
                     .collect(Collectors.toMap((final Entry<String, Locale> e) -> e.getValue().getCountry(), (final Entry<String, Locale> e) -> e.getKey()));
-            //            ValueComparator bvc = new ValueComparator(tmpMap, defaultLocale);
-            //            localeCountryMap = new TreeMap<>(bvc);
-            //            localeCountryMap.putAll(tmpMap);
+            ValueComparator bvc = new ValueComparator(tmpMap, defaultLocale);
+            localeCountryMap = new TreeMap<>(bvc);
+            localeCountryMap.putAll(tmpMap);
         }
         return localeCountryMap;
     }
@@ -247,39 +234,4 @@ public class LocaleUtil implements ILocaleService {
         currencyLocale = null;
     }
 
-    /**
-     * Main method. For tests only.
-     * 
-     * @param args
-     */
-    public static void main(final String[] args) {
-        //    	ILocaleService localeService = new LocaleUtil();
-        //        System.out.println(findCodeByDisplayCountry("Deutschland"));
-        //        Optional<Locale> code = findByCode("LT");
-        //        System.out.println(code);
-        //        System.out.println(code.get().getDisplayCountry(new Locale("lt")));
-        //
-        //        String testCountry = "Lietuva";
-        ////        Locale lt = new Locale("lt");
-        //        System.out.println(Runtime.getRuntime().availableProcessors());
-        ////
-        //        Optional<Locale> locale = LocaleUtil.getInstance().findLocaleByDisplayCountry(testCountry);
-        //        // if not found we try to find it in localized form
-        //        if (!locale.isPresent()) {
-        //            Locale[] availableLocales = Locale.getAvailableLocales();
-        //            long nanoTime = System.nanoTime();
-        //            for (Locale locale2 : availableLocales) {
-        ////                if(StringUtils.isEmpty(locale2.getCountry())) continue;
-        //                locale = Arrays.stream(availableLocales)
-        //                        .filter(l -> l.getDisplayCountry(locale2).equalsIgnoreCase(testCountry))
-        //                        .findFirst();
-        //                if (locale.isPresent())
-        //                    break;
-        //            }
-        //            System.out.println("End: " + ((System.nanoTime() - nanoTime)/1_000_000)+ "ms");
-        //        }
-        //        if (locale.isPresent()) {
-        //            System.out.println(locale.get());
-        //        }
-    }
 }

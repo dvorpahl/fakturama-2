@@ -23,8 +23,9 @@ import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.ui.di.Focus;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
@@ -115,13 +116,21 @@ public class Calculator {
         displayText.setText(displayString);
         displayText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
 
-        // Set the font of the display
-        FontData fD = displayText.getFont().getFontData()[0];
-        fD.setHeight(24);
-        Font font = new Font(null, fD);
-        JFaceResources.getFontRegistry().put(fD.getName(), displayText.getFont().getFontData());
+        FontData[] fontData = displayText.getFont().getFontData();
+        for (int i = 0; i < fontData.length; ++i) {
+            fontData[i].setHeight(24);
+        }
 
-        displayText.setFont(font);
+        final Font newFont = new Font(Display.getCurrent(), fontData);
+        displayText.setFont(newFont);
+
+        // Since you created the font, you must dispose it
+        displayText.addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(final DisposeEvent e) {
+                newFont.dispose();
+            }
+        });
 
         // Clear button
         createButton(container, 'C', false, Icon.CALC_C, 1);

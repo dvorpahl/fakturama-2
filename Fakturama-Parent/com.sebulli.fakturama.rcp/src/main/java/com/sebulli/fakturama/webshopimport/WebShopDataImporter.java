@@ -26,6 +26,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +38,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -1050,12 +1056,26 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 
         // always get the image from server, we don't store it in file system anymore
         // Connect to the web server
-        URI u = URI.create(address);
-        try (InputStream in = u.toURL().openStream()) {
-            // first, check if there is an image, if not, return null
-            ImageData image = new ImageData(in);
-            if (image != null) {
-                return image.data;
+        HttpClient client = HttpClient.newBuilder() //
+                .followRedirects(Redirect.NORMAL) //
+                .connectTimeout(Duration.ofSeconds(30L)) //
+                .build();
+        URI uri = URI.create(address);
+        HttpRequest request = HttpRequest.newBuilder() //
+                .uri(uri) //
+                .build();
+        Path file = null;
+        try {
+            file = Files.createTempFile("wsdl_", "img");
+            HttpResponse<byte[]> result = client.send(request, BodyHandlers.ofByteArray());
+            if (result.statusCode() < 400 && result.body() != null) {
+                Files.write(file, result.body());
+                // first, check if there is an image, if not, return null
+                ImageData image = new ImageData(file.toAbsolutePath().toString());
+                if (image != null) {
+                    return result.body();
+                }
+
             }
         } catch (MalformedURLException e) {
             //T: Status message importing data from web shop
@@ -1066,6 +1086,16 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         } catch (SWTException e) {
             //T: Status message importing data from web shop (cannot transform image)
             log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } catch (InterruptedException e) {
+            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } finally {
+            if (file != null) {
+                try {
+                    Files.deleteIfExists(file);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
         }
 
         return null;

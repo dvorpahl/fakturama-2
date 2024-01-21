@@ -31,6 +31,8 @@ import com.sebulli.fakturama.model.Debitor;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.FileOrganizer.PathOption;
 
+import ch.qos.logback.classic.spi.LogbackServiceProvider;
+
 public class FileOrganizerTest {
 
     @Mock
@@ -50,7 +52,9 @@ public class FileOrganizerTest {
     public void injectMocks() {
         // start common for locale, money for money
         try {
+            FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
             FrameworkUtil.getBundle(ILocaleService.class).start();
+
         } catch (BundleException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
