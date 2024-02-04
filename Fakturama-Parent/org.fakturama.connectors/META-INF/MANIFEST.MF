@@ -20,7 +20,10 @@ Require-Bundle: com.sebulli.fakturama.rcp,
  org.eclipse.equinox.security,
  com.sebulli.fakturama.common,
  jakarta.mail-api;bundle-version="2.1.0",
- org.apache.commons.commons-validator;bundle-version="1.7.0"
+ org.apache.commons.commons-validator;bundle-version="1.7.0",
+ org.glassfish.hk2.osgi-resource-locator;bundle-version="2.4.0",
+ org.glassfish.hk2.api;bundle-version="3.0.5",
+ jakarta.activation-api;bundle-version="2.1.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.fakturama.connectors
