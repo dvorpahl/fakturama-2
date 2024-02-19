@@ -320,10 +320,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.expressions.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.expressions.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.linux.ppc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.macosx" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_de" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_el" fragment="true"/>
@@ -340,22 +336,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.filesystem.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_ar" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_de" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_el" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_es" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_eu" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_fr" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_hu" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_it" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_nl" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_no" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_pl" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_ro" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_ru" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_tr" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.jobs.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.jobs.nl_de" fragment="true"/>
@@ -390,23 +370,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.resources.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.core.resources.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.core.resources.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_ar" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_de" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_el" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_es" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_eu" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_fr" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_hu" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_it" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_nl" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_no" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_pl" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_ro" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_ru" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_sk" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_tr" fragment="true"/>
-      <plugin id="org.eclipse.core.resources.win32.x86_64.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.core.runtime"/>
       <plugin id="org.eclipse.core.runtime.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.core.runtime.nl_de" fragment="true"/>
@@ -699,7 +662,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.e4.ui.services.nl_ru" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.services.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.services.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.e4.ui.swt.win32" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.widgets"/>
       <plugin id="org.eclipse.e4.ui.widgets.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.widgets.nl_de" fragment="true"/>
@@ -733,7 +695,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.e4.ui.workbench.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.workbench.nl_uk" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt"/>
-      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_de" fragment="true"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_el" fragment="true"/>
@@ -840,16 +801,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.persistence.jpa"/>
       <plugin id="org.eclipse.persistence.moxy"/>
       <plugin id="org.eclipse.swt"/>
-      <plugin id="org.eclipse.swt.carbon.macosx" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390x" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.linux.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_de" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_el" fragment="true"/>
@@ -866,7 +817,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.swt.nl_sk" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_tr" fragment="true"/>
       <plugin id="org.eclipse.swt.nl_uk" fragment="true"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.urischeme"/>
       <plugin id="org.eclipse.urischeme.nl_ar" fragment="true"/>
       <plugin id="org.eclipse.urischeme.nl_de" fragment="true"/>

@@ -227,9 +227,12 @@
         </pluginManagement>
     </build>
 
-    <profiles>
+  <profiles>
         <profile>
-            <id>win32</id>
+            <id>win</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -333,6 +336,7 @@
             </build>
         </profile>
     </profiles>
+
 
     <repositories>
         <repository>
