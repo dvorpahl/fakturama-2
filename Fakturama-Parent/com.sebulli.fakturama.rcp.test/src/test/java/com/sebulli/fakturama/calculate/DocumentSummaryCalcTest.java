@@ -30,6 +30,7 @@ import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.PriceBuilder;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.DocumentItem;
 import com.sebulli.fakturama.model.FakturamaModelPackage;
@@ -37,6 +38,8 @@ import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.model.Shipping;
 import com.sebulli.fakturama.model.ShippingVatType;
 import com.sebulli.fakturama.model.VAT;
+
+import ch.qos.logback.classic.spi.LogbackServiceProvider;
 
 public class DocumentSummaryCalcTest {
 
@@ -57,7 +60,11 @@ public class DocumentSummaryCalcTest {
 
     @Before
     public void setUp() throws Exception {
+        FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
+
+        System.out.println(org.slf4j.LoggerFactory.getILoggerFactory().getClass().getName());
         // start common for locale, money for money
+
         FrameworkUtil.getBundle(ILocaleService.class).start();
         FrameworkUtil.getBundle(org.javamoney.moneta.OSGIServiceHelper.class).start();
         testAmount0EUR = Money.zero(Monetary.getCurrency(Locale.GERMANY));
@@ -73,6 +80,8 @@ public class DocumentSummaryCalcTest {
         Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS)).thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
         ctx.set(IPreferenceStore.class, defaultValuePrefs);
         ContextInjectionFactory.setDefault(ctx);
+        DataUtils.getInstance().setPreferenceStore(defaultValuePrefs);
+
     }
 
     /**

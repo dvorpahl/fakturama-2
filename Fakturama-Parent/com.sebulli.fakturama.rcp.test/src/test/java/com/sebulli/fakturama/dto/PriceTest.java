@@ -1,6 +1,8 @@
 package com.sebulli.fakturama.dto;
 
+import javax.inject.Inject;
 import javax.money.Monetary;
+import javax.money.MonetaryAmount;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
@@ -8,46 +10,63 @@ import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.spi.MoneyUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.DataUtils;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PriceTest {
 
     private static final double DOUBLE_DELTA = 0.001;
-
+    @Inject
     private IEclipseContext ctx;
 
-    @Mock
-    private IPreferenceStore defaultValuePrefs;
+    //    @Mock
+    //    private IPreferenceStore defaultValuePrefs;
+
+    private AutoCloseable closeable;
 
     @Before
     public void setUp() throws Exception {
         // start common for locale, money for money
         FrameworkUtil.getBundle(ILocaleService.class).start();
-        FrameworkUtil.getBundle(org.javamoney.moneta.OSGIServiceHelper.class).start();
-
-        MockitoAnnotations.initMocks(this);
         ctx = EclipseContextFactory.getServiceContext(Activator.getContext());
 
-        Mockito.when(defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
-        Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
-        Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS)).thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
-        ctx.set(IPreferenceStore.class, defaultValuePrefs);
+        closeable = MockitoAnnotations.openMocks(this);
+        IPreferenceStore mockedPreferenceStore = Mockito.mock(IPreferenceStore.class);
+        //        Mockito.when(mockedPreferenceStore.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
+        Mockito.when(mockedPreferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
+        //        Mockito.when(mockedPreferenceStore.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS))
+        //                .thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
+        ctx.set(IPreferenceStore.class, mockedPreferenceStore);
+        DataUtils.getInstance().setPreferenceStore(mockedPreferenceStore);
+
         ContextInjectionFactory.setDefault(ctx);
+
+        FrameworkUtil.getBundle(org.javamoney.moneta.OSGIServiceHelper.class).start(Bundle.START_ACTIVATION_POLICY);
 
         //        CurrencyUnit currencyEUR = Monetary.getCurrency(new Locale("", "GER")); // Germany
         //
-        //        MonetaryAmount testAmount0EUR = Money.of(MoneyUtils.getBigDecimal(0.0), Monetary.getCurrency("EUR"));
-        //        MonetaryAmount testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency("EUR"));
+        MonetaryAmount testAmount0EUR = Money.of(MoneyUtils.getBigDecimal(0.0), Monetary.getCurrency("EUR"));
+        MonetaryAmount testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency("EUR"));
+    }
+
+    @After
+    public void cleanUp() throws Exception {
+        closeable.close();
+
     }
 
     @Test
@@ -220,7 +239,6 @@ public class PriceTest {
     public void testGrossPriceWithDiscount() {
         Price testPrice = new PriceBuilder().withUnitPrice(Money.of(MoneyUtils.getBigDecimal(2.2), "EUR")).withGrossPrices(true).withDiscount(-0.03)
                 .withQuantity(25.0).withVatPercent(0.07).build();
-
         Assert.assertEquals(49.86, testPrice.getTotalNetRounded().getNumber().doubleValue(), 0);
         Assert.assertEquals(53.35, testPrice.getTotalGrossRounded().getNumber().doubleValue(), 0);
         Assert.assertEquals(3.49, testPrice.getTotalVatRounded().getNumber().doubleValue(), 0);
