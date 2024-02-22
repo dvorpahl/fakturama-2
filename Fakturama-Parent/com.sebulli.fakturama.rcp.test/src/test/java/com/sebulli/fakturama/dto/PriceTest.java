@@ -26,7 +26,7 @@ import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PriceTest {
 
     private static final double DOUBLE_DELTA = 0.001;
@@ -41,6 +41,7 @@ public class PriceTest {
     @Before
     public void setUp() throws Exception {
         // start common for locale, money for money
+        //        Locale.setDefault(Locale.GERMANY);
         FrameworkUtil.getBundle(ILocaleService.class).start();
         ctx = EclipseContextFactory.getServiceContext(Activator.getContext());
 
@@ -48,6 +49,9 @@ public class PriceTest {
         IPreferenceStore mockedPreferenceStore = Mockito.mock(IPreferenceStore.class);
         //        Mockito.when(mockedPreferenceStore.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
         Mockito.when(mockedPreferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
+        Mockito.when(mockedPreferenceStore.getString(Constants.PREFERENCE_GENERAL_CURRENCY)).thenReturn("EUR");
+        Mockito.when(mockedPreferenceStore.getString(Constants.PREFERENCE_CURRENCY_LOCALE)).thenReturn("DE");
+
         //        Mockito.when(mockedPreferenceStore.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS))
         //                .thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
         ctx.set(IPreferenceStore.class, mockedPreferenceStore);

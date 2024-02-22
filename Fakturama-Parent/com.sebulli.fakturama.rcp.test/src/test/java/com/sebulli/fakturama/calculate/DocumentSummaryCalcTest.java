@@ -62,6 +62,7 @@ public class DocumentSummaryCalcTest {
     public void setUp() throws Exception {
         FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
 
+        //        Locale.setDefault(Locale.GERMANY);
         System.out.println(org.slf4j.LoggerFactory.getILoggerFactory().getClass().getName());
         // start common for locale, money for money
 
@@ -77,6 +78,8 @@ public class DocumentSummaryCalcTest {
 
         Mockito.when(defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
         Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
+        Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_GENERAL_CURRENCY)).thenReturn("EUR");
+        Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_CURRENCY_LOCALE)).thenReturn("DE");
         Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS)).thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
         ctx.set(IPreferenceStore.class, defaultValuePrefs);
         ContextInjectionFactory.setDefault(ctx);
