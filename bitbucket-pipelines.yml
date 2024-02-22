@@ -15,7 +15,7 @@ pipelines:
           caches:
             - maven
           script:
-            - mvn -B  -T 1C verify --file Fakturama-Parent/pom.xml
+            - mvn -B  clean install verify --file Fakturama-Parent/pom.xml -P linux,win,macos
           after-script:
               # Collect checkstyle results, if any, and convert to Bitbucket Code Insights.
             - pipe: atlassian/checkstyle-report:0.2.0

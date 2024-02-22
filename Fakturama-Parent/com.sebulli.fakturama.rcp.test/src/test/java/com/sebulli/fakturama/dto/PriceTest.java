@@ -107,8 +107,9 @@ public class PriceTest {
 
     @Test
     public void testComplexNetPrice() {
-        Price testPrice = new PriceBuilder().withUnitPrice(Money.of(MoneyUtils.getBigDecimal(2.06), "EUR")).withGrossPrices(false).withQuantity(25.0)
-                .withDiscount(-0.03).withVatPercent(0.07).build();
+
+        Price testPrice = new PriceBuilder().withUnitPrice(Money.of(MoneyUtils.getBigDecimal(2.06), Monetary.getCurrency("EUR"))).withGrossPrices(false)
+                .withQuantity(25.0).withDiscount(-0.03).withVatPercent(0.07).build();
 
         Assert.assertEquals(49.955, testPrice.getTotalNet().getNumber().doubleValue(), 0);
         Assert.assertEquals(49.96, testPrice.getTotalNetRounded().getNumber().doubleValue(), 0);
