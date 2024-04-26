@@ -88,8 +88,8 @@
 	</location>
 	<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/nebula/incubation/latest"/>
-		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.202402110801"/>
-		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.202402110801"/>
+		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="0.0.0"/>
+		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.0.0"/>
 	</location>
     <location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" label="Bouncycastle" missingManifest="generate" type="Maven">
         <dependencies>
