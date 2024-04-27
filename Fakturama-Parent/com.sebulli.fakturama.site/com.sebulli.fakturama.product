@@ -318,7 +318,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_el"/>
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
-      <feature id="org.eclipse.persistence.jpa" installMode="root"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature"/>
    </features>
 
    <configurations>
