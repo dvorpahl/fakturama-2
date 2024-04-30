@@ -239,7 +239,28 @@
                                     <ws>win32</ws>
                                     <arch>x86_64</arch>
                                 </environment>
-                            </environments>
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <!-- works only with a native MacOS -->
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                           </environments>
                             <!-- Use custom target platform -->
                             <target>
                                 <artifact>
@@ -356,7 +377,7 @@
     </issueManagement>
     <scm>
         <url>https://bitbucket.org/fakturamadev/fakturama-2</url>
-        <developerConnection>Ralf Heydenreich; Oliver Groth, Gerd Schrick</developerConnection>
+        <developerConnection>Ralf Heydenreich; Oliver Groth, Karsten Röhle, Gerd Schrick</developerConnection>
     </scm>
     <description>The program is for creating invoices, delivery papers, order
         documents and such stuff. Furthermore, you can connect to your webshop
