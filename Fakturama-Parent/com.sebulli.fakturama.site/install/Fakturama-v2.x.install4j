@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="10.0.7" transformSequenceNumber="10">
-  <directoryPresets config="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3c" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
+  <directoryPresets config="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -25,8 +25,8 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
-    <jreBundles jdkProviderId="Zulu" release="17/17.0.9" />
+    <codeSigning macPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama.p12" windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" macNotarize="true" />
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.11+9" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git">
     <filesets>
@@ -792,5 +792,8 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
   </mediaSets>
   <buildIds buildAll="false">
     <mediaSet refId="45" />
+    <mediaSet refId="59" />
+    <mediaSet refId="119" />
+    <mediaSet refId="120" />
   </buildIds>
 </install4j>
