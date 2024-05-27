@@ -46,6 +46,7 @@ Import-Package: com.opcoach.e4.preferences,
  org.eclipse.swt.graphics,
  org.eclipse.swt.widgets,
  org.osgi.framework,
+ org.osgi.service.component.annotations;version="1.3.0",
  org.osgi.service.log,
  org.osgi.util.tracker,
  org.slf4j
