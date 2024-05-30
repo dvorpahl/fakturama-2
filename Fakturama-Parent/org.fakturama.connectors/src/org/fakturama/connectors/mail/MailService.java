@@ -363,12 +363,8 @@ public class MailService implements IPdfPostProcessor {
             if ((ex = mex.getNextException()) != null) {
                 log.error(ex, "can't send mail");
             }
-        } catch (UnsupportedEncodingException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+        } catch (UnsupportedEncodingException ex) {
+            log.error(ex, "can't send mail");
 		} finally {
             closeDialog();
         }
