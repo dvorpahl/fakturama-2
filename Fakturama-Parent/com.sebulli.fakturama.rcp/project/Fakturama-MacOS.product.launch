@@ -28,7 +28,7 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
     <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog -console"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true -Dfakturama.use.dbserver=FALSE -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Djaxp.debug=false -Dosgi.nl=de_DE"/>
     <stringAttribute key="pde.version" value="3.3"/>
@@ -124,9 +124,13 @@
         <setEntry value="org.codehaus.janino.janino@default:default"/>
         <setEntry value="org.eclipse.angus.mail*2.0.3@3:true"/>
         <setEntry value="org.eclipse.collections@default:default"/>
+        <setEntry value="org.eclipse.core.commands.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.commands@default:default"/>
+        <setEntry value="org.eclipse.core.contenttype.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.contenttype@default:default"/>
+        <setEntry value="org.eclipse.core.databinding.beans.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.databinding.beans@default:default"/>
+        <setEntry value="org.eclipse.core.databinding.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.databinding.observable.nl_ar@default:false"/>
         <setEntry value="org.eclipse.core.databinding.observable.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.databinding.observable.nl_el@default:false"/>
@@ -176,7 +180,11 @@
         <setEntry value="org.eclipse.core.expressions.nl_tr@default:false"/>
         <setEntry value="org.eclipse.core.expressions.nl_uk@default:false"/>
         <setEntry value="org.eclipse.core.expressions@default:default"/>
+        <setEntry value="org.eclipse.core.filesystem.macosx.nl_de@default:false"/>
+        <setEntry value="org.eclipse.core.filesystem.macosx@default:false"/>
+        <setEntry value="org.eclipse.core.filesystem.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.filesystem@default:default"/>
+        <setEntry value="org.eclipse.core.jobs.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.jobs@default:default"/>
         <setEntry value="org.eclipse.core.net.nl_ar@default:false"/>
         <setEntry value="org.eclipse.core.net.nl_de@default:false"/>
@@ -229,6 +237,7 @@
         <setEntry value="org.eclipse.core.runtime.nl_tr@default:false"/>
         <setEntry value="org.eclipse.core.runtime.nl_uk@default:false"/>
         <setEntry value="org.eclipse.core.runtime@2:true"/>
+        <setEntry value="org.eclipse.core.variables.nl_de@default:false"/>
         <setEntry value="org.eclipse.core.variables@default:default"/>
         <setEntry value="org.eclipse.draw2d@default:default"/>
         <setEntry value="org.eclipse.e4.core.commands.nl_ar@default:false"/>
@@ -279,6 +288,7 @@
         <setEntry value="org.eclipse.e4.core.di.annotations.nl_tr@default:false"/>
         <setEntry value="org.eclipse.e4.core.di.annotations.nl_uk@default:false"/>
         <setEntry value="org.eclipse.e4.core.di.annotations@default:default"/>
+        <setEntry value="org.eclipse.e4.core.di.extensions.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.core.di.extensions.supplier.nl_ar@default:false"/>
         <setEntry value="org.eclipse.e4.core.di.extensions.supplier.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.core.di.extensions.supplier.nl_el@default:false"/>
@@ -428,6 +438,7 @@
         <setEntry value="org.eclipse.e4.ui.dialogs.nl_tr@default:false"/>
         <setEntry value="org.eclipse.e4.ui.dialogs.nl_uk@default:false"/>
         <setEntry value="org.eclipse.e4.ui.dialogs@default:default"/>
+        <setEntry value="org.eclipse.e4.ui.model.workbench.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.model.workbench@default:default"/>
         <setEntry value="org.eclipse.e4.ui.services.nl_ar@default:false"/>
         <setEntry value="org.eclipse.e4.ui.services.nl_de@default:false"/>
@@ -461,6 +472,24 @@
         <setEntry value="org.eclipse.e4.ui.widgets.nl_tr@default:false"/>
         <setEntry value="org.eclipse.e4.ui.widgets.nl_uk@default:false"/>
         <setEntry value="org.eclipse.e4.ui.widgets@default:default"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_ar@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_de@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_el@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_es@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_eu@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_fr@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_hu@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_it@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_nl@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_no@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_pl@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_ro@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_ru@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_sk@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_tr@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_uk@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.addons.swt@default:default"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ar@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_el@default:false"/>
@@ -712,24 +741,9 @@
         <setEntry value="org.eclipse.equinox.simpleconfigurator@1:true"/>
         <setEntry value="org.eclipse.equinox.transforms.hook@default:false"/>
         <setEntry value="org.eclipse.equinox.weaving.hook@default:false"/>
-        <setEntry value="org.eclipse.fx.osgi@default:false"/>
-        <setEntry value="org.eclipse.help.nl_ar@default:false"/>
-        <setEntry value="org.eclipse.help.nl_de@default:false"/>
-        <setEntry value="org.eclipse.help.nl_el@default:false"/>
-        <setEntry value="org.eclipse.help.nl_es@default:false"/>
-        <setEntry value="org.eclipse.help.nl_eu@default:false"/>
-        <setEntry value="org.eclipse.help.nl_fr@default:false"/>
-        <setEntry value="org.eclipse.help.nl_hu@default:false"/>
-        <setEntry value="org.eclipse.help.nl_it@default:false"/>
-        <setEntry value="org.eclipse.help.nl_nl@default:false"/>
-        <setEntry value="org.eclipse.help.nl_no@default:false"/>
-        <setEntry value="org.eclipse.help.nl_pl@default:false"/>
-        <setEntry value="org.eclipse.help.nl_ro@default:false"/>
-        <setEntry value="org.eclipse.help.nl_ru@default:false"/>
-        <setEntry value="org.eclipse.help.nl_tr@default:false"/>
-        <setEntry value="org.eclipse.help.nl_uk@default:false"/>
-        <setEntry value="org.eclipse.help@default:default"/>
+        <setEntry value="org.eclipse.jface.databinding.nl_de@default:false"/>
         <setEntry value="org.eclipse.jface.databinding@default:default"/>
+        <setEntry value="org.eclipse.jface.nl_de@default:false"/>
         <setEntry value="org.eclipse.jface@default:default"/>
         <setEntry value="org.eclipse.nebula.cwt*1.1.0.202402011804@default:default"/>
         <setEntry value="org.eclipse.nebula.jface.cdatetime@default:default"/>
@@ -879,7 +893,7 @@
         <setEntry value="org.fakturama.qrcode@default:default"/>
         <setEntry value="org.fakturama.wizards@default:default"/>
     </setAttribute>
-    <booleanAttribute key="show_selected_only" value="true"/>
+    <booleanAttribute key="show_selected_only" value="false"/>
     <booleanAttribute key="tracing" value="false"/>
     <booleanAttribute key="useCustomFeatures" value="false"/>
     <booleanAttribute key="useDefaultConfig" value="true"/>
