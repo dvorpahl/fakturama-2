@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: QR-Code Generators
 Bundle-SymbolicName: org.fakturama.qrcode
-Bundle-Version: 2.1.3.qualifier
+Bundle-Version: 2.2.0.qualifier
 Export-Package: net.glxn.qrgen.core,
  net.glxn.qrgen.core.exception,
  net.glxn.qrgen.core.image,

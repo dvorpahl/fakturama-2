@@ -24,7 +24,7 @@ fi
 
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
-VERSION=2.1.3c
+VERSION=2.2.0-BETA
    
 # if not enough args displayed, display an error and die
 [ $# -eq 0 ] && die "Usage: $0 1|2 
