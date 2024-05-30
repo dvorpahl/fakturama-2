@@ -23,7 +23,9 @@ Require-Bundle: com.sebulli.fakturama.rcp,
  org.apache.commons.commons-validator;bundle-version="1.7.0",
  org.glassfish.hk2.osgi-resource-locator;bundle-version="2.4.0",
  org.glassfish.hk2.api;bundle-version="3.0.5",
- jakarta.activation-api;bundle-version="2.1.2"
+ jakarta.activation-api;bundle-version="2.1.2",
+ org.eclipse.angus.mail;bundle-version="2.0.2",
+ angus-activation;bundle-version="2.0.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.fakturama.connectors

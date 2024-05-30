@@ -14,16 +14,19 @@
 package org.fakturama.connectors.mail;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.angus.mail.util.MailStreamProvider;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
@@ -62,17 +66,19 @@ import com.sebulli.fakturama.office.TemplateProcessor;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
 
 import jakarta.mail.Authenticator;
-import jakarta.mail.BodyPart;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Provider;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.LineInputStream;
+import jakarta.mail.util.StreamProvider;
 
 /**
  * The Mail Service class is an {@link IPdfPostProcessor} for sending mails
@@ -287,30 +293,36 @@ public class MailService implements IPdfPostProcessor {
         };
         Session session = Session.getInstance(props, authenticator);
         //        session.setDebug(debug);
-
+        try {
+        	var resourceURL = org.osgi.framework.FrameworkUtil.getBundle(MailStreamProvider.class).getResource("/META-INF/javamail.providers");
+			loadProvidersFromStream(resourceURL.openStream(), session);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
         try {
             // create a message
-            MimeMessage msg = new MimeMessage(session);
+            MimeMessage message = new MimeMessage(session);
             //set From email field
             InternetAddress senderAddr = new InternetAddress(settings.getSender());
             senderAddr.setPersonal(settings.getSenderName());
-            msg.setFrom(senderAddr);
-            msg.setSender(senderAddr);
+            message.setFrom(senderAddr);
+            message.setSender(senderAddr);
+            message.setSubject(settings.getSubject());
 
-            msg.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
-            msg.setRecipients(Message.RecipientType.CC, settings.getReceiversCC());
-            msg.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
-
-            msg.setSubject(settings.getSubject());
-
-            // create the Multipart and add its parts to it
-            Multipart mp = new MimeMultipart();
+            message.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
+            message.setRecipients(Message.RecipientType.CC, settings.getReceiversCC());
+            message.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
 
             // create and fill the first message part
             // PLAIN TEXT
-            BodyPart messageBodyPart = new MimeBodyPart();
-            messageBodyPart.setText(settings.getBody());
-            mp.addBodyPart(messageBodyPart);
+            MimeBodyPart mimeBodyPart = new MimeBodyPart();
+            mimeBodyPart.setContent(settings.getBody(), "text/html; charset=utf-8");
+
+            // create the Multipart and add its parts to it
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(mimeBodyPart);
             //
             //            // HTML TEXT ==> future feature!
             //            messageBodyPart = new MimeBodyPart();
@@ -321,24 +333,23 @@ public class MailService implements IPdfPostProcessor {
             // add attachments
             settings.getAdditionalDocs().stream().map(this::createMimePart).forEach(p -> {
                 try {
-                    mp.addBodyPart(p);
+                    multipart.addBodyPart(p);
                 } catch (MessagingException e) {
                     log.error(e, "can't add mime body");
                 }
             });
 
             // add the Multipart to the message
-            msg.setContent(mp);
+            message.setContent(multipart);
 
             // set the Date: header
-            msg.setSentDate(new Date());
-
+            message.setSentDate(new Date());
+            
             CompletableFuture.runAsync(() -> {
-                Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
                 try {
 
                     // send the message
-                    Transport.send(msg);
+                    Transport.send(message);
                     //                } catch (final MailConnectException e) {
                     //                  log.error(e, "can't connect to mail server ("+settings.getHost()+")");
                 } catch (final MessagingException e) {
@@ -355,8 +366,70 @@ public class MailService implements IPdfPostProcessor {
         } catch (UnsupportedEncodingException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
-        } finally {
+        } catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} finally {
             closeDialog();
+        }
+    }
+
+    private final StreamProvider streamProvider = StreamProvider.provider();
+
+    private void loadProvidersFromStream(InputStream is, Session session ) throws IOException {
+        if (is != null) {
+            LineInputStream lis = streamProvider.inputLineStream(is, false);
+            String currLine;
+
+            // load and process one line at a time using LineInputStream
+            while ((currLine = lis.readLine()) != null) {
+
+                if (currLine.startsWith("#"))
+                    continue;
+                if (currLine.trim().length() == 0)
+                    continue;    // skip blank line
+                Provider.Type type = null;
+                String protocol = null, className = null;
+                String vendor = null, version = null;
+
+                // separate line into key-value tuples
+                StringTokenizer tuples = new StringTokenizer(currLine, ";");
+                while (tuples.hasMoreTokens()) {
+                    String currTuple = tuples.nextToken().trim();
+
+                    // set the value of each attribute based on its key
+                    int sep = currTuple.indexOf("=");
+                    if (currTuple.startsWith("protocol=")) {
+                        protocol = currTuple.substring(sep + 1);
+                    } else if (currTuple.startsWith("type=")) {
+                        String strType = currTuple.substring(sep + 1);
+                        if (strType.equalsIgnoreCase("store")) {
+                            type = Provider.Type.STORE;
+                        } else if (strType.equalsIgnoreCase("transport")) {
+                            type = Provider.Type.TRANSPORT;
+                        }
+                    } else if (currTuple.startsWith("class=")) {
+                        className = currTuple.substring(sep + 1);
+                    } else if (currTuple.startsWith("vendor=")) {
+                        vendor = currTuple.substring(sep + 1);
+                    } else if (currTuple.startsWith("version=")) {
+                        version = currTuple.substring(sep + 1);
+                    }
+                }
+
+                // check if a valid Provider; else, continue
+                if (type == null || protocol == null || className == null
+                        || protocol.length() == 0 || className.length() == 0) {
+
+                    log.error(MessageFormat.format("Bad provider entry: {0}", currLine));
+                    continue;
+                }
+                Provider provider = new Provider(type, protocol, className,
+                        vendor, version);
+
+                // add the newly-created Provider to the lookup tables
+                session.addProvider(provider);
+            }
         }
     }
 
@@ -370,13 +443,13 @@ public class MailService implements IPdfPostProcessor {
 
     private MimeBodyPart createMimePart(final String file) {
         // create the next message part
-        MimeBodyPart mbp3 = new MimeBodyPart();
+        MimeBodyPart attachmentBodyPart = new MimeBodyPart();
         try {
             // attach the file to the message
-            mbp3.attachFile(file);
+            attachmentBodyPart.attachFile(file);
         } catch (IOException | MessagingException ioex) {
             log.error(ioex, "can't create mime body part");
         }
-        return mbp3;
+        return attachmentBodyPart;
     }
 }

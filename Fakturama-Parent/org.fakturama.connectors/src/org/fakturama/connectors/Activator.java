@@ -14,9 +14,13 @@
  
 package org.fakturama.connectors;
 
+import org.fakturama.connectors.mail.FakturamaDCHFactory;
 import org.fakturama.connectors.mail.MailServiceDefaultPreferencesInitializer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+
+import jakarta.activation.DataContentHandlerFactory;
+import jakarta.activation.DataHandler;
 
 /**
  *
@@ -41,6 +45,9 @@ public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) throws Exception {
         Activator.context = bundleContext;
+        DataContentHandlerFactory dchFactory = new FakturamaDCHFactory();
+        DataHandler.setDataContentHandlerFactory(dchFactory );
+        
         MailServiceDefaultPreferencesInitializer mailServiceDefaultPreferencesInitializer = new MailServiceDefaultPreferencesInitializer();
         mailServiceDefaultPreferencesInitializer.initializeDefaultPreferences();
     }
@@ -50,5 +57,4 @@ public class Activator implements BundleActivator {
         Activator.context = null;
 
     }
-
 }
