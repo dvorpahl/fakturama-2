@@ -20,8 +20,6 @@ import java.util.Currency;
 import java.util.Locale;
 import java.util.Objects;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
@@ -44,6 +42,8 @@ import com.sebulli.fakturama.money.CurrencySettingEnum;
 import com.sebulli.fakturama.money.FakturamaMonetaryRoundingProvider;
 import com.sebulli.fakturama.money.internal.FakturamaFormatProviderSpi;
 import com.sebulli.fakturama.money.internal.FakturamaMonetaryAmountFormat;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 /**
  * Formatter service for numbers and currency values.

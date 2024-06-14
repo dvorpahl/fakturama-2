@@ -13,11 +13,12 @@
  */
 package com.sebulli.fakturama.i18n;
 
-import javax.inject.Inject;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.e4.core.services.nls.BaseMessageRegistry;
 import org.eclipse.e4.core.services.nls.Translation;
+
+import jakarta.inject.Inject;
 
 @Creatable
 public class MessageRegistry extends BaseMessageRegistry<Messages> {
