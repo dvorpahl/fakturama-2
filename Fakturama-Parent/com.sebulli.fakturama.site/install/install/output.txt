@@ -1,3 +1,0 @@
-# List of generated media files. The columns are tab-separated:
-# id | media file type | display name | media file path
-528	macos	macOS Folder	C:\workspaces\fakturama\oomph\fakturama-2\Fakturama-Parent\com.sebulli.fakturama.site\install\install\Fakturama_macos_2.1.3c.dmg

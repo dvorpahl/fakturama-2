@@ -199,6 +199,7 @@ for arg in "$@"; do
    xcrun stapler staple ../install/${DMG_FINAL}
    spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
    
+   # some fixes for Linux and Windows archives
    if [ -f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ]; then
    	echo 'moving installer (tar.gz) to installer directory'
    	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz
