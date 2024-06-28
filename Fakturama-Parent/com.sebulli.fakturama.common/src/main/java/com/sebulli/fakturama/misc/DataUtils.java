@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
@@ -37,6 +36,8 @@ import org.osgi.framework.ServiceReference;
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.money.FakturamaMonetaryRoundingProvider;
+
+import jakarta.inject.Inject;
 
 /**
  * This class provides static functions to convert and format data like double
