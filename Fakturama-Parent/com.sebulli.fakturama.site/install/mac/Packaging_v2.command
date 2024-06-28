@@ -121,7 +121,7 @@ for arg in "$@"; do
    
    #  assumes our contents are at least 1M!
    SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'  | sed 's/,/\./'` 
-   SIZE=`echo "${SIZE} + 2.0" | bc | awk '{print int($1+0.5)}'`
+   SIZE=`echo "${SIZE} + 3.0" | bc | awk '{print int($1+0.5)}'`
    
    echo "INFO:  SIZE=$SIZE"
    
