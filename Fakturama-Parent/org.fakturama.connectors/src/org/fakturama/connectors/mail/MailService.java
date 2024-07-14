@@ -14,41 +14,30 @@
 package org.fakturama.connectors.mail;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.angus.mail.util.MailStreamProvider;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.core.services.nls.Translation;
-import org.eclipse.e4.ui.model.application.MApplication;
-import org.eclipse.e4.ui.model.application.ui.MUIElement;
-import org.eclipse.e4.ui.model.application.ui.basic.MPart;
-import org.eclipse.e4.ui.model.application.ui.basic.MWindow;
-import org.eclipse.e4.ui.workbench.modeling.EModelService;
-import org.eclipse.e4.ui.workbench.modeling.EPartService;
-import org.eclipse.e4.ui.workbench.modeling.EPartService.PartState;
+import org.eclipse.e4.ui.di.UISynchronize;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Component;
@@ -65,20 +54,21 @@ import com.sebulli.fakturama.office.TemplateFinder;
 import com.sebulli.fakturama.office.TemplateProcessor;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
+import jakarta.mail.NoSuchProviderException;
+import jakarta.mail.Part;
 import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Provider;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import jakarta.mail.util.LineInputStream;
-import jakarta.mail.util.StreamProvider;
+import jakarta.mail.internet.MimeUtility;
 
 /**
  * The Mail Service class is an {@link IPdfPostProcessor} for sending mails
@@ -99,15 +89,8 @@ public class MailService implements IPdfPostProcessor {
 
     @Inject
     private ILogger log;
-
     @Inject
-    private EModelService modelService;
-
-    @Inject
-    private EPartService partService;
-
-    @Inject
-    private MApplication application;
+    private UISynchronize uiSync;
 
     @Inject
     @Translation
@@ -116,6 +99,17 @@ public class MailService implements IPdfPostProcessor {
     @Inject
     @Translation
     protected MailServiceMessages mailServiceMessages;
+
+    private MailInfoDialog mailInfoDialog;
+    public static final int MULTIPART_MODE_MIXED_RELATED = 3;
+
+    private static final String MULTIPART_SUBTYPE_ALTERNATIVE = "alternative";
+
+    private static final String CONTENT_TYPE_ALTERNATIVE = "text/alternative";
+
+    private static final String CONTENT_TYPE_HTML = "text/html";
+
+    private static final String CONTENT_TYPE_CHARSET_SUFFIX = ";charset=";
 
     @Override
     public boolean canProcess() {
@@ -136,7 +130,6 @@ public class MailService implements IPdfPostProcessor {
 
         // Collect some settings...
         MailSettings settings = createSettings(inputDocument.get());
-        ctx.set(MailSettings.class, settings);
 
         // check settings
         if (!settings.isValid()) {
@@ -148,22 +141,23 @@ public class MailService implements IPdfPostProcessor {
         // (only if user wants to see the dialog)
         if (prefs.getBoolean("WANNA_SHOW_SENDMAIL_DIALOG", true)) { // setting isn't available at the moment!!!
             ctx.set(MailService.class, this);
-
-            MWindow mailAppDialog = (MWindow) modelService.find(MailServiceConstants.MAIL_APP_MAIN_WINDOW_ID, application);
-
-            MPart mainPart = (MPart) mailAppDialog.getChildren().get(0);
-            partService.showPart(mainPart.getElementId(), PartState.ACTIVATE);
-            mainPart.setVisible(true);
-            partService.bringToTop(mainPart);
-            modelService.bringToTop(mailAppDialog);
-            mailAppDialog.setOnTop(true);
-
-            mailAppDialog.setVisible(true);
-            mailAppDialog.setToBeRendered(true);
+            loadMailModal(settings);
         } else {
             sendMail(settings);
         }
         return true;
+    }
+
+    public void loadMailModal(final MailSettings settings) {
+        // Ensure UI operations are performed on the UI thread
+        Shell shell = new Shell(Display.getCurrent());
+        uiSync.asyncExec(() -> {
+            ctx.set(MailSettings.class, settings);
+            mailInfoDialog = new MailInfoDialog(shell);
+            ContextInjectionFactory.inject(mailInfoDialog, this.ctx);
+
+            mailInfoDialog.open();
+        });
     }
 
     private MailSettings createSettings(final Invoice invoice) {
@@ -216,7 +210,7 @@ public class MailService implements IPdfPostProcessor {
         try {
             if (Files.exists(additionalFilePath)) {
                 additionalFiles = Files.list(additionalFilePath).sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase()))
-                        .map(p -> p.getFileName().toString()).collect(Collectors.toList());
+                        .map(p -> p.getFileName().toString()).toList();
             }
         } catch (IOException e) {
             log.error(e, "Error while scanning the additional files directory: " + additionalFilePath.toString());
@@ -291,161 +285,129 @@ public class MailService implements IPdfPostProcessor {
                 return authentication;
             }
         };
+
         Session session = Session.getInstance(props, authenticator);
-        //        session.setDebug(debug);
+        session.setDebug(true);
+        boolean gotError = false;
         try {
-        	var resourceURL = org.osgi.framework.FrameworkUtil.getBundle(MailStreamProvider.class).getResource("/META-INF/javamail.providers");
-			loadProvidersFromStream(resourceURL.openStream(), session);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-        try {
-            // create a message
-            MimeMessage message = new MimeMessage(session);
-            //set From email field
-            InternetAddress senderAddr = new InternetAddress(settings.getSender());
-            senderAddr.setPersonal(settings.getSenderName());
-            message.setFrom(senderAddr);
-            message.setSender(senderAddr);
-            message.setSubject(settings.getSubject());
+            MimeMessage message = createMessage(settings, session);
 
-            message.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
-            message.setRecipients(Message.RecipientType.CC, settings.getReceiversCC());
-            message.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
-
-            // create and fill the first message part
-            // PLAIN TEXT
-            MimeBodyPart mimeBodyPart = new MimeBodyPart();
-            mimeBodyPart.setContent(settings.getBody(), "text/html; charset=utf-8");
-
-            // create the Multipart and add its parts to it
-            Multipart multipart = new MimeMultipart();
-            multipart.addBodyPart(mimeBodyPart);
-            //
-            //            // HTML TEXT ==> future feature!
-            //            messageBodyPart = new MimeBodyPart();
-            //            String htmlText = settings.getBodyHtml();
-            //            messageBodyPart.setContent(htmlText, "text/html");
-            //            mp.addBodyPart(messageBodyPart);
-
-            // add attachments
-            settings.getAdditionalDocs().stream().map(this::createMimePart).forEach(p -> {
-                try {
-                    multipart.addBodyPart(p);
-                } catch (MessagingException e) {
-                    log.error(e, "can't add mime body");
-                }
-            });
-
-            // add the Multipart to the message
-            message.setContent(multipart);
-
-            // set the Date: header
-            message.setSentDate(new Date());
-            
-            CompletableFuture.runAsync(() -> {
-                try {
-
-                    // send the message
-                    Transport.send(message);
-                    //                } catch (final MailConnectException e) {
-                    //                  log.error(e, "can't connect to mail server ("+settings.getHost()+")");
-                } catch (final MessagingException e) {
-                    log.error(e, "can't send mail");
-                }
-            }, Executors.newSingleThreadExecutor());
+            Transport transport = null;
+            try {
+                transport = connectTransport(settings, session);
+                transport.sendMessage(message, message.getAllRecipients());
+            } catch (final MessagingException e) {
+                gotError = true;
+                log.error(e, "can't send mail");
+            }
 
         } catch (MessagingException mex) {
+            gotError = true;
             log.error(mex, "can't send mail");
             Exception ex = null;
             if ((ex = mex.getNextException()) != null) {
                 log.error(ex, "can't send mail");
             }
         } catch (UnsupportedEncodingException ex) {
+            gotError = true;
             log.error(ex, "can't send mail");
-		} finally {
-            closeDialog();
-        }
-    }
-
-    private final StreamProvider streamProvider = StreamProvider.provider();
-
-    private void loadProvidersFromStream(InputStream is, Session session ) throws IOException {
-        if (is != null) {
-            LineInputStream lis = streamProvider.inputLineStream(is, false);
-            String currLine;
-
-            // load and process one line at a time using LineInputStream
-            while ((currLine = lis.readLine()) != null) {
-
-                if (currLine.startsWith("#"))
-                    continue;
-                if (currLine.trim().length() == 0)
-                    continue;    // skip blank line
-                Provider.Type type = null;
-                String protocol = null, className = null;
-                String vendor = null, version = null;
-
-                // separate line into key-value tuples
-                StringTokenizer tuples = new StringTokenizer(currLine, ";");
-                while (tuples.hasMoreTokens()) {
-                    String currTuple = tuples.nextToken().trim();
-
-                    // set the value of each attribute based on its key
-                    int sep = currTuple.indexOf("=");
-                    if (currTuple.startsWith("protocol=")) {
-                        protocol = currTuple.substring(sep + 1);
-                    } else if (currTuple.startsWith("type=")) {
-                        String strType = currTuple.substring(sep + 1);
-                        if (strType.equalsIgnoreCase("store")) {
-                            type = Provider.Type.STORE;
-                        } else if (strType.equalsIgnoreCase("transport")) {
-                            type = Provider.Type.TRANSPORT;
-                        }
-                    } else if (currTuple.startsWith("class=")) {
-                        className = currTuple.substring(sep + 1);
-                    } else if (currTuple.startsWith("vendor=")) {
-                        vendor = currTuple.substring(sep + 1);
-                    } else if (currTuple.startsWith("version=")) {
-                        version = currTuple.substring(sep + 1);
-                    }
-                }
-
-                // check if a valid Provider; else, continue
-                if (type == null || protocol == null || className == null
-                        || protocol.length() == 0 || className.length() == 0) {
-
-                    log.error(MessageFormat.format("Bad provider entry: {0}", currLine));
-                    continue;
-                }
-                Provider provider = new Provider(type, protocol, className,
-                        vendor, version);
-
-                // add the newly-created Provider to the lookup tables
-                session.addProvider(provider);
+        } finally {
+            if (!gotError && mailInfoDialog != null) {
+                mailInfoDialog.close();
+                mailInfoDialog = null;
+            } else {
+                MessageDialog.openError(ctx.get(Shell.class), msg.dialogMessageboxTitleError, mailServiceMessages.mailserviceSendFailed);
             }
         }
     }
 
-    private void closeDialog() {
-        Optional<MUIElement> mailAppDialog = Optional.ofNullable(modelService.find(MailServiceConstants.MAIL_APP_MAIN_WINDOW_ID, application));
-        mailAppDialog.ifPresent(m -> {
-            m.setVisible(false);
-            m.setToBeRendered(false);
+    /**
+     * @param settings
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws MessagingException
+     */
+    private MimeMessage createMessage(final MailSettings settings, final Session session) throws UnsupportedEncodingException, MessagingException {
+        // create a message
+        MimeMessage message = new MimeMessage(session);
+
+        //set From email field
+        InternetAddress senderAddr = new InternetAddress(settings.getSender());
+        senderAddr.setPersonal(settings.getSenderName());
+        message.setFrom(senderAddr);
+        message.setSender(senderAddr);
+        message.setSubject(settings.getSubject());
+
+        message.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
+        message.setRecipients(Message.RecipientType.CC, settings.getReceiversCC());
+        message.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
+
+        // create and fill the first message part
+        // PLAIN TEXT
+        MimeMultipart mimeMultipart = new MimeMultipart("mixed");
+        MimeBodyPart mimeBodyPart = new MimeBodyPart();
+        mimeBodyPart.setContent(mimeBodyPart, CONTENT_TYPE_ALTERNATIVE);
+
+        MimeBodyPart plainTextPart = new MimeBodyPart();
+        plainTextPart.setText(settings.getBody(), StandardCharsets.UTF_8.name());
+        mimeMultipart.addBodyPart(plainTextPart);
+
+        MimeBodyPart htmlTextPart = new MimeBodyPart();
+        htmlTextPart.setContent(settings.getBody(), CONTENT_TYPE_HTML + CONTENT_TYPE_CHARSET_SUFFIX + StandardCharsets.UTF_8.name());
+        mimeMultipart.addBodyPart(htmlTextPart);
+
+        // add attachments
+        settings.getAdditionalDocs().stream().forEach(p -> {
+            try {
+                MimeBodyPart mimePart = createMimePart(p);
+                mimeMultipart.addBodyPart(mimePart);
+            } catch (MessagingException e) {
+                log.error(e, "can't add mime body");
+            }
         });
+
+        // add the Multipart to the message
+        message.setContent(mimeMultipart);
+
+        // set the Date: header
+        message.setSentDate(new Date());
+
+        return message;
     }
 
-    private MimeBodyPart createMimePart(final String file) {
-        // create the next message part
-        MimeBodyPart attachmentBodyPart = new MimeBodyPart();
+    private MimeBodyPart createMimePart(final String file) throws MessagingException {
         try {
-            // attach the file to the message
-            attachmentBodyPart.attachFile(file);
-        } catch (IOException | MessagingException ioex) {
-            log.error(ioex, "can't create mime body part");
+            MimeBodyPart mimeBodyPart = new MimeBodyPart();
+            mimeBodyPart.setDisposition(Part.ATTACHMENT);
+            Path filePath = Path.of(file);
+            mimeBodyPart.setFileName(MimeUtility.encodeText(filePath.getFileName().toString()));
+            FileDataSource fileDataSource = new FileDataSource(filePath.toFile());
+
+            DataHandler datahandler = new DataHandler(fileDataSource);
+            mimeBodyPart.setDataHandler(datahandler);
+            return mimeBodyPart;
+        } catch (UnsupportedEncodingException ex) {
+            throw new MessagingException("Failed to set attachment for message", ex);
         }
-        return attachmentBodyPart;
     }
+
+    protected Transport connectTransport(final MailSettings settings, final Session session) throws MessagingException {
+        String username = settings.getUser();
+        String password = settings.getPassword();
+        if ("".equals(username)) { // probably from a placeholder
+            username = null;
+            if ("".equals(password)) { // in conjunction with "" username, this means no password to use
+                password = null;
+            }
+        }
+
+        Transport transport = getTransport(session);
+        transport.connect(settings.getHost(), settings.getPort(), username, password);
+        return transport;
+    }
+
+    protected Transport getTransport(final Session session) throws NoSuchProviderException {
+        return session.getTransport("smtp");
+    }
+
 }

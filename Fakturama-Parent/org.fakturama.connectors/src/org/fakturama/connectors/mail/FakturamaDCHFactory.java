@@ -16,16 +16,16 @@ public class FakturamaDCHFactory implements DataContentHandlerFactory {
     @Inject
     private ILogger log;
 
-	@Override
-	public DataContentHandler createDataContentHandler(String mimeType) {
-		try {
-			var handler = "org.eclipse.angus.mail.handlers." + mimeType.replace('/', '_');
-			var cl = FrameworkUtil.getBundle(org.eclipse.angus.mail.handlers.handler_base.class).loadClass(handler);
-			return (DataContentHandler)
-				    cl.getConstructor().newInstance();
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException exc) {
-			log.error(exc);
-		}
-		return null;
-	}
+    @Override
+    public DataContentHandler createDataContentHandler(final String mimeType) {
+        try {
+            var handler = "org.eclipse.angus.mail.handlers." + mimeType.replace('/', '_');
+            var cl = FrameworkUtil.getBundle(org.eclipse.angus.mail.handlers.handler_base.class).loadClass(handler);
+            return (DataContentHandler) cl.getConstructor().newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+                | NoSuchMethodException | SecurityException exc) {
+            log.error(exc);
+        }
+        return null;
+    }
 }

@@ -39,6 +39,7 @@
       </win>
    </launcher>
 
+
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
       <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
@@ -140,6 +141,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <plugins>
+      <plugin id="angus-activation"/>
       <plugin id="ch.qos.logback.classic"/>
       <plugin id="ch.qos.logback.core"/>
       <plugin id="com.ibm.icu"/>
@@ -153,6 +155,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="com.sun.jna"/>
       <plugin id="com.sun.jna.platform"/>
       <plugin id="jakarta.activation-api"/>
+      <plugin id="jakarta.mail-api"/>
       <plugin id="jakarta.persistence-api"/>
       <plugin id="jakarta.transaction-api"/>
       <plugin id="jakarta.xml.bind-api"/>
@@ -183,6 +186,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.apache.xml.resolver"/>
       <plugin id="org.apache.xml.serializer"/>
       <plugin id="org.apache.xmlgraphics"/>
+      <plugin id="org.eclipse.angus.mail"/>
       <plugin id="org.eclipse.core.commands"/>
       <plugin id="org.eclipse.core.contenttype"/>
       <plugin id="org.eclipse.core.databinding"/>
@@ -322,12 +326,14 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </features>
 
    <configurations>
+      <plugin id="angus-activation" autoStart="true" startLevel="0" />
       <plugin id="ch.qos.logback.classic" autoStart="true" startLevel="2" />
       <plugin id="ch.qos.logback.core" autoStart="false" startLevel="2" />
       <plugin id="com.ibm.icu.localespi" autoStart="true" startLevel="2" />
       <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
       <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
       <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.angus.mail" autoStart="true" startLevel="0" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
