@@ -1,5 +1,7 @@
 package com.sebulli.fakturama.office;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -8,15 +10,16 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkUtil;
@@ -33,7 +36,8 @@ import com.sebulli.fakturama.office.FileOrganizer.PathOption;
 
 import ch.qos.logback.classic.spi.LogbackServiceProvider;
 
-public class FileOrganizerTest {
+@ExtendWith(MockitoExtension.class)
+class FileOrganizerTest {
 
     @Mock
     private IPreferenceStore preferenceStore;
@@ -48,7 +52,7 @@ public class FileOrganizerTest {
     @Mock
     private Debitor debitor;
 
-    @Before
+    @BeforeEach
     public void injectMocks() {
         // start common for locale, money for money
         try {
@@ -56,7 +60,6 @@ public class FileOrganizerTest {
             FrameworkUtil.getBundle(ILocaleService.class).start();
 
         } catch (BundleException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -68,8 +71,8 @@ public class FileOrganizerTest {
     private FileOrganizer f;
 
     @Test
-    @Ignore
-    public void testRenaming() {
+    @Disabled("kein plan warum")
+    void testRenaming() {
         Set<PathOption> pathOptions = new HashSet<>();
         pathOptions.add(PathOption.WITH_FILENAME);
         pathOptions.add(PathOption.WITH_EXTENSION);
@@ -107,7 +110,7 @@ public class FileOrganizerTest {
 
         Path documentPath = f.getDocumentPath(pathOptions, TargetFormat.ODT, invoice);
         Path p = Paths.get("\\TestWorkSpace\\Documents\\ODT\\2016\\Rechnungen\\KD_Tester001-TestRef01-_Hans_Magnus_Tester,_FreeTest_Inc.-2016.ODT");
-        Assert.assertEquals(documentPath, p);
+        assertEquals(documentPath, p);
     }
 
 }

@@ -1,5 +1,7 @@
 package com.sebulli.fakturama.calculate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -13,10 +15,9 @@ import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.spi.MoneyUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -58,7 +59,7 @@ public class DocumentSummaryCalcTest {
     private MonetaryAmount testAmount0EUR;
     private MonetaryAmount testAmount1EUR;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
 
@@ -68,23 +69,24 @@ public class DocumentSummaryCalcTest {
 
         FrameworkUtil.getBundle(ILocaleService.class).start();
         FrameworkUtil.getBundle(org.javamoney.moneta.OSGIServiceHelper.class).start();
-        testAmount0EUR = Money.zero(Monetary.getCurrency(Locale.GERMANY));
-        testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency(Locale.GERMANY));
+        try (AutoCloseable mocks = MockitoAnnotations.openMocks(this)) {
+            testAmount0EUR = Money.zero(Monetary.getCurrency(Locale.GERMANY));
+            testAmount1EUR = Money.of(MoneyUtils.getBigDecimal(1.0), Monetary.getCurrency(Locale.GERMANY));
 
-        MockitoAnnotations.initMocks(this);
-        ctx = EclipseContextFactory.getServiceContext(Activator.getContext());
-        Mockito.when(documentReceiverDao.isSETEnabled(Mockito.any(Document.class))).thenReturn(Boolean.FALSE);
-        ctx.set(DocumentReceiverDAO.class, documentReceiverDao);
+            ctx = EclipseContextFactory.getServiceContext(Activator.getContext());
+            Mockito.when(documentReceiverDao.isSETEnabled(Mockito.any(Document.class))).thenReturn(Boolean.FALSE);
+            ctx.set(DocumentReceiverDAO.class, documentReceiverDao);
 
-        Mockito.when(defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
-        Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
-        Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_GENERAL_CURRENCY)).thenReturn("EUR");
-        Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_CURRENCY_LOCALE)).thenReturn("DE");
-        Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS)).thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
-        ctx.set(IPreferenceStore.class, defaultValuePrefs);
-        ContextInjectionFactory.setDefault(ctx);
-        DataUtils.getInstance().setPreferenceStore(defaultValuePrefs);
-
+            Mockito.when(defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.FALSE);
+            Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES)).thenReturn(Integer.valueOf(2));
+            Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_GENERAL_CURRENCY)).thenReturn("EUR");
+            Mockito.when(defaultValuePrefs.getString(Constants.PREFERENCE_CURRENCY_LOCALE)).thenReturn("DE");
+            Mockito.when(defaultValuePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS))
+                    .thenReturn(Integer.valueOf(DocumentSummary.ROUND_NOTSPECIFIED));
+            ctx.set(IPreferenceStore.class, defaultValuePrefs);
+            ContextInjectionFactory.setDefault(ctx);
+            DataUtils.getInstance().setPreferenceStore(defaultValuePrefs);
+        }
     }
 
     /**
@@ -97,8 +99,8 @@ public class DocumentSummaryCalcTest {
      * 
      */
     @Test
-    @Ignore("some issues with Bitbucket")
-    public void testOneItemInADocument() {
+    //    @Disabled("some issues with Bitbucket")
+    void testOneItemInADocument() {
         DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
         Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(documentItem);
@@ -106,13 +108,13 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(1.0, summary.getTotalQuantity(), 0.0);
-        Assert.assertEquals(10.0, summary.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(11.0, summary.getTotalGross().getNumber().doubleValue(), 0);
-        Assert.assertEquals(1.0, summary.getTotalVat().getNumber().doubleValue(), 0);
+        assertEquals(1.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(10.0, summary.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(11.0, summary.getTotalGross().getNumber().doubleValue(), 0);
+        assertEquals(1.0, summary.getTotalVat().getNumber().doubleValue(), 0);
 
-        Assert.assertEquals(1, calc.getVatSummary(invoice).size());
-        Assert.assertEquals(testAmount1EUR, calc.getVatSummaryItemForTaxValue(0.1).get(0).getVat());
+        assertEquals(1, calc.getVatSummary(invoice).size());
+        assertEquals(testAmount1EUR, calc.getVatSummaryItemForTaxValue(0.1).get(0).getVat());
     }
 
     /* TODO Tests for different shipping calculation methods, see ShippingVatType
@@ -129,8 +131,8 @@ public class DocumentSummaryCalcTest {
      * see https://www.fakturama.info/community/postid/10704/
      */
     @Test
-    @Ignore("some issues with Bitbucket")
-    public void testFullSizeDocument_001() {
+    //    @Disabled("some issues with Bitbucket")
+    void testFullSizeDocument_001() {
         int id = 1;
         Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(25.0), Double.valueOf(2.20 / 1.07), Double.valueOf(0.07)));
@@ -140,16 +142,16 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(31.0, summary.getTotalQuantity(), 0.0);
-        Assert.assertEquals(71.48, summary.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(77.5, summary.getTotalGross().getNumber().doubleValue(), 0);
-        Assert.assertEquals(6.02, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
+        assertEquals(31.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(71.48, summary.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(77.5, summary.getTotalGross().getNumber().doubleValue(), 0);
+        assertEquals(6.02, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
 
-        Assert.assertEquals(71.48, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(71.48, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
 
-        Assert.assertEquals(2, calc.getVatSummary(invoice).size());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(4.42), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(1.60), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
+        assertEquals(2, calc.getVatSummary(invoice).size());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(4.42), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(1.60), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
     }
 
     /**
@@ -163,8 +165,8 @@ public class DocumentSummaryCalcTest {
      * </ul>
      */
     @Test
-    @Ignore
-    public void testFullSizeDocument_002() {
+    @Disabled
+    void testFullSizeDocument_002() {
         int id = 1;
         Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1)));
@@ -178,26 +180,26 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(3.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value including shipping net value
-        Assert.assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), 0.002);
-        Assert.assertEquals(3.41, summary.getTotalVat().getNumber().doubleValue(), 0.002);
-        Assert.assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
+        assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), 0.002);
+        assertEquals(3.41, summary.getTotalVat().getNumber().doubleValue(), 0.002);
+        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
 
-        Assert.assertEquals(3, calc.getVatSummary(invoice).size());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(1.97), "EUR"), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(0.5), "EUR"), calc.getVatSummaryItemForTaxValue(0.05).get(0).getVatRounded());
+        assertEquals(3, calc.getVatSummary(invoice).size());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(1.97), "EUR"), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(0.5), "EUR"), calc.getVatSummaryItemForTaxValue(0.05).get(0).getVatRounded());
 
         // (shipping VAT)
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(0.94), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(0.94), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
     }
 
     // with SET
     @Test
-    @Ignore
-    public void testFullSizeDocument_003() {
+    @Disabled
+    void testFullSizeDocument_003() {
         Mockito.when(defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)).thenReturn(Boolean.TRUE);
         ctx.set(IPreferenceStore.class, defaultValuePrefs);
         Mockito.when(documentReceiverDao.isSETEnabled(Mockito.any(Document.class))).thenReturn(Boolean.TRUE);
@@ -221,34 +223,34 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(3.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value
-        Assert.assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
-        Assert.assertEquals(testAmount0EUR, summary.getDiscountNet());
-        Assert.assertEquals(38.7, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
-        Assert.assertEquals(3.52, summary.getTotalVat().getNumber().doubleValue(), DOUBLE_DELTA);
-        Assert.assertEquals(0.52, summary.getTotalSET().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
+        assertEquals(testAmount0EUR, summary.getDiscountNet());
+        assertEquals(38.7, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(3.52, summary.getTotalVat().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(0.52, summary.getTotalSET().getNumber().doubleValue(), DOUBLE_DELTA);
 
-        Assert.assertEquals(32.8, summary.getItemsGross().getNumber().doubleValue(), DOUBLE_DELTA);
-        //		Assert.assertEquals(32.28, summary.getItemsGrossDiscounted().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(32.8, summary.getItemsGross().getNumber().doubleValue(), DOUBLE_DELTA);
+        //		assertEquals(32.28, summary.getItemsGrossDiscounted().getNumber().doubleValue(), DOUBLE_DELTA);
 
-        Assert.assertEquals(29.7, summary.getItemsNet().getNumber().doubleValue(), DOUBLE_DELTA);
-        Assert.assertEquals(29.7, summary.getItemsNetDiscounted().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(29.7, summary.getItemsNet().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(29.7, summary.getItemsNetDiscounted().getNumber().doubleValue(), DOUBLE_DELTA);
 
-        Assert.assertEquals(3, calc.getVatSummary(invoice).size());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(2.84), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
-        //		Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(14.957983193277311), "EUR"),
+        assertEquals(3, calc.getVatSummary(invoice).size());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(2.84), "EUR"), calc.getVatSummaryItemForTaxValue(0.19).get(0).getVatRounded());
+        //		assertEquals(Money.of(MoneyUtils.getBigDecimal(14.957983193277311), "EUR"),
         //				calc.getVatSummaryItemForTaxValue(0.19).get(0).getNet());
 
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(0.68), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(0), "EUR"), calc.getVatSummaryItemForTaxValue(0.0).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(0.68), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(0), "EUR"), calc.getVatSummaryItemForTaxValue(0.0).get(0).getVatRounded());
     }
 
     @Test
-    @Ignore("some issues with Bitbucket")
-    public void testMultipleItemsWithSamePrice() {
+    //    @Disabled("some issues with Bitbucket")
+    void testMultipleItemsWithSamePrice() {
         int id = 1;
         Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
 
@@ -259,20 +261,20 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(10.0, summary.getTotalQuantity(), 0.0);
-        Assert.assertEquals(327.1, summary.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(350.0, summary.getTotalGross().getNumber().doubleValue(), 0);
-        Assert.assertEquals(22.9, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
+        assertEquals(10.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(327.1, summary.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(350.0, summary.getTotalGross().getNumber().doubleValue(), 0);
+        assertEquals(22.9, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
 
-        Assert.assertEquals(327.1, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(327.1, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
 
-        Assert.assertEquals(1, calc.getVatSummary(invoice).size());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(22.9), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
+        assertEquals(1, calc.getVatSummary(invoice).size());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(22.9), "EUR"), calc.getVatSummaryItemForTaxValue(0.07).get(0).getVatRounded());
     }
 
     @Test
-    @Ignore("some issues with Bitbucket")
-    public void testFullSizeDocumentWithAutoVATShipping() {
+    //    @Disabled("some issues with Bitbucket")
+    void testFullSizeDocumentWithAutoVATShipping() {
         int id = 1;
         Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1)));
@@ -290,23 +292,23 @@ public class DocumentSummaryCalcTest {
 
         DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
         DocumentSummary summary = calc.calculate(invoice);
-        Assert.assertEquals(3.0, summary.getTotalQuantity(), 0.0);
+        assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value including shipping net value
         double totalNet = summary.getTotalNet().getNumber().doubleValue();
-        Assert.assertEquals(35.15, totalNet, 0);
-        Assert.assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
+        assertEquals(35.15, totalNet, 0);
+        assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
         double totalVat = summary.getTotalVat().getNumber().doubleValue();
-        Assert.assertEquals(2.92, totalVat, DOUBLE_DELTA);
+        assertEquals(2.92, totalVat, DOUBLE_DELTA);
 
         // has to be same as summary.getTotalNet()
-        Assert.assertEquals(totalNet, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(totalNet, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
 
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(2.33), "EUR"), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded());
-        Assert.assertEquals(Money.of(MoneyUtils.getBigDecimal(0.59), "EUR"), calc.getVatSummaryItemForTaxValue(0.05).get(0).getVatRounded());
-        Assert.assertEquals(2, calc.getVatSummary(invoice).size());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(2.33), "EUR"), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded());
+        assertEquals(Money.of(MoneyUtils.getBigDecimal(0.59), "EUR"), calc.getVatSummaryItemForTaxValue(0.05).get(0).getVatRounded());
+        assertEquals(2, calc.getVatSummary(invoice).size());
         // sum of items has to be equal to summary.getTotalVat()
-        Assert.assertEquals(totalVat, calc.getDocumentSummary(invoice).getTotalVatRounded().getNumber().doubleValue(), 0);
+        assertEquals(totalVat, calc.getDocumentSummary(invoice).getTotalVatRounded().getNumber().doubleValue(), 0);
     }
 
     /**
@@ -352,13 +354,13 @@ public class DocumentSummaryCalcTest {
      * </p>
      */
     @Test
-    public void testSimpleDocumentItem() {
+    void testSimpleDocumentItem() {
         DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
 
         Price testPrice = new PriceBuilder().withDocumentItem(documentItem).build();
-        Assert.assertEquals(10.0, testPrice.getTotalNet().getNumber().doubleValue(), 0);
-        Assert.assertEquals(11.0, testPrice.getTotalGross().getNumber().doubleValue(), 0);
-        Assert.assertEquals(1.0, testPrice.getTotalVat().getNumber().doubleValue(), 0);
+        assertEquals(10.0, testPrice.getTotalNet().getNumber().doubleValue(), 0);
+        assertEquals(11.0, testPrice.getTotalGross().getNumber().doubleValue(), 0);
+        assertEquals(1.0, testPrice.getTotalVat().getNumber().doubleValue(), 0);
     }
 
     private DocumentItem createDocumentItem(final int id, final Double quantity, final Double price, final Double taxValue) {
