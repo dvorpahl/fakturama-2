@@ -43,4 +43,6 @@ public class MailServiceMessages {
     public String mailservicePreferencesServerUser;
     public String mailservicePreferencesSubjectLabel;
     public String mailserviceSettingsInvalid;
+
+    public String mailserviceSendFailed;
 }

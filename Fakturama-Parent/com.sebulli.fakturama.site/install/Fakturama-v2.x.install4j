@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.6" transformSequenceNumber="10">
-  <directoryPresets config="../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3c" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
+<install4j version="10.0.8" transformSequenceNumber="10">
+  <directoryPresets config="./linux_64bit/fakturama/usr" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -25,24 +25,30 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
-    <jreBundles jdkProviderId="Zulu" release="17/17.0.9" />
+    <codeSigning macEnabled="true" macPkcs12File="../../../../../Documents/Zertifikate/Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" macNotarize="true" appleId="apple-dev@fakturama.net" />
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.11+9" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git">
     <filesets>
-      <fileset name="Installer MacOS" id="32" />
+      <fileset name="Installer MacOS - Intel" id="32" />
       <fileset name="Installer Win 64bit" id="41" />
       <fileset name="Installer Linux 64bit" id="54" />
+      <fileset name="Installer MacOS - ARM" id="547" />
+      <fileset name="Installer Linux ARM64" id="568" />
     </filesets>
     <roots>
       <root id="33" fileset="32" />
       <root id="42" fileset="41" />
       <root id="55" fileset="54" />
+      <root id="548" fileset="547" />
+      <root id="569" fileset="568" />
     </roots>
     <mountPoints>
       <mountPoint id="34" root="33" />
       <mountPoint id="43" root="42" />
       <mountPoint id="56" root="55" />
+      <mountPoint id="550" root="548" />
+      <mountPoint id="570" root="569" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="34" file="../target/products/Fakturama.ID/macosx/cocoa/x86_64" subDirectory="x86_64" />
@@ -57,6 +63,9 @@
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="56" file="linux_64bit/fakturama/usr/share" subDirectory="share" />
+      <dirEntry mountPoint="550" file="../target/products/Fakturama.ID/macosx/cocoa/aarch64" subDirectory="aarch64" />
+      <dirEntry mountPoint="570" file="../target/products/Fakturama.ID/linux/gtk/aarch64" subDirectory="aarch64" />
+      <dirEntry mountPoint="570" file="linux_64bit/fakturama/usr/share" subDirectory="share" />
     </entries>
   </files>
   <launchers>
@@ -126,7 +135,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2023 Fakturama.info</property>
+                <property name="labelText" type="string">(c) 2024 Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -415,7 +424,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2023 Fakturama.org</property>
+                <property name="labelText" type="string">(c) 2024 Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -731,6 +740,8 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="54" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <jreBundle usePack200="false" />
     </windows>
@@ -742,11 +753,12 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
-        <entry filesetId="49" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <jreBundle usePack200="false" />
     </unixInstaller>
-    <linuxRPM name="Linux RPM" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
+    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
       <excludedLaunchers>
         <launcher id="44" />
       </excludedLaunchers>
@@ -754,6 +766,8 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
@@ -762,14 +776,17 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (64bit)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
+        <launcher id="537" />
       </excludedLaunchers>
       <exclude>
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
@@ -778,7 +795,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
-    <macosFolder name="macOS Folder" id="528" installDir="Fakturama2" signLaunchers="true">
+    <macosFolder name="macOS Folder - Intel" id="528" mediaFileName="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}_x86" installDir="Fakturama2" installerName="${i18n:InstallerName(${compiler:sys.fullName})}_x64" volumeName="${compiler:sys.shortName}_x64" signLaunchers="true">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="58" />
@@ -787,10 +804,45 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
         <entry defaultFileset="true" />
         <entry filesetId="41" />
         <entry filesetId="54" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
+      <jreBundle usePack200="false" />
     </macosFolder>
+    <macosFolder name="macOS Folder - ARM" id="541" mediaFileName="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}_ARM64" installerName="${i18n:InstallerName(${compiler:sys.fullName})}_ARM64" volumeName="${compiler:sys.shortName}_ARM64" architecture="aarch64" signLaunchers="true">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="58" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="41" />
+        <entry filesetId="54" />
+        <entry filesetId="568" />
+      </exclude>
+      <jreBundle usePack200="false" />
+    </macosFolder>
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_aarch64_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="537" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="41" />
+        <entry filesetId="54" />
+        <entry filesetId="547" />
+      </exclude>
+      <jreBundle platform="linux-aarch64" />
+    </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="528" />
+    <mediaSet refId="45" />
+    <mediaSet refId="59" />
+    <mediaSet refId="119" />
+    <mediaSet refId="120" />
+    <mediaSet refId="577" />
   </buildIds>
 </install4j>

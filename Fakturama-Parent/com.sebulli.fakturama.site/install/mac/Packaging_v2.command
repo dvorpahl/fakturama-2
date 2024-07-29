@@ -24,7 +24,7 @@ fi
 
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
-VERSION=2.1.3c
+VERSION=2.2.0-BETA
    
 # if not enough args displayed, display an error and die
 [ $# -eq 0 ] && die "Usage: $0 1|2 
@@ -121,7 +121,7 @@ for arg in "$@"; do
    
    #  assumes our contents are at least 1M!
    SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'  | sed 's/,/\./'` 
-   SIZE=`echo "${SIZE} + 2.0" | bc | awk '{print int($1+0.5)}'`
+   SIZE=`echo "${SIZE} + 3.0" | bc | awk '{print int($1+0.5)}'`
    
    echo "INFO:  SIZE=$SIZE"
    
@@ -199,6 +199,7 @@ for arg in "$@"; do
    xcrun stapler staple ../install/${DMG_FINAL}
    spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
    
+   # some fixes for Linux and Windows archives
    if [ -f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ]; then
    	echo 'moving installer (tar.gz) to installer directory'
    	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz

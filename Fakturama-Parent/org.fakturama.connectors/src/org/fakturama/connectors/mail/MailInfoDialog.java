@@ -16,9 +16,7 @@ package org.fakturama.connectors.mail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,16 +29,17 @@ import org.eclipse.core.databinding.observable.list.IObservableList;
 import org.eclipse.core.databinding.observable.masterdetail.IObservableFactory;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.databinding.validation.ValidationStatus;
-import org.eclipse.e4.core.contexts.Active;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.model.application.MApplication;
-import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
 import org.eclipse.jface.databinding.fieldassist.ControlDecorationSupport;
 import org.eclipse.jface.databinding.swt.typed.WidgetProperties;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
@@ -48,8 +47,12 @@ import org.eclipse.jface.widgets.ButtonFactory;
 import org.eclipse.jface.widgets.CompositeFactory;
 import org.eclipse.jface.widgets.LabelFactory;
 import org.eclipse.jface.widgets.TextFactory;
+import org.eclipse.jface.widgets.WidgetFactory;
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -59,44 +62,93 @@ import org.eclipse.swt.widgets.Text;
 
 import com.sebulli.fakturama.i18n.Messages;
 
-/**
- *
- */
-public class MailInfoDialog {
+public class MailInfoDialog extends Dialog {
     private DataBindingContext bindingContext = new DataBindingContext();
-    private Text receiverTo, receiverCC, receiverBCC, subject, body;
+    private Text receiverTo;
+    private Text receiverCC;
+    private Text receiverBCC;
+    private Text subject;
+    private Text body;
     private ListViewer listViewer;
-    private Shell shell;
-
     @Inject
     private EModelService modelService;
-
     @Inject
     private MApplication application;
-
     @Inject
     private MailSettings settings;
-
     @Inject
     @Translation
     protected Messages msg;
-
     @Inject
     @Translation
     protected MailServiceMessages mailServiceMessages;
-
     @Inject
     private MailService mailService;
     private UpdateValueStrategy<String, String> emailValidationStrategy = new UpdateValueStrategy<>();
     private Button sendButton;
 
-    @PostConstruct
-    protected Control createDialogArea(@Active final Shell shell, final Composite parent) {
-        this.shell = shell;
+    /**
+     * @param parentShell
+     */
+    public MailInfoDialog(final IShellProvider parentShell) {
+        super(parentShell);
+        setShellProps();
+    }
 
+    /**
+     * @param parentShell
+     */
+    protected MailInfoDialog(final Shell parentShell) {
+        super(parentShell);
+        setShellProps();
+    }
+
+    /**
+     * 
+     */
+    private void setShellProps() {
+        setShellStyle(SWT.APPLICATION_MODAL | SWT.DIALOG_TRIM | SWT.RESIZE);
+        setBlockOnOpen(false);
+
+    }
+
+    @Override
+    public void create() {
+        super.create();
+        Shell shell = getShell();
+        shell.setText("Mail Service");
+        setDialogIcon(shell);
+    }
+
+    private void setDialogIcon(final Shell shell) {
+        Shell mainShell = this.application.getContext().get(Shell.class);
+        if (mainShell != null) {
+            Image image = mainShell.getImage();
+            if (image != null) {
+                shell.setImage(image);
+            }
+        }
+    }
+
+    @Override
+    protected void createButtonsForButtonBar(final Composite parent) {
+        ((GridLayout) parent.getLayout()).numColumns++;
+        sendButton = WidgetFactory.button(SWT.PUSH).text(mailServiceMessages.mailserviceDialogSend).font(JFaceResources.getDialogFont())
+                .data(Integer.valueOf(IDialogConstants.OK_ID)).onSelect(event -> mailService.sendMail(settings)).create(parent);
+        // set first button as default
+        Shell shell = parent.getShell();
+        if (shell != null) {
+            shell.setDefaultButton(sendButton);
+        }
+        setButtonLayoutData(sendButton);
+        createButton(parent, IDialogConstants.CANCEL_ID, mailServiceMessages.mailserviceDialogCancel, false);
+    }
+
+    @Override
+    protected Control createDialogArea(final Composite parent) {
         emailValidationStrategy.setBeforeSetValidator((final String emailAddress) -> {
             // either To, CC or BCC has to have at least one entry
-            boolean isValid;
+            boolean isValid = false;
             if (StringUtils.isBlank(emailAddress) && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank())) {
                 return ValidationStatus.ok();
             }
@@ -105,7 +157,9 @@ public class MailInfoDialog {
                     e -> StringUtils.isBlank(e) && (!receiverTo.getText().isBlank() || !receiverCC.getText().isBlank() || !receiverBCC.getText().isBlank())
                             || EmailValidator.getInstance().isValid(e));
 
-            sendButton.setEnabled(isValid);
+            if (sendButton != null) {
+                sendButton.setEnabled(isValid);
+            }
             return isValid ? ValidationStatus.ok() : ValidationStatus.error(msg.editorContactFieldEmailValidationerror);
         });
 
@@ -139,34 +193,14 @@ public class MailInfoDialog {
         addAttachmentListViewer(attachmentPanel);
         addButtons(attachmentPanel);
 
-        Composite bottomPanel = CompositeFactory.newComposite(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create())
-                .layout(GridLayoutFactory.swtDefaults().numColumns(3).equalWidth(true).create()).create(top);
-        LabelFactory.newLabel(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(bottomPanel); // invisible label
-        LabelFactory.newLabel(SWT.NONE).layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(bottomPanel); // invisible label
-
-        Composite buttonPanel = CompositeFactory.newComposite(SWT.NONE)
-                .layoutData(GridDataFactory.fillDefaults().grab(true, false).align(SWT.END, SWT.FILL).create()).layout(new FillLayout()).create(bottomPanel);
-
-        sendButton = ButtonFactory.newButton(SWT.PUSH).layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
-                .text(mailServiceMessages.mailserviceDialogSend).onSelect(t -> mailService.sendMail(settings)).create(buttonPanel);
-
-        ButtonFactory.newButton(SWT.PUSH).layoutData(GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).create())
-                .text(mailServiceMessages.mailserviceDialogCancel).onSelect(t -> {
-                    closeDialog();
-                }).create(buttonPanel);
-
         bindFields();
-
-        shell.setDefaultButton(sendButton);
         return parent;
     }
 
-    private void closeDialog() {
-        Optional<MUIElement> mailAppDialog = Optional.ofNullable(modelService.find(MailServiceConstants.MAIL_APP_MAIN_WINDOW_ID, application));
-        mailAppDialog.ifPresent(m -> {
-            m.setVisible(false);
-            m.setToBeRendered(false);
-        });
+    @Override
+    public int open() {
+        // TODO Auto-generated method stub
+        return super.open();
     }
 
     private void bindFields() {
@@ -229,7 +263,7 @@ public class MailInfoDialog {
         Composite composite = CompositeFactory.newComposite(SWT.NULL).layout(fillLayout).create(top);
 
         ButtonFactory.newButton(SWT.PUSH).text(mailServiceMessages.mailserviceDialogAdd).onSelect(t -> {
-            FileDialog fileDialog = new FileDialog(shell, SWT.MULTI);
+            FileDialog fileDialog = new FileDialog(this.getShell(), SWT.MULTI);
             fileDialog.setText(mailServiceMessages.mailserviceDialogAddattachment);
 
             fileDialog.open();
@@ -246,7 +280,7 @@ public class MailInfoDialog {
             IStructuredSelection selection = (IStructuredSelection) listViewer.getSelection();
             String language = (String) selection.getFirstElement();
             if (language == null) {
-                MessageDialog.openInformation(shell, msg.dialogMessageboxTitleInfo, mailServiceMessages.mailserviceDialogErrorNoitem);
+                MessageDialog.openInformation(this.getShell(), msg.dialogMessageboxTitleInfo, mailServiceMessages.mailserviceDialogErrorNoitem);
                 return;
             }
 

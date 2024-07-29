@@ -3,11 +3,16 @@ Bundle-ManifestVersion: 2
 Bundle-Name: RCP Tests
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-SymbolicName: com.sebulli.fakturama.rcp.test
-Bundle-Version: 2.1.3.qualifier
+Bundle-Version: 2.2.0.qualifier
 Bundle-Vendor: Fakturama Team
 Fragment-Host: com.sebulli.fakturama.rcp
 Automatic-Module-Name: com.sebulli.fakturama.rcp.test
 Export-Package: com.sebulli.fakturama.office
-Require-Bundle: org.junit;bundle-version="4.12.0",
- org.mockito.mockito-core;bundle-version="4.8.1",
- com.sebulli.fakturama.model
+Require-Bundle: org.mockito.mockito-core;bundle-version="4.8.1",
+ com.sebulli.fakturama.model,
+ junit-jupiter-api;bundle-version="5.9.3",
+ org.junit.vintage.engine;bundle-version="5.9.1",
+ junit-jupiter-engine;bundle-version="5.9.3",
+ junit-jupiter-params;bundle-version="5.9.3",
+ junit-vintage-engine;bundle-version="5.9.3",
+ org.mockito.junit-jupiter;bundle-version="4.8.1"
