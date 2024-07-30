@@ -1,0 +1,14 @@
+**/.settings
+**/.classpath
+**/.project
+**/target/
+**/.apt_generated
+**/src-gen
+**/archive/
+**/test-output/
+**/.DS_Store
+**/.polyglot*
+**/.m2/
+**/*.log
+**/bin/
+

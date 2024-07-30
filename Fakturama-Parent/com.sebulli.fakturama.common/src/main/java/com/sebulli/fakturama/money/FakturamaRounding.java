@@ -38,31 +38,29 @@ public class FakturamaRounding implements MonetaryRounding {
     /**
      * Creates an rounding instance.
      *
-     * @param roundingMode The {@link java.math.RoundingMode} to be used, not {@code null}.
+     * @param roundingMode
+     *            The {@link java.math.RoundingMode} to be used, not
+     *            {@code null}.
      */
-    FakturamaRounding(int scale, RoundingMode roundingMode) {
+    FakturamaRounding(int scale, final RoundingMode roundingMode) {
         Objects.requireNonNull(roundingMode, "RoundingMode required.");
         if (scale < 0) {
-            scale = 0;
+            scale = 2;
         }
-        this.context = RoundingContextBuilder.of("default", "default").
-                set(PROVCLASS_KEY, getClass().getName()).set(SCALE_KEY, scale).set(Optional.ofNullable(roundingMode)
-                .orElseThrow(
-                        () -> new
-                                IllegalArgumentException(
-                                "roundingMode missing")))
-                .build();
+        this.context = RoundingContextBuilder.of("default", "default").set(PROVCLASS_KEY, getClass().getName()).set(SCALE_KEY, scale)
+                .set(Optional.ofNullable(roundingMode).orElseThrow(() -> new IllegalArgumentException("roundingMode missing"))).build();
     }
 
     /**
      * Creates an {@link DefaultRounding} for rounding {@link MonetaryAmount}
      * instances given a currency.
      *
-     * @param currency The currency, which determines the required precision. As
-     *                 {@link RoundingMode}, by default, {@link RoundingMode#HALF_UP}
-     *                 is used.
+     * @param currency
+     *            The currency, which determines the required precision. As
+     *            {@link RoundingMode}, by default, {@link RoundingMode#HALF_UP}
+     *            is used.
      */
-    FakturamaRounding(CurrencyUnit currency, RoundingMode roundingMode) {
+    FakturamaRounding(final CurrencyUnit currency, final RoundingMode roundingMode) {
         this(currency.getDefaultFractionDigits(), roundingMode);
     }
 
@@ -72,10 +70,10 @@ public class FakturamaRounding implements MonetaryRounding {
      * @see javax.money.MonetaryFunction#apply(java.lang.Object)
      */
     @Override
-    public MonetaryAmount apply(MonetaryAmount amount) {
-        return amount.getFactory().setCurrency(amount.getCurrency()).setNumber(
-                amount.getNumber().numberValue(BigDecimal.class)
-                        .setScale(this.context.getInt(SCALE_KEY), this.context.get(RoundingMode.class))).create();
+    public MonetaryAmount apply(final MonetaryAmount amount) {
+        return amount.getFactory().setCurrency(amount.getCurrency())
+                .setNumber(amount.getNumber().numberValue(BigDecimal.class).setScale(this.context.getInt(SCALE_KEY), this.context.get(RoundingMode.class)))
+                .create();
     }
 
     @Override

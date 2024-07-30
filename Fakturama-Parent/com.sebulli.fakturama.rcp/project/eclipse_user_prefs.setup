@@ -5,14 +5,14 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:git="http://www.eclipse.org/oomph/setup/git/1.0"
     xmlns:jdt="http://www.eclipse.org/oomph/setup/jdt/1.0"
+    xmlns:launching="http://www.eclipse.org/oomph/setup/launching/1.0"
     xmlns:maven="http://www.eclipse.org/oomph/setup/maven/1.0"
     xmlns:pde="http://www.eclipse.org/oomph/setup/pde/1.0"
     xmlns:predicates="http://www.eclipse.org/oomph/predicates/1.0"
     xmlns:projects="http://www.eclipse.org/oomph/setup/projects/1.0"
     xmlns:setup="http://www.eclipse.org/oomph/setup/1.0"
-    xmlns:setup.targlets="http://www.eclipse.org/oomph/setup/targlets/1.0"
     xmlns:setup.workingsets="http://www.eclipse.org/oomph/setup/workingsets/1.0"
-    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/maven/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Maven.ecore http://www.eclipse.org/oomph/setup/pde/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/PDE.ecore http://www.eclipse.org/oomph/predicates/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/targlets/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/SetupTarglets.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/SetupWorkingSets.ecore"
+    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/launching/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Launching.ecore http://www.eclipse.org/oomph/setup/maven/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Maven.ecore http://www.eclipse.org/oomph/setup/pde/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/PDE.ecore http://www.eclipse.org/oomph/predicates/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 https://raw.githubusercontent.com/eclipse-oomph/oomph/master/setups/models/SetupWorkingSets.ecore"
     name="eclipse.user.prefs.fakturama"
     label="Eclipse User Prefs Fakturama">
   <setupTask
@@ -26,15 +26,15 @@
       name="User Preferences"/>
   <setupTask
       xsi:type="jdt:JRETask"
-      version="JavaSE-11"
-      location="${jre.location-11}">
+      version="JavaSE-17"
+      location="${jre.location-17}">
     <description>Define the JRE needed to compile and run the Java projects of ${scope.project.label}</description>
   </setupTask>
   <setupTask
       xsi:type="setup:VariableTask"
       type="FOLDER"
       name="installation.location"
-      defaultValue="C:\Software\Eclipse"
+      defaultValue="${user.home}/fakturama/eclipse"
       label="Installation location">
     <annotation
         source="ImpliedVariable">
@@ -55,7 +55,7 @@
       xsi:type="setup:VariableTask"
       type="JRE"
       name="jre.location"
-      defaultValue="C:\Software\Java\(jrk/jdk-version)"
+      defaultValue="${user.home}/fakturama/(jrk/jdk-version)"
       label="JRE/JDK location">
     <description>The location of a JDK or JRE compatible with Java 8</description>
   </setupTask>
@@ -63,7 +63,7 @@
       xsi:type="setup:VariableTask"
       type="FOLDER"
       name="workspace.location"
-      defaultValue="C:\workspaces\X"
+      defaultValue="${user.home}/fakturama/workspace"
       label="Workspace location">
     <annotation
         source="ImpliedVariable">
@@ -132,18 +132,51 @@
     </content>
   </setupTask>
   <setupTask
+      xsi:type="setup:VariableTask"
+      name="eclipse.target.platform"
+      value="2023-06"
+      defaultValue="2023-06"
+      storageURI="scope://Workspace"
+      label="Target Platform">
+    <annotation
+        source="http://www.eclipse.org/oomph/setup/GlobalVariable"/>
+    <description>Choose the compatibility level of the target platform</description>
+  </setupTask>
+  <setupTask
+      xsi:type="git:GitCloneTask"
+      id="git.clone.fakturama2"
+      remoteURI="https://bitbucket.org/fakturamadev/fakturama-2.git"
+      checkoutBranch="feature/boarschti/update_java_17"
+      recursive="true">
+    <description>${scope.project.label}</description>
+  </setupTask>
+  <setupTask
+      xsi:type="projects:ProjectsImportTask"
+      id="ImportAllProjects"
+      force="true">
+    <sourceLocator
+        rootFolder="${git.clone.fakturama2.location}"
+        locateNestedProjects="true"/>
+  </setupTask>
+  <setupTask
       xsi:type="setup.workingsets:WorkingSetTask">
     <workingSet
         name="Fakturama"
         id="org.fakturama.workingset">
       <predicate
-          xsi:type="predicates:OrPredicate">
+          xsi:type="predicates:AndPredicate">
         <operand
-            xsi:type="predicates:FilePredicate"
-            filePattern="**/com.sebulli.*"/>
+            xsi:type="predicates:NotPredicate">
+          <operand
+              xsi:type="predicates:LocationPredicate"
+              pattern="\Q${git.clone.fakturama2.location|path}\E/javamoney/.*"/>
+        </operand>
         <operand
-            xsi:type="predicates:FilePredicate"
-            filePattern="**/org.fakturama.*"/>
+            xsi:type="predicates:NotPredicate">
+          <operand
+              xsi:type="predicates:LocationPredicate"
+              pattern="\Q${git.clone.fakturama2.location|path}\E/libs/.*"/>
+        </operand>
       </predicate>
     </workingSet>
     <workingSet
@@ -151,292 +184,50 @@
         id="org.fakturama.javamoney">
       <predicate
           xsi:type="predicates:LocationPredicate"
-          pattern="${git.clone.fakturama2.location}/javamoney"/>
+          pattern="\Q${git.clone.fakturama2.location|path}\E/javamoney/.*"/>
     </workingSet>
     <workingSet
         name="Helper Libs"
         id="org.fakturama.helperlibs">
       <predicate
           xsi:type="predicates:LocationPredicate"
-          pattern="${git.clone.fakturama2.location}/libs/*"/>
+          pattern="\Q${git.clone.fakturama2.location|path}\E/libs/.*"/>
     </workingSet>
     <description>The dynamic working sets for ${scope.project.label}</description>
   </setupTask>
+  <setupTask
+      xsi:type="pde:TargetPlatformTask"
+      id="Fakturama.Target.platform.activate"
+      name="org.fakturama.target"/>
+  <setupTask
+      xsi:type="pde:APIBaselineFromTargetTask"
+      id="org.fakturama.target.create"
+      name="Fakturama API Baseline"
+      activate="false"
+      targetName="org.fakturama.target">
+    <description>An API baseline based on the target platform named 'Modular Target for Fakturama'</description>
+  </setupTask>
+  <setupTask
+      xsi:type="pde:APIBaselineFromTargetTask"
+      id="org.fakturama.target.activate"
+      name="Fakturama API Baseline"
+      targetName="org.fakturama.target">
+    <description>An API baseline based on the target platform named 'Modular Target for Fakturama'</description>
+  </setupTask>
+  <setupTask
+      xsi:type="projects:ProjectsBuildTask"/>
+  <setupTask
+      xsi:type="launching:LaunchTask"
+      id="launch.maven.model.build"
+      launcher="Fakturama clean verify"/>
+  <setupTask
+      xsi:type="maven:MavenUpdateTask"
+      id="MavenUpdateAll"
+      updateSnapshots="true">
+    <description>Maven Update All projects</description>
+  </setupTask>
   <stream name="user.prefs.2023-06"
       label="User Prefs 2023-06">
-    <setupTask
-        xsi:type="setup:VariableTask"
-        name="eclipse.target.platform"
-        value="2023-06"
-        defaultValue="2023-06"
-        storageURI="scope://Workspace"
-        label="Target Platform">
-      <annotation
-          source="http://www.eclipse.org/oomph/setup/GlobalVariable"/>
-      <description>Choose the compatibility level of the target platform</description>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.targlets:TargletTask"
-        id="org.fakturama.target.id"
-        targetName="Modular Target for Fakturama">
-      <targlet
-          name="Eclipse Dependencies"
-          includeSources="false">
-        <requirement
-            name="org.eclipse.core.runtime.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.draw2d.feature.group"/>
-        <requirement
-            name="org.eclipse.collections.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.e4.rcp.feature.group"/>
-        <requirement
-            name="org.eclipse.emf.feature.group"/>
-        <requirement
-            name="org.eclipse.equinox.core.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.equinox.p2.rcp.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.swt.cocoa.macosx.x86_64"
-            filter="(&amp;(osgi.arch=x86_64)(osgi.os=macosx)(osgi.ws=cocoa))"/>
-        <requirement
-            name="org.eclipse.swt.gtk.linux.x86"
-            filter="(&amp;(osgi.arch=x86)(osgi.os=linux)(osgi.ws=gtk))"/>
-        <requirement
-            name="org.eclipse.swt.gtk.linux.x86_64"
-            filter="(&amp;(osgi.arch=x86_64)(osgi.os=linux)(osgi.ws=gtk))"/>
-        <requirement
-            name="org.eclipse.swt.win32.win32.x86"
-            filter="(&amp;(osgi.arch=x86)(osgi.os=win32)(osgi.ws=win32))"/>
-        <requirement
-            name="org.eclipse.swt.win32.win32.x86_64"
-            filter="(&amp;(osgi.arch=x86_64)(osgi.os=win32)(osgi.ws=win32))"/>
-        <requirement
-            name="org.eclipse.m2e.maven.runtime"
-            versionRange="[3.0.0,4.0.0)"/>
-        <repositoryList
-            name="2023-06">
-          <repository
-              url="http://download.eclipse.org/releases/2023-06"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Fakturama P2 Repo"
-          includeSources="false">
-        <requirement
-            name="org.apache.commons.feature.feature.group"/>
-        <requirement
-            name="org.apache.odftoolkit.feature.feature.group"/>
-        <requirement
-            name="org.hsql.jdbc.feature.feature.group"/>
-        <requirement
-            name="com.mysql.jdbc.feature.feature.group"/>
-        <requirement
-            name="org.slf4j.osgi.feature.feature.group"/>
-        <requirement
-            name="org.javamoney.feature.feature.group"/>
-        <requirement
-            name="com.opcoach.e4.preference.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.gemini.ext.di.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.cwt.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.cdatetime.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.pgroup.feature.feature.group"/>
-        <requirement
-            name="com.opencsv.feature.feature.group"/>
-        <repositoryList>
-          <repository
-              url="https://p2.fakturama.info/2.1.1"/>
-          <repository
-              url="https://p2.fakturama.info/gemini-di/1.2.0"/>
-          <repository
-              url="https://p2.fakturama.info/nebula-fakturama"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="EclipseLink">
-        <requirement
-            name="org.eclipse.persistence.sdk.feature.group"
-            versionRange="[2.7.3,2.7.9)"/>
-        <repositoryList>
-          <repository
-              url="http://download.eclipse.org/rt/eclipselink/updates"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Gemini Dependencies">
-        <requirement
-            name="org.eclipse.gemini.jpa.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.gemini.dbaccess.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.gemini.dbaccess.h2.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.gemini.dbaccess.hsqldb.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.gemini.dbaccess.mysql.feature.feature.group"/>
-        <repositoryList>
-          <repository
-              url="http://download.eclipse.org/gemini/jpa/updates"/>
-          <repository
-              url="http://download.eclipse.org/gemini/updates/dbaccess/1.1.0"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Babel Translations">
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_ar.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_eu.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_fr.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_de.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_el.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_hu.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_it.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_pl.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_ro.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_ru.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_sk.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_es.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_tr.feature.group"/>
-        <requirement
-            name="org.eclipse.babel.nls_eclipse_uk.feature.group"/>
-        <repositoryList>
-          <repository
-              url="https://download.eclipse.org/technology/babel/update-site/R0.18.1/2020-09"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Orbit Libraries">
-        <requirement
-            name="org.apache.commons.codec"/>
-        <requirement
-            name="org.apache.commons.logging"/>
-        <requirement
-            name="org.apache.commons.lang"/>
-        <requirement
-            name="org.apache.commons.cli"/>
-        <requirement
-            name="org.apache.poi"/>
-        <requirement
-            name="org.apache.poi.ooxml"/>
-        <requirement
-            name="org.apache.poi.ooxml.schemas"/>
-        <requirement
-            name="org.apache.xmlbeans"/>
-        <requirement
-            name="org.slf4j.bridge.jul"/>
-        <requirement
-            name="org.slf4j.apis.log4j"/>
-        <requirement
-            name="org.slf4j.api"/>
-        <requirement
-            name="org.slf4j.ext"/>
-        <requirement
-            name="org.slf4j.binding.simple"/>
-        <requirement
-            name="ca.odell.glazedlists"/>
-        <requirement
-            name="ch.qos.logback.classic"/>
-        <requirement
-            name="ch.qos.logback.core"/>
-        <requirement
-            name="ch.qos.logback.slf4j"/>
-        <requirement
-            name="org.yaml.snakeyaml"/>
-        <repositoryList>
-          <repository
-              url="https://download.eclipse.org/tools/orbit/downloads/drops/R20201130205003/repository"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Nebula Dependencies">
-        <requirement
-            name="org.eclipse.nebula.widgets.formattedtext.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.picture.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.treemapper.feature.feature.group"/>
-        <repositoryList>
-          <repository
-              url="http://download.eclipse.org/nebula/releases/latest"/>
-          <repository
-              url="http://download.eclipse.org/nebula/incubation/snapshot"/>
-          <repository
-              url="http://archive.eclipse.org/nebula/Q22016/incubation"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="NatTable">
-        <requirement
-            name="org.eclipse.nebula.widgets.nattable.core.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.nattable.extension.e4.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.nattable.extension.glazedlists.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.nattable.extension.nebula.feature.feature.group"/>
-        <requirement
-            name="org.eclipse.nebula.widgets.nattable.extension.poi.feature.feature.group"/>
-        <repositoryList>
-          <repository
-              url="http://download.eclipse.org/nattable/releases/1.6.0/repository"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Texo">
-        <requirement
-            name="org.eclipse.emf.texo.runtime.core.feature.group"/>
-        <repositoryList>
-          <repository
-              url="http://download.eclipse.org/modeling/emft/texo/updates/interim"/>
-        </repositoryList>
-      </targlet>
-      <targlet
-          name="Workspace dependencies"
-          includeBinaryEquivalents="false">
-        <sourceLocator
-            rootFolder="${git.clone.fakturama2.location}"
-            locateNestedProjects="true"/>
-      </targlet>
-    </setupTask>
-    <setupTask
-        xsi:type="git:GitCloneTask"
-        id="git.clone.fakturama2"
-        remoteURI="https://bitbucket.org/fakturamadev/fakturama-2.git"
-        checkoutBranch="develop"
-        recursive="true">
-      <description>${scope.project.label}</description>
-    </setupTask>
-    <setupTask
-        xsi:type="projects:ProjectsImportTask"
-        id="ImportAllProjects"
-        force="true">
-      <sourceLocator
-          rootFolder="${git.clone.fakturama2.location}"
-          locateNestedProjects="true"/>
-    </setupTask>
-    <setupTask
-        xsi:type="maven:MavenUpdateTask"
-        id="MavenUpdateAll"
-        updateSnapshots="true">
-      <description>Maven Update All projects</description>
-      <projectNamePattern>*</projectNamePattern>
-    </setupTask>
     <setupTask
         xsi:type="setup:CompoundTask"
         name="User Preferences">
@@ -1305,12 +1096,6 @@
             key="/instance/org.eclipse.m2e.wtp/org.eclipse.m2e.wtp.jsf.enabler.enabled"
             value="true"/>
       </setupTask>
-    </setupTask>
-    <setupTask
-        xsi:type="pde:APIBaselineFromTargetTask"
-        name="Fakturama API Baseline"
-        targetName="Modular Target for Fakturama">
-      <description>An API baseline based on the target platform named 'Modular Target for Fakturama'</description>
     </setupTask>
     <description>User Preferences for Fakturama</description>
   </stream>

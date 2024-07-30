@@ -42,15 +42,14 @@ import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
  */
 public class Activator implements BundleActivator, IBundleGroupProvider {
 
-
-	// The bundle ID (Bundle-SymbolicName)
+    // The bundle ID (Bundle-SymbolicName)
     public static final String PLUGIN_ID = "com.sebulli.fakturama.rcp";
 
     // The shared instance
     private static BundleContext context;
-    ServiceRegistration<?> bundleGroupProviderSR; 
-	private PlatformConfiguration configuration;
-	 
+    ServiceRegistration<?> bundleGroupProviderSR;
+    private PlatformConfiguration configuration;
+
     /**
      * Returns the shared instance
      * 
@@ -68,59 +67,64 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
      * )
      */
     @Override
-    public void start(BundleContext bundleContext) throws Exception {
+    public void start(final BundleContext bundleContext) throws Exception {
         Activator.context = bundleContext;
         // background color for focused widgets
-//        JFaceResources.getColorRegistry().put(Constants.COLOR_BGYELLOW, new RGB(255, 255, 225));
-        
+        //        JFaceResources.getColorRegistry().put(Constants.COLOR_BGYELLOW, new RGB(255, 255, 225));
+
         // perhaps: set RTL mode and configure the Workbench like so:
-        if(BooleanUtils.toBoolean(System.getProperty("force.rtl"))) {
-                Window.setDefaultOrientation(SWT.RIGHT_TO_LEFT);
+        if (BooleanUtils.toBoolean(System.getProperty("force.rtl"))) {
+            Window.setDefaultOrientation(SWT.RIGHT_TO_LEFT);
         }
 
         // background for Browser
-//		JFaceResources.getColorRegistry().put(Constants.COLOR_WHITE, new RGB(0xff, 0xff, 0xff));
-		registerBundleGroupProvider();
-		
-		// register preference store provider
-		bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
-	}
-	
-	private void registerBundleGroupProvider() {
-		final String serviceName = IBundleGroupProvider.class.getName();
-		try {
-			//don't register the service if this bundle has already registered it declaratively
-			ServiceReference<?>[] refs = getContext().getServiceReferences(serviceName, null);
-			if (refs != null) {
-				for (int i = 0; i < refs.length; i++)
-					if (PLUGIN_ID.equals(refs[i].getBundle().getSymbolicName()))
-						return;
-			}
-		} catch (InvalidSyntaxException e) {
-			//can't happen because we don't pass a filter
-		}
-		bundleGroupProviderSR = getContext().registerService(serviceName, this, null);
-	} 
-	
-	@Override
-	public String getName() {
-		return "Bundle Group Provider";
-	} 
-	
-	@Override
-	public IBundleGroup[] getBundleGroups() {
-		if (configuration == null)
-			return new IBundleGroup[0];
+        //		JFaceResources.getColorRegistry().put(Constants.COLOR_WHITE, new RGB(0xff, 0xff, 0xff));
+        registerBundleGroupProvider();
 
-		IPlatformConfiguration.IFeatureEntry[] features = configuration.getConfiguredFeatureEntries();
-		List<IBundleGroup> bundleGroups = new ArrayList<>(features.length);
-		for (int i = 0; i < features.length; i++) {
-			if (features[i] instanceof FeatureEntry && ((FeatureEntry) features[i]).hasBranding())
-				bundleGroups.add((IBundleGroup) features[i]);
-		}
-		return bundleGroups.toArray(new IBundleGroup[bundleGroups.size()]);
-	}
- 
+        // register preference store provider
+        bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
+        //        generatePersistenceUnits();
+    }
+
+    private void registerBundleGroupProvider() {
+        final String serviceName = IBundleGroupProvider.class.getName();
+        try {
+            //don't register the service if this bundle has already registered it declaratively
+            ServiceReference<?>[] refs = getContext().getServiceReferences(serviceName, null);
+            if (refs != null) {
+                for (int i = 0; i < refs.length; i++) {
+                    if (PLUGIN_ID.equals(refs[i].getBundle().getSymbolicName())) {
+                        return;
+                    }
+                }
+            }
+        } catch (InvalidSyntaxException e) {
+            //can't happen because we don't pass a filter
+        }
+        bundleGroupProviderSR = getContext().registerService(serviceName, this, null);
+    }
+
+    @Override
+    public String getName() {
+        return "Bundle Group Provider";
+    }
+
+    @Override
+    public IBundleGroup[] getBundleGroups() {
+        if (configuration == null) {
+            return new IBundleGroup[0];
+        }
+
+        IPlatformConfiguration.IFeatureEntry[] features = configuration.getConfiguredFeatureEntries();
+        List<IBundleGroup> bundleGroups = new ArrayList<>(features.length);
+        for (int i = 0; i < features.length; i++) {
+            if (features[i] instanceof FeatureEntry && ((FeatureEntry) features[i]).hasBranding()) {
+                bundleGroups.add((IBundleGroup) features[i]);
+            }
+        }
+        return bundleGroups.toArray(new IBundleGroup[bundleGroups.size()]);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -129,7 +133,7 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
      * )
      */
     @Override
-    public void stop(BundleContext bundleContext) throws Exception {
+    public void stop(final BundleContext bundleContext) throws Exception {
         Activator.context = null;
     }
 }

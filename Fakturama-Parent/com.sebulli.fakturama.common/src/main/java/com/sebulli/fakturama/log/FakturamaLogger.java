@@ -14,7 +14,6 @@
  
 package com.sebulli.fakturama.log;
 
-import javax.inject.Inject;
 //import javax.inject.Provider;
 
 import org.apache.commons.lang3.ClassUtils;
@@ -24,6 +23,7 @@ import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.LogService;
 
 import ch.qos.logback.classic.spi.CallerData;
+import jakarta.inject.Inject;
 
 /**
  * A wrapper class for the Fakturama logger. This Logger delegates all calls

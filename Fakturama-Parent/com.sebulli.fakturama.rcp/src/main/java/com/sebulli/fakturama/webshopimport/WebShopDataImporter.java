@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2017 The Fakturama Team
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Fakturama Team - initial API and implementation
+ * Contributors: Fakturama Team - initial API and implementation
  */
 
 package com.sebulli.fakturama.webshopimport;
@@ -27,6 +26,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +38,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -48,10 +53,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.money.CurrencyUnit;
 import javax.money.MonetaryAmount;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.MarshalException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,8 @@ import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.ImageData;
 import org.javamoney.moneta.FastMoney;
 import org.javamoney.moneta.Money;
 
@@ -120,119 +123,124 @@ import com.sebulli.fakturama.webshopimport.type.ProductsType;
 import com.sebulli.fakturama.webshopimport.type.ShippingType;
 import com.sebulli.fakturama.webshopimport.type.Webshopexport;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.MarshalException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+
 public class WebShopDataImporter implements IRunnableWithProgress {
-	
-	private static final String WEBSHOP_IMPORT_LOGFILE = "WebShopImport.log";
 
-	private static final String PREFERENCE_LASTWEBSHOPIMPORT_DATE = "lastwebshopimport";
+    private static final String WEBSHOP_IMPORT_LOGFILE = "WebShopImport.log";
 
-	@Inject
-	@Translation
-	private Messages msg;
+    private static final String PREFERENCE_LASTWEBSHOPIMPORT_DATE = "lastwebshopimport";
 
-	@Inject
-	private IPreferenceStore preferences;
-    
-    @Inject 
+    @Inject
+    @Translation
+    private Messages msg;
+
+    @Inject
+    private IPreferenceStore preferences;
+
+    @Inject
     private ILogger log;
 
-    @Inject 
+    @Inject
     private IEclipseContext context;
 
-    @Inject 
+    @Inject
     private VatsDAO vatsDAO;
-    
-    @Inject 
-    private DocumentsDAO documentsDAO;
-    
-    @Inject 
-    private ProductsDAO productsDAO;
-    
-    @Inject 
-    private ContactsDAO contactsDAO;
-    
-    @Inject 
-    private ShippingCategoriesDAO shippingCategoriesDAO;
-    
-    @Inject 
-    private ShippingsDAO shippingsDAO;
-    
-    @Inject 
-    private PaymentsDAO paymentsDAO;
-    
-	@Inject
-	private WebshopDAO webshopStateMappingDAO;
 
-    @Inject 
+    @Inject
+    private DocumentsDAO documentsDAO;
+
+    @Inject
+    private ProductsDAO productsDAO;
+
+    @Inject
+    private ContactsDAO contactsDAO;
+
+    @Inject
+    private ShippingCategoriesDAO shippingCategoriesDAO;
+
+    @Inject
+    private ShippingsDAO shippingsDAO;
+
+    @Inject
+    private PaymentsDAO paymentsDAO;
+
+    @Inject
+    private WebshopDAO webshopStateMappingDAO;
+
+    @Inject
     private ProductCategoriesDAO productCategoriesDAO;
-    
+
     @Inject
     private IDateFormatterService dateFormatterService;
 
     private OrderSyncManager orderSyncManager;
 
-	private MathContext mathContext = new MathContext(5);
+    private MathContext mathContext = new MathContext(5);
 
-	private ProductUtil productUtil;
-	
-	private String generalWorkspace;
-	
-	@Inject
+    private ProductUtil productUtil;
+
+    private String generalWorkspace;
+
+    @Inject
     private ILocaleService localeUtil;
-    
-	@Inject
-	private INumberFormatterService numberFormatterService;
-	
-	@Inject
-	private IDocumentAddressManager addressManager;
 
-	private WebShopConnector connector;
-	private String runResult = "";
+    @Inject
+    private INumberFormatterService numberFormatterService;
 
-	// true, if the product's EAN number is imported as item number
-	private Boolean useEANasItemNr = false;
-	private String productImagePath = "";
-	private int worked = 0;
+    @Inject
+    private IDocumentAddressManager addressManager;
 
-	private IProgressMonitor localMonitor;
-	private CurrencyUnit currencyCode;
-	private final FakturamaModelFactory fakturamaModelFactory = new FakturamaModelFactory();
+    private WebShopConnector connector;
+    private String runResult = "";
 
-	@PostConstruct
-	public void init() {
-		generalWorkspace = preferences.getString(Constants.GENERAL_WORKSPACE);
+    // true, if the product's EAN number is imported as item number
+    private Boolean useEANasItemNr = false;
+    private String productImagePath = "";
+    private int worked = 0;
+
+    private IProgressMonitor localMonitor;
+    private CurrencyUnit currencyCode;
+    private final FakturamaModelFactory fakturamaModelFactory = new FakturamaModelFactory();
+
+    @PostConstruct
+    public void init() {
+        generalWorkspace = preferences.getString(Constants.GENERAL_WORKSPACE);
         orderSyncManager = ContextInjectionFactory.make(OrderSyncManager.class, context);
-		useEANasItemNr = preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR);
+        useEANasItemNr = preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR);
         productUtil = ContextInjectionFactory.make(ProductUtil.class, context);
-	}
+    }
 
-	@Override
-    public void run(IProgressMonitor pMonitor) throws InvocationTargetException, InterruptedException  {
-        if(connector == null) {
-        	runResult = "no connection information provided";
-        	return;
+    @Override
+    public void run(final IProgressMonitor pMonitor) throws InvocationTargetException, InterruptedException {
+        if (connector == null) {
+            runResult = "no connection information provided";
+            return;
         }
-        
+
         orderSyncManager.setConn(connector);
 
         Integer maxProducts = preferences.getInt(Constants.PREFERENCES_WEBSHOP_MAX_PRODUCTS);
         Boolean onlyModifiedProducts = preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_ONLY_MODIFIED_PRODUCTS);
         localMonitor = pMonitor;
         setRunResult("");
-		Webshopexport webshopexport = null;
-        
-		currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit();
+        Webshopexport webshopexport = null;
+
+        currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit();
         String scriptUrl = connector.getScriptURL();
-        
+
         // Check empty URL
         if (scriptUrl.isEmpty()) {
             //T: Status message importing data from web shop
-        	setRunResult(msg.importWebshopErrorUrlnotset);
+            setRunResult(msg.importWebshopErrorUrlnotset);
             return;
         }
 
         // Get the open order IDs that are out of sync with the webshop
-		// from the file system. Store them in the WebShopConnector for further using.
+        // from the file system. Store them in the WebShopConnector for further using.
         orderSyncManager.readOrdersToSynchronize();
         BufferedWriter logBuffer = null;
 
@@ -247,78 +255,80 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 
             // Send user name, password and a list of unsynchronized orders to
             // the shop
-	        URLConnection connection = connector.createConnection();
-            if(connection != null && connection.getDoOutput()) {
-            	OutputStream outputStream = connection.getOutputStream();
+            URLConnection connection = connector.createConnection();
+            if (connection != null && connection.getDoOutput()) {
+                OutputStream outputStream = connection.getOutputStream();
                 OutputStreamWriter writer = new OutputStreamWriter(outputStream);
                 setProgress(20);
-                StringBuilder postStringSb = new StringBuilder("username=")
-    					.append(URLEncoder.encode(connector.getUser(), "UTF-8"))
-						.append("&password=")
-						.append(URLEncoder.encode(connector.getPassword(), "UTF-8"));
+                StringBuilder postStringSb = new StringBuilder("username=").append(URLEncoder.encode(connector.getUser(), "UTF-8")).append("&password=")
+                        .append(URLEncoder.encode(connector.getPassword(), "UTF-8"));
 
                 String actionString = "";
-                if (connector.isGetProducts())
+                if (connector.isGetProducts()) {
                     actionString += "_products";
-                if (connector.isGetOrders())
+                }
+                if (connector.isGetOrders()) {
                     actionString += "_orders";
-                if (!actionString.isEmpty())
+                }
+                if (!actionString.isEmpty()) {
                     actionString = "&action=get" + actionString;
+                }
 
-                postStringSb.append(actionString)
-                	.append("&setstate=").append(connector.getOrderstosynchronize().toString());
-				if (maxProducts > 0) {
-                	postStringSb.append("&maxproducts=").append(maxProducts.toString());
+                postStringSb.append(actionString).append("&setstate=").append(connector.getOrderstosynchronize().toString());
+                if (maxProducts > 0) {
+                    postStringSb.append("&maxproducts=").append(maxProducts.toString());
                 }
 
                 if (onlyModifiedProducts) {
                     String lasttime = preferences.getString(PREFERENCE_LASTWEBSHOPIMPORT_DATE);
-                    if (! lasttime.isEmpty()) {
-						postStringSb.append("&lasttime=").append(lasttime.toString());
-					}
+                    if (!lasttime.isEmpty()) {
+                        postStringSb.append("&lasttime=").append(lasttime.toString());
+                    }
                 }
-            
+
                 log.debug("POST-String: " + postStringSb.toString());
                 writer.write(postStringSb.toString());
                 writer.flush();
                 writer.close();
             }
             setProgress(30);
-            
+
             // Start a connection in an extra thread
             InterruptConnection interruptConnection = new InterruptConnection(connection);
             new Thread(interruptConnection).start();
-            while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError());
+            while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
+
+            }
 
             // If the connection was interrupted and not finished: return
             if (!interruptConnection.isFinished()) {
-                ((HttpURLConnection)connection).disconnect();
+                ((HttpURLConnection) connection).disconnect();
                 if (interruptConnection.isError()) {
                     //T: Status error message importing data from web shop
-                	setRunResult(msg.importWebshopErrorCantconnect);
+                    setRunResult(msg.importWebshopErrorCantconnect);
                 }
                 return;
             }
 
             // If there was an error, return with error message
             if (interruptConnection.isError()) {
-                ((HttpURLConnection)connection).disconnect();
+                ((HttpURLConnection) connection).disconnect();
                 //T: Status message importing data from web shop
                 setRunResult(msg.importWebshopErrorCantread);
                 return;
             }
-            
-    		// 1. We need to create JAXBContext instance
-            JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] {ObjectFactory.class}, null);
-    		
-    		/* if we have larger documents we have to use SAX.         		*/
+
+            // 1. We need to create JAXBContext instance
+            JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
+
+            /* if we have larger documents we have to use SAX.         		*/
             // 2. create a new XML parser
-//                SAXParserFactory factory = SAXParserFactory.newInstance();
-//                factory.setNamespaceAware(true);
-//                XMLReader reader = factory.newSAXParser().getXMLReader();
-    		
-    		// 2. Use JAXBContext instance to create the Unmarshaller.
-    		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            //                SAXParserFactory factory = SAXParserFactory.newInstance();
+            //                factory.setNamespaceAware(true);
+            //                XMLReader reader = factory.newSAXParser().getXMLReader();
+
+            // 2. Use JAXBContext instance to create the Unmarshaller.
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             //T: Status message importing data from web shop
             localMonitor.subTask(msg.importWebshopInfoLoading);
@@ -338,62 +348,61 @@ public class WebShopDataImporter implements IRunnableWithProgress {
                 }
 
                 // Create a new file
-//                    Files.deleteIfExists(logFile);
-//                    Files.createFile(logFile);
-//    
+                //                    Files.deleteIfExists(logFile);
+                //                    Files.createFile(logFile);
+                //    
                 // Create a buffered writer to write the imported data to the file system
                 logBuffer = Files.newBufferedWriter(logFile, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             }
-            
+
             // 3. Use the Unmarshaller to unmarshal the XML document to get
             // an instance of JAXBElement.
             // 4. Get the instance of the required JAXB Root Class from the
             // JAXBElement.
-			webshopexport = (Webshopexport) unmarshaller
-    					.unmarshal(interruptConnection.getInputStream());
-            
-			// alternatively (for large responses)
+            webshopexport = (Webshopexport) unmarshaller.unmarshal(interruptConnection.getInputStream());
+
+            // alternatively (for large responses)
             // prepare a Splitter
-//                Splitter splitter = new Splitter(jaxbContext);
+            //                Splitter splitter = new Splitter(jaxbContext);
 
             // connect two components
-//                reader.setContentHandler(splitter);
-            
-			// TODO surround with try-catch! This is the main part for reading the stream.
+            //                reader.setContentHandler(splitter);
+
+            // TODO surround with try-catch! This is the main part for reading the stream.
             // note that XMLReader expects an URL, not a file name.
             // so we need conversion.
-//                reader.parse(new InputSource(interruptConnection.getInputStream()));
-            
-    		setProgress(40);
-    		
-    		// Write the web shop log file
+            //                reader.parse(new InputSource(interruptConnection.getInputStream()));
+
+            setProgress(40);
+
+            // Write the web shop log file
             if (logBuffer != null) {
-            	Marshaller marshaller = jaxbContext.createMarshaller(); 
-            	marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            	marshaller.marshal(webshopexport, logBuffer);
+                Marshaller marshaller = jaxbContext.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                marshaller.marshal(webshopexport, logBuffer);
                 logBuffer.close();
             }
-            
+
             // parse the XML stream
             if (!localMonitor.isCanceled()) {
-            	if(webshopexport.getWebshop() == null) {
+                if (webshopexport.getWebshop() == null) {
                     //T: Status message importing data from web shop
-            		setRunResult(msg.importWebshopErrorNodata + "\n" + scriptUrl);
+                    setRunResult(msg.importWebshopErrorNodata + "\n" + scriptUrl);
                     return;
                 }
 
                 // Clear the list of orders to sync, if the data was sent
-            	// NodeList ndList = document.getElementsByTagName("webshopexport");
-				if (webshopexport.getOrders() != null) {
-					connector.setOrderstosynchronize(new Properties());
-				} else {
-					setRunResult("import NOT ok");
-				}
+                // NodeList ndList = document.getElementsByTagName("webshopexport");
+                if (webshopexport.getOrders() != null) {
+                    connector.setOrderstosynchronize(new Properties());
+                } else {
+                    setRunResult("import NOT ok");
+                }
 
                 // Get the error elements and add them to the run result list
                 //ndList = document.getElementsByTagName("error");
-                if (StringUtils.isNotEmpty(webshopexport.getError()) ) {
-                	setRunResult(webshopexport.getError());
+                if (StringUtils.isNotEmpty(webshopexport.getError())) {
+                    setRunResult(webshopexport.getError());
                 }
 
                 // Interpret the imported data (and load the product images)
@@ -401,95 +410,97 @@ public class WebShopDataImporter implements IRunnableWithProgress {
                     // If there is no error - interpret the data.
                     interpretWebShopData(localMonitor, webshopexport);
                 }
-        
+
                 // Store the time of now
                 String now = dateFormatterService.DateAsISO8601String();
                 preferences.putValue(PREFERENCE_LASTWEBSHOPIMPORT_DATE, now);
             }
             // else cancel the download process
             localMonitor.done();
-        }
-        catch (MarshalException mex) {
+        } catch (MarshalException mex) {
             //T: Status message importing data from web shop
-        	setRunResult(msg.importWebshopErrorNodata + "\n" + scriptUrl + "\n" + mex.getMessage());
-		}
-        catch (Exception e) {
+            setRunResult(msg.importWebshopErrorNodata + "\n" + scriptUrl + "\n" + mex.getMessage());
+        } catch (Exception e) {
             //T: Status message importing data from web shop
-        	setRunResult(msg.importWebshopErrorCantopen + "\n" + scriptUrl + "\n");
-        	setRunResult(getRunResult()+"Message: " + e.getLocalizedMessage()+ "\n");
-            if (e.getStackTrace().length > 0)
-            	setRunResult(getRunResult()+"\nTrace: " + e.getStackTrace()[0].toString()+ "\n");
-
-            if (webshopexport != null)
-            	setRunResult(getRunResult()+"\n\n" + webshopexport);
+            setRunResult(msg.importWebshopErrorCantopen + "\n" + scriptUrl + "\n");
+            setRunResult(getRunResult() + "Message: " + e.getLocalizedMessage() + "\n");
+            if (e.getStackTrace().length > 0) {
+                setRunResult(getRunResult() + "\nTrace: " + e.getStackTrace()[0].toString() + "\n");
             }
-        finally {
-        	if(logBuffer != null) {
-        		try {
-					logBuffer.close();
-				} catch (IOException e) {
-					log.error(e, String.format("couldn't close output stream for logfile '%s'.", WEBSHOP_IMPORT_LOGFILE));
-				}
-        	}
+
+            if (webshopexport != null) {
+                setRunResult(getRunResult() + "\n\n" + webshopexport);
+            }
+        } finally {
+            if (logBuffer != null) {
+                try {
+                    logBuffer.close();
+                } catch (IOException e) {
+                    log.error(e, String.format("couldn't close output stream for logfile '%s'.", WEBSHOP_IMPORT_LOGFILE));
+                }
+            }
         }
     }
 
     /**
      * Interpret the complete node of all orders and import them
-     * @param webshopexport 
-     * @throws SQLException 
+     * 
+     * @param webshopexport
+     * @throws SQLException
      */
-    private void interpretWebShopData(IProgressMonitor monitor, Webshopexport webshopexport) throws FakturamaStoringException {
-    
-    	// There is no order
-    	if (webshopexport == null) return;
-    	
-    	connector.setShopURL(webshopexport.getWebshop().getUrl());
-    	productImagePath = "";
-    
-    	// Mark all orders as "in sync with the web shop"
-    	orderSyncManager.allOrdersAreInSync();
-    
-    	// Get all products and import them
-    	ProductsType products = webshopexport.getProducts();
-    	// sometimes there are no products...
-		if (products != null) {
-			// Get the general products data
-			productImagePath = products.getImagepath();
+    private void interpretWebShopData(final IProgressMonitor monitor, final Webshopexport webshopexport) throws FakturamaStoringException {
 
-			List<ProductType> productList = products.getProduct();
-			int producListSize = productList.size();
-			for (int productIndex = 0; productIndex < producListSize; productIndex++) {
-				// T: Status message importing data from web shop
-				monitor.subTask(msg.importWebshopInfoLoading + " " + Integer.toString(productIndex + 1) + "/"
-						+ Integer.toString(producListSize));
-				setProgress(40 + 40 * (productIndex + 1) / producListSize);
-				ProductType product = productList.get(productIndex);
-				createProductFromXMLOrderNode(product);
+        // There is no order
+        if (webshopexport == null) {
+            return;
+        }
 
-				// Cancel the product picture import process
-				if (monitor.isCanceled())
-					return;
-			}
-		}
-   
-        	// Get order by order and import it
-    	//T: Status message importing data from web shop
-    	monitor.subTask(msg.importWebshopInfoImportorders);
-    	setProgress(95);
+        connector.setShopURL(webshopexport.getWebshop().getUrl());
+        productImagePath = "";
+
+        // Mark all orders as "in sync with the web shop"
+        orderSyncManager.allOrdersAreInSync();
+
+        // Get all products and import them
+        ProductsType products = webshopexport.getProducts();
+        // sometimes there are no products...
+        if (products != null) {
+            // Get the general products data
+            productImagePath = products.getImagepath();
+
+            List<ProductType> productList = products.getProduct();
+            int producListSize = productList.size();
+            for (int productIndex = 0; productIndex < producListSize; productIndex++) {
+                // T: Status message importing data from web shop
+                monitor.subTask(msg.importWebshopInfoLoading + " " + Integer.toString(productIndex + 1) + "/" + Integer.toString(producListSize));
+                setProgress(40 + 40 * (productIndex + 1) / producListSize);
+                ProductType product = productList.get(productIndex);
+                createProductFromXMLOrderNode(product);
+
+                // Cancel the product picture import process
+                if (monitor.isCanceled()) {
+                    return;
+                }
+            }
+        }
+
+        // Get order by order and import it
+        //T: Status message importing data from web shop
+        monitor.subTask(msg.importWebshopInfoImportorders);
+        setProgress(95);
         List<OrderType> orderList = webshopexport.getOrders().getOrder();
-    	int orderListSize = orderList.size();
-    	
-    	// create some constants _before_ the loop begins
-        ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);              
+        int orderListSize = orderList.size();
+
+        // create some constants _before_ the loop begins
+        ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
         Date today = Date.from(Instant.now());
-    	for (int orderIndex = 0; orderIndex < orderListSize; orderIndex++) {
-    		OrderType order = orderList.get(orderIndex);
-    		createOrderFromXMLOrderNode(order, webshopexport.getWebshop().getLang(), contactUtil, today);
-    	}
-    
-    	// Save the new list of orders that are not in sync with the shop
-    	orderSyncManager.saveOrdersToSynchronize();
+        for (int orderIndex = 0; orderIndex < orderListSize; orderIndex++) {
+            OrderType order = orderList.get(orderIndex);
+            createOrderFromXMLOrderNode(order, webshopexport.getWebshop().getLang(), contactUtil, today);
+        }
+
+        // Save the new list of orders that are not in sync with the shop
+        orderSyncManager.saveOrdersToSynchronize();
     }
 
     /**
@@ -497,94 +508,100 @@ public class WebShopDataImporter implements IRunnableWithProgress {
      * 
      * @param order
      *            The node with the orders to import
-     * @param contactUtil {@link ContactUtil}
-     * @param today the todays date
-     * @param lang the language for interpreting the country code correctly
-     * @throws SQLException if an error occurs while writing the data to the database
+     * @param contactUtil
+     *            {@link ContactUtil}
+     * @param today
+     *            the todays date
+     * @param lang
+     *            the language for interpreting the country code correctly
+     * @throws SQLException
+     *             if an error occurs while writing the data to the database
      */
-    private void createOrderFromXMLOrderNode(OrderType order, String lang, ContactUtil contactUtil, Date today) throws FakturamaStoringException {
-    	
-		// Order data
-		String webshopId;
-		String webShopName = webshopStateMappingDAO.createWebShopIdentifier(preferences.getString(Constants.PREFERENCES_WEBSHOP_URL));
-		String webshopDate;
+    private void createOrderFromXMLOrderNode(final OrderType order, final String lang, final ContactUtil contactUtil, final Date today)
+            throws FakturamaStoringException {
 
-		// Comments
-		LocalDateTime commentDate;
-		StringBuilder comment = new StringBuilder();
-		String commentText;
+        // Order data
+        String webshopId;
+        String webShopName = webshopStateMappingDAO.createWebShopIdentifier(preferences.getString(Constants.PREFERENCES_WEBSHOP_URL));
+        String webshopDate;
 
-		// Item data
-		String itemModel = "";
-		String itemName = "";
-		StringBuffer itemDescription;
+        // Comments
+        LocalDateTime commentDate;
+        StringBuilder comment = new StringBuilder();
+        String commentText;
 
-		// Remember the vat name, of there is no vat calculated
-    	boolean noVat = true;
-    	String noVatName = "";
-    	
-    	// Get the attributes ID and date of this order
-    	webshopId = order.getId();
-    	webshopDate = order.getDate();
-    
-    	// Check, if this order is still existing
-    	// date="2011-08-04 15:35:52"
-    	LocalDateTime calendarWebshopDate = LocalDateTime.parse(webshopDate, DateTimeFormatter.ISO_DATE_TIME);
-        if(!documentsDAO.findByDocIdAndDocDate(DocumentType.ORDER, webshopId, calendarWebshopDate).isEmpty()) {
-    		return;
-    	}
-    
-    	// Create a new order
+        // Item data
+        String itemModel = "";
+        String itemName = "";
+        StringBuffer itemDescription;
+
+        // Remember the vat name, of there is no vat calculated
+        boolean noVat = true;
+        String noVatName = "";
+
+        // Get the attributes ID and date of this order
+        webshopId = order.getId();
+        webshopDate = order.getDate();
+
+        // Check, if this order is still existing
+        // date="2011-08-04 15:35:52"
+        LocalDateTime calendarWebshopDate = LocalDateTime.parse(webshopDate, DateTimeFormatter.ISO_DATE_TIME);
+        if (!documentsDAO.findByDocIdAndDocDate(DocumentType.ORDER, webshopId, calendarWebshopDate).isEmpty()) {
+            return;
+        }
+
+        // Create a new order
         Document dataSetDocument = fakturamaModelFactory.createOrder();
-    	dataSetDocument.setBillingType(BillingType.ORDER); // DocumentType.ORDER
-    
-    	// Set name, web shop order id and date
-    	// currency = order.getCurrency();
-    	dataSetDocument.setName(webshopId);
-    	dataSetDocument.setWebshopId(webshopId);
-    	Instant instant = calendarWebshopDate.atZone(ZoneId.systemDefault()).toInstant();
-    	dataSetDocument.setWebshopDate(Date.from(instant));
-    	dataSetDocument.setValidFrom(Date.from(instant));
-    
+        dataSetDocument.setBillingType(BillingType.ORDER); // DocumentType.ORDER
+
+        // Set name, web shop order id and date
+        // currency = order.getCurrency();
+        dataSetDocument.setName(webshopId);
+        dataSetDocument.setWebshopId(webshopId);
+        Instant instant = calendarWebshopDate.atZone(ZoneId.systemDefault()).toInstant();
+        dataSetDocument.setWebshopDate(Date.from(instant));
+        dataSetDocument.setValidFrom(Date.from(instant));
+
         CategoryBuilder<ContactCategory> contactCatBuilder = ContextInjectionFactory.make(CategoryBuilder.class, context);
-   
+
         // First get all contacts. Normally there is only one
-        ContactType contact = order.getContact();        
+        ContactType contact = order.getContact();
 
-		Contact contactItem = fakturamaModelFactory.createDebitor();
-		
-		// Convert a gender character "m" or "f" to the gender number 
-		// 1 or 2
-	    contactItem.setGender(contactUtil.getGenderIdFromString(contact.getGender()));
-		contactItem.setValidFrom(Date.from(instant));
+        Contact contactItem = fakturamaModelFactory.createDebitor();
 
-		// Get the category for new contacts from the preferences
-		String shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_CONTACT_CATEGORY);
-		if(StringUtils.isNotEmpty(shopCategory)) {
-			ContactCategory contactCat = contactCatBuilder.buildCategoryFromString(shopCategory, ContactCategory.class);
-			// later on we have more than one category per contact
-//    			contactItem.addToCategories(contactCat);
+        // Convert a gender character "m" or "f" to the gender number 
+        // 1 or 2
+        contactItem.setGender(contactUtil.getGenderIdFromString(contact.getGender()));
+        contactItem.setValidFrom(Date.from(instant));
+
+        // Get the category for new contacts from the preferences
+        String shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_CONTACT_CATEGORY);
+        if (StringUtils.isNotEmpty(shopCategory)) {
+            ContactCategory contactCat = contactCatBuilder.buildCategoryFromString(shopCategory, ContactCategory.class);
+            // later on we have more than one category per contact
+            //    			contactItem.addToCategories(contactCat);
             contactItem.setCategories(contactCat);
-		}
-		
-		// set explicitly the customers data
-		// only set the number if it's not empty
-		// (see Bug FAK-510)
-		// and if the number isn't assigned yet
-		if(StringUtils.isNotBlank(contact.getId())) {
-			if(contactsDAO.getContactWithSameNumber(contact.getId()) == null || preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER)) {
-				contactItem.setCustomerNumber(contact.getId());
-			} else {
-				log.error("Contact with customer number [" + contact.getId() + "] already exists! Please assign another customer number!");
-			}
-		}
+        }
+
+        // set explicitly the customers data
+        // only set the number if it's not empty
+        // (see Bug FAK-510)
+        // and if the number isn't assigned yet
+        if (StringUtils.isNotBlank(contact.getId())) {
+            if (contactsDAO.getContactWithSameNumber(contact.getId()) == null
+                    || preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_OVERWRITE_CUSTOMERNUMBER)) {
+                contactItem.setCustomerNumber(contact.getId());
+            } else {
+                log.error("Contact with customer number [" + contact.getId() + "] already exists! Please assign another customer number!");
+            }
+        }
         contactItem.setFirstName(contact.getFirstname());
         contactItem.setName(contact.getLastname());
         contactItem.setCompany(contact.getCompany());
         contactItem.setWebshopName(contact.getWebshopName());
         contactItem.setVatNumber(contact.getVatno());
-		contactItem.setValidFrom(today);
-        
+        contactItem.setValidFrom(today);
+
         Address address = fakturamaModelFactory.createAddress();
         address.setStreet(contact.getStreet());
         address.setZip(contact.getZip());
@@ -595,21 +612,21 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         address.getContactTypes().add(com.sebulli.fakturama.model.ContactType.BILLING);
         String countryCode = localeUtil.findCodeByDisplayCountry(contact.getCountry(), lang);
         address.setCountryCode(countryCode);
-        
+
         contactItem = contactsDAO.findOrCreate(contactItem);
         address.setContact(contactItem);
         contactItem.getAddresses().add(address);
         // Attention: If the contact is new then we have to create a new number for it!
-        if(StringUtils.isBlank(contactItem.getCustomerNumber())) {
-    		NumberGenerator numberProvider = ContextInjectionFactory.make(NumberGenerator.class, context);
-    		String editorId = DebitorEditor.class.getSimpleName();
+        if (StringUtils.isBlank(contactItem.getCustomerNumber())) {
+            NumberGenerator numberProvider = ContextInjectionFactory.make(NumberGenerator.class, context);
+            String editorId = DebitorEditor.class.getSimpleName();
             String nextNr = numberProvider.getNextNr(editorId);
             contactItem.setCustomerNumber(nextNr);
             contactItem = contactsDAO.update(contactItem);
-			numberProvider.setNextFreeNumberInPrefStore(nextNr, editorId);
+            numberProvider.setNextFreeNumberInPrefStore(nextNr, editorId);
         }
-//        contactItem = contactsDAO.update(contactItem);
-//            contactItem.setSupplierNumber(contact.get???); ==> is not transferred from connector!!!
+        //        contactItem = contactsDAO.update(contactItem);
+        //            contactItem.setSupplierNumber(contact.get???); ==> is not transferred from connector!!!
 
         Address deliveryAddress = fakturamaModelFactory.createAddress();
         deliveryAddress.setStreet(contact.getDeliveryStreet());
@@ -620,10 +637,9 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         countryCode = localeUtil.findCodeByDisplayCountry(contact.getDeliveryCountry(), lang);
         deliveryAddress.setCountryCode(countryCode);
         deliveryAddress.setContact(contactItem);
-        
+
         // if delivery contact is equal to main contact we don't need to persist it
-        if (!address.isSameAs(deliveryAddress) 
-                || !StringUtils.equals(contact.getDeliveryGender(), contact.getGender())
+        if (!address.isSameAs(deliveryAddress) || !StringUtils.equals(contact.getDeliveryGender(), contact.getGender())
                 || !StringUtils.equals(contact.getDeliveryFirstname(), contactItem.getFirstName())
                 || !StringUtils.equals(contact.getDeliveryLastname(), contactItem.getName())
                 || !StringUtils.equals(contact.getDeliveryCompany(), contactItem.getCompany())) {
@@ -633,281 +649,277 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         contactItem = contactsDAO.update(contactItem);
         address = addressManager.getAddressFromContact(contactItem, com.sebulli.fakturama.model.ContactType.BILLING).orElse(null);
         DocumentReceiver documentReceiver = addressManager.createDocumentReceiverFromAddress(address, dataSetDocument.getBillingType());
-		dataSetDocument.getReceiver().add(documentReceiver);
-//            dataSetDocument.setAddress(contactItem.getAddress(false)); // included in contact
-//            dataSetDocument.setDeliveryaddress(deliveryContact); // included in contact
-        dataSetDocument.setAddressFirstLine(contactUtil.getNameWithCompany(contactItem));			
-    
-    	// Get the comments
-    	for (CommentType commentType : order.getComments()) {
-    		// Get the comment text
-    		if(commentType.getDate() != null) {
-    			commentDate = LocalDateTime.parse(commentType.getDate(), DateTimeFormatter.ISO_DATE_TIME);
-    		} else {
-    			commentDate = null;
-    		}
-			commentText = commentType.getTextcontent();
-			if (comment.length() > 0) {
-				comment.append('\n');
-			}
-			// Add the date
-			comment.append(commentDate).append(" :\n");
-			comment.append(commentText).append("\n");
-    	}
-    
-    	// Get all the items of this order
-    	int itemIndex = 1;
-    	for (ItemType itemType : order.getItem()) {
-    	    itemModel = itemType.getModel();
-    	    itemName = itemType.getName();
-    	    
-			// Convert VAT percent value to a factor (100% -> 1.00)
-			Double vatPercent = NumberUtils.DOUBLE_ZERO;
-			try {
-				vatPercent = Double.valueOf(itemType.getVatpercent()).doubleValue() / 100;
-			}
-			catch (NumberFormatException e) {
-				log.error(e, String.format(msg.importWebshopErrorCantconvertnumber, 
-						vatPercent, " (vatPercent)" ));
-			}
+        dataSetDocument.getReceiver().add(documentReceiver);
+        //            dataSetDocument.setAddress(contactItem.getAddress(false)); // included in contact
+        //            dataSetDocument.setDeliveryaddress(deliveryContact); // included in contact
+        dataSetDocument.setAddressFirstLine(contactUtil.getNameWithCompany(contactItem));
 
-			// If one item has a vat value, reset the noVat flag
-			if (vatPercent.compareTo(NumberUtils.DOUBLE_ZERO) > 0) {
-				noVat = false;
-			} else {
-				// Use the vat name
-				if (noVatName.isEmpty()) {
-					if (!itemType.getVatname().isEmpty()) {
-						noVatName = itemType.getVatname();
-					} else {
-						// fallback if VAT name isn't set
-						noVatName = msg.dataDefaultVat;
-					}
-				}
-			}
+        // Get the comments
+        for (CommentType commentType : order.getComments()) {
+            // Get the comment text
+            if (commentType.getDate() != null) {
+                commentDate = LocalDateTime.parse(commentType.getDate(), DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                commentDate = null;
+            }
+            commentText = commentType.getTextcontent();
+            if (comment.length() > 0) {
+                comment.append('\n');
+            }
+            // Add the date
+            comment.append(commentDate).append(" :\n");
+            comment.append(commentText).append("\n");
+        }
 
-			// Calculate the net value of the price
-			MonetaryAmount priceGross = FastMoney.of(itemType.getGross(), currencyCode);
-//			Price p = new PriceBuilder().withUnitPrice(priceGross)
-//			                    .withGrossPrices(true)
-//			                    .withQuantity(Double.valueOf(1.0))
-//			                    .withVatPercent(vatPercent).build();
-			        
-			MonetaryAmount priceNet = priceGross.divide(1 + vatPercent);
+        // Get all the items of this order
+        int itemIndex = 1;
+        for (ItemType itemType : order.getItem()) {
+            itemModel = itemType.getModel();
+            itemName = itemType.getName();
+
+            // Convert VAT percent value to a factor (100% -> 1.00)
+            Double vatPercent = NumberUtils.DOUBLE_ZERO;
+            try {
+                vatPercent = Double.valueOf(itemType.getVatpercent()).doubleValue() / 100;
+            } catch (NumberFormatException e) {
+                log.error(e, String.format(msg.importWebshopErrorCantconvertnumber, vatPercent, " (vatPercent)"));
+            }
+
+            // If one item has a vat value, reset the noVat flag
+            if (vatPercent.compareTo(NumberUtils.DOUBLE_ZERO) > 0) {
+                noVat = false;
+            } else {
+                // Use the vat name
+                if (noVatName.isEmpty()) {
+                    if (!itemType.getVatname().isEmpty()) {
+                        noVatName = itemType.getVatname();
+                    } else {
+                        // fallback if VAT name isn't set
+                        noVatName = msg.dataDefaultVat;
+                    }
+                }
+            }
+
+            // Calculate the net value of the price
+            MonetaryAmount priceGross = FastMoney.of(itemType.getGross(), currencyCode);
+            //			Price p = new PriceBuilder().withUnitPrice(priceGross)
+            //			                    .withGrossPrices(true)
+            //			                    .withQuantity(Double.valueOf(1.0))
+            //			                    .withVatPercent(vatPercent).build();
+
+            MonetaryAmount priceNet = priceGross.divide(1 + vatPercent);
 
             // Add the VAT value to the data base, if it is a new one
-			VAT vat = getOrCreateVAT(itemType.getVatname(), vatPercent);
+            VAT vat = getOrCreateVAT(itemType.getVatname(), vatPercent);
 
-			// Get the category of the imported products from the preferences
-			shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_PRODUCT_CATEGORY);
-			shopCategory = StringUtils.appendIfMissing(shopCategory, "/", "/");
+            // Get the category of the imported products from the preferences
+            shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_PRODUCT_CATEGORY);
+            shopCategory = StringUtils.appendIfMissing(shopCategory, "/", "/");
 
             // Import the item as a new product
-			// Use item name as item model, if model is empty
-			if (StringUtils.isBlank(itemType.getModel()) && StringUtils.isNotBlank(itemType.getName())) {
-				itemModel = itemType.getName();
-			}
+            // Use item name as item model, if model is empty
+            if (StringUtils.isBlank(itemType.getModel()) && StringUtils.isNotBlank(itemType.getName())) {
+                itemModel = itemType.getName();
+            }
 
-			// Use item model as item name, if name is empty
-			if (StringUtils.isNotBlank(itemType.getModel()) && StringUtils.isBlank(itemType.getName())) {
-				itemName = itemType.getModel();
-			}
+            // Use item model as item name, if name is empty
+            if (StringUtils.isNotBlank(itemType.getModel()) && StringUtils.isBlank(itemType.getName())) {
+                itemName = itemType.getModel();
+            }
 
-			// Import the product attributes
-			itemDescription = new StringBuffer();
-			// store additional prices for attributes
-			/*
-			 * Currently, there's no possibility for storing prices of attributes / optional features.
-			 * Therefore we only can put the attribute string as description into a product.
-			 * The price and the prefix are ignored, since I don't know where I have to store it.
-			 * A model change is required.
-			 */
-//    			Float attrPrice = NumberUtils.FLOAT_ZERO;
-			StringBuilder prefixSb = new StringBuilder();
-			for (AttributeType attribute : itemType.getAttribute()) {
-				// Get all attributes
-				if (itemDescription.length() > 0) {
-					itemDescription.append(", ");
-				}
-				itemDescription.append(attribute.getOption()).append(": ")
-				               .append(attribute.getValue());
+            // Import the product attributes
+            itemDescription = new StringBuffer();
+            // store additional prices for attributes
+            /*
+             * Currently, there's no possibility for storing prices of attributes / optional features.
+             * Therefore we only can put the attribute string as description into a product.
+             * The price and the prefix are ignored, since I don't know where I have to store it.
+             * A model change is required.
+             */
+            //    			Float attrPrice = NumberUtils.FLOAT_ZERO;
+            StringBuilder prefixSb = new StringBuilder();
+            for (AttributeType attribute : itemType.getAttribute()) {
+                // Get all attributes
+                if (itemDescription.length() > 0) {
+                    itemDescription.append(", ");
+                }
+                itemDescription.append(attribute.getOption()).append(": ").append(attribute.getValue());
 
-// TODO implement!
-//					attrPrice += attribute.getPrice();
-//					if(StringUtils.isNotBlank(attribute.getPrefix())) {
-//					    prefixSb.append("ATTR_").append(attribute.getPrefix()).append(";");
-//					}
-			}
+                // TODO implement!
+                //					attrPrice += attribute.getPrice();
+                //					if(StringUtils.isNotBlank(attribute.getPrefix())) {
+                //					    prefixSb.append("ATTR_").append(attribute.getPrefix()).append(";");
+                //					}
+            }
 
-			// Create a new product
-			Product product = fakturamaModelFactory.createProduct();
-			// OLD call: itemName, itemModel, shopCategory + itemCategory, itemDescription, priceNet, vat, "", "", 1.0, productID, itemQUnit
-			product.setName(itemName);
-			product.setItemNumber(itemModel);
+            // Create a new product
+            Product product = fakturamaModelFactory.createProduct();
+            // OLD call: itemName, itemModel, shopCategory + itemCategory, itemDescription, priceNet, vat, "", "", 1.0, productID, itemQUnit
+            product.setName(itemName);
+            product.setItemNumber(itemModel);
             ProductCategory productCategory = productCategoriesDAO.getCategory(shopCategory + itemType.getCategory(), true);
-			product.setCategories(productCategory);
-			
-			product.setDescription(itemDescription.toString());
-			product.setPrice1(priceNet.getNumber().numberValue(Double.class));
-			product.setVat(vat);
+            product.setCategories(productCategory);
+
+            product.setDescription(itemDescription.toString());
+            product.setPrice1(priceNet.getNumber().numberValue(Double.class));
+            product.setVat(vat);
             // item.setTara?
-			// ProductOptions?
-			product.setValidFrom(today);
-			//product.setProductId(itemType.getProductid());
+            // ProductOptions?
+            product.setValidFrom(today);
+            //product.setProductId(itemType.getProductid());
 
-			// Add the new product to the data base, if it's not existing yet
-			Product newOrExistingProduct = productsDAO.findOrCreate(product);
-			// Get the picture from the existing product  ==> TODO WHY???
-//    			product.setPictureName(newOrExistingProduct.getPictureName());
+            // Add the new product to the data base, if it's not existing yet
+            Product newOrExistingProduct = productsDAO.findOrCreate(product);
+            // Get the picture from the existing product  ==> TODO WHY???
+            //    			product.setPictureName(newOrExistingProduct.getPictureName());
 
-			// Add this product to the list of items
-			DocumentItem item = fakturamaModelFactory.createDocumentItem();
-			item.setPosNr(itemIndex++);
-			/*
-			 * per default some other values are set from product
-    this(-1, product.getStringValueByKey("name"), product.getIntValueByKey("id"), product.getStringValueByKey("itemnr"), false, "", -1, false, quantity,
+            // Add this product to the list of items
+            DocumentItem item = fakturamaModelFactory.createDocumentItem();
+            item.setPosNr(itemIndex++);
+            /*
+             * per default some other values are set from product
+            this(-1, product.getStringValueByKey("name"), product.getIntValueByKey("id"), product.getStringValueByKey("itemnr"), false, "", -1, false, quantity,
             product.getStringValueByKey("description"), product.getPriceByQuantity(quantity), product.getIntValueByKey("vatid"), discount, 0.0, "", "", false,
             product.getStringValueByKey("picturename"), false, product.getStringValueByKey("qunit"));
+            
+             */
+            item.setName(newOrExistingProduct.getName());
+            item.setItemNumber(newOrExistingProduct.getItemNumber());
+            String newDescription = newOrExistingProduct.getDescription() + prefixSb.toString();
+            if (StringUtils.isNotBlank(newDescription)) {
+                StringUtils.appendIfMissing(newDescription, "\n");
+            }
+            item.setDescription(newDescription + itemType.getShortDescription());
+            item.setQuantity(Double.valueOf(itemType.getQuantity()));
+            item.setQuantityUnit(StringUtils.isBlank(itemType.getQunit()) ? newOrExistingProduct.getQuantityUnit() : itemType.getQunit());
+            item.setValidFrom(today);
+            item.setProduct(newOrExistingProduct);
+            item.setPicture(newOrExistingProduct.getPicture());
+            item.setItemVat(vat);
+            item.setItemType(com.sebulli.fakturama.model.ItemType.POSITION);
+            item.setPrice(productUtil.getPriceByQuantity(newOrExistingProduct, item.getQuantity()));
+            // add prices from attributes
+            // TODO cannot get option price from an item (it has no such field)
+            // item.setPrice(item.getPrice() + attrPrice * item.getQuantity());
 
-			 */
-			item.setName(newOrExistingProduct.getName());
-			item.setItemNumber(newOrExistingProduct.getItemNumber());
-			String newDescription = newOrExistingProduct.getDescription() + prefixSb.toString();
-			if(StringUtils.isNotBlank(newDescription)) {
-				StringUtils.appendIfMissing(newDescription, "\n");
-			}
-			item.setDescription(newDescription + itemType.getShortDescription());
-			item.setQuantity(Double.valueOf(itemType.getQuantity()));
-			item.setQuantityUnit(StringUtils.isBlank(itemType.getQunit()) ? newOrExistingProduct.getQuantityUnit() : itemType.getQunit());
-			item.setValidFrom(today);
-			item.setProduct(newOrExistingProduct);
-			item.setPicture(newOrExistingProduct.getPicture());
-			item.setItemVat(vat);
-			item.setItemType(com.sebulli.fakturama.model.ItemType.POSITION);
-			item.setPrice(productUtil.getPriceByQuantity(newOrExistingProduct, item.getQuantity()));
-			// add prices from attributes
-			// TODO cannot get option price from an item (it has no such field)
-			// item.setPrice(item.getPrice() + attrPrice * item.getQuantity());
-			
-			if(itemType.getDiscount() != null) {
-    			double discount = new BigDecimal(itemType.getDiscount()).round(mathContext).doubleValue();
-    			item.setItemRebate(discount);
-			}
+            if (itemType.getDiscount() != null) {
+                double discount = new BigDecimal(itemType.getDiscount()).round(mathContext).doubleValue();
+                item.setItemRebate(discount);
+            }
             // search for owning document
-//    			item.setOwningDocument((CustomDocument) dataSetDocument);
+            //    			item.setOwningDocument((CustomDocument) dataSetDocument);
 
-			// Update the modified item data
-			dataSetDocument.addToItems(item);
-    	}
-    	
-    	// Get the shipping(s)
-    	ShippingType shippingType = order.getShipping();
-		// Import the shipping data
-		if (shippingType != null) {
-			// Get the VAT value as double
-			Double shippingVatPercent = NumberUtils.DOUBLE_ZERO;
-			shippingVatPercent = Double.valueOf(shippingType.getVatpercent()).doubleValue() / 100;
+            // Update the modified item data
+            dataSetDocument.addToItems(item);
+        }
 
-			// Get the shipping gross value
-			Double shippingGross = Double.valueOf(shippingType.getGross());
+        // Get the shipping(s)
+        ShippingType shippingType = order.getShipping();
+        // Import the shipping data
+        if (shippingType != null) {
+            // Get the VAT value as double
+            Double shippingVatPercent = NumberUtils.DOUBLE_ZERO;
+            shippingVatPercent = Double.valueOf(shippingType.getVatpercent()).doubleValue() / 100;
 
-			// Get the category of the imported shipping from the preferences
-			shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_SHIPPING_CATEGORY);   
-			VAT shippingvat = getOrCreateVAT(shippingType.getVatname(), shippingVatPercent);//vatsDAO.findOrCreate(shippingvat);
+            // Get the shipping gross value
+            Double shippingGross = Double.valueOf(shippingType.getGross());
 
-			// Add the shipping to the data base, if it's a new shipping
-			Shipping shipping = fakturamaModelFactory.createShipping();
-			shipping.setName(shippingType.getName());
-			ShippingCategory newShippingCategory = shippingCategoriesDAO.getCategory(shopCategory, true);
-//    			shipping.addToCategories(newShippingCategory);
-			shipping.setCategories(newShippingCategory);
-			shipping.setDescription(shippingType.getName());
-			shipping.setShippingValue(shippingGross);
-			shipping.setShippingVat(shippingvat);
-			shipping.setAutoVat(ShippingVatType.SHIPPINGVATFIX);
-			shipping.setValidFrom(today);
-			shipping = shippingsDAO.findOrCreate(shipping);
+            // Get the category of the imported shipping from the preferences
+            shopCategory = preferences.getString(Constants.PREFERENCES_WEBSHOP_SHIPPING_CATEGORY);
+            VAT shippingvat = getOrCreateVAT(shippingType.getVatname(), shippingVatPercent);//vatsDAO.findOrCreate(shippingvat);
 
-			// Set the document entries for the shipping
+            // Add the shipping to the data base, if it's a new shipping
+            Shipping shipping = fakturamaModelFactory.createShipping();
+            shipping.setName(shippingType.getName());
+            ShippingCategory newShippingCategory = shippingCategoriesDAO.getCategory(shopCategory, true);
+            //    			shipping.addToCategories(newShippingCategory);
+            shipping.setCategories(newShippingCategory);
+            shipping.setDescription(shippingType.getName());
+            shipping.setShippingValue(shippingGross);
+            shipping.setShippingVat(shippingvat);
+            shipping.setAutoVat(ShippingVatType.SHIPPINGVATFIX);
+            shipping.setValidFrom(today);
+            shipping = shippingsDAO.findOrCreate(shipping);
+
+            // Set the document entries for the shipping
             dataSetDocument.setShipping(shipping);
             dataSetDocument.setShippingAutoVat(ShippingVatType.SHIPPINGVATFIX);
             dataSetDocument.setShippingValue(shippingGross);
-			String webShopNo = msg.importWebshopInfoWebshopno + " ";
+            String webShopNo = msg.importWebshopInfoWebshopno + " ";
 
-			// Use the order ID of the web shop as customer reference for
-			// the import of web shop orders
-			webShopNo += StringUtils.leftPad(webshopId, 5, '0');
-			//T: Text of the web shop reference
-			dataSetDocument.setCustomerRef(webShopNo);
-		}
-    
-    	// Get the payment(s)
-		PaymentType paymentType = order.getPayment();
-		if (paymentType != null) {
-			// Add the payment to the data base, if it's a new one
-			Payment payment = fakturamaModelFactory.createPayment();
-//    			payment.setCode(Constants.TAX_DEFAULT_CODE);
-			payment.setName(paymentType.getName());
-			payment.setDescription(paymentType.getName() + " (" + paymentType.getType() + ")");
-			payment.setPaidText(msg.dataDefaultPaymentPaidtext);
-			payment = paymentsDAO.findOrCreate(payment);  // here the validFrom is also set
-        	dataSetDocument.setPayment(payment);
-		}
-    
-    	// Set the progress of an imported order to "pending"
-    	Optional<WebshopStateMapping> mappedStatus = webshopStateMappingDAO.findOrderState(webShopName, order.getStatus());
-    	if(mappedStatus.isPresent()) {
-    		dataSetDocument.setProgress(OrderState.valueOf(mappedStatus.get().getFakturamaOrderState()).getState());
-    	} else {
-    		dataSetDocument.setProgress(OrderState.PENDING.getState());
-    	}
-    
-    	// Set the document data.
-    	// since we import "Orders" the order date is set here
-    	dataSetDocument.setOrderDate(Date.from(calendarWebshopDate.toInstant(ZoneOffset.UTC))); 
-    	dataSetDocument.setDocumentDate(Date.from(instant));
-    	dataSetDocument.setDateAdded(today);
-    	dataSetDocument.setMessage(StringUtils.defaultString(dataSetDocument.getMessage()) + comment.toString());
-    	if(paymentType != null) {
-    	    dataSetDocument.setItemsRebate(paymentType.getDiscount() != null ? paymentType.getDiscount().doubleValue() : NumberUtils.DOUBLE_ZERO);
-        	dataSetDocument.setTotalValue(paymentType.getTotal().doubleValue());
-    	} else {
+            // Use the order ID of the web shop as customer reference for
+            // the import of web shop orders
+            webShopNo += StringUtils.leftPad(webshopId, 5, '0');
+            //T: Text of the web shop reference
+            dataSetDocument.setCustomerRef(webShopNo);
+        }
+
+        // Get the payment(s)
+        PaymentType paymentType = order.getPayment();
+        if (paymentType != null) {
+            // Add the payment to the data base, if it's a new one
+            Payment payment = fakturamaModelFactory.createPayment();
+            //    			payment.setCode(Constants.TAX_DEFAULT_CODE);
+            payment.setName(paymentType.getName());
+            payment.setDescription(paymentType.getName() + " (" + paymentType.getType() + ")");
+            payment.setPaidText(msg.dataDefaultPaymentPaidtext);
+            payment = paymentsDAO.findOrCreate(payment); // here the validFrom is also set
+            dataSetDocument.setPayment(payment);
+        }
+
+        // Set the progress of an imported order to "pending"
+        Optional<WebshopStateMapping> mappedStatus = webshopStateMappingDAO.findOrderState(webShopName, order.getStatus());
+        if (mappedStatus.isPresent()) {
+            dataSetDocument.setProgress(OrderState.valueOf(mappedStatus.get().getFakturamaOrderState()).getState());
+        } else {
+            dataSetDocument.setProgress(OrderState.PENDING.getState());
+        }
+
+        // Set the document data.
+        // since we import "Orders" the order date is set here
+        dataSetDocument.setOrderDate(Date.from(calendarWebshopDate.toInstant(ZoneOffset.UTC)));
+        dataSetDocument.setDocumentDate(Date.from(instant));
+        dataSetDocument.setDateAdded(today);
+        dataSetDocument.setMessage(StringUtils.defaultString(dataSetDocument.getMessage()) + comment.toString());
+        if (paymentType != null) {
+            dataSetDocument.setItemsRebate(paymentType.getDiscount() != null ? paymentType.getDiscount().doubleValue() : NumberUtils.DOUBLE_ZERO);
+            dataSetDocument.setTotalValue(paymentType.getTotal().doubleValue());
+        } else {
             dataSetDocument.setItemsRebate(NumberUtils.DOUBLE_ZERO);
             dataSetDocument.setTotalValue(NumberUtils.DOUBLE_ZERO);
-    	}
-    	dataSetDocument.setPaidValue(NumberUtils.DOUBLE_ZERO);
-    	dataSetDocument.setPaid(Boolean.FALSE);
-    
-    	// There is no VAT used
-    	if (noVat) {
-    		// Set the no-VAT flag in the document and use the name and description
-    		VAT noVatReference = vatsDAO.findByName(noVatName);
-    		if (noVatReference != null) {
-    			dataSetDocument.setNoVatReference(noVatReference);
-    		}
-    	}
-    	
-    	// Update the data base with the new document data
-    	dataSetDocument = documentsDAO.save(dataSetDocument);
-    
-    	// Re-calculate the document's total sum and check it.
-    	// It must be the same total value as in the web shop
-//        	dataSetDocument.calculate();
-    	context.set(DocumentSummaryCalculator.CURRENCY_CODE, currencyCode);
-    	DocumentSummaryCalculator summaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
-    	DocumentSummary summary = summaryCalculator.calculate(dataSetDocument);
-		MonetaryAmount calcTotal = summary.getTotalGross();
-		MonetaryAmount totalFromWebshop = Money.of(paymentType != null ? paymentType.getTotal() : NumberUtils.DOUBLE_ZERO, currencyCode);
-		totalFromWebshop = DataUtils.getInstance().getDefaultRounding().apply(totalFromWebshop);
-    	// If there is a difference, show a warning.
-    	if (!calcTotal.isEqualTo(totalFromWebshop)) {
-    		//T: Error message importing data from web shop
-    		//T: Format: ORDER xx TOTAL SUM FROM WEB SHOP: xx IS NOT EQUAL TO CALCULATED ONE: xx. PLEASE CHECK
-    		String error = MessageFormat.format(msg.toolbarNewOrderName + ": " + webshopId + "\n"
-    		+ msg.importWebshopErrorTotalsumincorrect, numberFormatterService.DoubleToFormatedPriceRound(paymentType.getTotal().doubleValue()),
-    		numberFormatterService.formatCurrency(calcTotal));
-    		setRunResult(error);
-    	}        
+        }
+        dataSetDocument.setPaidValue(NumberUtils.DOUBLE_ZERO);
+        dataSetDocument.setPaid(Boolean.FALSE);
+
+        // There is no VAT used
+        if (noVat) {
+            // Set the no-VAT flag in the document and use the name and description
+            VAT noVatReference = vatsDAO.findByName(noVatName);
+            if (noVatReference != null) {
+                dataSetDocument.setNoVatReference(noVatReference);
+            }
+        }
+
+        // Update the data base with the new document data
+        dataSetDocument = documentsDAO.save(dataSetDocument);
+
+        // Re-calculate the document's total sum and check it.
+        // It must be the same total value as in the web shop
+        //        	dataSetDocument.calculate();
+        context.set(DocumentSummaryCalculator.CURRENCY_CODE, currencyCode);
+        DocumentSummaryCalculator summaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
+        DocumentSummary summary = summaryCalculator.calculate(dataSetDocument);
+        MonetaryAmount calcTotal = summary.getTotalGross();
+        MonetaryAmount totalFromWebshop = Money.of(paymentType != null ? paymentType.getTotal() : NumberUtils.DOUBLE_ZERO, currencyCode);
+        totalFromWebshop = DataUtils.getInstance().getDefaultRounding().apply(totalFromWebshop);
+        // If there is a difference, show a warning.
+        if (!calcTotal.isEqualTo(totalFromWebshop)) {
+            //T: Error message importing data from web shop
+            //T: Format: ORDER xx TOTAL SUM FROM WEB SHOP: xx IS NOT EQUAL TO CALCULATED ONE: xx. PLEASE CHECK
+            String error = MessageFormat.format(msg.toolbarNewOrderName + ": " + webshopId + "\n" + msg.importWebshopErrorTotalsumincorrect,
+                    numberFormatterService.DoubleToFormatedPriceRound(paymentType.getTotal().doubleValue()), numberFormatterService.formatCurrency(calcTotal));
+            setRunResult(error);
+        }
     }
 
     /**
@@ -918,16 +930,15 @@ public class WebShopDataImporter implements IRunnableWithProgress {
      * @return
      * @throws SQLException
      */
-    private VAT getOrCreateVAT(String vatName, Double vatPercent) {
+    private VAT getOrCreateVAT(final String vatName, final Double vatPercent) {
         VAT vat = fakturamaModelFactory.createVAT();
         vat.setName(vatName);
-//        vat.setDescription(vatName);
+        //        vat.setDescription(vatName);
         vat.setTaxValue(vatPercent);
         vat.setValidFrom(new Date());
         try {
             vat = vatsDAO.addIfNew(vat);
-        }
-        catch (FakturamaStoringException e1) {
+        } catch (FakturamaStoringException e1) {
             log.error(e1);
         }
         return vat;
@@ -940,7 +951,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
      *            The node with the products to import
      * @throws SQLException
      */
-    private void createProductFromXMLOrderNode(ProductType product) throws FakturamaStoringException {
+    private void createProductFromXMLOrderNode(final ProductType product) throws FakturamaStoringException {
         // Get the product description as plain text.
         String productDescription = product.getShortDescription();
         String productModel = product.getModel();
@@ -970,21 +981,24 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         shopCategory = StringUtils.appendIfMissing(shopCategory, "/");
 
         // Use the EAN number
-        if (useEANasItemNr && product.getEan() != null && !product.getEan().isEmpty())
-			productModel = product.getEan();
+        if (useEANasItemNr && product.getEan() != null && !product.getEan().isEmpty()) {
+            productModel = product.getEan();
+        }
 
         // Use product name as product model, if model is empty
-        if (productModel.isEmpty() && !product.getName().isEmpty())
+        if (productModel.isEmpty() && !product.getName().isEmpty()) {
             productModel = product.getName();
+        }
 
         // Use product model as product name, if name is empty
-        if (product.getName().isEmpty() && !productModel.isEmpty())
+        if (product.getName().isEmpty() && !productModel.isEmpty()) {
             productName = productModel;
+        }
 
         // Create the URL to the product image
         byte[] picture = null;
         if (!product.getImage().isEmpty()) {
-        	picture = downloadImageFromUrl(connector.getShopURL() + productImagePath + product.getImage());
+            picture = downloadImageFromUrl(connector.getShopURL() + productImagePath + product.getImage());
         }
 
         // Convert the quantity string to a double value
@@ -1011,8 +1025,8 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         Product existingProduct = productsDAO.findOrCreate(productItem);
         if (existingProduct != null) {
             // Update data
-          //  existingProduct.clearCategories();
-       //     productItem.getCategories().forEach(cat -> existingProduct.addToCategories(cat));
+            //  existingProduct.clearCategories();
+            //     productItem.getCategories().forEach(cat -> existingProduct.addToCategories(cat));
             existingProduct.setName(productItem.getName());
             existingProduct.setItemNumber(productItem.getItemNumber());
             existingProduct.setDescription(productItem.getDescription());
@@ -1034,71 +1048,103 @@ public class WebShopDataImporter implements IRunnableWithProgress {
      * @param address
      *            The URL of the image
      */
-    private byte[] downloadImageFromUrl(String address) {            
-    	// Cancel if address is empty
-    	if (address.isEmpty())
-    		return null;
-
-    	// always get the image from server, we don't store it in file system anymore
-        // Connect to the web server
-        URI u = URI.create(address);
-        try (InputStream in = u.toURL().openStream()) {
-            return IOUtils.toByteArray(in); 
+    private byte[] downloadImageFromUrl(final String address) {
+        // Cancel if address is empty
+        if (address.isEmpty()) {
+            return null;
         }
-        catch (MalformedURLException e) {
+
+        // always get the image from server, we don't store it in file system anymore
+        // Connect to the web server
+        HttpClient client = HttpClient.newBuilder() //
+                .followRedirects(Redirect.NORMAL) //
+                .connectTimeout(Duration.ofSeconds(30L)) //
+                .build();
+        URI uri = URI.create(address);
+        HttpRequest request = HttpRequest.newBuilder() //
+                .uri(uri) //
+                .build();
+        Path file = null;
+        try {
+            file = Files.createTempFile("wsdl_", "img");
+            HttpResponse<byte[]> result = client.send(request, BodyHandlers.ofByteArray());
+            if (result.statusCode() < 400 && result.body() != null) {
+                Files.write(file, result.body());
+                // first, check if there is an image, if not, return null
+                ImageData image = new ImageData(file.toAbsolutePath().toString());
+                if (image != null) {
+                    return result.body();
+                }
+
+            }
+        } catch (MalformedURLException e) {
             //T: Status message importing data from web shop
             log.error(e, msg.importWebshopErrorMalformedurl + " " + address);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             //T: Status message importing data from web shop
             log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } catch (SWTException e) {
+            //T: Status message importing data from web shop (cannot transform image)
+            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } catch (InterruptedException e) {
+            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+        } finally {
+            if (file != null) {
+                try {
+                    Files.deleteIfExists(file);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
         }
+
         return null;
     }
-//
-//        /**
-//         * Convert the payment method to a readable (and localized) text.
-//         * 
-//         * @param intext
-//         *            order status
-//         * @return payment method as readable (and localized) text
-//         */
-//        private String getPaymentMethodText(String intext) {
-//        	String paymentstatustext = intext;
-//        
-//        	if (intext.equalsIgnoreCase("cod"))
-//        		paymentstatustext = msg.importWebshopDataCashondelivery;
-//        	else if (intext.equalsIgnoreCase("prepayment"))
-//        		paymentstatustext = msg.importWebshopDataPrepayment;
-//        	else if (intext.equalsIgnoreCase("creditcard"))
-//        		paymentstatustext = msg.importWebshopDataCreditcard;
-//        	else if (intext.equalsIgnoreCase("check"))
-//        		paymentstatustext = msg.importWebshopDataCheque;
-//        
-//        	return paymentstatustext;
-//        
-//        }
-        
-	/**
-	 * Debug input stream.
-	 *
-	 * @param is
-	 *            the {@link InputStream}
-	 */
-	@SuppressWarnings("unused")
-	private void debugInputStream(InputStream is) {
-		String result = getStringFromInputStream(is);
-		System.out.println(result);
-		System.out.println("Done");
-	}
+    //
+    //        /**
+    //         * Convert the payment method to a readable (and localized) text.
+    //         * 
+    //         * @param intext
+    //         *            order status
+    //         * @return payment method as readable (and localized) text
+    //         */
+    //        private String getPaymentMethodText(String intext) {
+    //        	String paymentstatustext = intext;
+    //        
+    //        	if (intext.equalsIgnoreCase("cod"))
+    //        		paymentstatustext = msg.importWebshopDataCashondelivery;
+    //        	else if (intext.equalsIgnoreCase("prepayment"))
+    //        		paymentstatustext = msg.importWebshopDataPrepayment;
+    //        	else if (intext.equalsIgnoreCase("creditcard"))
+    //        		paymentstatustext = msg.importWebshopDataCreditcard;
+    //        	else if (intext.equalsIgnoreCase("check"))
+    //        		paymentstatustext = msg.importWebshopDataCheque;
+    //        
+    //        	return paymentstatustext;
+    //        
+    //        }
 
-	/**
+    /**
+     * Debug input stream.
+     *
+     * @param is
+     *            the {@link InputStream}
+     */
+    @SuppressWarnings("unused")
+    private void debugInputStream(final InputStream is) {
+        String result = getStringFromInputStream(is);
+        System.out.println(result);
+        System.out.println("Done");
+    }
+
+    /**
      * convert InputStream to String.
      *
-     * @param is the {@link InputStream}
+     * @param is
+     *            the {@link InputStream}
      * @return the string from input stream
      */
-	private String getStringFromInputStream(InputStream is) {
+    private String getStringFromInputStream(final InputStream is) {
         String line = "";
         try {
             line = IOUtils.toString(is, "UTF-8");
@@ -1106,45 +1152,47 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             e.printStackTrace();
         }
         return line;
-	}
-	
-	/**
-	 * Sets the progress of the job in percent
-	 * 
-	 * @param percent
-	 */
-	private void setProgress(int percent) {
-	    if (percent > worked) {
-	        localMonitor.worked(percent - worked);
-	        worked = percent;
-	    }
-	}
+    }
 
-	/**
-	 * @return the runResult
-	 */
-	public String getRunResult() {
-		return runResult;
-	}
+    /**
+     * Sets the progress of the job in percent
+     * 
+     * @param percent
+     */
+    private void setProgress(final int percent) {
+        if (percent > worked) {
+            localMonitor.worked(percent - worked);
+            worked = percent;
+        }
+    }
 
-	/**
-	 * @param runResult the runResult to set
-	 */
-	public void setRunResult(String runResult) {
-		this.runResult = runResult;
-	}
+    /**
+     * @return the runResult
+     */
+    public String getRunResult() {
+        return runResult;
+    }
 
-	/**
-	 * @return the connector
-	 */
-	public WebShopConnector getConnector() {
-		return connector;
-	}
+    /**
+     * @param runResult
+     *            the runResult to set
+     */
+    public void setRunResult(final String runResult) {
+        this.runResult = runResult;
+    }
 
-	/**
-	 * @param connector the connector to set
-	 */
-	public void setConnector(WebShopConnector connector) {
-		this.connector = connector;
-	}
+    /**
+     * @return the connector
+     */
+    public WebShopConnector getConnector() {
+        return connector;
+    }
+
+    /**
+     * @param connector
+     *            the connector to set
+     */
+    public void setConnector(final WebShopConnector connector) {
+        this.connector = connector;
+    }
 }

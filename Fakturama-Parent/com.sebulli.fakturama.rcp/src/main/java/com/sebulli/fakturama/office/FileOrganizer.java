@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.office;
@@ -23,6 +22,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.time.temporal.IsoFields;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,377 +57,373 @@ import com.sebulli.fakturama.util.DocumentTypeUtil;
  */
 public class FileOrganizer {
 
-	@Inject
-	private IPreferenceStore preferences;
+    @Inject
+    private IPreferenceStore preferences;
 
     @Inject
     protected IEclipseContext context;
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	private ILogger log;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	private DocumentsDAO documentsDAO;
-	
-	@Inject
-	private IDocumentAddressManager addressManager;
-	
-	public enum PathOption {
-		WITH_FILENAME,
-		WITH_EXTENSION,
-	}
+    @Inject
+    private ILogger log;
 
-	/**
-	 * Replace all characters that are not allowed in the path
-	 * 
-	 * @param s
-	 *            The String with special characters
-	 * @return The clean string
-	 */
-	private String replaceIllegalCharacters(String s) {
-		if(StringUtils.isNotBlank(s)) {
-			s = s.replaceAll(" ", "_")
-			     .replaceAll("\\\\", "_")
-			     .replaceAll("\"", "_")
-			     .replaceAll("/", "_")
-			     .replaceAll("\\:", "_")
-			     .replaceAll("\\*", "_")
-			     .replaceAll("\\?", "_")
-			     .replaceAll("\\>", "_")
-			     .replaceAll("\\<", "_")
-			     .replaceAll("\\|", "_")
-			     .replaceAll("\\&", "_")
-			     .replaceAll("\\n", "_")
-			     .replaceAll("\\t", "_");
-		}
-		return StringUtils.defaultString(s);
-	}
-	
-	/**
-	 * Generates the document file name from the document and the placeholder
-	 * string in the preference page. Whether the path is absolute or relative depends on
-	 * {@link TargetFormat} or preferences format settings.
-	 * 
-	 * @param pathOptions {@link PathOption}s to use
-	 * @param targetFormat the {@link TargetFormat}
-	 * @param document
-	 *            The document
-	 * @return The filename
-	 */
-	private String getRelativeDocumentPath(Set<PathOption> pathOptions, TargetFormat targetFormat, String pathTemplate, Document document) {
-		String path, filename;
-		ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+    @Inject
+    private DocumentsDAO documentsDAO;
 
-		// T: Subdirectory of the OpenOffice documents
-		String savePath = msg.pathsDocumentsName + "/";
-		String id = "OPENOFFICE_" + targetFormat.getPrefId() + "_PATH_FORMAT";
-        String fileNamePlaceholder = pathTemplate != null ? pathTemplate : preferences.getString(id);
+    @Inject
+    private IDocumentAddressManager addressManager;
 
-		// Replace all backslashes
-		fileNamePlaceholder = fileNamePlaceholder.replace('\\', '/');
+    public enum PathOption {
+        WITH_FILENAME, WITH_EXTENSION,
+    }
 
-		String address = replaceIllegalCharacters(document.getAddressFirstLine());
+    /**
+     * Replace all characters that are not allowed in the path
+     * 
+     * @param s
+     *            The String with special characters
+     * @return The clean string
+     */
+    private String replaceIllegalCharacters(String s) {
+        if (StringUtils.isNotBlank(s)) {
+            s = s.replaceAll(" ", "_").replaceAll("\\\\", "_").replaceAll("\"", "_").replaceAll("/", "_").replaceAll("\\:", "_").replaceAll("\\*", "_")
+                    .replaceAll("\\?", "_").replaceAll("\\>", "_").replaceAll("\\<", "_").replaceAll("\\|", "_").replaceAll("\\&", "_").replaceAll("\\n", "_")
+                    .replaceAll("\\t", "_");
+        }
+        return StringUtils.defaultString(s);
+    }
 
-		DocumentReceiver documentContact = addressManager.getBillingAdress(document);
-		String name = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getName()));
-		String companyOrName = replaceIllegalCharacters(contactUtil.getCompanyOrLastname(documentContact));
-		String alias = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getAlias()));
+    /**
+     * Generates the document file name from the document and the placeholder
+     * string in the preference page. Whether the path is absolute or relative
+     * depends on {@link TargetFormat} or preferences format settings.
+     * 
+     * @param pathOptions
+     *            {@link PathOption}s to use
+     * @param targetFormat
+     *            the {@link TargetFormat}
+     * @param document
+     *            The document
+     * @return The filename
+     */
+    private String getRelativeDocumentPath(final Set<PathOption> pathOptions, final TargetFormat targetFormat, final String pathTemplate,
+            final Document document) {
+        String path, filename;
+        ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
 
-		// Replace the placeholders
-		String customerRef = replaceIllegalCharacters(document.getCustomerRef());
-		
-		fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
-				.replaceAll("\\{docref\\}", StringUtils.defaultString(customerRef))
-				.replaceAll("\\{doctype\\}", msg.getMessageFromKey(
-						DocumentType.getPluralString(DocumentTypeUtil.findByBillingType(document.getBillingType()))))
-				.replaceAll("\\{address\\}", StringUtils.defaultString(address))
-				.replaceAll("\\{name\\}", name)
-				.replaceAll("\\{firstname\\}", replaceIllegalCharacters(documentContact.getFirstName()))
-				.replaceAll("\\{companyorname\\}", companyOrName)
-				.replaceAll("\\{company\\}", replaceIllegalCharacters(StringUtils.defaultString(documentContact.getCompany())))
-				.replaceAll("\\{alias\\}", alias)
-				.replaceAll("\\{version\\}", String.format("%03d", document.getVersion()))
-				.replaceAll("\\{custno\\}", 
-					StringUtils.defaultString(documentContact.getCustomerNumber()));
+        // T: Subdirectory of the OpenOffice documents
+        String savePath = msg.pathsDocumentsName + "/";
+        String id = "OPENOFFICE_" + targetFormat.getPrefId() + "_PATH_FORMAT";
+        String fileNamePlaceholder = Objects.toString(StringUtils.trimToNull(pathTemplate), preferences.getString(id));
 
-		// Find the placeholder for a decimal number with n digits
-		// with the format "{Xnr}", "X" is the number of digits (which can be
-		// empty).
-		
-		Pattern p = Pattern.compile("\\{(\\d*)nr\\}");
-		Matcher m = p.matcher(fileNamePlaceholder);
-		if (m.find()) { // found?
-			String replaceNumberString = "%d"; // default
-			if (m.groupCount() > 0) { // has some digits before <nr>?
-				String numberString = m.group(1); // get the length for the resulting number
-				if (StringUtils.isNumeric(numberString)) { // is this really a number?
-					// build a format replacement string
-					replaceNumberString = "%0" + numberString + "d";
-				}
-			}
+        // Replace all backslashes
+        fileNamePlaceholder = fileNamePlaceholder.replace('\\', '/');
 
-			String replacementString = createNumberReplacementString(document, replaceNumberString);
-			fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{\\d*nr\\}", replacementString);
-		}
+        String address = replaceIllegalCharacters(document.getAddressFirstLine());
 
-		LocalDateTime docDateTime = LocalDateTime.ofInstant(document.getDocumentDate().toInstant(), ZoneId.systemDefault());
+        DocumentReceiver documentContact = addressManager.getBillingAdress(document);
+        String name = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getName()));
+        String companyOrName = replaceIllegalCharacters(contactUtil.getCompanyOrLastname(documentContact));
+        String alias = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getAlias()));
 
-		int yyyy = docDateTime.getYear();
-		int weekOfYear = docDateTime.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
-		int quarter = docDateTime.get(IsoFields.QUARTER_OF_YEAR);
-		
-		// Replace the date information
-		fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{yyyy\\}", String.format("%04d", yyyy))
-									.replaceAll("\\{yy\\}", String.format("%04d", yyyy).substring(2, 4))
-									.replaceAll("\\{mm\\}",	String.format("%02d", docDateTime.getMonth().getValue()))
-									.replaceAll("\\{dd\\}",	String.format("%02d", docDateTime.getDayOfMonth()))
-									.replaceAll("\\{w\\}",String.format("%02d", weekOfYear))
-									.replaceAll("\\{q\\}",String.format("%d", quarter))
-									;
+        // Replace the placeholders
+        String customerRef = replaceIllegalCharacters(document.getCustomerRef());
 
-		// Extract path and filename
-		int pos = fileNamePlaceholder.lastIndexOf('/');
+        fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
+                .replaceAll("\\{docref\\}", StringUtils.defaultString(customerRef))
+                .replaceAll("\\{doctype\\}", msg.getMessageFromKey(DocumentType.getPluralString(DocumentTypeUtil.findByBillingType(document.getBillingType()))))
+                .replaceAll("\\{address\\}", StringUtils.defaultString(address)).replaceAll("\\{name\\}", name)
+                .replaceAll("\\{firstname\\}", replaceIllegalCharacters(documentContact.getFirstName())).replaceAll("\\{companyorname\\}", companyOrName)
+                .replaceAll("\\{company\\}", replaceIllegalCharacters(StringUtils.defaultString(documentContact.getCompany()))).replaceAll("\\{alias\\}", alias)
+                .replaceAll("\\{version\\}", String.format("%03d", document.getVersion()))
+                .replaceAll("\\{custno\\}", StringUtils.defaultString(documentContact.getCustomerNumber()));
 
-		if (pos < 0) {
-			path = "";
-			filename = fileNamePlaceholder;
-		} else {
-			path = fileNamePlaceholder.substring(0, pos);
-			filename = fileNamePlaceholder.substring(pos + 1);
-		}
+        // Find the placeholder for a decimal number with n digits
+        // with the format "{Xnr}", "X" is the number of digits (which can be
+        // empty).
 
-		if(targetFormat.isAbsolutePath() || isAbsolutePath(fileNamePlaceholder)) {
-			savePath = path + "/"; 
-		} else {
-			// if target path is relative we have to put the documents below Fakturama working dir
-			savePath += path + "/";
-		}
+        Pattern p = Pattern.compile("\\{(\\d*)nr\\}");
+        Matcher m = p.matcher(fileNamePlaceholder);
+        if (m.find()) { // found?
+            String replaceNumberString = "%d"; // default
+            if (m.groupCount() > 0) { // has some digits before <nr>?
+                String numberString = m.group(1); // get the length for the resulting number
+                if (StringUtils.isNumeric(numberString)) { // is this really a number?
+                    // build a format replacement string
+                    replaceNumberString = "%0" + numberString + "d";
+                }
+            }
 
-		// Use the document name as filename
-		if (pathOptions.contains(PathOption.WITH_FILENAME))
-			savePath += filename;
+            String replacementString = createNumberReplacementString(document, replaceNumberString);
+            fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{\\d*nr\\}", replacementString);
+        }
 
-		// Use the document name as filename
-		if (pathOptions.contains(PathOption.WITH_EXTENSION) && !fileNamePlaceholder.toLowerCase().endsWith(targetFormat.getExtension())) {
-			savePath += targetFormat.getExtension();
-		}
+        LocalDateTime docDateTime = LocalDateTime.ofInstant(document.getDocumentDate().toInstant(), ZoneId.systemDefault());
 
-		return savePath;
-	}
+        int yyyy = docDateTime.getYear();
+        int weekOfYear = docDateTime.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+        int quarter = docDateTime.get(IsoFields.QUARTER_OF_YEAR);
 
-	private String createNumberReplacementString(Document document, String replaceNumberString) {
-		String replacementString = "";
-		
-		// find the current docNumber according to current formatting pattern
-		String formatString = preferences.getString("NUMBERRANGE_"+document.getBillingType()+"_FORMAT");
-		String pattern = formatString.replaceAll("YYYY|yyyy|MM|mm|DD|dd", "\\\\d+");
-		pattern = pattern.replaceAll("\\{\\d*nr\\}", "(\\\\d+)");
-		pattern = pattern.replaceAll("\\{|\\}", "");
-		Pattern docNumberPattern = Pattern.compile(pattern);
-		Matcher docNumberMatcher = docNumberPattern.matcher(document.getName());
-		
-		// RE-2021_0002-JKU    RE-{yyyy}_{4nr}-JKU  ==> RE-\d+_(\d+)-JKU
-		// INV_202102-002  INV_{YYYYMM}-{3nr}
-		// RE{6nr}  ==> RE(\d+)
+        // Replace the date information
+        fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{yyyy\\}", String.format("%04d", yyyy))
+                .replaceAll("\\{yy\\}", String.format("%04d", yyyy).substring(2, 4))
+                .replaceAll("\\{mm\\}", String.format("%02d", docDateTime.getMonth().getValue()))
+                .replaceAll("\\{dd\\}", String.format("%02d", docDateTime.getDayOfMonth())) //
+                .replaceAll("\\{w\\}", String.format("%02d", weekOfYear)) //
+                .replaceAll("\\{q\\}", String.format("%d", quarter));
 
-		if (docNumberMatcher.find() && docNumberMatcher.groupCount() > 0) {
-			String docNumberString = docNumberMatcher.group(1);
-			Integer docNumber = Integer.valueOf(docNumberString);
-			replacementString = String.format(replaceNumberString, docNumber);
-		}
-		return replacementString;
-	}
+        // Extract path and filename
+        int pos = fileNamePlaceholder.lastIndexOf('/');
 
-	/**
-	 * Checks if the given String is an absolute filename
-	 * 
-	 * @param fileName
-	 * @return
-	 */
-	private boolean isAbsolutePath(String fileNamePlaceholder) {
-		boolean retval = false;
-		if(Util.isWindows()) {
-			retval = fileNamePlaceholder.matches("^\\w:.*");
-		} else {
-			// detect if the beginning of the given path is an existing one
-			retval = fileNamePlaceholder.matches("^/.*");
-		}
-		return retval;
-	}
+        if (pos < 0) {
+            path = "";
+            filename = fileNamePlaceholder;
+        } else {
+            path = fileNamePlaceholder.substring(0, pos);
+            filename = fileNamePlaceholder.substring(pos + 1);
+        }
+
+        if (targetFormat.isAbsolutePath() || isAbsolutePath(fileNamePlaceholder)) {
+            savePath = path + "/";
+        } else {
+            // if target path is relative we have to put the documents below Fakturama working dir
+            savePath += path + "/";
+        }
+
+        // Use the document name as filename
+        if (pathOptions.contains(PathOption.WITH_FILENAME)) {
+            savePath += filename;
+        }
+
+        // Use the document name as filename
+        if (pathOptions.contains(PathOption.WITH_EXTENSION) && !fileNamePlaceholder.toLowerCase().endsWith(targetFormat.getExtension())) {
+            savePath += targetFormat.getExtension();
+        }
+
+        return savePath;
+    }
+
+    private String createNumberReplacementString(final Document document, final String replaceNumberString) {
+        String replacementString = "";
+
+        // find the current docNumber according to current formatting pattern
+        String formatString = preferences.getString("NUMBERRANGE_" + document.getBillingType() + "_FORMAT");
+        String pattern = formatString.replaceAll("YYYY|yyyy|MM|mm|DD|dd", "\\\\d+");
+        pattern = pattern.replaceAll("\\{\\d*nr\\}", "(\\\\d+)");
+        pattern = pattern.replaceAll("\\{|\\}", "");
+        Pattern docNumberPattern = Pattern.compile(pattern);
+        Matcher docNumberMatcher = docNumberPattern.matcher(document.getName());
+
+        // RE-2021_0002-JKU    RE-{yyyy}_{4nr}-JKU  ==> RE-\d+_(\d+)-JKU
+        // INV_202102-002  INV_{YYYYMM}-{3nr}
+        // RE{6nr}  ==> RE(\d+)
+
+        if (docNumberMatcher.find() && docNumberMatcher.groupCount() > 0) {
+            String docNumberString = docNumberMatcher.group(1);
+            Integer docNumber = Integer.valueOf(docNumberString);
+            replacementString = String.format(replaceNumberString, docNumber);
+        }
+        return replacementString;
+    }
+
+    /**
+     * Checks if the given String is an absolute filename
+     * 
+     * @param fileName
+     * @return
+     */
+    private boolean isAbsolutePath(final String fileNamePlaceholder) {
+        boolean retval = false;
+        if (Util.isWindows()) {
+            retval = fileNamePlaceholder.matches("^\\w:.*");
+        } else {
+            // detect if the beginning of the given path is an existing one
+            retval = fileNamePlaceholder.matches("^/.*");
+        }
+        return retval;
+    }
 
     /**
      * Returns the filename (with path) of the Office document including the
      * workspace path
      * 
-     * @param pathOptions {@link PathOption}s to use
-     * @param targetFormat the {@link TargetFormat}
+     * @param pathOptions
+     *            {@link PathOption}s to use
+     * @param targetFormat
+     *            the {@link TargetFormat}
      * @return the filename
      */
-    public Path getDocumentPath(Set<PathOption> pathOptions, TargetFormat targetFormat, Document document) {
-       return getDocumentPath(pathOptions, targetFormat, null, document);
+    public Path getDocumentPath(final Set<PathOption> pathOptions, final TargetFormat targetFormat, final Document document) {
+        return getDocumentPath(pathOptions, targetFormat, null, document);
     }
-    
-	/**
-	 * Returns the filename (with path) of the Office document including the
-	 * workspace path
-	 * 
-	 * @param pathOptions {@link PathOption}s to use
-	 * @param targetFormat the {@link TargetFormat}
-	 * @return the filename
-	 */
-	public Path getDocumentPath(Set<PathOption> pathOptions, TargetFormat targetFormat, String pathTemplate, Document document) {
-		String workspace = preferences.getString(Constants.GENERAL_WORKSPACE);
-		String documentPath = getRelativeDocumentPath(pathOptions, targetFormat, pathTemplate, document);
-		if(isAbsolutePath(documentPath)) {
-			return Paths.get(documentPath);
-		} else {
-			return Paths.get(workspace, documentPath);
-		}
-	}
 
-	/**
-	 * Move a file and create the directories, if they do not exist
-	 * 
-	 * @param source
-	 *            Source file name
-	 * @param destination
-	 *            Destination file name
-	 * @param copyFile copy files instead of moving them
-	 */
-	private void fileMove(String source, String destination, boolean copyFile) {
+    /**
+     * Returns the filename (with path) of the Office document including the
+     * workspace path
+     * 
+     * @param pathOptions
+     *            {@link PathOption}s to use
+     * @param targetFormat
+     *            the {@link TargetFormat}
+     * @return the filename
+     */
+    public Path getDocumentPath(final Set<PathOption> pathOptions, final TargetFormat targetFormat, final String pathTemplate, final Document document) {
+        String workspace = preferences.getString(Constants.GENERAL_WORKSPACE);
+        String documentPath = getRelativeDocumentPath(pathOptions, targetFormat, pathTemplate, document);
+        if (isAbsolutePath(documentPath)) {
+            return Paths.get(documentPath);
+        } else {
+            return Paths.get(workspace, documentPath);
+        }
+    }
 
-		// Replace backslashed
-		destination = destination.replace('\\', '/');
+    /**
+     * Move a file and create the directories, if they do not exist
+     * 
+     * @param source
+     *            Source file name
+     * @param destination
+     *            Destination file name
+     * @param copyFile
+     *            copy files instead of moving them
+     */
+    private void fileMove(final String source, String destination, final boolean copyFile) {
 
-		// Extract the path
-		String path;
+        // Replace backslashed
+        destination = destination.replace('\\', '/');
 
-		int pos = destination.lastIndexOf('/');
+        // Extract the path
+        String path;
 
-		if (pos < 0) {
-			path = "";
-		} else {
-			path = destination.substring(0, pos);
-		}
+        int pos = destination.lastIndexOf('/');
 
-		try {
-			// Create the directories
-			Path folder = Paths.get(path);
-			if (Files.notExists(folder))
-				Files.createDirectories(folder);
+        if (pos < 0) {
+            path = "";
+        } else {
+            path = destination.substring(0, pos);
+        }
 
-			// Move it, if possible
-			Path temp = Paths.get(destination);
-			Path sourceFile = Paths.get(source);
+        try {
+            // Create the directories
+            Path folder = Paths.get(path);
+            if (Files.notExists(folder)) {
+                Files.createDirectories(folder);
+            }
 
-			if (Files.notExists(temp) && Files.exists(sourceFile)) {
-				if(copyFile) {
-					Files.copy(sourceFile, temp);
-				} else {
-					Files.move(sourceFile, temp);
-				}
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+            // Move it, if possible
+            Path temp = Paths.get(destination);
+            Path sourceFile = Paths.get(source);
 
-	/**
-	 * Reorganize a document's odt and pdf file
-	 * 
-	 * @param workspacePath
-	 *            The workspace path
-	 * @param document
-	 *            The document
-	 * @param targetFormat
-	 *            PDF or ODT
-	 * @param copyFile copy files instead of moving them
-	 * @return True, if it was successful
-	 */
-	private boolean reorganizeDocument(String workspacePath, Document document, TargetFormat targetFormat, boolean copyFile) {
-		boolean changed = false;
-		String oldDocumentPath = targetFormat == TargetFormat.PDF ? document.getPdfPath() : document.getOdtPath();
+            if (Files.notExists(temp) && Files.exists(sourceFile)) {
+                if (copyFile) {
+                    Files.copy(sourceFile, temp);
+                } else {
+                    Files.move(sourceFile, temp);
+                }
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-		// ODT or PDF string
-		// Get the old path from the document
-		if (oldDocumentPath.isEmpty())
-			return false;
+    /**
+     * Reorganize a document's odt and pdf file
+     * 
+     * @param workspacePath
+     *            The workspace path
+     * @param document
+     *            The document
+     * @param targetFormat
+     *            PDF or ODT
+     * @param copyFile
+     *            copy files instead of moving them
+     * @return True, if it was successful
+     */
+    private boolean reorganizeDocument(final String workspacePath, final Document document, final TargetFormat targetFormat, final boolean copyFile) {
+        boolean changed = false;
+        String oldDocumentPath = targetFormat == TargetFormat.PDF ? document.getPdfPath() : document.getOdtPath();
 
-		// Update the document entry "odtpath"
-		Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-		Path newFile = getDocumentPath(pathOptions, targetFormat, document);
-		
-		// Move it if it exists
-		Path oldFile = Paths.get(oldDocumentPath);
+        // ODT or PDF string
+        // Get the old path from the document
+        if (oldDocumentPath.isEmpty()) {
+            return false;
+        }
 
-		if (Files.exists(oldFile) && !oldFile.toAbsolutePath().equals(newFile.toAbsolutePath())) {
-			fileMove(oldDocumentPath, newFile.toString(), copyFile);
-			if (targetFormat == TargetFormat.PDF) {
-				document.setPdfPath(newFile.toAbsolutePath().toString());
-			} else {
-				document.setOdtPath(newFile.toAbsolutePath().toString());
-			}
-			changed = true;
-		} else {
-			log.warn(String.format("File '%s' couldn't be found or exists in target path. Source document number is '%s'.", oldFile, document.getName()));
-		}
+        // Update the document entry "odtpath"
+        Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+        Path newFile = getDocumentPath(pathOptions, targetFormat, document);
 
-		return changed;
-	}
+        // Move it if it exists
+        Path oldFile = Paths.get(oldDocumentPath);
 
-	/**
-	 * Reorganize all documents
-	 * 
-	 * @param monitor
-	 *            ProgressBar to display the success
-	 * @param copyFile copy files instead of moving them
-	 */
-	public void reorganizeDocuments(final IProgressMonitor monitor, boolean copyFile) {
+        if (Files.exists(oldFile) && !oldFile.toAbsolutePath().equals(newFile.toAbsolutePath())) {
+            fileMove(oldDocumentPath, newFile.toString(), copyFile);
+            if (targetFormat == TargetFormat.PDF) {
+                document.setPdfPath(newFile.toAbsolutePath().toString());
+            } else {
+                document.setOdtPath(newFile.toAbsolutePath().toString());
+            }
+            changed = true;
+        } else {
+            log.warn(String.format("File '%s' couldn't be found or exists in target path. Source document number is '%s'.", oldFile, document.getName()));
+        }
 
-		// Counts the documents and show the progress in the status bar
-		int i = 0;
+        return changed;
+    }
 
-		// Get all documents
-		List<Document> documents = documentsDAO.findAllPrintedDocuments();
-		// Get the workspace path
-		String workspacePath = preferences.getString(Constants.GENERAL_WORKSPACE);
+    /**
+     * Reorganize all documents
+     * 
+     * @param monitor
+     *            ProgressBar to display the success
+     * @param copyFile
+     *            copy files instead of moving them
+     */
+    public void reorganizeDocuments(final IProgressMonitor monitor, final boolean copyFile) {
 
-		// Get all documents
-		for (Document document : documents) {
+        // Counts the documents and show the progress in the status bar
+        int i = 0;
 
-			boolean changed = false;
+        // Get all documents
+        List<Document> documents = documentsDAO.findAllPrintedDocuments();
+        // Get the workspace path
+        String workspacePath = preferences.getString(Constants.GENERAL_WORKSPACE);
 
-			// Rename and move the ODT file.
-			if (reorganizeDocument(workspacePath, document, TargetFormat.ODT, copyFile)) {
-				changed = true;
-			}
+        // Get all documents
+        for (Document document : documents) {
 
-			// Rename and move the PDF file
-			if (reorganizeDocument(workspacePath, document, TargetFormat.PDF, copyFile)) {
-				changed = true;
-			}
+            boolean changed = false;
 
-			// Update the document in the database
-			if (changed) {
-				try {
-					documentsDAO.save(document);
+            // Rename and move the ODT file.
+            if (reorganizeDocument(workspacePath, document, TargetFormat.ODT, copyFile)) {
+                changed = true;
+            }
+
+            // Rename and move the PDF file
+            if (reorganizeDocument(workspacePath, document, TargetFormat.PDF, copyFile)) {
+                changed = true;
+            }
+
+            // Update the document in the database
+            if (changed) {
+                try {
+                    documentsDAO.save(document);
                 } catch (FakturamaStoringException e) {
                     log.error(e);
                 }
-			}
-			
-			// Show the progress in the status bar
-			if (monitor != null) {
-	
-				// Count the documents
-				monitor.setTaskName(String.format("%s... %4d", msg.commandReorganizeDocumentsUpdateMessage, i++));
-				monitor.worked(1);
-			}
-		}
-	}
+            }
+
+            // Show the progress in the status bar
+            if (monitor != null) {
+
+                // Count the documents
+                monitor.setTaskName(String.format("%s... %4d", msg.commandReorganizeDocumentsUpdateMessage, i++));
+                monitor.worked(1);
+            }
+        }
+    }
 }

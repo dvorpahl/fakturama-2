@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard.accounts;
@@ -44,95 +43,92 @@ import com.sebulli.fakturama.misc.IDateFormatterService;
  */
 public class AccountsExportWizard extends Wizard implements IExportWizard {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
-	    
-	@Inject
-	@Preference(nodePath = "/instance/com.sebulli.fakturama.rcp")
-	private IEclipsePreferences eclipsePrefs;
-    
+    @Inject
+    @Translation
+    protected Messages msg;
+
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
+
+    @Inject
+    @Preference(nodePath = "/instance/com.sebulli.fakturama.rcp")
+    private IEclipsePreferences eclipsePrefs;
+
     @Inject
     private IDateFormatterService dateFormatterService;
 
-	@Inject
-	private IEclipseContext ctx;
+    @Inject
+    private IEclipseContext ctx;
 
-	// The 3 pages of this wizard
-	private ExportWizardPageStartEndDate page1;
-	private AccountsExportOptionPage page2;
-	private AccountSettingsPage page3;
+    // The 3 pages of this wizard
+    private ExportWizardPageStartEndDate page1;
+    private AccountsExportOptionPage page2;
+    private AccountSettingsPage page3;
 
-	/**
-	 * Initializes this creation wizard using the passed workbench and object
-	 * selection.
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 *      org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		setWindowTitle(msg.pageExport);
-		ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
+    /**
+     * Initializes this creation wizard using the passed workbench and object
+     * selection.
+     * 
+     */
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        setWindowTitle(msg.pageExport);
+        ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
 
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableDescription);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
-		page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
-		
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableListentries);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
-		page2 = ContextInjectionFactory.make(AccountsExportOptionPage.class, ctx);
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableDescription);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
+        page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
 
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableAccountsettingsTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableAccountsettingsDescription);
-		page3 = ContextInjectionFactory.make(AccountSettingsPage.class, ctx);
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableListentries);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
+        page2 = ContextInjectionFactory.make(AccountsExportOptionPage.class, ctx);
 
-		addPage(page1);
-		addPage(page2);
-		addPage(page3);
-	}
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportAccountsTableAccountsettingsTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableAccountsettingsDescription);
+        page3 = ContextInjectionFactory.make(AccountSettingsPage.class, ctx);
 
-	/**
-	 * Performs any actions appropriate in response to the user having pressed
-	 * the Finish button, or refuse if finishing now is not permitted.
-	 * 
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
-	@Override
-	public boolean performFinish() {
-		GregorianCalendar accountDate = page3.getDate();
-				
-		String datePropertyKey = "export_account_date_"  + page2.getSelectedAccount().toLowerCase().replaceAll("/", "\\\\/");
-		if (!datePropertyKey.isEmpty()) {
-			String datePropertyValue = dateFormatterService.getDateAndTimeAsString(accountDate);
-			eclipsePrefs.put(datePropertyKey, datePropertyValue);
-		}
+        addPage(page1);
+        addPage(page2);
+        addPage(page3);
+    }
 
-		String valuePropertyKey = "export_account_value_"  + page2.getSelectedAccount().toLowerCase().replaceAll("/", "\\\\/");
-		MonetaryAmount startValue = page3.getValue();
-		if (!valuePropertyKey.isEmpty()) {
-			String valuePropertyValue = Double.toString(startValue.getNumber().doubleValue());
-			eclipsePrefs.put(valuePropertyKey, valuePropertyValue);
-		}
-		
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
-		if(!page1.getDoNotUseTimePeriod()) {
-			// only filter by date if it is wanted
-			ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
-			ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
-		} else {
-			ctx.remove(Constants.PARAM_START_DATE);
-			ctx.remove(Constants.PARAM_END_DATE);
-		}
-		AccountsExporter exporter = ContextInjectionFactory.make(AccountsExporter.class, ctx);
-		return exporter.export(page2.getSelectedAccount(), page3.getDate(), 
-				startValue);
-	}
+    /**
+     * Performs any actions appropriate in response to the user having pressed
+     * the Finish button, or refuse if finishing now is not permitted.
+     * 
+     * @see org.eclipse.jface.wizard.Wizard#performFinish()
+     */
+    @Override
+    public boolean performFinish() {
+        GregorianCalendar accountDate = page3.getDate();
+
+        String datePropertyKey = "export_account_date_" + page2.getSelectedAccount().toLowerCase().replaceAll("/", "\\\\/");
+        if (!datePropertyKey.isEmpty()) {
+            String datePropertyValue = dateFormatterService.getDateAndTimeAsString(accountDate);
+            eclipsePrefs.put(datePropertyKey, datePropertyValue);
+        }
+
+        String valuePropertyKey = "export_account_value_" + page2.getSelectedAccount().toLowerCase().replaceAll("/", "\\\\/");
+        MonetaryAmount startValue = page3.getValue();
+        if (!valuePropertyKey.isEmpty()) {
+            String valuePropertyValue = Double.toString(startValue.getNumber().doubleValue());
+            eclipsePrefs.put(valuePropertyKey, valuePropertyValue);
+        }
+
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
+        if (!page1.getDoNotUseTimePeriod()) {
+            // only filter by date if it is wanted
+            ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
+            ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
+        } else {
+            ctx.remove(Constants.PARAM_START_DATE);
+            ctx.remove(Constants.PARAM_END_DATE);
+        }
+        AccountsExporter exporter = ContextInjectionFactory.make(AccountsExporter.class, ctx);
+        return exporter.export(page2.getSelectedAccount(), page3.getDate(), startValue);
+    }
 
 }

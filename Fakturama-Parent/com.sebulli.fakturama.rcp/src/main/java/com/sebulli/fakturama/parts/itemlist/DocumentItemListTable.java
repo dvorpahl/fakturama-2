@@ -1,17 +1,16 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2015 www.fakturama.org
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * Contributors: The Fakturama Team - initial API and implementation
  */
- 
+
 package com.sebulli.fakturama.parts.itemlist;
 
 import java.io.Serializable;
@@ -155,58 +154,61 @@ import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
 
 /**
- * The table of items inside a Document (invoice, order etc). 
+ * The table of items inside a Document (invoice, order etc).
  */
 public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO, DummyStringCategory> {
 
     @Inject
     private ESelectionService selectionService;
-    
+
     @Inject
     private EMenuService menuService;
-    
+
     @Inject
     private IEclipseContext context;
-    
+
     @Inject
     private VatsDAO vatsDAO;
-	
-	@Inject
-	private ILocaleService localeUtil;
-	
-	@Inject
-	private INumberFormatterService numberFormatterService;
-	
-	@Inject
-	private DocumentReceiverDAO documentReceiverDao;
-	   
+
+    @Inject
+    private ILocaleService localeUtil;
+
+    @Inject
+    private INumberFormatterService numberFormatterService;
+
+    @Inject
+    private DocumentReceiverDAO documentReceiverDao;
+
     @Inject
     private ITemplateResourceManager resourceManager;
 
     // ID of this view
     public static final String ID = "fakturama.document.itemTable";
-    
+
     private EventList<DocumentItemDTO> documentItemsListData;
 
     private Document document;
     private DocumentType documentType;
-    
-    /** for accessing the surrounding {@link DocumentEditor} we have to pull it in */
-	private DocumentEditor container;
+
+    /**
+     * for accessing the surrounding {@link DocumentEditor} we have to pull it
+     * in
+     */
+    private DocumentEditor container;
 
     // Flag if there are items with property "optional" set
     private boolean containsOptionalItems = false;
 
     // Flag if there are items with an discount set
     private boolean containsDiscountedItems = false;
-//    private boolean useGross;
-//    private int netgross = DocumentSummary.NOTSPECIFIED;
-    
+    //    private boolean useGross;
+    //    private int netgross = DocumentSummary.NOTSPECIFIED;
+
     /**
      * {@link VAT} entry for use in conjunction with "no VAT" entry
      */
     private VAT noVatReference = null;
-    
+
     private static final String OPTIONAL_CELL_LABEL = "Optional_Cell_LABEL";
     private static final String PERCENT_CELL_LABEL = "Percent_Cell_LABEL";
     private static final String MONEYVALUE_CELL_LABEL = "MoneyValue_Cell_LABEL";
@@ -225,27 +227,28 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
     //create a new ConfigRegistry which will be needed for GlazedLists handling
     private ConfigRegistry configRegistry = new ConfigRegistry();
-//    private SelectionLayer selectionLayer;
-    
+    //    private SelectionLayer selectionLayer;
+
     private ProductUtil productUtil;
     private DocumentItemUtil documentItemUtil;
 
     /**
-     * Checks if the current editor uses sales equalization tax (this is only needed for some customers).
+     * Checks if the current editor uses sales equalization tax (this is only
+     * needed for some customers).
      */
     private boolean useSET = false;
-    
+
     /**
      * Entry point for this class. Here the whole Composite is built.
      * 
      * @param parent
      * @param document
-     * @param documentSummary 
-     * @param useGross 
+     * @param documentSummary
+     * @param useGross
      * @return
      */
-    public Control createPartControl(Composite parent, Document document,/* boolean useGross,*/DocumentEditor container,
-            int netgross) {
+    public Control createPartControl(final Composite parent, final Document document, /* boolean useGross,*/final DocumentEditor container,
+            final int netgross) {
         log.debug("create DocumentItem list part");
         this.document = document;
         this.documentType = DocumentType.findByKey(document.getBillingType().getValue());
@@ -253,230 +256,215 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         this.productUtil = ContextInjectionFactory.make(ProductUtil.class, context);
         this.documentItemUtil = ContextInjectionFactory.make(DocumentItemUtil.class, context);
         this.useSET = documentReceiverDao.isSETEnabled(document);
-//        // Get some settings from the preference store
-//        if (netgross == DocumentSummary.ROUND_NOTSPECIFIED) {
-//            useGross = (eclipsePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS) == DocumentSummary.ROUND_NET_VALUES);
-//        } else {
-//            useGross = (netgross == DocumentSummary.ROUND_GROSS_VALUES);
-//        }
-        
+        //        // Get some settings from the preference store
+        //        if (netgross == DocumentSummary.ROUND_NOTSPECIFIED) {
+        //            useGross = (eclipsePrefs.getInt(Constants.PREFERENCES_DOCUMENT_USE_NET_GROSS) == DocumentSummary.ROUND_NET_VALUES);
+        //        } else {
+        //            useGross = (netgross == DocumentSummary.ROUND_GROSS_VALUES);
+        //        }
+
         super.createPartControl(parent, DocumentItemDTO.class, false, ID);
         // Listen to double clicks (omitted at the moment, perhaps at a later time
-//        hookDoubleClickCommand(natTable, gridLayer);
+        //        hookDoubleClickCommand(natTable, gridLayer);
         return top;
     }
-    
 
-	/**
-	 * Create the default context menu
-	 */
-	private Menu createContextMenu() {
-		// Add up/down and delete actions
-		MoveEntryUpMenuItem moveEntryUpHandler = ContextInjectionFactory.make(MoveEntryUpMenuItem.class, context);
-		MoveEntryDownMenuItem moveEntryDownHandler = ContextInjectionFactory.make(MoveEntryDownMenuItem.class, context);
-		
-		IMenuItemProvider deleteMenuItem = new IMenuItemProvider() {
+    /**
+     * Create the default context menu
+     */
+    private Menu createContextMenu() {
+        // Add up/down and delete actions
+        MoveEntryUpMenuItem moveEntryUpHandler = ContextInjectionFactory.make(MoveEntryUpMenuItem.class, context);
+        MoveEntryDownMenuItem moveEntryDownHandler = ContextInjectionFactory.make(MoveEntryDownMenuItem.class, context);
 
-			@Override
-			public void addMenuItem(NatTable natTable, Menu popupMenu) {
-		        final MenuItem deleteItem = new MenuItem(popupMenu, SWT.PUSH);
-		        deleteItem.setText(msg.mainMenuEditDeleteName);
-				deleteItem.setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
-				deleteItem.setEnabled(true);
-				deleteItem.setAccelerator(SWT.MOD1 + 'D');  // doesn't work :-(
-				deleteItem.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent event) {
-						removeSelectedEntry();
-					}
-				});
-			}
-			
-		};
-		
-		MenuManager menuManager = new MenuManager();
-		Menu retval = new PopupMenuBuilder(natTable, menuManager)
-				.withMenuItemProvider(CommandIds.CMD_MOVE_UP, moveEntryUpHandler)
-				.withMenuItemProvider(CommandIds.CMD_MOVE_DOWN, moveEntryDownHandler)
-				.withMenuItemProvider(CommandIds.CMD_DELETE_DATASET, deleteMenuItem)
-			    .withEnabledState(
-			    		CommandIds.CMD_MOVE_UP,
-			            new IMenuItemState() {
-			     
-			                @Override
-			                public boolean isActive(NatEventData natEventData) {
-			                    return natEventData.getRowPosition() > 1;
-			                }
-			        })
-			    .withEnabledState(
-			    		CommandIds.CMD_MOVE_DOWN,
-			    		new IMenuItemState() {
-			    			
-			    			@Override
-			    			public boolean isActive(NatEventData natEventData) {
-			    				return natEventData.getRowPosition() < getGridLayer().getBodyDataProvider().getRowCount();
-			    			}
-			    		})
-				.build();
+        IMenuItemProvider deleteMenuItem = new IMenuItemProvider() {
 
-		return retval;
-	}
-	
-	/**
-	 * This is an alternative implementation of the context menu. It uses the definition from Application.e4xmi. 
-	 * At the moment, it's unused because the {@link MenuItem}s aren't real handler implementations. 
-	 * This could be changed in the future. 
-	 * @return
-	 */
-	@SuppressWarnings("unused")
-	private Menu createContextMenuFromE4Applicationmodel() {
-		Menu retval = null;
-		menuService.registerContextMenu(natTable, "com.sebulli.fakturama.documentitemlist.popup");
-		// get the menu registered by EMenuService
-		final Menu e4Menu = natTable.getMenu();
-		
-		// remove the menu reference from NatTable instance
-		natTable.setMenu(null);
-		natTable.addConfiguration(
-		        new AbstractUiBindingConfiguration() {
-		 
-		    @Override
-		    public void configureUiBindings(
-		            UiBindingRegistry uiBindingRegistry) {
-		        // add NatTable menu items
-		        // and register the DisposeListener
-		        new PopupMenuBuilder(natTable, e4Menu)
-		            .build();
-		 
-		        // register the UI binding
-		        uiBindingRegistry.registerMouseDownBinding(
-		                new MouseEventMatcher(
-		                        SWT.NONE,
-		                        GridRegion.BODY,
-		                        MouseEventMatcher.RIGHT_BUTTON),
-		                new PopupMenuAction(e4Menu));
-		    }
-		});
-		
-		retval = new PopupMenuBuilder(natTable, e4Menu)
-				.withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
+            @Override
+            public void addMenuItem(final NatTable natTable, final Menu popupMenu) {
+                final MenuItem deleteItem = new MenuItem(popupMenu, SWT.PUSH);
+                deleteItem.setText(msg.mainMenuEditDeleteName);
+                deleteItem.setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
+                deleteItem.setEnabled(true);
+                deleteItem.setAccelerator(SWT.MOD1 + 'D'); // doesn't work :-(
+                deleteItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(final SelectionEvent event) {
+                        removeSelectedEntry();
+                    }
+                });
+            }
 
-					@Override
-					public boolean isActive(NatEventData natEventData) {
-						return natEventData.getRowPosition() > 1;
-					}
-				}).withEnabledState(CommandIds.CMD_MOVE_DOWN, new IMenuItemState() {
+        };
 
-					@Override
-					public boolean isActive(NatEventData natEventData) {
-						return natEventData.getRowPosition() < getGridLayer().getBodyDataProvider().getRowCount();
-					}
-				}).build();		
-		return retval;
-	}
-    
-/*
- * Move an item up or down
- * ==> done through NatTable mechanics
- */
-    
-    protected NatTable createListTable(Composite tableComposite) {  
+        MenuManager menuManager = new MenuManager();
+        Menu retval = new PopupMenuBuilder(natTable, menuManager).withMenuItemProvider(CommandIds.CMD_MOVE_UP, moveEntryUpHandler)
+                .withMenuItemProvider(CommandIds.CMD_MOVE_DOWN, moveEntryDownHandler).withMenuItemProvider(CommandIds.CMD_DELETE_DATASET, deleteMenuItem)
+                .withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
+
+                    @Override
+                    public boolean isActive(final NatEventData natEventData) {
+                        return natEventData.getRowPosition() > 1;
+                    }
+                }).withEnabledState(CommandIds.CMD_MOVE_DOWN, new IMenuItemState() {
+
+                    @Override
+                    public boolean isActive(final NatEventData natEventData) {
+                        return natEventData.getRowPosition() < getGridLayer().getBodyDataProvider().getRowCount();
+                    }
+                }).build();
+
+        return retval;
+    }
+
+    /**
+     * This is an alternative implementation of the context menu. It uses the
+     * definition from Application.e4xmi. At the moment, it's unused because the
+     * {@link MenuItem}s aren't real handler implementations. This could be
+     * changed in the future.
+     * 
+     * @return
+     */
+    @SuppressWarnings("unused")
+    private Menu createContextMenuFromE4Applicationmodel() {
+        Menu retval = null;
+        menuService.registerContextMenu(natTable, "com.sebulli.fakturama.documentitemlist.popup");
+        // get the menu registered by EMenuService
+        final Menu e4Menu = natTable.getMenu();
+
+        // remove the menu reference from NatTable instance
+        natTable.setMenu(null);
+        natTable.addConfiguration(new AbstractUiBindingConfiguration() {
+
+            @Override
+            public void configureUiBindings(final UiBindingRegistry uiBindingRegistry) {
+                // add NatTable menu items
+                // and register the DisposeListener
+                new PopupMenuBuilder(natTable, e4Menu).build();
+
+                // register the UI binding
+                uiBindingRegistry.registerMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
+                        new PopupMenuAction(e4Menu));
+            }
+        });
+
+        retval = new PopupMenuBuilder(natTable, e4Menu).withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
+
+            @Override
+            public boolean isActive(final NatEventData natEventData) {
+                return natEventData.getRowPosition() > 1;
+            }
+        }).withEnabledState(CommandIds.CMD_MOVE_DOWN, new IMenuItemState() {
+
+            @Override
+            public boolean isActive(final NatEventData natEventData) {
+                return natEventData.getRowPosition() < getGridLayer().getBodyDataProvider().getRowCount();
+            }
+        }).build();
+        return retval;
+    }
+
+    /*
+     * Move an item up or down
+     * ==> done through NatTable mechanics
+     */
+
+    @Override
+    protected NatTable createListTable(final Composite tableComposite) {
         // fill the underlying data source (GlazedLists)
         initItemsList();
 
         final BidiMap<Integer, DocumentItemListDescriptor> propertyNamesList = createColumns();
-        
-        List<DocumentItemListDescriptor> tmpList2 = new ArrayList<DocumentItemListDescriptor>(propertyNamesList.values());
-        String[] propertyNames = tmpList2.stream().map(DocumentItemListDescriptor::getPropertyName).collect(Collectors.toList()).toArray(new String[]{});
+
+        List<DocumentItemListDescriptor> tmpList2 = new ArrayList<>(propertyNamesList.values());
+        String[] propertyNames = tmpList2.stream().map(DocumentItemListDescriptor::getPropertyName).collect(Collectors.toList()).toArray(new String[] {});
         final IColumnPropertyAccessor<DocumentItem> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<>(propertyNames);
-        
+
         // Add derived column
-        final IColumnPropertyAccessor<DocumentItemDTO> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<DocumentItemDTO>() {
+        final IColumnPropertyAccessor<DocumentItemDTO> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<>() {
 
             /**
              * Get the value to set to the editor
              */
-            public Object getDataValue(DocumentItemDTO rowObject, int columnIndex) {
+            @Override
+            public Object getDataValue(final DocumentItemDTO rowObject, final int columnIndex) {
                 Object retval;
                 DocumentItemListDescriptor descriptor;
-                if(columnIndex < 0) {
-                	descriptor = DocumentItemListDescriptor.POSITION;
+                if (columnIndex < 0) {
+                    descriptor = DocumentItemListDescriptor.POSITION;
                 } else {
-                	descriptor = (DocumentItemListDescriptor) propertyNamesList.get(columnIndex);
+                    descriptor = propertyNamesList.get(columnIndex);
                 }
                 try {
-					switch (descriptor) {
-	                case POSITION:
-	//                    retval = eclipsePrefs.getBoolean(Constants.PREFERENCES_DOCUMENT_USE_ITEM_POS) ? rowObject.getDocumentItem().getPosNr() : -1.0;
-	                	// we ALWAYS use a position number!
-	                    retval = rowObject.getDocumentItem().getPosNr();
-	                    break;
-	                case QUANTITY:
-	                    retval = numberFormatterService.doubleToFormattedQuantity(rowObject.getDocumentItem().getQuantity());
-	                    break;
-	                case OPTIONAL:
-	                case QUNIT:
-	                case WEIGHT:
-	                case ITEMNUMBER:
-	                case NAME:
-	                case DESCRIPTION:
-	                case DISCOUNT:
-	                    retval = columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
-	                    break;
-	                case VESTINGDATESTART:
-	                case VESTINGDATEEND:
-	                    retval = columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
-	                	if(retval == null) {
-	                		retval = Calendar.getInstance().getTime();
-	                	}
-	                    break;
-	                case PICTURE:
-	                    // we have to build the picture path
-	                    // opening the picture dialog (preview) occurs in the PictureViewEditor (via configuration)
-	//                    String imgPath = (String) columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
-	//                    if (StringUtils.isNotBlank(imgPath)) {
-	//                        String picturePath = eclipsePrefs.getString(Constants.GENERAL_WORKSPACE) + Constants.PRODUCT_PICTURE_FOLDER;
-	//                        retval = picturePath + imgPath;
-	//                    } else {
-	//                        retval = null;
-	//                    }
-	                	retval = rowObject.getDocumentItem().getPicture();
-	                    break;
-	                case VAT:
-	                    retval = noVatReference != null ? noVatReference 
-	                    		: (VAT) columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
-	                    break;
-	                case SALESEQUALIZATIONTAX:
-	                    Price price = rowObject.getPrice(useSET);
-//	                	Double tmpVat = (Double)columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
-//	                	retval = tmpVat != null ? DataUtils.getInstance().round(tmpVat, 3) : NumberUtils.DOUBLE_ZERO;
-	                    retval = price.getTotalSalesEqTaxRounded();
-	                	break;
-	                case UNITPRICE:
-	                    price = rowObject.getPrice(useSET);
-						retval = container.getUseGross() 
-	                			? price.getUnitGrossRounded() 
-	                			: price.getUnitNetRounded();
-	                    break;
-	                case TOTALPRICE:
-	                    int sign = container.getDocumentType().getSign();
-	                    price = rowObject.getPrice(useSET);
-	                    price.multiply(sign);
-	                    if (container.getUseGross()) { // "$ItemGrossTotal"
-	                        // Fill the cell with the total gross value of the item
-	                        retval = price.getTotalGrossRounded();
-	                    } else { // "$ItemNetTotal"
-	                        // Fill the cell with the total net value of the item
-	                        retval = price.getTotalNetRounded();
-	                    }
-	                    break;
-	                default:
-	                    retval = "???";
-	                    break;
-	                }
+                    switch (descriptor) {
+                    case POSITION:
+                        //                    retval = eclipsePrefs.getBoolean(Constants.PREFERENCES_DOCUMENT_USE_ITEM_POS) ? rowObject.getDocumentItem().getPosNr() : -1.0;
+                        // we ALWAYS use a position number!
+                        retval = rowObject.getDocumentItem().getPosNr();
+                        break;
+                    case QUANTITY:
+                        retval = numberFormatterService.doubleToFormattedQuantity(rowObject.getDocumentItem().getQuantity());
+                        break;
+                    case OPTIONAL:
+                    case QUNIT:
+                    case WEIGHT:
+                    case ITEMNUMBER:
+                    case NAME:
+                    case DESCRIPTION:
+                    case DISCOUNT:
+                        retval = columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
+                        break;
+                    case VESTINGDATESTART:
+                    case VESTINGDATEEND:
+                        retval = columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
+                        if (retval == null) {
+                            retval = Calendar.getInstance().getTime();
+                        }
+                        break;
+                    case PICTURE:
+                        // we have to build the picture path
+                        // opening the picture dialog (preview) occurs in the PictureViewEditor (via configuration)
+                        //                    String imgPath = (String) columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
+                        //                    if (StringUtils.isNotBlank(imgPath)) {
+                        //                        String picturePath = eclipsePrefs.getString(Constants.GENERAL_WORKSPACE) + Constants.PRODUCT_PICTURE_FOLDER;
+                        //                        retval = picturePath + imgPath;
+                        //                    } else {
+                        //                        retval = null;
+                        //                    }
+                        retval = rowObject.getDocumentItem().getPicture();
+                        break;
+                    case VAT:
+                        retval = noVatReference != null ? noVatReference : (VAT) columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
+                        break;
+                    case SALESEQUALIZATIONTAX:
+                        Price price = rowObject.getPrice(useSET);
+                        //	                	Double tmpVat = (Double)columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
+                        //	                	retval = tmpVat != null ? DataUtils.getInstance().round(tmpVat, 3) : NumberUtils.DOUBLE_ZERO;
+                        retval = price.getTotalSalesEqTaxRounded();
+                        break;
+                    case UNITPRICE:
+                        price = rowObject.getPrice(useSET);
+                        retval = container.getUseGross() ? price.getUnitGrossRounded() : price.getUnitNetRounded();
+                        break;
+                    case TOTALPRICE:
+                        int sign = container.getDocumentType().getSign();
+                        price = rowObject.getPrice(useSET);
+                        price.multiply(sign);
+                        if (container.getUseGross()) { // "$ItemGrossTotal"
+                            // Fill the cell with the total gross value of the item
+                            retval = price.getTotalGrossRounded();
+                        } else { // "$ItemNetTotal"
+                            // Fill the cell with the total net value of the item
+                            retval = price.getTotalNetRounded();
+                        }
+                        break;
+                    default:
+                        retval = "???";
+                        break;
+                    }
                 } catch (Exception ex) {
-                	retval = "ERROR!";
-            		log.error("Error while displaying a value from DocumentItem (name=["+rowObject.getDocumentItem().getName()+"]) at column position ["+columnIndex+"]. Reason: " + ex.getMessage());
+                    retval = "ERROR!";
+                    log.error("Error while displaying a value from DocumentItem (name=[" + rowObject.getDocumentItem().getName() + "]) at column position ["
+                            + columnIndex + "]. Reason: " + ex.getMessage());
                 }
                 return retval;
             }
@@ -484,13 +472,18 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
             /**
              * Sets the new value on the given element.
              * <h3>HINT</h3>
-             * <p>Saving a new document causes to set the technical fields (dateAdded or modifiedBy) for the DocumentItem.
-             * Therefore we have to check the "real" changes and ignore the only technical ones. This is achieved by 
-             * a tiny PropertyChangeListener inside DocumentItemDTO, which tracks all "real" changes. The status
-             * can be get with "isDocumentItemDirty()" method from DocumentItemDTO.</p>
+             * <p>
+             * Saving a new document causes to set the technical fields
+             * (dateAdded or modifiedBy) for the DocumentItem. Therefore we have
+             * to check the "real" changes and ignore the only technical ones.
+             * This is achieved by a tiny PropertyChangeListener inside
+             * DocumentItemDTO, which tracks all "real" changes. The status can
+             * be get with "isDocumentItemDirty()" method from DocumentItemDTO.
+             * </p>
              */
-            public void setDataValue(DocumentItemDTO rowObject, int columnIndex, Object newValue) {
-                DocumentItemListDescriptor descriptor = (DocumentItemListDescriptor) propertyNamesList.get(columnIndex);
+            @Override
+            public void setDataValue(final DocumentItemDTO rowObject, final int columnIndex, final Object newValue) {
+                DocumentItemListDescriptor descriptor = propertyNamesList.get(columnIndex);
                 boolean calculate = true;
                 switch (descriptor) {
                 case OPTIONAL:
@@ -519,8 +512,9 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                             //if (!DataUtils.DoublesAreEqual(newPrice, 0.0))
                             rowObject.getDocumentItem().setPrice(newPrice);
                         }
-                        
-                        rowObject.getDocumentItem().setQuantityUnit(documentItemUtil.getProductQuantityUnit(product, rowObject.getDocumentItem().getQuantity()));
+
+                        rowObject.getDocumentItem()
+                                .setQuantityUnit(documentItemUtil.getProductQuantityUnit(product, rowObject.getDocumentItem().getQuantity()));
                     }
                     break;
                 case QUNIT:
@@ -528,9 +522,9 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                     calculate = false; // no recalculation needed
                     break;
                 case WEIGHT:
-                	Double newWeight = ObjectUtils.defaultIfNull((Double) newValue, Double.valueOf(0.0));
-                	rowObject.getDocumentItem().setWeight(newWeight);
-                	break;
+                    Double newWeight = ObjectUtils.defaultIfNull((Double) newValue, Double.valueOf(0.0));
+                    rowObject.getDocumentItem().setWeight(newWeight);
+                    break;
                 case ITEMNUMBER:
                     rowObject.getDocumentItem().setItemNumber((String) newValue);
                     calculate = false; // no recalculation needed
@@ -558,20 +552,20 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                 case VAT:
                     // Set the VAT
                     if (newValue != null) {
-            			// Set the vat and store the vat value before and after the modification.
-            			Double oldVat = 1.0 + rowObject.getDocumentItem().getItemVat().getTaxValue();
+                        // Set the vat and store the vat value before and after the modification.
+                        Double oldVat = 1.0 + rowObject.getDocumentItem().getItemVat().getTaxValue();
                         rowObject.getDocumentItem().setItemVat((VAT) newValue);
 
-            			// Modify the net value that the gross value stays constant.
-            			if (container.getUseGross()) {
-            				rowObject.getDocumentItem().setPrice(oldVat / (1 + ((VAT) newValue).getTaxValue()) * rowObject.getDocumentItem().getPrice());
-            			}
+                        // Modify the net value that the gross value stays constant.
+                        if (container.getUseGross()) {
+                            rowObject.getDocumentItem().setPrice(oldVat / (1 + ((VAT) newValue).getTaxValue()) * rowObject.getDocumentItem().getPrice());
+                        }
                     }
                     break;
                 case UNITPRICE:
                     String priceString = StringUtils.defaultString((String) newValue, "0").toLowerCase();
                     boolean useGross = container.getUseGross();
-                    
+
                     // If the price is tagged with an "Net" or "Gross", force this
                     // value to a net or gross value
                     //T: Tag to mark a price as net or gross
@@ -582,9 +576,9 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                     if (priceString.contains((msg.productDataGross).toLowerCase())) {
                         useGross = true;
                     }
-                    
-                    if(priceString.startsWith(",")) {
-                    	priceString = "0" + priceString;
+
+                    if (priceString.startsWith(",")) {
+                        priceString = "0" + priceString;
                     }
 
                     // Set the price as gross or net value.
@@ -592,82 +586,85 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                     // because only net values are stored.
                     MonetaryAmount amount = Money.of(DataUtils.getInstance().StringToDouble(priceString), DataUtils.getInstance().getDefaultCurrencyUnit());
                     if (useGross) {
-                        Price newPrice = new Price(amount, rowObject.getDocumentItem().getItemVat().getTaxValue(), rowObject.getDocumentItem().getNoVat(), useGross);
+                        Price newPrice = new Price(amount, rowObject.getDocumentItem().getItemVat().getTaxValue(), rowObject.getDocumentItem().getNoVat(),
+                                useGross);
                         rowObject.getDocumentItem().setPrice(newPrice.getUnitNet().getNumber().doubleValue());
                     } else {
                         rowObject.getDocumentItem().setPrice(amount.getNumber().doubleValue());
                     }
                     break;
                 case VESTINGDATESTART:
-                    rowObject.getDocumentItem().setVestingPeriodStart((Date)newValue);
+                    rowObject.getDocumentItem().setVestingPeriodStart((Date) newValue);
                     break;
                 case VESTINGDATEEND:
-                    rowObject.getDocumentItem().setVestingPeriodEnd((Date)newValue);
+                    rowObject.getDocumentItem().setVestingPeriodEnd((Date) newValue);
                     break;
                 default:
                     break;
                 }
 
-                if(rowObject.isDocumentItemDirty()) {
+                if (rowObject.isDocumentItemDirty()) {
                     Map<String, Object> event = new HashMap<>();
                     event.put("source", descriptor);
-	                // Recalculate the total sum of the document if necessary
-	                // do it via the messaging system and send a message to DocumentEditor
-	                event.put(DocumentEditor.DOCUMENT_ID, document.getName());
-	                event.put(DocumentEditor.DOCUMENT_RECALCULATE, calculate);
-	                rowObject.setDocumentItemDirty(false);
-	                
-	                evtBroker.post(DocumentEditor.EDITOR_ID + UIEvents.TOPIC_SEP + "itemChanged", event);
+                    // Recalculate the total sum of the document if necessary
+                    // do it via the messaging system and send a message to DocumentEditor
+                    event.put(DocumentEditor.DOCUMENT_ID, document.getName());
+                    event.put(DocumentEditor.DOCUMENT_RECALCULATE, calculate);
+                    rowObject.setDocumentItemDirty(false);
+
+                    evtBroker.post(DocumentEditor.EDITOR_ID + UIEvents.TOPIC_SEP + "itemChanged", event);
                 }
             }
 
-			public int getColumnCount() {
+            @Override
+            public int getColumnCount() {
                 return propertyNamesList.size();
             }
 
-            public String getColumnProperty(int columnIndex) {
-                DocumentItemListDescriptor descriptor = (DocumentItemListDescriptor) propertyNamesList.get(columnIndex);
+            @Override
+            public String getColumnProperty(final int columnIndex) {
+                DocumentItemListDescriptor descriptor = propertyNamesList.get(columnIndex);
                 return msg.getMessageFromKey(descriptor.getMessageKey());
             }
 
-            public int getColumnIndex(String propertyName) {
-                    return columnPropertyAccessor.getColumnIndex(propertyName);
+            @Override
+            public int getColumnIndex(final String propertyName) {
+                return columnPropertyAccessor.getColumnIndex(propertyName);
             }
         };
 
-        IRowIdAccessor<DocumentItemDTO> rowIdAccessor = new IRowIdAccessor<DocumentItemDTO>() {
+        IRowIdAccessor<DocumentItemDTO> rowIdAccessor = new IRowIdAccessor<>() {
             @Override
-            public Serializable getRowId(DocumentItemDTO rowObject) {
+            public Serializable getRowId(final DocumentItemDTO rowObject) {
                 return rowObject.getDocumentItem().getPosNr();
             }
         };
 
         //build the grid layer
-		gridListLayer = new EntityGridListLayer<>(getDocumentItemsListData(), propertyNames,
-				derivedColumnPropertyAccessor, rowIdAccessor, configRegistry, msg, true);
-		
+        gridListLayer = new EntityGridListLayer<>(getDocumentItemsListData(), propertyNames, derivedColumnPropertyAccessor, rowIdAccessor, configRegistry, msg,
+                true);
+
         // set default percentage width 
-		gridListLayer.getBodyDataLayer().setColumnPercentageSizing(true);
+        gridListLayer.getBodyDataLayer().setColumnPercentageSizing(true);
 
         //set ISelectionProvider
-        final RowSelectionProvider<DocumentItemDTO> selectionProvider = 
-                new RowSelectionProvider<DocumentItemDTO>(gridListLayer.getSelectionLayer(), gridListLayer.getBodyDataProvider());
-        
+        final RowSelectionProvider<DocumentItemDTO> selectionProvider = new RowSelectionProvider<>(gridListLayer.getSelectionLayer(),
+                gridListLayer.getBodyDataProvider());
+
         //add a listener to the selection provider, in an Eclipse application you would do this
         //e.g. getSite().getPage().addSelectionListener()
-        selectionProvider.addSelectionChangedListener((SelectionChangedEvent event) -> {
-//                log.debug("Selection changed:");
-                
-    		IStructuredSelection structuredSelection = event.getStructuredSelection();
-                selectionService.setSelection(structuredSelection.toList());
-            }
-        );
-         
+        selectionProvider.addSelectionChangedListener((final SelectionChangedEvent event) -> {
+            //                log.debug("Selection changed:");
+
+            IStructuredSelection structuredSelection = event.getStructuredSelection();
+            selectionService.setSelection(structuredSelection.toList());
+        });
+
         // add some edit configuration
         gridListLayer.getGridLayer().addConfiguration(new DefaultEditBindings());
         gridListLayer.getGridLayer().addConfiguration(new DefaultEditConfiguration());
         gridListLayer.getGridLayer().addConfiguration(new DocumentItemTableConfiguration());
-        
+
         // Create a label accumulator - adds custom labels to all cells which we
         // wish to render differently.
         BidiMap<DocumentItemListDescriptor, Integer> reverseMap = propertyNamesList.inverseBidiMap();
@@ -680,7 +677,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.DISCOUNT, PERCENT_CELL_LABEL);
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.UNITPRICE, MONEYVALUE_CELL_LABEL);
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.TOTALPRICE, TOTAL_MONEYVALUE_CELL_LABEL);
-        
+
         // "normal" columns are always editable
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.DESCRIPTION, DESCRIPTION_CELL_LABEL);
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.VESTINGDATESTART, DATE_CELL_LABEL);
@@ -693,175 +690,169 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
         // Register label accumulator
         gridListLayer.getBodyDataLayer().setConfigLabelAccumulator(columnLabelAccumulator);
-        
+
         // if a re-ordering of rows occurs we have to renumber the items
-        gridListLayer.getBodyLayerStack().getRowReorderLayer().addLayerListener((ILayerEvent event) -> {
-                if (event instanceof RowReorderEvent) {
-                    RowReorderEvent evt = (RowReorderEvent) event;
-                    evt.convertToLocal(gridListLayer.getBodyLayerStack().getRowReorderLayer());
-                    int newIdx = 0; // documentItemsListData??
-                    for (Integer rowIndex : gridListLayer.getBodyLayerStack().getRowReorderLayer().getRowIndexOrder()) {
-                        DocumentItemDTO objToRenumber = gridListLayer.getBodyDataProvider().getRowObject(rowIndex);
-                        objToRenumber.getDocumentItem().setPosNr(++newIdx);
-                    }
-                    getContainer().setDirty(true);
+        gridListLayer.getBodyLayerStack().getRowReorderLayer().addLayerListener((final ILayerEvent event) -> {
+            if (event instanceof RowReorderEvent) {
+                RowReorderEvent evt = (RowReorderEvent) event;
+                evt.convertToLocal(gridListLayer.getBodyLayerStack().getRowReorderLayer());
+                int newIdx = 0; // documentItemsListData??
+                for (Integer rowIndex : gridListLayer.getBodyLayerStack().getRowReorderLayer().getRowIndexOrder()) {
+                    DocumentItemDTO objToRenumber = gridListLayer.getBodyDataProvider().getRowObject(rowIndex);
+                    objToRenumber.getDocumentItem().setPosNr(++newIdx);
                 }
+                getContainer().setDirty(true);
             }
-        );
-        final NatTable natTable = new NatTable(tableComposite , /*
-                SWT.NO_REDRAW_RESIZE| SWT.DOUBLE_BUFFERED | SWT.BORDER,
-                // FIXME: Doesn't work! 
-               ,gridListLayer.getViewportLayer()  */
-		 gridListLayer.getGridLayer() , false);
+        });
+        final NatTable natTable = new NatTable(tableComposite, /*
+                                                               SWT.NO_REDRAW_RESIZE| SWT.DOUBLE_BUFFERED | SWT.BORDER,
+                                                               // FIXME: Doesn't work! 
+                                                               ,gridListLayer.getViewportLayer()  */
+                gridListLayer.getGridLayer(), false);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
 
         // register a MoveCellSelectionCommandHandler with
         // TABLE_CYCLE_TRAVERSAL_STRATEGY for horizontal traversal
         // and AXIS_CYCLE_TRAVERSAL_STRATEGY for vertical traversal
-        gridListLayer.getGridLayer().registerCommandHandler(
-                new MoveCellSelectionCommandHandler(gridListLayer.getSelectionLayer(),
+        gridListLayer.getGridLayer()
+                .registerCommandHandler(new MoveCellSelectionCommandHandler(gridListLayer.getSelectionLayer(),
                         new EditTraversalStrategy(ITraversalStrategy.TABLE_CYCLE_TRAVERSAL_STRATEGY, natTable),
                         new EditTraversalStrategy(ITraversalStrategy.AXIS_CYCLE_TRAVERSAL_STRATEGY, natTable)));
-        
+
         // register Delete command
         // https://stackoverflow.com/questions/31907288/delete-rows-from-nattable
-        gridListLayer.getBodyDataLayer().registerCommandHandler(
-                new DeleteRowCommandHandler<DocumentItemDTO>(gridListLayer.getBodyDataProvider().getList()));
+        gridListLayer.getBodyDataLayer().registerCommandHandler(new DeleteRowCommandHandler<>(gridListLayer.getBodyDataProvider().getList()));
         return natTable;
     }
 
-
-    public void reloadItemList(Document document) {
+    public void reloadItemList(final Document document) {
         this.document = document;
         DocumentType documentType = DocumentTypeUtil.findByBillingType(document.getBillingType());
-        
+
         if (!documentType.hasPrice()) {
             return;
         }
-        
+
         getDocumentItemsListData().clear();
-        
+
         List<DocumentItemDTO> documentItems = document.getItems().stream().map(DocumentItemDTO::new).collect(Collectors.toList());
         getDocumentItemsListData().addAll(documentItems);
     }
 
-	private BidiMap<Integer, DocumentItemListDescriptor> createColumns() {
-		// Create the table columns 
+    private BidiMap<Integer, DocumentItemListDescriptor> createColumns() {
+        // Create the table columns 
         // get the visible properties to show in list view along with their position index
         Integer columnIndex = Integer.valueOf(0);
         final BidiMap<Integer, DocumentItemListDescriptor> propertyNamesList = new DualHashBidiMap<>();
 
         if (containsOptionalItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_OPTIONALITEMS_USE) && (documentType == DocumentType.OFFER)) {
-           propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.OPTIONAL);
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.OPTIONAL);
         }
 
         propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.QUANTITY);
-        
+
         if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_QUNIT)) {
-           propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.QUNIT);
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.QUNIT);
         }
-        
+
         if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_WEIGHT)) {
-        	propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.WEIGHT);
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.WEIGHT);
         }
-        
+
         if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_ITEMNR)) {
-           propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.ITEMNUMBER);
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.ITEMNUMBER);
         }
-        
+
         if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE)) {
-           propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.PICTURE);
-        }        
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.PICTURE);
+        }
 
         if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 0) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATESTART);
-         }        
-        
+        }
+
         if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 1) {
-        	propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATEEND);
-        }        
-        
+            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATEEND);
+        }
+
         propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.NAME);
-        
+
         if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_DESCRIPTION)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.DESCRIPTION);
         }
-        
-        if (documentType.hasPrice() 
-        		|| document.getBillingType().isDELIVERY() && getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_DELIVERY_NOTE_ITEMS_WITH_PRICE)) {
+
+        if (documentType.hasPrice()
+                || document.getBillingType().isDELIVERY() && getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_DELIVERY_NOTE_ITEMS_WITH_PRICE)) {
 
             if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_VAT)) {
-                propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VAT); 
+                propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VAT);
             }
-	        
-	        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX) && useSET) {
-	        	propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.SALESEQUALIZATIONTAX);
-	        }        
-            
+
+            if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX) && useSET) {
+                propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.SALESEQUALIZATIONTAX);
+            }
+
             // "$ItemGrossPrice" (if useGross = true) or "price" (if useGross = false)
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.UNITPRICE);
-            
+
             if (containsDiscountedItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM)) {
                 propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.DISCOUNT);
-            } 
-            
+            }
+
             // useGross = true => "$ItemGrossTotal", useGross = false => "$ItemNetTotal"
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.TOTALPRICE);
         }
-		return propertyNamesList;
-	}
+        return propertyNamesList;
+    }
 
-	@Override
-	protected void createDefaultContextMenu() {
+    @Override
+    protected void createDefaultContextMenu() {
 
-		natTable.addConfiguration(new AbstractUiBindingConfiguration() {
+        natTable.addConfiguration(new AbstractUiBindingConfiguration() {
 
-			private final Menu bodyMenu = createContextMenu();
+            private final Menu bodyMenu = createContextMenu();
 
-			@Override
-			public void configureUiBindings(UiBindingRegistry uiBindingRegistry) {
-				uiBindingRegistry.registerFirstMouseDownBinding(
-						new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
-						new PopupMenuAction(this.bodyMenu) {
-					@Override
-					public void run(NatTable natTable, MouseEvent event) {
-						int columnPosition = natTable.getColumnPositionByX(event.x);
-						int rowPosition = natTable.getRowPositionByY(event.y);
+            @Override
+            public void configureUiBindings(final UiBindingRegistry uiBindingRegistry) {
+                uiBindingRegistry.registerFirstMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
+                        new PopupMenuAction(this.bodyMenu) {
+                            @Override
+                            public void run(final NatTable natTable, final MouseEvent event) {
+                                int columnPosition = natTable.getColumnPositionByX(event.x);
+                                int rowPosition = natTable.getRowPositionByY(event.y);
 
-						if (!getGridLayer().getSelectionLayer().isRowPositionFullySelected(rowPosition)) {
-							natTable.doCommand(
-									new SelectRowsCommand(natTable, columnPosition, rowPosition, false, false));
-						}
+                                if (!getGridLayer().getSelectionLayer().isRowPositionFullySelected(rowPosition)) {
+                                    natTable.doCommand(new SelectRowsCommand(natTable, columnPosition, rowPosition, false, false));
+                                }
 
-						super.run(natTable, event);
-					}
-				});
-			}
+                                super.run(natTable, event);
+                            }
+                        });
+            }
 
-		});
-	}
+        });
+    }
 
     /**
      * @param reverseMap
      * @param columnLabelAccumulator
-     * @param cellLabel 
-     * @param descriptor 
+     * @param cellLabel
+     * @param descriptor
      */
-    private void registerColumnOverrides(BidiMap<DocumentItemListDescriptor, Integer> reverseMap, ColumnOverrideLabelAccumulator columnLabelAccumulator, 
-            DocumentItemListDescriptor descriptor, String... cellLabel) {
+    private void registerColumnOverrides(final BidiMap<DocumentItemListDescriptor, Integer> reverseMap,
+            final ColumnOverrideLabelAccumulator columnLabelAccumulator, final DocumentItemListDescriptor descriptor, final String... cellLabel) {
         // it's null if the column doesn't exist (because of e.g. preferences)
-        if(reverseMap.get(descriptor) != null) {
+        if (reverseMap.get(descriptor) != null) {
             columnLabelAccumulator.registerColumnOverrides(reverseMap.get(descriptor), cellLabel);
         }
     }
-    
 
     @Override
-    protected void postConfigureNatTable(NatTable natTable) {
+    protected void postConfigureNatTable(final NatTable natTable) {
         //as the autoconfiguration of the NatTable is turned off, we have to add the 
         //DefaultNatTableStyleConfiguration and the ConfigRegistry manually 
         natTable.setConfigRegistry(configRegistry);
-//        natTable.addConfiguration(new NoHeaderRowOnlySelectionBindings());
+        //        natTable.addConfiguration(new NoHeaderRowOnlySelectionBindings());
         natTable.addConfiguration(new DefaultNatTableStyleConfiguration());
         // enable sorting on single click on the column header
         natTable.addConfiguration(new SingleClickSortConfiguration());
@@ -871,84 +862,91 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         natTable.setBackground(GUIHelper.COLOR_WHITE);
         // nur für das Headermenü, falls das mal irgendwann gebraucht werden sollte
         //      natTable.addConfiguration(new HeaderMenuConfiguration(n6));
-        
+
         gridListLayer.getSelectionLayer().getSelectionModel().setMultipleSelectionAllowed(true);
-        
-        E4SelectionListener<DocumentItemDTO> esl = new E4SelectionListener<>(selectionService, gridListLayer.getSelectionLayer(), gridListLayer.getBodyDataProvider());
+
+        E4SelectionListener<DocumentItemDTO> esl = new E4SelectionListener<>(selectionService, gridListLayer.getSelectionLayer(),
+                gridListLayer.getBodyDataProvider());
         gridListLayer.getSelectionLayer().addLayerListener(esl);
 
         // register right click as a selection event for the whole row
-        natTable.getUiBindingRegistry().registerFirstMouseDownBinding(
-                new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
+        natTable.getUiBindingRegistry().registerFirstMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
                 new IMouseAction() {
 
                     ViewportSelectRowAction selectRowAction = new ViewportSelectRowAction(false, false);
-                                
+
                     @Override
-                    public void run(NatTable natTable, MouseEvent event) {
+                    public void run(final NatTable natTable, final MouseEvent event) {
                         int rowPosition = natTable.getRowPositionByY(event.y);
-                        if(!gridListLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
+                        if (!gridListLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
                             selectRowAction.run(natTable, event);
-                        }                   
+                        }
                     }
                 });
 
         natTable.configure();
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);        
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
     }
-    
+
     private void initItemsList() {
         // Create a set of new temporary items.
         // These items exist only in the memory.
         // If the editor is opened, the items from the document are
         // copied to this item set. If the editor is closed or saved,
         // these items are copied back to the document and to the data base.
-        List<DocumentItemDTO> wrappedItems = document.getItems().stream()
-        		.sorted(Comparator.comparing((DocumentItem d) -> d.getPosNr()))
-        		.map(DocumentItemDTO::new).collect(Collectors.toList());
+        List<DocumentItemDTO> wrappedItems = document.getItems().stream().sorted(Comparator.comparing((final DocumentItem d) -> d.getPosNr()))
+                .map(DocumentItemDTO::new).collect(Collectors.toList());
         documentItemsListData = GlazedLists.eventList(wrappedItems);
 
-//        // Set the sign
-//        if (parentSign != documentType.sign())
-//            newItem = new DataSetItem(item, -1);
-//        else
-//            newItem = new DataSetItem(item);
+        //        // Set the sign
+        //        if (parentSign != documentType.sign())
+        //            newItem = new DataSetItem(item, -1);
+        //        else
+        //            newItem = new DataSetItem(item);
 
         // Reset the property "optional" from all items if the parent document was an offer
         // the parents document type
-        DocumentType documentTypeParent = document.getSourceDocument() != null ? DocumentType.findByKey(document.getSourceDocument().getBillingType()
-                .getValue()) : DocumentType.NONE;
+        DocumentType documentTypeParent = document.getSourceDocument() != null
+                ? DocumentType.findByKey(document.getSourceDocument().getBillingType().getValue())
+                : DocumentType.NONE;
         if (documentTypeParent == DocumentType.OFFER) {
             getDocumentItemsListData().forEach(item -> item.getDocumentItem().setOptional(Boolean.FALSE));
         }
-        
+
         // set vesting period if this field is empty
-        if(getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 0) {
-        	getDocumentItemsListData().stream()
-        		.filter(item -> item.getDocumentItem().getVestingPeriodStart() == null || item.getDocumentItem().getVestingPeriodEnd() == null)
-        		.forEach(item -> {
-        			if(item.getDocumentItem().getVestingPeriodStart() == null) item.getDocumentItem().setVestingPeriodStart(new Date());
-        			if(item.getDocumentItem().getVestingPeriodEnd() == null) item.getDocumentItem().setVestingPeriodEnd(new Date());
-        		});
+        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 0) {
+            getDocumentItemsListData().stream()
+                    .filter(item -> item.getDocumentItem().getVestingPeriodStart() == null || item.getDocumentItem().getVestingPeriodEnd() == null)
+                    .forEach(item -> {
+                        if (item.getDocumentItem().getVestingPeriodStart() == null) {
+                            item.getDocumentItem().setVestingPeriodStart(new Date());
+                        }
+                        if (item.getDocumentItem().getVestingPeriodEnd() == null) {
+                            item.getDocumentItem().setVestingPeriodEnd(new Date());
+                        }
+                    });
         }
 
         // Show the column "optional" if at least one item
         // with this property set was found
-        Optional<DocumentItemDTO> optionalValue = getDocumentItemsListData().stream().filter(item -> Optional.ofNullable(item.getDocumentItem().getOptional()).orElse(Boolean.FALSE)).findFirst();
+        Optional<DocumentItemDTO> optionalValue = getDocumentItemsListData().stream()
+                .filter(item -> Optional.ofNullable(item.getDocumentItem().getOptional()).orElse(Boolean.FALSE)).findFirst();
         containsOptionalItems = optionalValue.isPresent();
 
         // Show the columns discount if at least one item
         // with a discounted price was found
-        Optional<DocumentItemDTO> discountedValue = getDocumentItemsListData().stream().filter(item -> item.getDocumentItem().getItemRebate() != null && item.getDocumentItem().getItemRebate().compareTo(Double.valueOf(0.0)) != 0).findFirst();
+        Optional<DocumentItemDTO> discountedValue = getDocumentItemsListData().stream()
+                .filter(item -> item.getDocumentItem().getItemRebate() != null && item.getDocumentItem().getItemRebate().compareTo(Double.valueOf(0.0)) != 0)
+                .findFirst();
         containsDiscountedItems = discountedValue.isPresent();
     }
-    
+
     @Override
     public String getTableId() {
-    	/*
-    	 * Since different document types have different value columns we have to 
-    	 * distinguish between them.
-    	 */
+        /*
+         * Since different document types have different value columns we have to 
+         * distinguish between them.
+         */
         return ID + documentType.getKey();
     }
 
@@ -956,14 +954,14 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     protected String getEditorId() {
         return DocumentEditor.ID;
     }
-    
+
     @Override
     protected String getEditorTypeId() {
         return DocumentEditor.class.getSimpleName();
     }
 
     @Override
-    protected TopicTreeViewer<DummyStringCategory> createCategoryTreeViewer(Composite top) {
+    protected TopicTreeViewer<DummyStringCategory> createCategoryTreeViewer(final Composite top) {
         return null; // no category tree needed at the moment
     }
 
@@ -973,7 +971,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     }
 
     @Override
-    public void setCategoryFilter(String filter, TreeObjectType treeObjectType) {
+    public void setCategoryFilter(final String filter, final TreeObjectType treeObjectType) {
         // nothing to do
     }
 
@@ -984,76 +982,81 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
     @Override
     public void removeSelectedEntry() {
-    	@SuppressWarnings("unchecked")
-		Collection<DocumentItemDTO> selectedEntries = (Collection<DocumentItemDTO>)selectionService.getSelection();
-        if(selectedEntries != null && selectedEntries.size() > 0) {
-        	
-        	// at first, close an open cell editor, if any
-        	if(natTable.getActiveCellEditor() != null) {
-        		natTable.getActiveCellEditor().close();
-        	}
-        	
-        	boolean isRemoved = documentItemsListData.removeAll(selectedEntries);
-            if(isRemoved) {
-            	informEditor();
+        @SuppressWarnings("unchecked")
+        Collection<DocumentItemDTO> selectedEntries = (Collection<DocumentItemDTO>) selectionService.getSelection();
+        if (selectedEntries != null && selectedEntries.size() > 0) {
+
+            // at first, close an open cell editor, if any
+            if (natTable.getActiveCellEditor() != null) {
+                natTable.getActiveCellEditor().close();
+            }
+
+            boolean isRemoved = documentItemsListData.removeAll(selectedEntries);
+            if (isRemoved) {
+                informEditor();
             }
         } else {
             log.debug("no rows selected!");
         }
     }
 
-	private void informEditor() {
-		renumberItems();
-		// Recalculate the total sum of the document if necessary
-		// do it via the messaging system and send a message to DocumentEditor
-		Map<String, Object> event = new HashMap<>();
-		event.put(DocumentEditor.DOCUMENT_ID, document.getName());
-		event.put(DocumentEditor.DOCUMENT_RECALCULATE, true);
-		evtBroker.post(DocumentEditor.EDITOR_ID + UIEvents.TOPIC_SEP + "itemChanged", event);
-	}
+    private void informEditor() {
+        renumberItems();
+        // Recalculate the total sum of the document if necessary
+        // do it via the messaging system and send a message to DocumentEditor
+        Map<String, Object> event = new HashMap<>();
+        event.put(DocumentEditor.DOCUMENT_ID, document.getName());
+        event.put(DocumentEditor.DOCUMENT_RECALCULATE, true);
+        evtBroker.post(DocumentEditor.EDITOR_ID + UIEvents.TOPIC_SEP + "itemChanged", event);
+    }
 
-	public void copySelectedEntry() {
-    	@SuppressWarnings("unchecked")
+    public void copySelectedEntry() {
+        @SuppressWarnings("unchecked")
         Collection<DocumentItemDTO> selectedEntries = (Collection<DocumentItemDTO>) selectionService.getSelection();
-    	if(selectedEntries != null && selectedEntries.size() > 0) {
-        	
-        	// at first, close an open cell editor, if any
-        	if(natTable.getActiveCellEditor() != null) {
-        		natTable.getActiveCellEditor().close();
-        	}
-        	
-        	boolean isAdded = false;
-        	
-        	for (DocumentItemDTO documentItemDTO : selectedEntries) {
-        		DocumentItem newDocumentItem = documentItemDTO.getDocumentItem().clone();
-        		
-        		// some modifications...
-        		newDocumentItem.setDateAdded(null);
-        		newDocumentItem.setModified(null);
-        		newDocumentItem.setModifiedBy(null);
-        		
-				DocumentItemDTO itemCopy = new DocumentItemDTO(newDocumentItem);
-				isAdded = documentItemsListData.add(itemCopy);
-			}
-        	
-            if(isAdded) {
-            	informEditor();
+        if (selectedEntries != null && selectedEntries.size() > 0) {
+
+            // at first, close an open cell editor, if any
+            if (natTable.getActiveCellEditor() != null) {
+                natTable.getActiveCellEditor().close();
             }
-        	
+
+            boolean isAdded = false;
+
+            for (DocumentItemDTO documentItemDTO : selectedEntries) {
+                DocumentItem newDocumentItem = documentItemDTO.getDocumentItem().clone();
+
+                // some modifications...
+                newDocumentItem.setDateAdded(null);
+                newDocumentItem.setModified(null);
+                newDocumentItem.setModifiedBy(null);
+
+                DocumentItemDTO itemCopy = new DocumentItemDTO(newDocumentItem);
+                isAdded = documentItemsListData.add(itemCopy);
+            }
+
+            if (isAdded) {
+                informEditor();
+            }
+
         } else {
             log.debug("no rows selected!");
         }
-	}
+    }
 
-	/**
-     * Set the "novat" in all items. If a document is marked as "novat", the {@link VAT}
-     * of all items is displayed as "0.0%"
-     * @param noVat <code>true</code> if no {@link VAT} should be used
-     * @param dataSetVat in case of <em>noVat</em> is <code>true</code> the {@link VAT} entry for
-     * the 0% {@link VAT} (i.e, "no VAT" - there could be more than one entry for 0% {@link VAT}); else this parameter is <code>null</code>
+    /**
+     * Set the "novat" in all items. If a document is marked as "novat", the
+     * {@link VAT} of all items is displayed as "0.0%"
+     * 
+     * @param noVat
+     *            <code>true</code> if no {@link VAT} should be used
+     * @param dataSetVat
+     *            in case of <em>noVat</em> is <code>true</code> the {@link VAT}
+     *            entry for the 0% {@link VAT} (i.e, "no VAT" - there could be
+     *            more than one entry for 0% {@link VAT}); else this parameter
+     *            is <code>null</code>
      */
-    public void setItemsNoVat(Boolean noVat, VAT dataSetVat) {
-    	documentItemsListData.forEach(item -> item.getDocumentItem().setNoVat(noVat));
+    public void setItemsNoVat(final Boolean noVat, final VAT dataSetVat) {
+        documentItemsListData.forEach(item -> item.getDocumentItem().setNoVat(noVat));
         this.noVatReference = dataSetVat;
     }
 
@@ -1063,10 +1066,10 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
      * @param newItem
      *            The new item
      */
-    public void addNewItem(DocumentItemDTO newItem) {
-    	newItem.getDocumentItem().setPosNr(documentItemsListData.size() + 1);
-    	documentItemsListData.add(newItem);
-    	natTable.doCommand(new SelectRowsCommand(getGridLayer().getSelectionLayer(), 0, documentItemsListData.size()-1, false, false));
+    public void addNewItem(final DocumentItemDTO newItem) {
+        newItem.getDocumentItem().setPosNr(documentItemsListData.size() + 1);
+        documentItemsListData.add(newItem);
+        natTable.doCommand(new SelectRowsCommand(getGridLayer().getSelectionLayer(), 0, documentItemsListData.size() - 1, false, false));
         getContainer().setDirty(true);
     }
 
@@ -1082,336 +1085,216 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                 continue;
             }
             documentItem.setPosNr(no++);
-        }        
+        }
     }
-    
+
     /**
      * If an external process wants to update the NatTable we use this method.
      */
     public void refresh() {
-    	natTable.refresh();
+        natTable.refresh();
     }
 
     class DocumentItemTableConfiguration extends AbstractRegistryConfiguration {
 
         @Override
-        public void configureRegistry(IConfigRegistry configRegistry) {
+        public void configureRegistry(final IConfigRegistry configRegistry) {
             Style styleLeftAligned = new Style();
             styleLeftAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
             Style styleRightAligned = new Style();
             styleRightAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.RIGHT);
             Style styleCentered = new Style();
             styleCentered.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.CENTER);
-            
-//            //add the style configuration for hover
-//            Style style = new Style();
-//            style.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.COLOR_YELLOW);
-//            configRegistry.registerConfigAttribute(
-//                    CellConfigAttributes.CELL_STYLE, 
-//                    style, 
-//                    DisplayMode.HOVER);
+
+            //            //add the style configuration for hover
+            //            Style style = new Style();
+            //            style.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.COLOR_YELLOW);
+            //            configRegistry.registerConfigAttribute(
+            //                    CellConfigAttributes.CELL_STYLE, 
+            //                    style, 
+            //                    DisplayMode.HOVER);
 
             // default style for the most of the cells
             configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, // attribute to apply
-                                                   styleLeftAligned,                // value of the attribute
-                                                   DisplayMode.NORMAL,              // apply during normal rendering i.e not during selection or edit
-                                                   GridRegion.BODY.toString());     // apply the above for all cells with this label
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, TEXT_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, DESCRIPTION_CELL_LABEL);
-            
+                    styleLeftAligned, // value of the attribute
+                    DisplayMode.NORMAL, // apply during normal rendering i.e not during selection or edit
+                    GridRegion.BODY.toString()); // apply the above for all cells with this label
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT, TEXT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
+                    DESCRIPTION_CELL_LABEL);
+
             // configure to open the adjacent editor after commit
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.OPEN_ADJACENT_EDITOR,
-                    Boolean.TRUE);
-            
+            configRegistry.registerConfigAttribute(EditConfigAttributes.OPEN_ADJACENT_EDITOR, Boolean.TRUE);
+
             // center position number
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleCentered,      
-                    DisplayMode.NORMAL, POSITIONNUMBER_CELL_LABEL); 
-            
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleCentered, DisplayMode.NORMAL, POSITIONNUMBER_CELL_LABEL);
+
             // for number values (e.g., quantity)
             TextCellEditor textCellEditor = new TextCellEditor(true, true);
             textCellEditor.setErrorDecorationEnabled(true);
             textCellEditor.setDecorationPositionOverride(SWT.LEFT | SWT.TOP);
-			NumberFormat numberInstance = NumberFormat.getNumberInstance(localeUtil.getDefaultLocale().toLocale());
-			numberInstance.setMaximumFractionDigits(10);
-			DefaultDoubleDisplayConverter doubleDisplayConverter = new DefaultDoubleDisplayConverter(true);
-			doubleDisplayConverter.setNumberFormat(numberInstance);
+            NumberFormat numberInstance = NumberFormat.getNumberInstance(localeUtil.getDefaultLocale());
+            numberInstance.setMaximumFractionDigits(10);
+            DefaultDoubleDisplayConverter doubleDisplayConverter = new DefaultDoubleDisplayConverter(true);
+            doubleDisplayConverter.setNumberFormat(numberInstance);
 
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITOR, 
-                    textCellEditor, 
-                    DisplayMode.NORMAL, DECIMAL_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, DECIMAL_CELL_LABEL);
-			configRegistry.registerConfigAttribute( 
-                    CellConfigAttributes.DISPLAY_CONVERTER, 
-                    doubleDisplayConverter, 
-                    DisplayMode.EDIT, DECIMAL_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL, DECIMAL_CELL_LABEL ); 
-            
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, textCellEditor, DisplayMode.NORMAL, DECIMAL_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
+                    DECIMAL_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, doubleDisplayConverter, DisplayMode.EDIT, DECIMAL_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, DECIMAL_CELL_LABEL);
+
             registerDescriptionColumn(configRegistry, styleLeftAligned);
-            registerVATColumn(configRegistry, styleRightAligned); 
-            
+            registerVATColumn(configRegistry, styleRightAligned);
+
             registerOptionalColumn(configRegistry);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleCentered,      
-                    DisplayMode.NORMAL, OPTIONAL_CELL_LABEL); 
-            
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleCentered, DisplayMode.NORMAL, OPTIONAL_CELL_LABEL);
+
             // for date cells (e.g., vesting period)
             CDateTimeCellEditor dateCellEditor = new CDateTimeCellEditor(false, CDT.DROP_DOWN | CDT.DATE_SHORT);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITOR, 
-                    dateCellEditor, 
-                    DisplayMode.NORMAL, DATE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new DateDisplayConverter(),
-                    DisplayMode.NORMAL, DATE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, DATE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, dateCellEditor, DisplayMode.NORMAL, DATE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DateDisplayConverter(), DisplayMode.NORMAL, DATE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT, DATE_CELL_LABEL);
 
             // for discount values
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL, PERCENT_CELL_LABEL ); 
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new DoublePercentageDisplayConverter(localeUtil),
-                    DisplayMode.NORMAL, PERCENT_CELL_LABEL);
-            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, PERCENT_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, PERCENT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DoublePercentageDisplayConverter(localeUtil), DisplayMode.NORMAL,
+                    PERCENT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
+                    PERCENT_CELL_LABEL);
+
             // have a little space between cell border and value
             CellPainterWrapper paddedTextPainter = new PaddingDecorator(new TextPainter(), 0, 5, 0, 0);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER,
-                    paddedTextPainter,
-                    DisplayMode.NORMAL, PERCENT_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER,
-                    paddedTextPainter,
-                    DisplayMode.NORMAL, DECIMAL_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, paddedTextPainter, DisplayMode.NORMAL, PERCENT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, paddedTextPainter, DisplayMode.NORMAL, DECIMAL_CELL_LABEL);
 
             // for monetary values
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL ); 
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, MONEYVALUE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new MoneyDisplayConverter(numberFormatterService),
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
+                    MONEYVALUE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new MoneyDisplayConverter(numberFormatterService),
                     DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new DefaultDisplayConverter(),
-                    DisplayMode.EDIT, MONEYVALUE_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultDisplayConverter(), DisplayMode.EDIT,
+                    MONEYVALUE_CELL_LABEL);
+
             // total value is never editable
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE,
-                    styleRightAligned,      
-                    DisplayMode.NORMAL, TOTAL_MONEYVALUE_CELL_LABEL ); 
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER,
-                    new MoneyDisplayConverter(numberFormatterService),
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, TOTAL_MONEYVALUE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new MoneyDisplayConverter(numberFormatterService),
                     DisplayMode.NORMAL, TOTAL_MONEYVALUE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.NEVER_EDITABLE, 
-                    DisplayMode.EDIT, TOTAL_MONEYVALUE_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.NEVER_EDITABLE, DisplayMode.EDIT,
+                    TOTAL_MONEYVALUE_CELL_LABEL);
+
             // for product pictures
             // the cell has to be "editable" since you can't launch the dialog else
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    new IEditableRule() {
-                        
-                        @Override
-                        public boolean isEditable(int columnIndex, int rowIndex) {
-                            return false;
-                        }
-                        
-                        @Override
-                        public boolean isEditable(ILayerCell cell, IConfigRegistry configRegistry) {
-                            // the picture dialog in the document's item list table
-                            // is only visible if a picture is contained in the article
-                            return cell.getDataValue() != null;
-                        }
-                    }, 
-                    DisplayMode.EDIT, PICTURE_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, new IEditableRule() {
+
+                @Override
+                public boolean isEditable(final int columnIndex, final int rowIndex) {
+                    return false;
+                }
+
+                @Override
+                public boolean isEditable(final ILayerCell cell, final IConfigRegistry configRegistry) {
+                    // the picture dialog in the document's item list table
+                    // is only visible if a picture is contained in the article
+                    return cell.getDataValue() != null;
+                }
+            }, DisplayMode.EDIT, PICTURE_CELL_LABEL);
+
             // open dialog in a new window
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.OPEN_IN_DIALOG,
-                    Boolean.TRUE,
-                    DisplayMode.EDIT,
-                    PICTURE_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleCentered,      
-                    DisplayMode.NORMAL, PICTURE_CELL_LABEL); 
+            configRegistry.registerConfigAttribute(EditConfigAttributes.OPEN_IN_DIALOG, Boolean.TRUE, DisplayMode.EDIT, PICTURE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleCentered, DisplayMode.NORMAL, PICTURE_CELL_LABEL);
             CellImagePainter cellImagePainter = new CellImagePainter(resourceManager);
             cellImagePainter.setCalculateByHeight(true);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER, 
-                    cellImagePainter,
-                    DisplayMode.NORMAL, PICTURE_CELL_LABEL);                        
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITOR, 
-                    new PictureViewEditor(),
-                    DisplayMode.NORMAL, 
-                    PICTURE_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, cellImagePainter, DisplayMode.NORMAL, PICTURE_CELL_LABEL);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new PictureViewEditor(), DisplayMode.NORMAL, PICTURE_CELL_LABEL);
+
             //configure custom dialog settings
             Display display = Display.getCurrent();
-            Map<String, Object> editDialogSettings = new HashMap<String, Object>();
+            Map<String, Object> editDialogSettings = new HashMap<>();
             editDialogSettings.put(CellEditDialog.DIALOG_SHELL_TITLE, msg.dialogProductPicturePreview);
             editDialogSettings.put(CellEditDialog.DIALOG_SHELL_ICON, display.getSystemImage(SWT.ICON_INFORMATION));
             editDialogSettings.put(CellEditDialog.DIALOG_SHELL_RESIZABLE, Boolean.TRUE);
-            
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.EDIT_DIALOG_SETTINGS, 
-                    editDialogSettings,
-                    DisplayMode.EDIT,
-                    PICTURE_CELL_LABEL);
+
+            configRegistry.registerConfigAttribute(EditConfigAttributes.EDIT_DIALOG_SETTINGS, editDialogSettings, DisplayMode.EDIT, PICTURE_CELL_LABEL);
         }
 
-		/**
-		 * Registers the configuration for the description column.
-		 * 
-		 * @param configRegistry the config registry
-		 * @param styleLeftAligned 
-		 */
-		private void registerDescriptionColumn(IConfigRegistry configRegistry, Style styleLeftAligned) {
-			// description column
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITOR, 
-                    new MultiLineTextCellEditor(true),
-                    DisplayMode.EDIT, 
+        /**
+         * Registers the configuration for the description column.
+         * 
+         * @param configRegistry
+         *            the config registry
+         * @param styleLeftAligned
+         */
+        private void registerDescriptionColumn(final IConfigRegistry configRegistry, final Style styleLeftAligned) {
+            // description column
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new MultiLineTextCellEditor(true), DisplayMode.EDIT,
                     DESCRIPTION_CELL_LABEL);
             // configure the multi line text editor to always open in a
             // subdialog
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.OPEN_IN_DIALOG,
-                    Boolean.TRUE,
-                    DisplayMode.EDIT,
-                    DESCRIPTION_CELL_LABEL);
-            
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleLeftAligned,
-                    DisplayMode.NORMAL,
-                    DESCRIPTION_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_STYLE,
-                    styleLeftAligned,
-                    DisplayMode.EDIT,
-                    DESCRIPTION_CELL_LABEL);
-            
+            configRegistry.registerConfigAttribute(EditConfigAttributes.OPEN_IN_DIALOG, Boolean.TRUE, DisplayMode.EDIT, DESCRIPTION_CELL_LABEL);
+
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleLeftAligned, DisplayMode.NORMAL, DESCRIPTION_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleLeftAligned, DisplayMode.EDIT, DESCRIPTION_CELL_LABEL);
+
             // configure custom dialog settings
             Display display = Display.getCurrent();
             Map<String, Object> editDialogSettings = new HashMap<>();
             editDialogSettings.put(ICellEditDialog.DIALOG_SHELL_TITLE, msg.dialogItemdescriptionHeader);
             editDialogSettings.put(ICellEditDialog.DIALOG_SHELL_ICON, display.getSystemImage(SWT.ICON_INFORMATION));
             editDialogSettings.put(ICellEditDialog.DIALOG_SHELL_RESIZABLE, Boolean.TRUE);
-            
+
             // calculate the dialog position in relation to main window (doesn't work if main window is moved)
             Point size = new Point(400, 300);
             editDialogSettings.put(ICellEditDialog.DIALOG_SHELL_SIZE, size);
             Rectangle bounds = natTable.getShell().getBounds();
-            Point location = new Point(
-            		bounds.x + (bounds.width / 2  - size.x / 2),
-            		bounds.y + (bounds.height / 2 - size.y / 2));
+            Point location = new Point(bounds.x + (bounds.width / 2 - size.x / 2), bounds.y + (bounds.height / 2 - size.y / 2));
             editDialogSettings.put(ICellEditDialog.DIALOG_SHELL_LOCATION, location);
-            
+
             // add custom message
             editDialogSettings.put(ICellEditDialog.DIALOG_MESSAGE, msg.dialogItemdescriptionHint);
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.EDIT_DIALOG_SETTINGS,
-                    editDialogSettings,
-                    DisplayMode.EDIT,
-                    DESCRIPTION_CELL_LABEL);		
+            configRegistry.registerConfigAttribute(EditConfigAttributes.EDIT_DIALOG_SETTINGS, editDialogSettings, DisplayMode.EDIT, DESCRIPTION_CELL_LABEL);
         }
 
-		/**
-		 * Registers the configuration for the optional value column (if an item is optional).
-		 * 
-		 * @param configRegistry the config registry
-		 */
-		private void registerOptionalColumn(IConfigRegistry configRegistry) {
-			// for optional values
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITABLE_RULE, 
-                    IEditableRule.ALWAYS_EDITABLE, 
-                    DisplayMode.EDIT, OPTIONAL_CELL_LABEL);			
-            configRegistry.registerConfigAttribute(
-                    EditConfigAttributes.CELL_EDITOR, 
-                    new CheckBoxCellEditor(), 
-                    DisplayMode.EDIT, OPTIONAL_CELL_LABEL);
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.CELL_PAINTER, 
-                    new CheckBoxPainter(Icon.COMMAND_CHECKED.getImage(IconSize.DefaultIconSize), Icon.COMMAND_UNCHECKED.getImage(IconSize.DefaultIconSize)), 
-                    DisplayMode.NORMAL, OPTIONAL_CELL_LABEL);  
-            //using a CheckBoxCellEditor also needs a Boolean conversion to work correctly
-            configRegistry.registerConfigAttribute(
-                    CellConfigAttributes.DISPLAY_CONVERTER, 
-                    new DefaultBooleanDisplayConverter(), 
-                    DisplayMode.NORMAL, 
+        /**
+         * Registers the configuration for the optional value column (if an item
+         * is optional).
+         * 
+         * @param configRegistry
+         *            the config registry
+         */
+        private void registerOptionalColumn(final IConfigRegistry configRegistry) {
+            // for optional values
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
                     OPTIONAL_CELL_LABEL);
-		}
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new CheckBoxCellEditor(), DisplayMode.EDIT, OPTIONAL_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER,
+                    new CheckBoxPainter(Icon.COMMAND_CHECKED.getImage(IconSize.DefaultIconSize), Icon.COMMAND_UNCHECKED.getImage(IconSize.DefaultIconSize)),
+                    DisplayMode.NORMAL, OPTIONAL_CELL_LABEL);
+            //using a CheckBoxCellEditor also needs a Boolean conversion to work correctly
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultBooleanDisplayConverter(), DisplayMode.NORMAL,
+                    OPTIONAL_CELL_LABEL);
+        }
 
-		/**
-		 * Registers the configuration for the {@link VAT} column.
-		 * 
-		 * @param configRegistry the config registry
-		 * @param styleRightAligned a style attribute
-		 */
-		private void registerVATColumn(IConfigRegistry configRegistry, Style styleRightAligned) {
-			//register a combobox editor for VAT values 
-			    configRegistry.registerConfigAttribute(
-			            EditConfigAttributes.CELL_EDITABLE_RULE, 
-			            IEditableRule.ALWAYS_EDITABLE, 
-			            DisplayMode.EDIT, VAT_CELL_LABEL);
-			    configRegistry.registerConfigAttribute(
-			            CellConfigAttributes.CELL_STYLE,
-			            styleRightAligned,      
-			            DisplayMode.NORMAL, VAT_CELL_LABEL); 
-			    configRegistry.registerConfigAttribute( 
-			            CellConfigAttributes.CELL_PAINTER, 
-			            new ComboBoxPainter(), 
-			            DisplayMode.NORMAL, VAT_CELL_LABEL);
-			    VatValueComboProvider dataProvider = new VatValueComboProvider(vatsDAO.findAll());
-			    ComboBoxCellEditor vatValueCombobox = new ComboBoxCellEditor(dataProvider);
-			    vatValueCombobox.setFreeEdit(false);
-			    configRegistry.registerConfigAttribute( 
-			            EditConfigAttributes.CELL_EDITOR, 
-			            vatValueCombobox, 
-			            DisplayMode.NORMAL, VAT_CELL_LABEL); 
-			    configRegistry.registerConfigAttribute( 
-			            CellConfigAttributes.DISPLAY_CONVERTER, 
-			            new VatDisplayConverter(), 
-			            DisplayMode.NORMAL, VAT_CELL_LABEL);
-		}
+        /**
+         * Registers the configuration for the {@link VAT} column.
+         * 
+         * @param configRegistry
+         *            the config registry
+         * @param styleRightAligned
+         *            a style attribute
+         */
+        private void registerVATColumn(final IConfigRegistry configRegistry, final Style styleRightAligned) {
+            //register a combobox editor for VAT values 
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT, VAT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, VAT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, new ComboBoxPainter(), DisplayMode.NORMAL, VAT_CELL_LABEL);
+            VatValueComboProvider dataProvider = new VatValueComboProvider(vatsDAO.findAll());
+            ComboBoxCellEditor vatValueCombobox = new ComboBoxCellEditor(dataProvider);
+            vatValueCombobox.setFreeEdit(false);
+            configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, vatValueCombobox, DisplayMode.NORMAL, VAT_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new VatDisplayConverter(), DisplayMode.NORMAL, VAT_CELL_LABEL);
+        }
     }
 
     /**
@@ -1422,10 +1305,10 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     }
 
     @Override
-    public void changeToolbarItem(TreeObject treeObject) {
+    public void changeToolbarItem(final TreeObject treeObject) {
         // no action needed since there's no toolbar
     }
-    
+
     @Override
     protected String getToolbarAddItemCommandId() {
         // This error should'nt occur since we've overridden the changeToolbarItem method.
@@ -1448,22 +1331,23 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         throw new UnsupportedOperationException("Inside a list table there's no extra DAO.");
     }
 
-	/**
-	 * @return the container
-	 */
-	public final DocumentEditor getContainer() {
-		return container;
-	}
+    /**
+     * @return the container
+     */
+    public final DocumentEditor getContainer() {
+        return container;
+    }
 
-	/**
-	 * @param container the container to set
-	 */
-	public final void setContainer(DocumentEditor container) {
-		this.container = container;
-	}
-	
-	@Override
-	protected Class<DocumentItemDTO> getEntityClass() {
-		return DocumentItemDTO.class;
-	}
+    /**
+     * @param container
+     *            the container to set
+     */
+    public final void setContainer(final DocumentEditor container) {
+        this.container = container;
+    }
+
+    @Override
+    protected Class<DocumentItemDTO> getEntityClass() {
+        return DocumentItemDTO.class;
+    }
 }

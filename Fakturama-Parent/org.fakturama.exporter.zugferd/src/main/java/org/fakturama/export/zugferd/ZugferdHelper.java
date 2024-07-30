@@ -1,16 +1,15 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014, 2020 Ralf Heydenreich
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *   This code was copied with friendly permission from gnuaccounting.org. 
- *   - Jochen Staerk
+ * Contributors: This code was copied with friendly permission from
+ * gnuaccounting.org. - Jochen Staerk
  */
 package org.fakturama.export.zugferd;
 
@@ -26,8 +25,10 @@ import java.util.Optional;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -62,41 +63,41 @@ import org.apache.xmpbox.xml.XmpSerializer;
 import org.fakturama.export.einvoice.ConformanceLevel;
 import org.fakturama.export.einvoice.IPdfHelper;
 
-
 /**
  *
  */
 public class ZugferdHelper implements IPdfHelper {
 
-	private static final String ZUGFERD_FILENAME = "ZUGFeRD-invoice.xml";
+    private static final String ZUGFERD_FILENAME = "ZUGFeRD-invoice.xml";
     private static final String ZUGFERD_PREFIX = "zf";
     private static final String ZUGFERD_URN = "urn:ferd:pdfa:invoice:rc#";
 
     /**
-	 * Makes A PDF/A-3a-compliant document from a PDF/A-1 compliant document (on
-	 * the metadata level, this will not e.g. convert graphics to JPG-2000)
-	 * 
-	 * @return 
-	 * @throws TransformerException 
-	 * @throws IOException 
-	 * @throws XmpParsingException 
-	 * @throws XmpSchemaException 
-	 * */
-	@Override
-    public PDDocument makeA3Acompliant(String pdfFileName, ConformanceLevel level) throws IOException, TransformerException, XmpParsingException, XmpSchemaException {
-	    Path pdfFile = Paths.get(pdfFileName);
-	    if(Files.notExists(pdfFile)) {
-	        return null;
-	    }
-	    
-		PDDocument doc = PDDocument.load(Files.newInputStream(pdfFile));
+     * Makes A PDF/A-3a-compliant document from a PDF/A-1 compliant document (on
+     * the metadata level, this will not e.g. convert graphics to JPG-2000)
+     * 
+     * @return
+     * @throws TransformerException
+     * @throws IOException
+     * @throws XmpParsingException
+     * @throws XmpSchemaException
+     */
+    @Override
+    public PDDocument makeA3Acompliant(final String pdfFileName, final ConformanceLevel level)
+            throws IOException, TransformerException, XmpParsingException, XmpSchemaException {
+        Path pdfFile = Paths.get(pdfFileName);
+        if (Files.notExists(pdfFile)) {
+            return null;
+        }
+
+        PDDocument doc = Loader.loadPDF(new RandomAccessReadBufferedFile(pdfFileName));
         PDDocumentCatalog catalog = doc.getDocumentCatalog();
         PDMetadata metadata = catalog.getMetadata();
 
         DomXmpParser xmpParser = new DomXmpParser();
         XMPMetadata xmp = xmpParser.parse(metadata.createInputStream());
         TypeMapping tm = new TypeMapping(xmp);
-        
+
         DublinCoreSchema dcSchema = Optional.ofNullable(xmp.getDublinCoreSchema()).orElse(xmp.createAndAddDublinCoreSchema());
         String creator = System.getProperty("user.name"); // set current (operating system) user name as (mandatory) human creator
         dcSchema.addCreator(creator);
@@ -106,7 +107,7 @@ public class ZugferdHelper implements IPdfHelper {
         basicSchema.setAboutAsSimple("");
         basicSchema.setCreatorTool("Fakturama invoicing software");
         basicSchema.setCreateDate(GregorianCalendar.getInstance());
-        
+
         PDDocumentInformation pdi = doc.getDocumentInformation();
         String producer = "Fakturama.org"; // (mandatory) producer application is Fakturama 
         pdi.setProducer(producer);
@@ -124,14 +125,14 @@ public class ZugferdHelper implements IPdfHelper {
         markinfo.setMarked(true);
         doc.getDocumentCatalog().setMarkInfo(markinfo);
 
-        PDFAIdentificationSchema pdfaid = Optional.ofNullable(xmp.getPDFIdentificationSchema()).orElse(xmp.createAndAddPFAIdentificationSchema());
+        PDFAIdentificationSchema pdfaid = Optional.ofNullable(xmp.getPDFAIdentificationSchema()).orElse(xmp.createAndAddPDFAIdentificationSchema());
         TextType conf2 = (TextType) pdfaid.getProperty("conformance");
         conf2.setValue("B");
         IntegerType pdfConformance = (IntegerType) pdfaid.getProperty("part");
         pdfConformance.setValue(3);
-        
+
         createExtensionSchema(xmp, tm);
-        
+
         /*
          * This is what needs to be added to the RDF metadata - basically the name
          * of the embedded ZUGFeRD file
@@ -141,15 +142,15 @@ public class ZugferdHelper implements IPdfHelper {
         xmpBasicSchema.setAboutAsSimple("");
 
         String conformanceLevel = "COMFORT";
-//        if (conformanceLevel == null) {
-//            conformanceLevel = CONFORMANCELEVEL;
-//        }
+        //        if (conformanceLevel == null) {
+        //            conformanceLevel = CONFORMANCELEVEL;
+        //        }
 
         xmpBasicSchema.setTextPropertyValue("ConformanceLevel", conformanceLevel);
         xmpBasicSchema.setTextPropertyValue("DocumentType", DOCTYPE_INVOICE);
         xmpBasicSchema.setTextPropertyValue("DocumentFileName", ZUGFERD_FILENAME);
         xmpBasicSchema.setTextPropertyValue("Version", "1.0");
-        
+
         XmpSerializer serializer = new XmpSerializer();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         serializer.serialize(xmp, baos, true);
@@ -161,17 +162,17 @@ public class ZugferdHelper implements IPdfHelper {
         return doc;
     }
 
-	/**
-	 * Additionally to adding a RDF namespace with a indication which file
-	 * attachment if ZUGFeRD, this namespace has to be described in a PDFA
-	 * Extension Schema.
-	 */
-    private void createExtensionSchema(XMPMetadata xmp, TypeMapping tm) {
+    /**
+     * Additionally to adding a RDF namespace with a indication which file
+     * attachment if ZUGFeRD, this namespace has to be described in a PDFA
+     * Extension Schema.
+     */
+    private void createExtensionSchema(final XMPMetadata xmp, final TypeMapping tm) {
         PDFAExtensionSchema extSchema = Optional.ofNullable(xmp.getPDFExtensionSchema()).orElse(xmp.createAndAddPDFAExtensionSchemaWithDefaultNS());
         extSchema.addNamespace(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX);
         extSchema.addNamespace("http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
 
-       /*
+        /*
         * What we attach is basically this:
         * pdfaExtension:schemas-node
         * +--bag
@@ -194,7 +195,7 @@ public class ZugferdHelper implements IPdfHelper {
 
         TextType obj = tm.createText(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX, "namespaceURI", ZUGFERD_URN);
         li.addProperty(obj);
-        
+
         TextType obj1 = tm.createText(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX, "prefix", ZUGFERD_PREFIX);
         li.addProperty(obj1);
 
@@ -210,16 +211,16 @@ public class ZugferdHelper implements IPdfHelper {
                 Cardinality.Seq);
         li.addProperty(newValType);
     }
-	
-    private PDFAPropertyType createProperty(XMPMetadata metadata, String name, String type, String category, String description) {
+
+    private PDFAPropertyType createProperty(final XMPMetadata metadata, final String name, final String type, final String category, final String description) {
 
         TypeMapping tm = new TypeMapping(metadata);
         PDFAPropertyType li = new PDFAPropertyType(metadata);
-        li.setAttribute(new Attribute( PDFA_EXTENSION_SCHEMA_NAMESPACE, XmpConstants.PARSE_TYPE, XmpConstants.RESOURCE_NAME));
-        
+        li.setAttribute(new Attribute(PDFA_EXTENSION_SCHEMA_NAMESPACE, XmpConstants.PARSE_TYPE, XmpConstants.RESOURCE_NAME));
+
         ChoiceType pdfa2 = tm.createChoice(li.getNamespace(), li.getPreferedPrefix(), PDFAPropertyType.NAME, name);
         li.addProperty(pdfa2);
-        
+
         pdfa2 = tm.createChoice(li.getNamespace(), li.getPreferedPrefix(), PDFAPropertyType.VALUETYPE, type);
         li.addProperty(pdfa2);
 
@@ -230,42 +231,43 @@ public class ZugferdHelper implements IPdfHelper {
         li.addProperty(pdfa2);
 
         return li;
-    }  
+    }
 
-	/**
-	 * embed the ZUGFeRD XML structure in a file named ZUGFeRD-invoice.xml
-	 * @throws IOException 
-	 * */
+    /**
+     * embed the ZUGFeRD XML structure in a file named ZUGFeRD-invoice.xml
+     * 
+     * @throws IOException
+     */
     @Override
-    public PDDocument attachZugferdFile(PDDocument doc, ByteArrayOutputStream baos) throws IOException {
-        
-        if(doc == null) {
+    public PDDocument attachZugferdFile(final PDDocument doc, final ByteArrayOutputStream baos) throws IOException {
+
+        if (doc == null) {
             return null;
         }
 
-		// first create the file specification, which holds the embedded file
-		PDComplexFileSpecification fs = new PDComplexFileSpecification();
-		fs.setFile(ZUGFERD_FILENAME);
+        // first create the file specification, which holds the embedded file
+        PDComplexFileSpecification fs = new PDComplexFileSpecification();
+        fs.setFile(ZUGFERD_FILENAME);
         fs.setFileUnicode(ZUGFERD_FILENAME);
         fs.setFileDescription("electronical invoice according to ZUGFeRD standard");
 
         COSDictionary dict = fs.getCOSObject();
-		// Relation "Source" for linking with eg. catalog
+        // Relation "Source" for linking with eg. catalog
         // TODO ZF21: MINIMUM & BASIC WL ==> Data
         // TODO ZF21: in FR ==> Source
-		dict.setName("AFRelationship", "Alternative"); // as defined in ZUGFeRD standard
-		
-		dict.setString("UF", ZUGFERD_FILENAME);
+        dict.setName("AFRelationship", "Alternative"); // as defined in ZUGFeRD standard
 
-		// create a data stream from given byte array
-		byte[] zugferdData = baos.toByteArray();
+        dict.setString("UF", ZUGFERD_FILENAME);
+
+        // create a data stream from given byte array
+        byte[] zugferdData = baos.toByteArray();
         ByteArrayInputStream fileData = new ByteArrayInputStream(zugferdData);
-		PDEmbeddedFile ef = new PDEmbeddedFile(doc, fileData);
-		// now lets some of the optional parameters
-		ef.setSubtype("text/xml");// as defined in ZUGFeRD standard
-		ef.setSize(zugferdData.length);
-		ef.setCreationDate(GregorianCalendar.getInstance());
-		ef.setModDate(GregorianCalendar.getInstance());
+        PDEmbeddedFile ef = new PDEmbeddedFile(doc, fileData);
+        // now lets some of the optional parameters
+        ef.setSubtype("text/xml");// as defined in ZUGFeRD standard
+        ef.setSize(zugferdData.length);
+        ef.setCreationDate(GregorianCalendar.getInstance());
+        ef.setModDate(GregorianCalendar.getInstance());
 
         // use both methods for backwards, cross-platform and cross-language compatibility.
         fs.setEmbeddedFile(ef);
@@ -274,18 +276,17 @@ public class ZugferdHelper implements IPdfHelper {
         // embedded files are stored in a named tree
         PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
 
-		// now add the entry to the embedded file tree and set in the document.
-		efTree.setNames(Collections.singletonMap(ZUGFERD_FILENAME, fs));
-		PDDocumentNameDictionary names = new PDDocumentNameDictionary(
-				doc.getDocumentCatalog());
-		names.setEmbeddedFiles(efTree);
-		doc.getDocumentCatalog().setNames(names);
-		
-		// AF entry (Array) in catalog with the FileSpec
-		COSArray cosArray = new COSArray();
-		cosArray.add(fs);
-		doc.getDocumentCatalog().getCOSObject().setItem("AF", cosArray);
-		return doc;
-	}
+        // now add the entry to the embedded file tree and set in the document.
+        efTree.setNames(Collections.singletonMap(ZUGFERD_FILENAME, fs));
+        PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
+        names.setEmbeddedFiles(efTree);
+        doc.getDocumentCatalog().setNames(names);
+
+        // AF entry (Array) in catalog with the FileSpec
+        COSArray cosArray = new COSArray();
+        cosArray.add(fs);
+        doc.getDocumentCatalog().getCOSObject().setItem("AF", cosArray);
+        return doc;
+    }
 
 }

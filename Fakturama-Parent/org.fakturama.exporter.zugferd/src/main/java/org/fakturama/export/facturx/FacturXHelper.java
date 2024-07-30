@@ -1,17 +1,16 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 www.fakturama.org
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * Contributors: The Fakturama Team - initial API and implementation
  */
- 
+
 package org.fakturama.export.facturx;
 
 import java.io.ByteArrayInputStream;
@@ -26,8 +25,10 @@ import java.util.Optional;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -70,31 +71,33 @@ public class FacturXHelper implements IPdfHelper {
     private static final String FACTURX_FILENAME = "factur-x.xml";
     private static final String FACTURX_PREFIX = "fx";
     private static final String FACTURX_URN = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
+
     /**
      * Makes A PDF/A-3a-compliant document from a PDF/A-1 compliant document (on
      * the metadata level, this will not e.g. convert graphics to JPG-2000)
      * 
-     * @return 
-     * @throws TransformerException 
-     * @throws IOException 
-     * @throws XmpParsingException 
-     * @throws XmpSchemaException 
-     * */
+     * @return
+     * @throws TransformerException
+     * @throws IOException
+     * @throws XmpParsingException
+     * @throws XmpSchemaException
+     */
     @Override
-    public PDDocument makeA3Acompliant(String pdfFileName, ConformanceLevel level) throws IOException, TransformerException, XmpParsingException, XmpSchemaException {
+    public PDDocument makeA3Acompliant(final String pdfFileName, final ConformanceLevel level)
+            throws IOException, TransformerException, XmpParsingException, XmpSchemaException {
         Path pdfFile = Paths.get(pdfFileName);
-        if(Files.notExists(pdfFile)) {
+        if (Files.notExists(pdfFile)) {
             return null;
         }
-        
-        PDDocument doc = PDDocument.load(Files.newInputStream(pdfFile));
+
+        PDDocument doc = Loader.loadPDF(new RandomAccessReadBufferedFile(pdfFileName));
         PDDocumentCatalog catalog = doc.getDocumentCatalog();
         PDMetadata metadata = catalog.getMetadata();
 
         DomXmpParser xmpParser = new DomXmpParser();
         XMPMetadata xmp = xmpParser.parse(metadata.createInputStream());
         TypeMapping tm = new TypeMapping(xmp);
-        
+
         DublinCoreSchema dcSchema = Optional.ofNullable(xmp.getDublinCoreSchema()).orElse(xmp.createAndAddDublinCoreSchema());
         String creator = System.getProperty("user.name"); // set current (operating system) user name as (mandatory) human creator
         dcSchema.addCreator(creator);
@@ -104,7 +107,7 @@ public class FacturXHelper implements IPdfHelper {
         basicSchema.setAboutAsSimple("");
         basicSchema.setCreatorTool("Fakturama invoicing software");
         basicSchema.setCreateDate(GregorianCalendar.getInstance());
-        
+
         PDDocumentInformation pdi = doc.getDocumentInformation();
         String producer = "Fakturama.org"; // (mandatory) producer application is Fakturama 
         pdi.setProducer(producer);
@@ -122,14 +125,14 @@ public class FacturXHelper implements IPdfHelper {
         markinfo.setMarked(true);
         doc.getDocumentCatalog().setMarkInfo(markinfo);
 
-        PDFAIdentificationSchema pdfaid = Optional.ofNullable(xmp.getPDFIdentificationSchema()).orElse(xmp.createAndAddPFAIdentificationSchema());
+        PDFAIdentificationSchema pdfaid = Optional.ofNullable(xmp.getPDFAIdentificationSchema()).orElse(xmp.createAndAddPDFAIdentificationSchema());
         TextType conf2 = (TextType) pdfaid.getProperty("conformance");
         conf2.setValue("B");
         IntegerType pdfConformance = (IntegerType) pdfaid.getProperty("part");
         pdfConformance.setValue(3);
-        
+
         createExtensionSchema(xmp, tm);
-        
+
         /*
          * This is what needs to be added to the RDF metadata - basically the name
          * of the embedded ZUGFeRD file
@@ -139,15 +142,15 @@ public class FacturXHelper implements IPdfHelper {
         xmpBasicSchema.setAboutAsSimple("");
 
         String conformanceLevel = "EN 16931";
-//        if (conformanceLevel == null) {
-//            conformanceLevel = CONFORMANCELEVEL;
-//        }
+        //        if (conformanceLevel == null) {
+        //            conformanceLevel = CONFORMANCELEVEL;
+        //        }
 
         xmpBasicSchema.setTextPropertyValue("ConformanceLevel", conformanceLevel);
         xmpBasicSchema.setTextPropertyValue("DocumentType", DOCTYPE_INVOICE);
-        xmpBasicSchema.setTextPropertyValue("DocumentFileName", FACTURX_FILENAME);  // ZF21: 
+        xmpBasicSchema.setTextPropertyValue("DocumentFileName", FACTURX_FILENAME); // ZF21: 
         xmpBasicSchema.setTextPropertyValue("Version", "1.0");
-        
+
         XmpSerializer serializer = new XmpSerializer();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         serializer.serialize(xmp, baos, true);
@@ -164,12 +167,12 @@ public class FacturXHelper implements IPdfHelper {
      * attachment if ZUGFeRD, this namespace has to be described in a PDFA
      * Extension Schema.
      */
-    private void createExtensionSchema(XMPMetadata xmp, TypeMapping tm) {
+    private void createExtensionSchema(final XMPMetadata xmp, final TypeMapping tm) {
         PDFAExtensionSchema extSchema = Optional.ofNullable(xmp.getPDFExtensionSchema()).orElse(xmp.createAndAddPDFAExtensionSchemaWithDefaultNS());
         extSchema.addNamespace(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX);
         extSchema.addNamespace("http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
 
-       /*
+        /*
         * What we attach is basically this:
         * pdfaExtension:schemas-node
         * +--bag
@@ -192,7 +195,7 @@ public class FacturXHelper implements IPdfHelper {
 
         TextType obj = tm.createText(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX, "namespaceURI", FACTURX_URN);
         li.addProperty(obj);
-        
+
         TextType obj1 = tm.createText(PDFA_EXTENSION_SCHEMA_NAMESPACE, PDFA_EXTENSION_SCHEMA_PREFIX, "prefix", FACTURX_PREFIX);
         li.addProperty(obj1);
 
@@ -208,16 +211,16 @@ public class FacturXHelper implements IPdfHelper {
                 Cardinality.Seq);
         li.addProperty(newValType);
     }
-    
-    private PDFAPropertyType createProperty(XMPMetadata metadata, String name, String type, String category, String description) {
+
+    private PDFAPropertyType createProperty(final XMPMetadata metadata, final String name, final String type, final String category, final String description) {
 
         TypeMapping tm = new TypeMapping(metadata);
         PDFAPropertyType li = new PDFAPropertyType(metadata);
-        li.setAttribute(new Attribute( PDFA_EXTENSION_SCHEMA_NAMESPACE, XmpConstants.PARSE_TYPE, XmpConstants.RESOURCE_NAME));
-        
+        li.setAttribute(new Attribute(PDFA_EXTENSION_SCHEMA_NAMESPACE, XmpConstants.PARSE_TYPE, XmpConstants.RESOURCE_NAME));
+
         ChoiceType pdfa2 = tm.createChoice(li.getNamespace(), li.getPreferedPrefix(), PDFAPropertyType.NAME, name);
         li.addProperty(pdfa2);
-        
+
         pdfa2 = tm.createChoice(li.getNamespace(), li.getPreferedPrefix(), PDFAPropertyType.VALUETYPE, type);
         li.addProperty(pdfa2);
 
@@ -228,16 +231,17 @@ public class FacturXHelper implements IPdfHelper {
         li.addProperty(pdfa2);
 
         return li;
-    }  
+    }
 
     /**
      * embed the ZUGFeRD XML structure in a file named ZUGFeRD-invoice.xml
-     * @throws IOException 
-     * */
+     * 
+     * @throws IOException
+     */
     @Override
-    public PDDocument attachZugferdFile(PDDocument doc, ByteArrayOutputStream baos) throws IOException {
-        
-        if(doc == null) {
+    public PDDocument attachZugferdFile(final PDDocument doc, final ByteArrayOutputStream baos) throws IOException {
+
+        if (doc == null) {
             return null;
         }
 
@@ -252,7 +256,7 @@ public class FacturXHelper implements IPdfHelper {
         // TODO ZF21: MINIMUM & BASIC WL ==> Data
         // TODO ZF21: in FR ==> Source
         dict.setName("AFRelationship", "Alternative"); // as defined in ZUGFeRD standard
-        
+
         dict.setString("UF", FACTURX_FILENAME);
 
         // create a data stream from given byte array
@@ -274,11 +278,10 @@ public class FacturXHelper implements IPdfHelper {
 
         // now add the entry to the embedded file tree and set in the document.
         efTree.setNames(Collections.singletonMap(FACTURX_FILENAME, fs));
-        PDDocumentNameDictionary names = new PDDocumentNameDictionary(
-                doc.getDocumentCatalog());
+        PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
         names.setEmbeddedFiles(efTree);
         doc.getDocumentCatalog().setNames(names);
-        
+
         // AF entry (Array) in catalog with the FileSpec
         COSArray cosArray = new COSArray();
         cosArray.add(fs);

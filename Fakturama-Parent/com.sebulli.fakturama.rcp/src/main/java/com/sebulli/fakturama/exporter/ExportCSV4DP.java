@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,7 +32,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import com.ibm.icu.util.ULocale;
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
@@ -58,115 +58,118 @@ import com.sebulli.fakturama.util.ContactUtil;
  */
 public class ExportCSV4DP implements ICSVExporter {
 
-	@Inject
-	@Translation
-	protected Messages msg;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	@Optional
-	private IPreferenceStore preferences;
+    @Inject
+    @Optional
+    private IPreferenceStore preferences;
 
-	@Inject
-	private EPartService partService;
+    @Inject
+    private EPartService partService;
 
-	@Inject
-	private ILocaleService localeUtil;
-    
+    @Inject
+    private ILocaleService localeUtil;
+
     @Inject
     private IEclipseContext context;
-    
-	@Inject
-	private IDocumentAddressManager addressManager;
 
-	private ContactUtil contactUtil;
+    @Inject
+    private IDocumentAddressManager addressManager;
 
-	@Execute
-	public void execute(@Optional @Named(CallEditor.PARAM_CALLING_DOC) String callingDoc,
-			final MApplication application, Shell shell) throws ExecutionException {
-		MPart activePart = partService.getActivePart();
-		DocumentEditor activeEditor = (DocumentEditor) activePart.getObject();
-    	contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-		DocumentReceiver billingContact = addressManager.getBillingAdress(activeEditor.getDocument());
-		exportCSV4DP(shell, billingContact);
-	}
+    private ContactUtil contactUtil;
 
-	@Override
-	public Path exportCSV4DP(Shell shell, DocumentReceiver receiver) {
-		// Create a File object in workspace
-		Path csvFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), "dp-addressimport-" + receiver.getCustomerNumber() + ".csv");
+    @Execute
+    public void execute(@Optional @Named(CallEditor.PARAM_CALLING_DOC) final String callingDoc, final MApplication application, final Shell shell)
+            throws ExecutionException {
+        MPart activePart = partService.getActivePart();
+        DocumentEditor activeEditor = (DocumentEditor) activePart.getObject();
+        contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+        DocumentReceiver billingContact = addressManager.getBillingAdress(activeEditor.getDocument());
+        exportCSV4DP(shell, billingContact);
+    }
 
-		// Create a new file
-		try (BufferedWriter bos = Files.newBufferedWriter(csvFile, Charset.forName("CP1252"), StandardOpenOption.CREATE,
-				StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);) {
-			HeaderColumnNameMappingStrategy<DPAddress> strategy = new HeaderColumnNameMappingStrategy<>();
-			strategy.setColumnOrderOnWrite(new Comparator<String>() {
-				public int compare(String o1, String o2) {
-					return Integer.compare(DPAddress.HeaderPositions.valueOf(o1).pos, DPAddress.HeaderPositions.valueOf(o2).pos);
-				};
-			});
-			strategy.setType(DPAddress.class);
-			StatefulBeanToCsv<DPAddress> beanToCsv = new StatefulBeanToCsvBuilder<DPAddress>(bos)
-					.withMappingStrategy(strategy).withLineEnd("\r\n").withSeparator(';').withQuotechar(CSVWriter.NO_QUOTE_CHARACTER).build();
-			
-			DPAddress dpAddressBean = createDPBean(receiver);
-			if(dpAddressBean.isValid()) {
-				List<DPAddress> beans = new ArrayList<>();
-				beans.add(dpAddressBean);
-				beanToCsv.write(beans);
-				MessageDialog.openInformation(Display.getCurrent().getActiveShell(), msg.dialogMessageboxTitleInfo, MessageFormat.format(msg.commandDocumentsExportAddresscsv4dpExportfinished, csvFile.toString()));
-			} else {
-				MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.commandDocumentsExportAddresscsv4dpEmptyfields);
-			}
-		} catch (IOException | CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IllegalStateException e) {
-			e.printStackTrace();
-		}
-		return csvFile;
-	}
+    @Override
+    public Path exportCSV4DP(final Shell shell, final DocumentReceiver receiver) {
+        // Create a File object in workspace
+        Path csvFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), "dp-addressimport-" + receiver.getCustomerNumber() + ".csv");
 
-	private DPAddress createDPBean(DocumentReceiver receiverAddress) {
-		DPAddress dpAddressBean = new DPAddress();
-		dpAddressBean.setSenderName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
-		dpAddressBean.setAdditionalSenderName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
-		dpAddressBean.setSenderStreet(contactUtil.getStreetName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
-		dpAddressBean.setSenderHousenumber(contactUtil.getStreetNo(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
-		dpAddressBean.setSenderZipCode(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP));
-		dpAddressBean.setSenderCity(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
-        java.util.Optional<ULocale> locale = localeUtil.findLocaleByDisplayCountry(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
-		dpAddressBean.setSenderISO3Country(locale.orElse(ULocale.getDefault()).getISO3Country());
-		
-		dpAddressBean.setReceiverName(contactUtil.getCompanyOrLastname(receiverAddress));
-		dpAddressBean.setAdditionalReceiverName(contactUtil.getFirstAndLastName(receiverAddress));
-		dpAddressBean.setReceiverStreet(contactUtil.getStreetName(receiverAddress.getStreet()));
-		dpAddressBean.setReceiverHousenumber(contactUtil.getStreetNo(receiverAddress.getStreet()));
-		dpAddressBean.setReceiverZipCode(receiverAddress.getZip());
-		dpAddressBean.setReceiverCity(receiverAddress.getCity());
-		dpAddressBean.setReceiverISO3Country(localeUtil.findLocaleByDisplayCountry(receiverAddress.getCountryCode()).orElse(ULocale.getDefault()).getISO3Country());
-		
-		// for the first iteration we use a hard coded product
-		dpAddressBean.setProduct("PAECKXS.DEU");
-		return dpAddressBean;
-	}
-//
-//	public void createFile() {
-//		// Create a "SAVE AS" file dialog
-//		FileDialog fileDialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
-//
-//		fileDialog.setFilterExtensions(new String[] { "*.csv" });
-//
-//		// T: Text in a file name dialog
-//		fileDialog.setFilterNames(new String[] { msg.exporterFilenameTypeCsv + " (*.csv)" });
-//		// T: Text in a file name dialog
-//		fileDialog.setText(msg.exporterFilename);
-//		fileDialog.setFileName("");
-//		fileDialog.setOverwrite(true);
-//		String selectedFile = fileDialog.open();
-//		if (selectedFile != null) {
-//		}
-//	}
+        // Create a new file
+        try (BufferedWriter bos = Files.newBufferedWriter(csvFile, Charset.forName("CP1252"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE);) {
+            HeaderColumnNameMappingStrategy<DPAddress> strategy = new HeaderColumnNameMappingStrategy<>();
+            strategy.setColumnOrderOnWrite(new Comparator<String>() {
+                @Override
+                public int compare(final String o1, final String o2) {
+                    return Integer.compare(DPAddress.HeaderPositions.valueOf(o1).pos, DPAddress.HeaderPositions.valueOf(o2).pos);
+                }
+            });
+            strategy.setType(DPAddress.class);
+            StatefulBeanToCsv<DPAddress> beanToCsv = new StatefulBeanToCsvBuilder<DPAddress>(bos).withMappingStrategy(strategy).withLineEnd("\r\n")
+                    .withSeparator(';').withQuotechar(CSVWriter.NO_QUOTE_CHARACTER).build();
 
-	@CanExecute
-	public boolean canExecute() {
-		// can only execute if document is not dirty
-		return partService.getActivePart() != null && !partService.getActivePart().isDirty();
-	}
+            DPAddress dpAddressBean = createDPBean(receiver);
+            if (dpAddressBean.isValid()) {
+                List<DPAddress> beans = new ArrayList<>();
+                beans.add(dpAddressBean);
+                beanToCsv.write(beans);
+                MessageDialog.openInformation(Display.getCurrent().getActiveShell(), msg.dialogMessageboxTitleInfo,
+                        MessageFormat.format(msg.commandDocumentsExportAddresscsv4dpExportfinished, csvFile.toString()));
+            } else {
+                MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.commandDocumentsExportAddresscsv4dpEmptyfields);
+            }
+        } catch (IOException | CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IllegalStateException e) {
+            e.printStackTrace();
+        }
+        return csvFile;
+    }
+
+    private DPAddress createDPBean(final DocumentReceiver receiverAddress) {
+        DPAddress dpAddressBean = new DPAddress();
+        dpAddressBean.setSenderName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
+        dpAddressBean.setAdditionalSenderName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
+        dpAddressBean.setSenderStreet(contactUtil.getStreetName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
+        dpAddressBean.setSenderHousenumber(contactUtil.getStreetNo(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET)));
+        dpAddressBean.setSenderZipCode(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP));
+        dpAddressBean.setSenderCity(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
+        java.util.Optional<Locale> locale = localeUtil.findLocaleByDisplayCountry(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
+        dpAddressBean.setSenderISO3Country(locale.orElse(Locale.getDefault()).getISO3Country());
+
+        dpAddressBean.setReceiverName(contactUtil.getCompanyOrLastname(receiverAddress));
+        dpAddressBean.setAdditionalReceiverName(contactUtil.getFirstAndLastName(receiverAddress));
+        dpAddressBean.setReceiverStreet(contactUtil.getStreetName(receiverAddress.getStreet()));
+        dpAddressBean.setReceiverHousenumber(contactUtil.getStreetNo(receiverAddress.getStreet()));
+        dpAddressBean.setReceiverZipCode(receiverAddress.getZip());
+        dpAddressBean.setReceiverCity(receiverAddress.getCity());
+        dpAddressBean
+                .setReceiverISO3Country(localeUtil.findLocaleByDisplayCountry(receiverAddress.getCountryCode()).orElse(Locale.getDefault()).getISO3Country());
+
+        // for the first iteration we use a hard coded product
+        dpAddressBean.setProduct("PAECKXS.DEU");
+        return dpAddressBean;
+    }
+    //
+    //	public void createFile() {
+    //		// Create a "SAVE AS" file dialog
+    //		FileDialog fileDialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
+    //
+    //		fileDialog.setFilterExtensions(new String[] { "*.csv" });
+    //
+    //		// T: Text in a file name dialog
+    //		fileDialog.setFilterNames(new String[] { msg.exporterFilenameTypeCsv + " (*.csv)" });
+    //		// T: Text in a file name dialog
+    //		fileDialog.setText(msg.exporterFilename);
+    //		fileDialog.setFileName("");
+    //		fileDialog.setOverwrite(true);
+    //		String selectedFile = fileDialog.open();
+    //		if (selectedFile != null) {
+    //		}
+    //	}
+
+    @CanExecute
+    public boolean canExecute() {
+        // can only execute if document is not dirty
+        return partService.getActivePart() != null && !partService.getActivePart().isDirty();
+    }
 }

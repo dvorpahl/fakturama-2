@@ -66,326 +66,288 @@ import com.sebulli.fakturama.resources.core.IconSize;
 
 public class InitialStartupDialog extends TitleAreaDialog {
 
-//	private static final String DEFAULT_JDBC_CLASS = "org.apache.derby.jdbc.EmbeddedDriver";
-	private static final String DEFAULT_JDBC_CLASS = "org.hsqldb.jdbc.JDBCDriver";
+    //	private static final String DEFAULT_JDBC_CLASS = "org.apache.derby.jdbc.EmbeddedDriver";
+    private static final String DEFAULT_JDBC_CLASS = "org.hsqldb.jdbc.JDBCDriver";
     private Text txtWorkdir, txtOldWorkdir, txtJdbcUrl, txtUser, txtPassword;
-	private ComboViewer comboDriver;
+    private ComboViewer comboDriver;
 
-	/** 
-	 * Workspace path
-	 */
-	private String workspace = "";
-	
-	/*
-	 * These fields can't be injected since this class is NOT constructed ApplicationModel.
-	 * Therefore there's no EclipseContext from which these fields could be determined. 
-	 */
-	private ILogger log;
-	private Messages msg;
+    /**
+     * Workspace path
+     */
+    private String workspace = "";
 
-	/** 
-	 * The plugin's preference store
-	 */
-	private IEclipsePreferences preferences;
-	
-	private static final Map<String, String> jdbcUrlMap = new HashMap<String, String>();
-	public static final int EMPTY_WORKSPACE = 100;
+    /*
+     * These fields can't be injected since this class is NOT constructed ApplicationModel.
+     * Therefore there's no EclipseContext from which these fields could be determined. 
+     */
+    private ILogger log;
+    private Messages msg;
 
-	private List<ServiceReference<DataSourceFactory>> connectionProviders = new ArrayList<>();
+    /**
+     * The plugin's preference store
+     */
+    private IEclipsePreferences preferences;
+
+    private static final Map<String, String> jdbcUrlMap = new HashMap<>();
+    public static final int EMPTY_WORKSPACE = 100;
+
+    private List<ServiceReference<DataSourceFactory>> connectionProviders = new ArrayList<>();
     private int jdbcClassComboIndex = 0;
     private final DirectoryChecker dirChecker;
     private Composite dbSettings;
     private Button btnUseDefaultDb;
     private Label databaseInfoText;
 
-	/**
-	 * Create the dialog.
-	 * 
-	 * @param parent
-	 * @param preferences
-	 * @param log
-	 * @param messages 
-	 * @param requestedWorkspace 
-	 */
-	public InitialStartupDialog(Shell parent,
-	        IEclipsePreferences preferences, ILogger log, Messages messages, String requestedWorkspace) {
-		super(parent);
-		this.dirChecker = new DirectoryChecker(parent);
-		this.log = log;
-		this.preferences = preferences;
-		this.workspace = requestedWorkspace;
-		this.msg = messages;
-		parent.setText(msg.startFirstSelectWorkdir);
-		BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+    /**
+     * Create the dialog.
+     * 
+     * @param parent
+     * @param preferences
+     * @param log
+     * @param messages
+     * @param requestedWorkspace
+     */
+    public InitialStartupDialog(final Shell parent, final IEclipsePreferences preferences, final ILogger log, final Messages messages,
+            final String requestedWorkspace) {
+        super(parent);
+        this.dirChecker = new DirectoryChecker(parent);
+        this.log = log;
+        this.preferences = preferences;
+        this.workspace = requestedWorkspace;
+        this.msg = messages;
+        parent.setText(msg.startFirstSelectWorkdir);
+        BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         String oldJdbcDriverClass = preferences.get(PersistenceUnitProperties.JDBC_DRIVER, "org.hsqldb.jdbc.JDBCDriver");
-		try {
-			// get all available Datasources (which are registered in OSGi context)
-			// and store them in a hash for using in ComboBox
+        try {
+            // get all available Datasources (which are registered in OSGi context)
+            // and store them in a hash for using in ComboBox
             Collection<ServiceReference<DataSourceFactory>> serviceReferences = bundleContext.getServiceReferences(DataSourceFactory.class, null);
-			int i = 0;
-			for (ServiceReference<DataSourceFactory> serviceReference : serviceReferences) {
-				connectionProviders.add(serviceReference);
-				String driverClass = (String) serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
-				if(StringUtils.equalsIgnoreCase((String)driverClass, oldJdbcDriverClass)) {
-				    jdbcClassComboIndex = i;  // remember HSQL service
-				}
-				
-				// initialize some JDBC URLs
-				switch (driverClass) {
-				case "org.hsqldb.jdbc.JDBCDriver":
-		            // HSQL (File) => this is the original setting from Fakturama 1.x
-		            // "jdbc:hsqldb:file:/path/to/database;shutdown=true
-		            jdbcUrlMap.put(driverClass, "jdbc:hsqldb:file:/path/to/database;shutdown=true");
-//		            jdbcUrlMap.put(driverClass, "jdbc:hsqldb:hsql://localhost:9002/fakdbneu");
-					break;
-				case "org.apache.derby.jdbc.ClientDriver":
-				case "org.apache.derby.jdbc.EmbeddedDriver":
-		            // Derby
-		            // jdbc:derby://localhost:1527/<databasename>;user=<username>;password=<password>
-		            // jdbc:derby://localhost:1527/c:/my-db-dir/my-db-name;user=<username>;password=<password>
-		            jdbcUrlMap.put(driverClass, "jdbc:derby://localhost:1527/<database>");
-					break;
-				case "com.mysql.jdbc.Driver":
-		            // MySQL
-		            // jdbc:mysql://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
-		            jdbcUrlMap.put(driverClass, "jdbc:mysql://<host>[:<port>]/<database>");
-		            break;
-				case "org.mariadb.jdbc.Driver":
-				    // MariaDB
-				    // jdbc:mariadb://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
-				    jdbcUrlMap.put(driverClass, "jdbc:mariadb://<host>[:<port>]/<database>?useMysqlMetadata=true");
-				    break;
-				default:
-					log.warn(String.format("unknown database driver found in service registry; class name=[%s]",driverClass));
-					break;
-				}
-				log.info(String.format("adding [%s (%s), %s] as DB Connection Provider", 
-						serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME),
-						serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION),
-						StringUtils.substringAfterLast((String) driverClass, ".")));
-				i++;
-			}
-		}
-		catch (InvalidSyntaxException e) {
-			log.error(e);
-		}
-	}
-	
-	/* (non-Javadoc)
-		 * @see org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets.Shell)
-		 */
-		@Override
-		protected void configureShell(Shell newShell) {
-			super.configureShell(newShell);
-			newShell.setText(msg.startFirstTitle);
-			newShell.setImage(Icon.COMMAND_APP.getImage(IconSize.DefaultIconSize));
-		}
+            int i = 0;
+            for (ServiceReference<DataSourceFactory> serviceReference : serviceReferences) {
+                connectionProviders.add(serviceReference);
+                String driverClass = (String) serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
+                if (StringUtils.equalsIgnoreCase(driverClass, oldJdbcDriverClass)) {
+                    jdbcClassComboIndex = i; // remember HSQL service
+                }
 
-	/**
-	 * Create contents of the dialog.
-	 * 
-	 * @param parent
-	 */
-	@Override
-	protected Control createDialogArea(Composite parent) {
-		Composite area = (Composite) super.createDialogArea(parent);
-		Composite container = new Composite(area, SWT.NONE);
-	    container.setLayout(new GridLayout(3, false));
-	    setTitleImage(Icon.APP_ABOUT_ICON.getImage(IconSize.AppIconSize));
-	 	setTitle(msg.startFirstTitle);
-	 	
-	    // 1st row
-		setMessage(msg.startFirstSelectWorkdirVerbose, IMessageProvider.INFORMATION);
-		
-		// 2nd row
-		LabelFactory.newLabel(SWT.NONE)
-		    .text(msg.startFirstSelectWorkdirShort)
-		    .create(container);
-		
-		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		layoutData.minimumWidth = 450;
-		txtWorkdir = TextFactory.newText(SWT.BORDER)
-	        .layoutData(layoutData)
-	        .text(StringUtils.defaultIfEmpty(workspace, ""))
-		    .create(container);
+                // initialize some JDBC URLs
+                switch (driverClass) {
+                case "org.hsqldb.jdbc.JDBCDriver":
+                    // HSQL (File) => this is the original setting from Fakturama 1.x
+                    // "jdbc:hsqldb:file:/path/to/database;shutdown=true
+                    jdbcUrlMap.put(driverClass, "jdbc:hsqldb:file:/path/to/database;shutdown=true");
+                    //		            jdbcUrlMap.put(driverClass, "jdbc:hsqldb:hsql://localhost:9002/fakdbneu");
+                    break;
+                case "org.apache.derby.jdbc.ClientDriver":
+                case "org.apache.derby.jdbc.EmbeddedDriver":
+                    // Derby
+                    // jdbc:derby://localhost:1527/<databasename>;user=<username>;password=<password>
+                    // jdbc:derby://localhost:1527/c:/my-db-dir/my-db-name;user=<username>;password=<password>
+                    jdbcUrlMap.put(driverClass, "jdbc:derby://localhost:1527/<database>");
+                    break;
+                case "com.mysql.cj.jdbc.Driver":
+                    // MySQL
+                    // jdbc:mysql://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
+                    jdbcUrlMap.put(driverClass, "jdbc:mysql://<host>[:<port>]/<database>");
+                    break;
+                case "org.mariadb.jdbc.Driver":
+                    // MariaDB
+                    // jdbc:mariadb://[<host>][:<port>]/<database>[?propertyName1][=propertyValue1][&propertyName2][=propertyValue2]...
+                    jdbcUrlMap.put(driverClass, "jdbc:mariadb://<host>[:<port>]/<database>?useMysqlMetadata=true");
+                    break;
+                case "org.h2.Driver":
+                    // h2DB: https://www.h2database.com/html/features.html
+                    // jdbc:h2:[file:][<path>]<databaseName>[;property1=value1][;property2=value2]...
+                    // server Mode: jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
+                    jdbcUrlMap.put(driverClass, "jdbc:h2:[file:][<path>]<databaseName>");
+                    break;
+                default:
+                    log.warn(String.format("unknown database driver found in service registry; class name=[%s]", driverClass));
+                    break;
+                }
+                log.info(String.format("adding [%s (%s), %s] as DB Connection Provider", serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME),
+                        serviceReference.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION), StringUtils.substringAfterLast(driverClass, ".")));
+                i++;
+            }
+        } catch (InvalidSyntaxException e) {
+            log.error(e);
+        }
+    }
 
-		DirectoryChooser newDirectoryChooser = new DirectoryChooser(txtWorkdir, false);
-		ButtonFactory.newButton(SWT.NONE)
-		    .text("...")
-		    .tooltip(msg.startFirstSelectWorkdirVerbose)
-		    .onSelect(newDirectoryChooser::widgetSelected)
-		    .create(container);
-		
-		// 2.1st row
-        LabelFactory.newLabel(SWT.NONE)
-            .text(msg.startFirstSelectOldworkdirShort)
-            .create(container);
-        
-		txtOldWorkdir = TextFactory.newText(SWT.BORDER)
-    		.layoutData(layoutData)
-    		.text(getOldWorkDir())
-    		.create(container);
-		txtOldWorkdir.addFocusListener(new FocusAdapter() {
+    /* (non-Javadoc)
+    	 * @see org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets.Shell)
+    	 */
+    @Override
+    protected void configureShell(final Shell newShell) {
+        super.configureShell(newShell);
+        newShell.setText(msg.startFirstTitle);
+        newShell.setImage(Icon.COMMAND_APP.getImage(IconSize.DefaultIconSize));
+    }
+
+    /**
+     * Create contents of the dialog.
+     * 
+     * @param parent
+     */
+    @Override
+    protected Control createDialogArea(final Composite parent) {
+        Composite area = (Composite) super.createDialogArea(parent);
+        Composite container = new Composite(area, SWT.NONE);
+        container.setLayout(new GridLayout(3, false));
+        setTitleImage(Icon.APP_ABOUT_ICON.getImage(IconSize.AppIconSize));
+        setTitle(msg.startFirstTitle);
+
+        // 1st row
+        setMessage(msg.startFirstSelectWorkdirVerbose, IMessageProvider.INFORMATION);
+
+        // 2nd row
+        LabelFactory.newLabel(SWT.NONE).text(msg.startFirstSelectWorkdirShort).create(container);
+
+        GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+        layoutData.minimumWidth = 450;
+        txtWorkdir = TextFactory.newText(SWT.BORDER).layoutData(layoutData).text(StringUtils.defaultIfEmpty(workspace, "")).create(container);
+
+        DirectoryChooser newDirectoryChooser = new DirectoryChooser(txtWorkdir, false);
+        ButtonFactory.newButton(SWT.NONE).text("...").tooltip(msg.startFirstSelectWorkdirVerbose).onSelect(newDirectoryChooser::widgetSelected)
+                .create(container);
+
+        // 2.1st row
+        LabelFactory.newLabel(SWT.NONE).text(msg.startFirstSelectOldworkdirShort).create(container);
+
+        txtOldWorkdir = TextFactory.newText(SWT.BORDER).layoutData(layoutData).text(getOldWorkDir()).create(container);
+        txtOldWorkdir.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusLost(FocusEvent e) {
-                if(e != null) {
-                    String directory = ((Text)e.getSource()).getText();
+            public void focusLost(final FocusEvent e) {
+                if (e != null) {
+                    String directory = ((Text) e.getSource()).getText();
                     dirChecker.checkPreviousVersion(directory);
                 }
             }
-            
+
             /* (non-Javadoc)
              * @see org.eclipse.swt.events.FocusAdapter#focusGained(org.eclipse.swt.events.FocusEvent)
              */
             @Override
-            public void focusGained(FocusEvent e) {
-            	txtOldWorkdir.setSelection(0, txtOldWorkdir.getText().length());
+            public void focusGained(final FocusEvent e) {
+                txtOldWorkdir.setSelection(0, txtOldWorkdir.getText().length());
             }
         });
-		
-		DirectoryChooser directoryChooser = new DirectoryChooser(txtOldWorkdir, true);
-		ButtonFactory.newButton(SWT.NONE)
-		    .text("...")
-		    .tooltip(msg.startFirstSelectOldworkdirVerbose)
-		    .onSelect(directoryChooser::widgetSelected)
-	        .create(container);
-		
-		btnUseDefaultDb = ButtonFactory.newButton(SWT.CHECK)
-	        .text(msg.startFirstSelectDbUsedefault)
-	        .onSelect(e -> dbSettings.setVisible(!((Button)e.getSource()).getSelection()))
-	        .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1))
-	        .tooltip(msg.startFirstSelectDbUsedefaultTooltip)
-	        .create(container);
+
+        DirectoryChooser directoryChooser = new DirectoryChooser(txtOldWorkdir, true);
+        ButtonFactory.newButton(SWT.NONE).text("...").tooltip(msg.startFirstSelectOldworkdirVerbose).onSelect(directoryChooser::widgetSelected)
+                .create(container);
+
+        btnUseDefaultDb = ButtonFactory.newButton(SWT.CHECK).text(msg.startFirstSelectDbUsedefault)
+                .onSelect(e -> dbSettings.setVisible(!((Button) e.getSource()).getSelection()))
+                .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1)).tooltip(msg.startFirstSelectDbUsedefaultTooltip).create(container);
         btnUseDefaultDb.setSelection(true);
-        btnUseDefaultDb.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> { 
-            dbSettings.setVisible(!((Button)e.getSource()).getSelection());
-    }));
-		
-		dbSettings = new Composite(container, SWT.NONE);
+        btnUseDefaultDb.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+            dbSettings.setVisible(!((Button) e.getSource()).getSelection());
+        }));
+
+        dbSettings = new Composite(container, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns(3).applyTo(dbSettings);
         dbSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-        dbSettings.setVisible(false);  // hide initially
-        
-		// 3rd row
-		LabelFactory.newLabel(SWT.NONE)
-	        .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
-	        .text(msg.startFirstSelectDbCredentialsName)
-	        .create(dbSettings);
-		
-		comboDriver = new ComboViewer(dbSettings, SWT.NONE | SWT.READ_ONLY);
-		comboDriver.setContentProvider(ArrayContentProvider.getInstance());
-		comboDriver.setInput(connectionProviders);
-		comboDriver.setLabelProvider(new LabelProvider() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public String getText(Object element) {
-				ServiceReference<DataSourceFactory> serviceRefElement = (ServiceReference<DataSourceFactory>)element;
-                String driverName = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME);
-				String jdbcVersion = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION);
-				String scope = StringUtils.substringAfterLast((String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS), ".");
-				if(jdbcVersion != null) {
-					driverName = String.format("%s (%s), %s", driverName, jdbcVersion, scope);
-				}
-				return driverName;
-			}
-		});
-		comboDriver.addSelectionChangedListener(new ISelectionChangedListener() {
-			
+        dbSettings.setVisible(false); // hide initially
+
+        // 3rd row
+        LabelFactory.newLabel(SWT.NONE).layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1)).text(msg.startFirstSelectDbCredentialsName)
+                .create(dbSettings);
+
+        comboDriver = new ComboViewer(dbSettings, SWT.NONE | SWT.READ_ONLY);
+        comboDriver.setContentProvider(ArrayContentProvider.getInstance());
+        comboDriver.setInput(connectionProviders);
+        comboDriver.setLabelProvider(new LabelProvider() {
             @SuppressWarnings("unchecked")
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				String driverClass = (String) ((ServiceReference<DataSourceFactory>)(event
-			      .getStructuredSelection()).getFirstElement()).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
-				txtJdbcUrl.setText(StringUtils.defaultString(jdbcUrlMap.get(driverClass), ""));
-				databaseInfoText.setText("");
-				txtUser.setText("");
-				txtPassword.setText("");
-			}
-		});
-		Combo combo = comboDriver.getCombo();
-		combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		combo.select(jdbcClassComboIndex);
-
-		// 4th row
-		LabelFactory.newLabel(SWT.NONE)
-    		.layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
-    		.text(msg.startFirstSelectDbCredentialsJdbc)
-		    .create(dbSettings);
-		
-		// if an old value is set, we use it, else use the first entry from combo box
-		@SuppressWarnings("unchecked")
-		String firstEntry = (String) ((ServiceReference<DataSourceFactory>)comboDriver.getElementAt(jdbcClassComboIndex)).getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
-		firstEntry = StringUtils.defaultString(jdbcUrlMap.get(firstEntry), "");
-		txtJdbcUrl =  TextFactory.newText(SWT.BORDER)
-    		.text(preferences.get(PersistenceUnitProperties.JDBC_URL, firstEntry))
-    		.layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
-    		.create(dbSettings);
-		
-		// 5th row
-        LabelFactory.newLabel(SWT.NONE)
-            .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
-            .text(msg.startFirstSelectDbCredentialsUser)
-            .create(dbSettings);
-
-        txtUser = TextFactory.newText(SWT.BORDER)
-            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
-            .text(preferences.get(PersistenceUnitProperties.JDBC_USER, ""))
-            .create(dbSettings);               
-		
-        LabelFactory.newLabel(SWT.NONE)
-           .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1))
-           .text(msg.startFirstSelectDbCredentialsPassword)
-           .create(dbSettings);
-
-        txtPassword = TextFactory.newText(SWT.BORDER | SWT.PASSWORD)
-            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1))
-            .text(preferences.get(PersistenceUnitProperties.JDBC_PASSWORD, ""))
-            .create(dbSettings);
-        
-        ButtonFactory.newButton(SWT.PUSH)
-            .text(msg.startFirstSelectDbCheck)
-            .onSelect(e -> {
-                try {
-                    IStructuredSelection selection = comboDriver.getStructuredSelection();
-                    ServiceReference<DataSourceFactory> sr = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
-                    Properties connectionProps = new Properties();
-                    connectionProps.put(DataSourceFactory.JDBC_URL, txtJdbcUrl.getText());
-                    connectionProps.put(DataSourceFactory.JDBC_USER, txtUser.getText());
-                    connectionProps.put(DataSourceFactory.JDBC_PASSWORD, txtPassword.getText());
-                    DataSource dataSource = FrameworkUtil.getBundle(getClass()).getBundleContext().getService(sr).createDataSource(connectionProps);
-                    Connection con = dataSource.getConnection();
-                    
-                    String infoString = String.format("%s: %s | %s: %s",
-                            msg.startFirstSelectDbname,
-                            dataSource.getConnection(txtUser.getText(), txtPassword.getText()).getMetaData().getDatabaseProductVersion(),
-                            msg.startFirstSelectDbDriver,
-                            dataSource.getConnection(txtUser.getText(), txtPassword.getText()).getMetaData().getDriverVersion()
-                            );                    
-                            
-                    databaseInfoText.setText(infoString);
-                    Statement stmt = con.createStatement();
-                    boolean pingResult = stmt.execute("/* ping */ select 1");
-                    if(pingResult) {
-                        MessageDialog.openInformation(getShell(), msg.dialogMessageboxTitleInfo, msg.startFirstSelectDbConnectionsuccessful);
-                    }
-                } catch (SQLException k) {
-                    MessageDialog.openError(getShell(), msg.dialogMessageboxTitleError, "Can't create database connection. Reason:\n" + k.getMessage());
+            @Override
+            public String getText(final Object element) {
+                ServiceReference<DataSourceFactory> serviceRefElement = (ServiceReference<DataSourceFactory>) element;
+                String driverName = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_NAME);
+                String jdbcVersion = (String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION);
+                String scope = StringUtils.substringAfterLast((String) serviceRefElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS), ".");
+                if (jdbcVersion != null) {
+                    driverName = String.format("%s (%s), %s", driverName, jdbcVersion, scope);
                 }
+                return driverName;
             }
-        )
-        .create(dbSettings);
-        
+        });
+        comboDriver.addSelectionChangedListener(new ISelectionChangedListener() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public void selectionChanged(final SelectionChangedEvent event) {
+                String driverClass = (String) ((ServiceReference<DataSourceFactory>) (event.getStructuredSelection()).getFirstElement())
+                        .getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
+                txtJdbcUrl.setText(StringUtils.defaultString(jdbcUrlMap.get(driverClass)));
+                databaseInfoText.setText("");
+                txtUser.setText("");
+                txtPassword.setText("");
+            }
+        });
+        Combo combo = comboDriver.getCombo();
+        combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        combo.select(jdbcClassComboIndex);
+
+        // 4th row
+        LabelFactory.newLabel(SWT.NONE).layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1)).text(msg.startFirstSelectDbCredentialsJdbc)
+                .create(dbSettings);
+
+        // if an old value is set, we use it, else use the first entry from combo box
+        @SuppressWarnings("unchecked")
+        String firstEntry = (String) ((ServiceReference<DataSourceFactory>) comboDriver.getElementAt(jdbcClassComboIndex))
+                .getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
+        firstEntry = StringUtils.defaultString(jdbcUrlMap.get(firstEntry), "");
+        txtJdbcUrl = TextFactory.newText(SWT.BORDER).text(preferences.get(PersistenceUnitProperties.JDBC_URL, firstEntry))
+                .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1)).create(dbSettings);
+
+        // 5th row
+        LabelFactory.newLabel(SWT.NONE).layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1)).text(msg.startFirstSelectDbCredentialsUser)
+                .create(dbSettings);
+
+        txtUser = TextFactory.newText(SWT.BORDER).layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
+                .text(preferences.get(PersistenceUnitProperties.JDBC_USER, "")).create(dbSettings);
+
+        LabelFactory.newLabel(SWT.NONE).layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1)).text(msg.startFirstSelectDbCredentialsPassword)
+                .create(dbSettings);
+
+        txtPassword = TextFactory.newText(SWT.BORDER | SWT.PASSWORD).layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1))
+                .text(preferences.get(PersistenceUnitProperties.JDBC_PASSWORD, "")).create(dbSettings);
+
+        ButtonFactory.newButton(SWT.PUSH).text(msg.startFirstSelectDbCheck).onSelect(e -> {
+            try {
+                IStructuredSelection selection = comboDriver.getStructuredSelection();
+                ServiceReference<DataSourceFactory> sr = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
+                Properties connectionProps = new Properties();
+                connectionProps.put(DataSourceFactory.JDBC_URL, txtJdbcUrl.getText());
+                connectionProps.put(DataSourceFactory.JDBC_USER, txtUser.getText());
+                connectionProps.put(DataSourceFactory.JDBC_PASSWORD, txtPassword.getText());
+                DataSource dataSource = FrameworkUtil.getBundle(getClass()).getBundleContext().getService(sr).createDataSource(connectionProps);
+                Connection con = dataSource.getConnection();
+
+                String infoString = String.format("%s: %s | %s: %s", msg.startFirstSelectDbname,
+                        dataSource.getConnection(txtUser.getText(), txtPassword.getText()).getMetaData().getDatabaseProductVersion(),
+                        msg.startFirstSelectDbDriver, dataSource.getConnection(txtUser.getText(), txtPassword.getText()).getMetaData().getDriverVersion());
+
+                databaseInfoText.setText(infoString);
+                Statement stmt = con.createStatement();
+                boolean pingResult = stmt.execute("/* ping */ select 1");
+                if (pingResult) {
+                    MessageDialog.openInformation(getShell(), msg.dialogMessageboxTitleInfo, msg.startFirstSelectDbConnectionsuccessful);
+                }
+            } catch (SQLException k) {
+                MessageDialog.openError(getShell(), msg.dialogMessageboxTitleError, "Can't create database connection. Reason:\n" + k.getMessage());
+            }
+        }).create(dbSettings);
+
         LabelFactory.newLabel(SWT.NONE).create(dbSettings); // blind label
-        databaseInfoText = LabelFactory.newLabel(SWT.NONE)
-            .layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1))
-            .create(dbSettings);
+        databaseInfoText = LabelFactory.newLabel(SWT.NONE).layoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1)).create(dbSettings);
 
-	    return container;
-	}
+        return container;
+    }
 
-	/**
-	 * Try to find the old workdir path.
-	 * 
+    /**
+     * Try to find the old workdir path.
+     * 
      * @return
      */
     private String getOldWorkDir() {
@@ -393,16 +355,15 @@ public class InitialStartupDialog extends TitleAreaDialog {
         // old: ${user}/.fakturama
         // new: ${user}/.fakturama2
         // or eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "")
-        Path userDir = Paths.get(System.getProperty("user.home"), ".fakturama",
-                ".metadata", ".plugins", "org.eclipse.core.runtime", ".settings", "com.sebulli.fakturama.prefs");
+        Path userDir = Paths.get(System.getProperty("user.home"), ".fakturama", ".metadata", ".plugins", "org.eclipse.core.runtime", ".settings",
+                "com.sebulli.fakturama.prefs");
         String retval = "";
-        if(Files.exists(userDir)) {
+        if (Files.exists(userDir)) {
             Properties oldProps = new Properties();
             try {
                 oldProps.load(Files.newInputStream(userDir));
                 retval = oldProps.getProperty(Constants.GENERAL_WORKSPACE);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // ok, something went wrong, therefore we leave it blank
                 log.warn("couldn't get the old Fakturama properties from " + userDir.getFileName());
             }
@@ -411,142 +372,143 @@ public class InitialStartupDialog extends TitleAreaDialog {
     }
 
     @SuppressWarnings("unchecked")
-	@Override
-	protected void okPressed() {
-		IStructuredSelection selection = comboDriver.getStructuredSelection();
-		ServiceReference<DataSourceFactory> firstElement = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
-		String driver = selection.isEmpty() || btnUseDefaultDb.getSelection() ? DEFAULT_JDBC_CLASS : (String) firstElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
+    @Override
+    protected void okPressed() {
+        IStructuredSelection selection = comboDriver.getStructuredSelection();
+        ServiceReference<DataSourceFactory> firstElement = (ServiceReference<DataSourceFactory>) selection.getFirstElement();
+        String driver = selection.isEmpty() || btnUseDefaultDb.getSelection() ? DEFAULT_JDBC_CLASS
+                : (String) firstElement.getProperty(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS);
 
-		// storing DB credentials
-		try {
-			workspace = txtWorkdir.getText();
-			
-			// handle workdir and JDBC connection
-			if (workspace.isEmpty()) {
-				MessageDialog.openError(getParentShell(), msg.dialogMessageboxTitleError, msg.startFirstSelectWorkdirNoselection);
-				txtWorkdir.setFocus();
-			} else {
-				if(Files.notExists(Paths.get(workspace))) {
-					Files.createDirectories(Paths.get(workspace));
-				}
-				
-    			preferences.put(PersistenceUnitProperties.JDBC_DRIVER, driver);
-    			
-    			// for default DB setting we use the workdir as DB store
-    			if(btnUseDefaultDb.getSelection()) {//;hsqldb.lob_compressed=true
-    			    String jdbcUrl = String.format("jdbc:hsqldb:file:%s/Database/Database;shutdown=true", workspace);
-    			    preferences.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);
-    			    preferences.put(PersistenceUnitProperties.JDBC_USER, "sa");
-    			    preferences.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
-    			} else {
-    			    preferences.put(PersistenceUnitProperties.JDBC_URL, txtJdbcUrl.getText());
-    			    preferences.put(PersistenceUnitProperties.JDBC_USER, txtUser.getText());
-    			    preferences.put(PersistenceUnitProperties.JDBC_PASSWORD, txtPassword.getText());   // TODO encrypt!!!
-    			}
-    			preferences.putBoolean("jdbc_reconnect", true);
-    		
-    			dirChecker.checkPreviousVersion(txtOldWorkdir.getText());
-				// Store the requested directory in a preference value and clear an old one (if it exists)
-				preferences.put(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, workspace);
-				preferences.remove(Constants.GENERAL_WORKSPACE);
-				preferences.flush();
-				// restarting application
-				MessageDialog.openInformation(getParentShell(), msg.dialogMessageboxTitleInfo, msg.startFirstRestartmessage);
-				super.okPressed();
-			}
-		} catch (BackingStoreException | IOException e) {
-			log.error(e);
-		}
-	}
-	
-	/**
-	 * Checks if a directory contains an older version of Fakturama.
-	 * If so, the migration flag is set for further processing.
-	 *
-	 */
-	private final class DirectoryChecker {
-	    private Shell shell;
-	    
-	    // don't ask twice for these directories
-	    private final Set<String> alreadyCheckedDirs = new HashSet<String>();
+        // storing DB credentials
+        try {
+            workspace = txtWorkdir.getText();
+
+            // handle workdir and JDBC connection
+            if (workspace.isEmpty()) {
+                MessageDialog.openError(getParentShell(), msg.dialogMessageboxTitleError, msg.startFirstSelectWorkdirNoselection);
+                txtWorkdir.setFocus();
+            } else {
+                if (Files.notExists(Paths.get(workspace))) {
+                    Files.createDirectories(Paths.get(workspace));
+                }
+
+                preferences.put(PersistenceUnitProperties.JDBC_DRIVER, driver);
+
+                // for default DB setting we use the workdir as DB store
+                if (btnUseDefaultDb.getSelection()) {//;hsqldb.lob_compressed=true
+                    String jdbcUrl = String.format("jdbc:hsqldb:file:%s/Database/Database;shutdown=true", workspace);
+                    preferences.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);
+                    preferences.put(PersistenceUnitProperties.JDBC_USER, "sa");
+                    preferences.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
+                } else {
+                    preferences.put(PersistenceUnitProperties.JDBC_URL, txtJdbcUrl.getText());
+                    preferences.put(PersistenceUnitProperties.JDBC_USER, txtUser.getText());
+                    preferences.put(PersistenceUnitProperties.JDBC_PASSWORD, txtPassword.getText()); // TODO encrypt!!!
+                }
+                preferences.putBoolean("jdbc_reconnect", true);
+
+                dirChecker.checkPreviousVersion(txtOldWorkdir.getText());
+                // Store the requested directory in a preference value and clear an old one (if it exists)
+                preferences.put(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, workspace);
+                preferences.remove(Constants.GENERAL_WORKSPACE);
+                preferences.flush();
+                // restarting application
+                MessageDialog.openInformation(getParentShell(), msg.dialogMessageboxTitleInfo, msg.startFirstRestartmessage);
+                super.okPressed();
+            }
+        } catch (BackingStoreException | IOException e) {
+            log.error(e);
+        }
+    }
+
+    /**
+     * Checks if a directory contains an older version of Fakturama. If so, the
+     * migration flag is set for further processing.
+     *
+     */
+    private final class DirectoryChecker {
+        private Shell shell;
+
+        // don't ask twice for these directories
+        private final Set<String> alreadyCheckedDirs = new HashSet<>();
 
         /**
          * @param shell
          */
-        protected DirectoryChecker(Shell shell) {
+        protected DirectoryChecker(final Shell shell) {
             this.shell = shell;
         }
 
         /**
          * Checks if a previous version is installed at this position
-         * @param selectedDirectory 
+         * 
+         * @param selectedDirectory
          */
-        private void checkPreviousVersion(String selectedDirectory) {
-            if(StringUtils.isNotBlank(selectedDirectory)) {
+        private void checkPreviousVersion(final String selectedDirectory) {
+            if (StringUtils.isNotBlank(selectedDirectory)) {
                 // The data base is in the /Database/ directory
                 Path directory = Paths.get(selectedDirectory, "/Database/Database.script");
-                if(!alreadyCheckedDirs.contains(selectedDirectory) && Files.exists(directory)) {
-                    boolean answer = MessageDialog.openQuestion(shell, "Datenübernahme", 
-                               msg.startMigrationWarning);
-                    if(answer) {
+                if (!alreadyCheckedDirs.contains(selectedDirectory) && Files.exists(directory)) {
+                    boolean answer = MessageDialog.openQuestion(shell, "Datenübernahme", msg.startMigrationWarning);
+                    if (answer) {
                         preferences.put(ConfigurationManager.MIGRATE_OLD_DATA, selectedDirectory);
                     }
                     alreadyCheckedDirs.add(selectedDirectory);
                 }
             }
         }
-	}
-	
-	/**
-	 * Selection Adapter for choosing the working directory.
-	 * 
-	 *
-	 */
-	private final class DirectoryChooser extends SelectionAdapter {
-		private final Text selectionField;
-		private boolean shouldCheckPreviousVersion;
-		private boolean forOldVersion;
-		private DirectoryChecker dirChecker;
+    }
 
-		private DirectoryChooser(Text selectionField, boolean shouldCheckPreviousVersion,
-				boolean forOldVersion) {
-			this.selectionField = selectionField;
-			this.shouldCheckPreviousVersion = shouldCheckPreviousVersion;
-			this.forOldVersion = forOldVersion;
-			this.dirChecker = new DirectoryChecker(selectionField.getShell());
-		}
+    /**
+     * Selection Adapter for choosing the working directory.
+     * 
+     *
+     */
+    private final class DirectoryChooser extends SelectionAdapter {
+        private final Text selectionField;
+        private boolean shouldCheckPreviousVersion;
+        private boolean forOldVersion;
+        private DirectoryChecker dirChecker;
 
-		private DirectoryChooser(Text selectionField, boolean forOldVersion) {
-			this(selectionField, true, forOldVersion);
-		}
-		
-		private DirectoryChooser(Text selectionField) {
-		    this(selectionField, true, false);
-		}
-		
-		private void detectWorkspace(String selectedDirectory) {
-			if (selectedDirectory != null) {
-				// test if it is valid
-				if (selectedDirectory.equals("/") || selectedDirectory.equals("\\")) {
-					selectedDirectory = "";
-				}
-				selectionField.setText(selectedDirectory);
-				if(shouldCheckPreviousVersion && forOldVersion) {
-				    dirChecker.checkPreviousVersion(selectedDirectory);
-				}
-			}
-		}
+        private DirectoryChooser(final Text selectionField, final boolean shouldCheckPreviousVersion, final boolean forOldVersion) {
+            this.selectionField = selectionField;
+            this.shouldCheckPreviousVersion = shouldCheckPreviousVersion;
+            this.forOldVersion = forOldVersion;
+            this.dirChecker = new DirectoryChecker(selectionField.getShell());
+        }
 
-		public void widgetSelected(SelectionEvent event) {
-			DirectoryDialog directoryDialog = new DirectoryDialog(selectionField.getShell(), SWT.OPEN);
-			directoryDialog.setFilterPath(StringUtils.defaultIfBlank(selectionField.getText(), System.getProperty("user.home")));				
-			//T: Title of the dialog to select the working directory
-			directoryDialog.setText(forOldVersion ? msg.commandSelectoldworkspaceName : msg.commandSelectworkspaceName);
-			//T: Text of the dialog to select the working directory
-			directoryDialog.setMessage(forOldVersion ? msg.startFirstSelectOldworkdirVerbose : msg.startFirstSelectWorkdirVerbose);
-			String selectedDirectory = directoryDialog.open();
-			detectWorkspace(selectedDirectory);
-		}
-	}
+        private DirectoryChooser(final Text selectionField, final boolean forOldVersion) {
+            this(selectionField, true, forOldVersion);
+        }
+
+        private DirectoryChooser(final Text selectionField) {
+            this(selectionField, true, false);
+        }
+
+        private void detectWorkspace(String selectedDirectory) {
+            if (selectedDirectory != null) {
+                // test if it is valid
+                if (selectedDirectory.equals("/") || selectedDirectory.equals("\\")) {
+                    selectedDirectory = "";
+                }
+                selectionField.setText(selectedDirectory);
+                if (shouldCheckPreviousVersion && forOldVersion) {
+                    dirChecker.checkPreviousVersion(selectedDirectory);
+                }
+            }
+        }
+
+        @Override
+        public void widgetSelected(final SelectionEvent event) {
+            DirectoryDialog directoryDialog = new DirectoryDialog(selectionField.getShell(), SWT.OPEN);
+            directoryDialog.setFilterPath(StringUtils.defaultIfBlank(selectionField.getText(), System.getProperty("user.home")));
+            //T: Title of the dialog to select the working directory
+            directoryDialog.setText(forOldVersion ? msg.commandSelectoldworkspaceName : msg.commandSelectworkspaceName);
+            //T: Text of the dialog to select the working directory
+            directoryDialog.setMessage(forOldVersion ? msg.startFirstSelectOldworkdirVerbose : msg.startFirstSelectWorkdirVerbose);
+            String selectedDirectory = directoryDialog.open();
+            detectWorkspace(selectedDirectory);
+        }
+    }
 
 }

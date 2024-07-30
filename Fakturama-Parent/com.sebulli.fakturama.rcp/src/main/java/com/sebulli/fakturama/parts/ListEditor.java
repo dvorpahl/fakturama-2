@@ -84,10 +84,9 @@ public class ListEditor extends Editor<ItemAccountType> {
      * 
      * @param monitor
      *            Progress monitor
-     * @see org.eclipse.ui.part.EditorPart#doSave(org.eclipse.core.runtime.IProgressMonitor)
      */
     @Persist
-    public Boolean doSave(IProgressMonitor monitor) {
+    public Boolean doSave(final IProgressMonitor monitor) {
         /*
          * the following parameters are not saved:
          * - id (constant)
@@ -122,7 +121,7 @@ public class ListEditor extends Editor<ItemAccountType> {
         evtBroker.post(ListEditor.class.getSimpleName(), Editor.UPDATE_EVENT);
 
         bindModel();
-        
+
         // reset dirty flag
         getMDirtyablePart().setDirty(false);
         return Boolean.TRUE;
@@ -136,10 +135,9 @@ public class ListEditor extends Editor<ItemAccountType> {
      * 
      * @param the
      *            parent control
-     * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
      */
     @PostConstruct
-    public void createPartControl(Composite parent) {
+    public void createPartControl(final Composite parent) {
         Long objId = null;
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_LIST.getIconURI());
@@ -188,7 +186,7 @@ public class ListEditor extends Editor<ItemAccountType> {
         labelCategory.setText(msg.editorListListfield);
         labelCategory.setToolTipText(msg.editorListTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
-        
+
         comboCategory = new CCombo(top, SWT.BORDER | SWT.READ_ONLY);
         comboCategory.setToolTipText(msg.editorListTooltip);
         GridDataFactory.swtDefaults().align(SWT.BEGINNING, SWT.CENTER).hint(300, SWT.DEFAULT).applyTo(comboCategory);
@@ -206,28 +204,29 @@ public class ListEditor extends Editor<ItemAccountType> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCode);
         textValue = new Text(top, SWT.BORDER);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textValue);
-        
+
         bindModel();
     }
 
-	protected void bindModel() {
-		part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
+    @Override
+    protected void bindModel() {
+        part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
 
-		bindModelValue(editorListEntry, textName, ItemAccountType_.name.getName(), 64);
-		fillAndBindCategoryCombo();
+        bindModelValue(editorListEntry, textName, ItemAccountType_.name.getName(), 64);
+        fillAndBindCategoryCombo();
         bindModelValue(editorListEntry, textValue, ItemAccountType_.value.getName(), 250);
-        
-		part.getTransientData().remove(BIND_MODE_INDICATOR);
-	}
+
+        part.getTransientData().remove(BIND_MODE_INDICATOR);
+    }
 
     /**
      * creates the combo box for the ItemAccountType category
      */
     private void fillAndBindCategoryCombo() {
         // Collect all category strings as a sorted Set
-        final TreeSet<ItemListTypeCategory> categories = new TreeSet<ItemListTypeCategory>(new Comparator<ItemListTypeCategory>() {
+        final TreeSet<ItemListTypeCategory> categories = new TreeSet<>(new Comparator<ItemListTypeCategory>() {
             @Override
-            public int compare(ItemListTypeCategory cat1, ItemListTypeCategory cat2) {
+            public int compare(final ItemListTypeCategory cat1, final ItemListTypeCategory cat2) {
                 return cat1.getName().compareTo(cat2.getName());
             }
         });
@@ -236,7 +235,7 @@ public class ListEditor extends Editor<ItemAccountType> {
         ComboViewer viewer = new ComboViewer(comboCategory);
         viewer.setContentProvider(new ArrayContentProvider() {
             @Override
-            public Object[] getElements(Object inputElement) {
+            public Object[] getElements(final Object inputElement) {
                 return categories.toArray();
             }
         });
@@ -246,16 +245,18 @@ public class ListEditor extends Editor<ItemAccountType> {
         viewer.setInput(categories);
         viewer.setLabelProvider(new LabelProvider() {
             @Override
-            public String getText(Object element) {
+            public String getText(final Object element) {
                 // the name in this case is the key for the localized name
                 return element instanceof ItemListTypeCategory ? msg.getMessageFromKey(((ItemListTypeCategory) element).getName()) : null;
-//                return element instanceof ItemListTypeCategory ? ((ItemListTypeCategory) element).getName() : null;
+                //                return element instanceof ItemListTypeCategory ? ((ItemListTypeCategory) element).getName() : null;
             }
         });
         editorListEntry.setCategory(tmpCategory);
 
-        UpdateValueStrategy<ItemListTypeCategory, String> itemListTypeCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<ItemListTypeCategory>(ItemListTypeCategory.class, msg));
-        UpdateValueStrategy<String, ItemListTypeCategory> target2ItemListTypecatModel = UpdateValueStrategy.create(new MessageKeyToCategoryConverter<ItemListTypeCategory>(categories, ItemListTypeCategory.class, msg));
+        UpdateValueStrategy<ItemListTypeCategory, String> itemListTypeCatModel2Target = UpdateValueStrategy
+                .create(new CategoryConverter<>(ItemListTypeCategory.class, msg));
+        UpdateValueStrategy<String, ItemListTypeCategory> target2ItemListTypecatModel = UpdateValueStrategy
+                .create(new MessageKeyToCategoryConverter<>(categories, ItemListTypeCategory.class, msg));
         bindModelValue(editorListEntry, comboCategory, ItemAccountType_.category.getName(), target2ItemListTypecatModel, itemListTypeCatModel2Target);
     }
 
