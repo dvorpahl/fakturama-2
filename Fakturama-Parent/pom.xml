@@ -1,227 +1,423 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.sebulli.fakturama</groupId>
-	<artifactId>Fakturama-Parent</artifactId>
-	<version>2.1.3-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<properties>
-		<tycho.version>2.5.0</tycho.version>
-		<tycho-extras.version>2.5.0</tycho-extras.version>
-	<!-- 	<maven.compiler.release>8</maven.compiler.release> -->
-		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
-		<buildTimestamp>${maven.build.timestamp}</buildTimestamp>
-		<buildId>${buildTimestamp}</buildId>
-	    <releaseName>${project.version}</releaseName>
-		<encoding>UTF-8</encoding>
-	</properties>
-	<modules>
-	    <module>org.fakturama.e4.ui.dialogs.ext</module>
-	    
-	    <module>com.sebulli.fakturama.rcp</module>
-	    <module>com.sebulli.fakturama.rcp.test</module>
-	    <module>com.sebulli.fakturama.model</module>
-	    <module>com.sebulli.fakturama.site</module>
-	    <module>com.sebulli.fakturama.feature</module>
-		<module>org.fakturama.target</module>
-	    <module>com.sebulli.fakturama.common</module>
-	    <module>com.sebulli.fakturama.hsqlconnector</module>
-	    <module>com.sebulli.fakturama.resources</module>
-	    <module>com.sebulli.fakturama.resources.icons</module>
-	    <module>com.sebulli.fakturama.resources.templates</module>
-	    <module>org.fakturama.print.openoffice</module>
-	    <module>org.fakturama.export.feature</module>
-	    <module>org.fakturama.export</module>
-	    <module>org.fakturama.import</module>
-	    <module>org.fakturama.import.feature</module>
-	    <module>org.fakturama.wizards</module>
-	    <module>org.fakturama.exporter.zugferd.feature</module>
-	    <module>org.fakturama.exporter.zugferd</module>
-	    <module>org.fakturama.connectors</module>
-	    <module>org.fakturama.qrcode</module>
-	</modules>
-	<build>
-		<plugins>
-			<!-- Plugin to enable tycho -->
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-maven-plugin</artifactId>
-				<version>${tycho.version}</version>
-				<extensions>true</extensions>
-			</plugin>
-			<plugin>
-			    <groupId>org.codehaus.mojo</groupId>
-			    <artifactId>versions-maven-plugin</artifactId>
-			    <version>2.8.1</version>
-			    <configuration>
-			        <generateBackupPoms>false</generateBackupPoms>
-			    </configuration>
-			</plugin>
-		      <plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-enforcer-plugin</artifactId>
-		        <version>3.0.0-M3</version>
-		        <executions>
-		          <execution>
-		            <id>enforce-maven</id>
-		            <goals>
-		              <goal>enforce</goal>
-		            </goals>
-		            <configuration>
-		              <rules>
-		                <requireMavenVersion>
-		                  <version>3.3.0</version>
-		                </requireMavenVersion>
-		              </rules>    
-		            </configuration>
-		          </execution>
-		        </executions>
-		      </plugin>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sebulli.fakturama</groupId>
+    <artifactId>Fakturama-Parent</artifactId>
+    <version>2.2.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <properties>
+        <tycho.version>4.0.4</tycho.version>
+        <tycho-extras.version>2.7.5</tycho-extras.version>
+        <maven.scm.plugin.version>2.0.1</maven.scm.plugin.version>
+        <!-- 	<maven.compiler.release>8</maven.compiler.release> -->
+        <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
+        <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
+        <buildId>${buildTimestamp}</buildId>
+        <releaseName>${project.version}</releaseName>
+        <encoding>UTF-8</encoding>
+        <cxf-xjc-plugin.version>4.0.0</cxf-xjc-plugin.version>
+        <parent.projectLocation>${project.basedir}</parent.projectLocation>
+        <archive.skip>false</archive.skip>
+    </properties>
+    <modules>
+        <module>org.fakturama.target</module>
 
-			<!-- enabling version for all poms -->
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-versions-plugin</artifactId>
-				<version>${tycho.version}</version>
-			</plugin>
-			
-			<!-- pack plugins with pack200, which are smaller class files (Part I) 
-			<plugin>
-				<groupId>org.eclipse.tycho.extras</groupId>
-				<artifactId>tycho-pack200b-plugin</artifactId>
-				<version>${tycho-extras.version}</version>
-			</plugin>-->
+        <module>org.fakturama.e4.ui.dialogs.ext</module>
 
-            <!-- Materialize Products -->
+        <module>com.sebulli.fakturama.hsqlconnector</module>
+        <module>org.fakturama.database.mysql</module>
+        <module>org.fakturama.database.hsql</module>
+        <module>org.fakturama.database.mariadb</module>
+        <module>com.sebulli.fakturama.model</module>
+        <module>com.sebulli.fakturama.feature</module>
+        <module>com.sebulli.fakturama.common</module>
+        <module>com.sebulli.fakturama.rcp</module>
+        <!--        <module>com.sebulli.fakturama.common.tests</module>-->
+        <module>com.sebulli.fakturama.rcp.test</module>
+        <module>com.sebulli.fakturama.resources</module>
+        <module>com.sebulli.fakturama.resources.icons</module>
+        <module>com.sebulli.fakturama.resources.templates</module>
+        <module>org.fakturama.print.openoffice</module>
+        <module>org.fakturama.export.feature</module>
+        <module>org.fakturama.export</module>
+        <module>org.fakturama.import</module>
+        <module>org.fakturama.import.feature</module>
+        <module>org.fakturama.wizards</module>
+        <module>org.fakturama.exporter.zugferd.feature</module>
+        <module>org.fakturama.exporter.zugferd</module>
+        <module>org.fakturama.connectors</module>
+        <module>org.fakturama.qrcode</module>
+        <module>com.sebulli.fakturama.site</module>
+    </modules>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <!-- Plugin to enable tycho -->
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
-                <artifactId>target-platform-configuration</artifactId>
+                <artifactId>tycho-maven-plugin</artifactId>
                 <version>${tycho.version}</version>
-                <!--Specify which environments your software should be built for (os/ws/arch)  -->
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.0</version>
                 <configuration>
-                    <environments>
-                        <environment>
-                            <os>win32</os>
-                            <ws>win32</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-                        <environment>
-                            <os>linux</os>
-                            <ws>gtk</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-                        <environment>
-                            <os>linux</os>
-                            <ws>gtk</ws>
-                            <arch>aarch64</arch>
-                        </environment>
-                        <environment>
-                            <os>macosx</os>
-                            <ws>cocoa</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-						<!-- works only with a native MacOS -->
- 						<environment>
- 							<os>macosx</os>
- 							<ws>cocoa</ws> 
- 							<arch>aarch64</arch>
- 						</environment>
-                    </environments>
-            <!-- Use custom target platform -->
-					<target>
-						<artifact>
-							<groupId>${project.groupId}</groupId>
-							<artifactId>org.fakturama.target</artifactId>
-							<version>${project.version}</version>
-						</artifact>
-					</target>
-          			<pomDependencies>wrapAsBundle</pomDependencies>
-				</configuration>
-			</plugin>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.9.0</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-	<!-- Avoid the generation of maven archive information in the META-INF folder -->
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-packaging-plugin</artifactId>
-				<version>${tycho.version}</version>
-				<configuration>
-					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
-					</archive>
-				</configuration>
-			</plugin>
-			
-			<!-- configure maven release plugin  
+            <!-- enabling version for all poms -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-versions-plugin</artifactId>
+                <version>${tycho.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-p2-repository-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <generateOSGiRepository>false</generateOSGiRepository>
+                    <includeAllDependencies>false</includeAllDependencies>
+                    <filterProvided>true</filterProvided>
+                    <addPomRepositoryReferences>false</addPomRepositoryReferences>
+                    <addIUTargetRepositoryReferences>true</addIUTargetRepositoryReferences>
+                    <skipArchive>${archive.skip}</skipArchive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <release>17</release>
+                    <fork>false</fork>
+                    <compilerId>jdt</compilerId>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>tycho-compiler-jdt</artifactId>
+                        <version>${tycho.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- Avoid the generation of maven archive information in the
+            META-INF folder -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-packaging-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- configure maven release plugin  
 			     see https://wiki.eclipse.org/Tycho/Release_Workflow for further documentation -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<preparationGoals>org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata
-						org.apache.maven.plugins:maven-scm-plugin:1.11.2:add
-						org.apache.maven.plugins:maven-scm-plugin:1.11.2:checkin</preparationGoals>
-					<completionGoals>org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata
-						org.apache.maven.plugins:maven-scm-plugin:1.11.2:add
-						org.apache.maven.plugins:maven-scm-plugin:1.11.2:checkin</completionGoals>
-				</configuration>
-			</plugin>
-			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-scm-plugin</artifactId>
-				<version>1.11.2</version>
-				<executions>
-					<execution>
-						<id>default-cli</id>
-						<goals>
-							<goal>add</goal>
-							<goal>checkin</goal>
-						</goals>
-						<configuration>
-							<includes>**/META-INF/MANIFEST.MF,**/feature.xml,**/*.product,**/category.xml</includes>
-							<excludes>**/target/**</excludes>
-							<message>Changing the version to reflect the pom versions for the
-								release</message>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-	
-	<dependencies>
-		<dependency>
-		    <groupId>org.codehaus.mojo</groupId>
-		    <artifactId>exec-maven-plugin</artifactId>
-		    <version>3.0.0</version>
-		</dependency>
-	</dependencies>
-	
-	<repositories>
-		<repository>
-			<id>eclipse-2021</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/2021-03</url>
-		</repository>
-	</repositories>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <preparationGoals>
+                        org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata
+                        org.apache.maven.plugins:maven-scm-plugin:${maven.scm.plugin.version}:add
+                        org.apache.maven.plugins:maven-scm-plugin:${maven.scm.plugin.version}:checkin</preparationGoals>
+                    <completionGoals>
+                        org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata
+                        org.apache.maven.plugins:maven-scm-plugin:${maven.scm.plugin.version}:add
+                        org.apache.maven.plugins:maven-scm-plugin:${maven.scm.plugin.version}:checkin</completionGoals>
+                </configuration>
+            </plugin>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>tycho-snapshots</id>
-			<url>https://repo.eclipse.org/content/repositories/tycho-snapshots/</url>
-		</pluginRepository>
-	</pluginRepositories>
-	
-	<name>Fakturama</name>
-	<url>https://www.fakturama.info</url>
-	<issueManagement>
-		<system>MantisBT</system>
-		<url>https://bugs.fakturama.info</url>
-	</issueManagement>
-	<scm>
-		<url>https://bitbucket.org/fakturamadev/fakturama-2</url>
-		<developerConnection>Ralf Heydenreich; Oliver Groth, Gerd Schrick</developerConnection>
-	</scm>
-	<description>The program is for creating invoices, delivery papers, order documents and such stuff. Furthermore, you can connect to your webshop and administer your web shop orders. And you can create labels for various parcel services online.
-</description>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>${maven.scm.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <goals>
+                            <goal>add</goal>
+                            <goal>checkin</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                **/META-INF/MANIFEST.MF,**/feature.xml,**/*.product,**/category.xml</includes>
+                            <excludes>**/target/**</excludes>
+                            <message>Changing the version to reflect the pom
+                                versions for the release</message>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-surefire-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-surefire-plugin</artifactId>
+                    <version>${tycho.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+  <profiles>
+        <profile>
+            <id>win</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>target-platform-configuration</artifactId>
+                        <version>${tycho.version}</version>
+                        <!--Specify which environments your software should be built for (os/ws/arch)  -->
+                        <configuration>
+                            <environments>
+                                <environment>
+                                    <os>win32</os>
+                                    <ws>win32</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                
+                           </environments>
+                            <!-- Use custom target platform -->
+                            <target>
+                                <artifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>org.fakturama.target</artifactId>
+                                    <version>${project.version}</version>
+                                </artifact>
+                            </target>
+                            <pomDependencies>wrapAsBundle</pomDependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>target-platform-configuration</artifactId>
+                        <version>${tycho.version}</version>
+                        <!--Specify which environments your software should be built for (os/ws/arch)  -->
+                        <configuration>
+                            <environments>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                            </environments>
+                            <!-- Use custom target platform -->
+                            <target>
+                                <artifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>org.fakturama.target</artifactId>
+                                    <version>${project.version}</version>
+                                </artifact>
+                            </target>
+                            <pomDependencies>wrapAsBundle</pomDependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>macos</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>target-platform-configuration</artifactId>
+                        <version>${tycho.version}</version>
+                        <!--Specify which environments your software should be built for (os/ws/arch)  -->
+                        <configuration>
+                            <environments>
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <!-- works only with a native MacOS -->
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                            </environments>
+                            <!-- Use custom target platform -->
+                            <target>
+                                <artifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>org.fakturama.target</artifactId>
+                                    <version>${project.version}</version>
+                                </artifact>
+                            </target>
+                            <pomDependencies>wrapAsBundle</pomDependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>cicd</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>target-platform-configuration</artifactId>
+                        <version>${tycho.version}</version>
+                        <!--Specify which environments your software should be built for (os/ws/arch)  -->
+                        <configuration>
+                            <environments>
+                                <environment>
+                                    <os>win32</os>
+                                    <ws>win32</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <!-- works only with a native MacOS -->
+                                <environment>
+                                    <os>macosx</os>
+                                    <ws>cocoa</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>x86_64</arch>
+                                </environment>
+                                <environment>
+                                    <os>linux</os>
+                                    <ws>gtk</ws>
+                                    <arch>aarch64</arch>
+                                </environment>
+                           </environments>
+                            <!-- Use custom target platform -->
+                            <target>
+                                <artifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>org.fakturama.target</artifactId>
+                                    <version>${project.version}</version>
+                                </artifact>
+                            </target>
+                            <pomDependencies>wrapAsBundle</pomDependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+    </profiles>
+
+
+    <repositories>
+        <repository>
+            <id>eclipse-2021</id>
+            <url>https://download.eclipse.org/releases/2023-06/202306141000/</url>
+        </repository>
+        <!--<repository>
+            <id>project-repository</id>
+            <url>file://${parent.projectLocation}/org.fakturama.target/projectMavenRepository</url>
+        </repository>-->
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>tycho-snapshots</id>
+            <url>https://repo.eclipse.org/content/repositories/tycho-snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <name>Fakturama</name>
+    <url>https://www.fakturama.info</url>
+    <issueManagement>
+        <system>MantisBT</system>
+        <url>https://bugs.fakturama.info</url>
+    </issueManagement>
+    <scm>
+        <url>https://bitbucket.org/fakturamadev/fakturama-2</url>
+        <developerConnection>Ralf Heydenreich; Oliver Groth, Karsten RÃ¶hle, Gerd Schrick</developerConnection>
+    </scm>
+    <description>The program is for creating invoices, delivery papers, order
+        documents and such stuff. Furthermore, you can connect to your webshop
+        and administer your web shop orders. And you can create labels for
+        various parcel services online.
+    </description>
 </project>
