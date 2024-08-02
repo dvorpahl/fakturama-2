@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard;
@@ -32,14 +31,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.fakturama.export.ExportMessages;
+import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
+import org.odftoolkit.odfdom.doc.table.OdfTable;
+import org.odftoolkit.odfdom.doc.table.OdfTableCell;
+import org.odftoolkit.odfdom.doc.table.OdfTableRow;
 import org.odftoolkit.odfdom.dom.attribute.office.OfficeValueTypeAttribute;
 import org.odftoolkit.odfdom.dom.style.props.OdfTableRowProperties;
+import org.odftoolkit.odfdom.dom.style.props.OdfTextProperties;
 import org.odftoolkit.odfdom.type.Color;
-import org.odftoolkit.simple.SpreadsheetDocument;
-import org.odftoolkit.simple.style.StyleTypeDefinitions.FontStyle;
-import org.odftoolkit.simple.table.Cell;
-import org.odftoolkit.simple.table.Row;
-import org.odftoolkit.simple.table.Table;
 
 import com.sebulli.fakturama.dto.AccountEntry;
 import com.sebulli.fakturama.i18n.Messages;
@@ -57,417 +56,438 @@ import com.sebulli.fakturama.model.Voucher;
  */
 public class OOCalcExporter {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
-    
+    @Inject
+    @Translation
+    protected Messages msg;
+
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
+
     @Inject
     private IDateFormatterService dateFormatterService;
-    
+
     @Inject
     private INumberFormatterService numberformatter;
 
     @Inject
     protected ILogger log;
-	
-	@Inject
-	protected Shell shell;
-	
+
+    @Inject
+    protected Shell shell;
+
     @Inject
     @Preference(nodePath = "com.sebulli.fakturama.rcp")
     private IEclipsePreferences eclipsePrefs;
 
-	public final static boolean PAID = true;
-	public final static boolean UNPAID = false;
-	// The begin and end date to specify the export periode
-	protected GregorianCalendar startDate = null;
-	protected GregorianCalendar endDate = null;
-	
-	// Use start and end date or export all
-	protected boolean doNotUseTimePeriod;
+    public final static boolean PAID = true;
+    public final static boolean UNPAID = false;
+    // The begin and end date to specify the export periode
+    protected GregorianCalendar startDate = null;
+    protected GregorianCalendar endDate = null;
 
-	// the date key to sort the documents
-//	protected String documentDateKey;
-	// Settings from the preference page
-	protected boolean usePaidDate;
+    // Use start and end date or export all
+    protected boolean doNotUseTimePeriod;
 
-	// The "Export" spreadsheet
-	protected Table spreadsheet = null;
+    // the date key to sort the documents
+    //	protected String documentDateKey;
+    // Settings from the preference page
+    protected boolean usePaidDate;
 
-	// export paid or unpaid invoices
-	protected boolean exportPaid = true;
+    // The "Export" spreadsheet
+    protected OdfTable spreadsheet = null;
 
-	private SpreadsheetDocument oOdocument;
+    // export paid or unpaid invoices
+    protected boolean exportPaid = true;
 
-	
-	/**
-	 * Default constructor
-	 */
-	public OOCalcExporter() {
-		this.startDate = null;
-		this.endDate = null;
-		this.doNotUseTimePeriod = true;
-	}
+    private OdfSpreadsheetDocument oOdocument;
 
-	/**
-	 * Constructor Sets the begin and end date
-	 * 
-	 * @param startDate
-	 *            Begin date
-	 * @param endDate
-	 *            Begin date
-	 */
-	public OOCalcExporter(GregorianCalendar startDate, GregorianCalendar endDate, boolean doNotUseTimePeriod) {
-		this.startDate = startDate;
-		this.endDate = endDate;
-		this.doNotUseTimePeriod = doNotUseTimePeriod;
-	}
+    /**
+     * Default constructor
+     */
+    public OOCalcExporter() {
+        this.startDate = null;
+        this.endDate = null;
+        this.doNotUseTimePeriod = true;
+    }
 
-	protected void fillCompanyInformation(int row) {
-		
-		// Fill the first cells with company data
-		setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""));
-		setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_OWNER, ""));
-		setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_STREET, ""));
-		setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_ZIP, "") + " "
-				+ eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_CITY, ""));
-	}
-	
-	protected void fillTimeIntervall(int row) {
+    /**
+     * Constructor Sets the begin and end date
+     * 
+     * @param startDate
+     *            Begin date
+     * @param endDate
+     *            Begin date
+     */
+    public OOCalcExporter(final GregorianCalendar startDate, final GregorianCalendar endDate, final boolean doNotUseTimePeriod) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.doNotUseTimePeriod = doNotUseTimePeriod;
+    }
 
-		// Do not display a time period
-		if (doNotUseTimePeriod) {
-			return;
-		}
-		
-		// Display the time interval
-		//T: Sales Exporter - Text in the Calc document for the period
-		setCellTextInBold(row++, 0, exportMessages.wizardExportOutputPeriod);
-		//T: Sales Exporter - Text in the Calc document for the period
-		setCellText(row, 0, exportMessages.wizardExportOutputStartdate);
-		setCellText(row++, 1, dateFormatterService.getDateTimeAsLocalString(startDate));
-		//T: Sales Exporter - Text in the Calc document for the period
-		setCellText(row, 0, exportMessages.wizardExportOutputEnddate);
-		setCellText(row++, 1, dateFormatterService.getDateTimeAsLocalString(endDate));
-	}
-	
-	
-	
-	/**
-	 * Returns if a given data set should be used to export. Only
-	 * entries in the specified time interval are exported.
-	 * 
-	 * @param uds
-	 *            The uni data set that is tested
-	 * @return <code>true</code> if the uni data set should be exported
-	 */
-	protected boolean isInTimeIntervall(AccountEntry uds) {
-		return isInTimeIntervall(uds.date);
-	}
-	
-	/**
-	 * Returns if a given data set should be used to export. Only
-	 * entries in the specified time interval are exported.
-	 * 
-	 * @param uds
-	 *            The uni data set that is tested
-	 * @return <code>true</code> if the uni data set should be exported
-	 */
-	protected boolean isInTimeIntervall(Voucher uds) {
-		return isInTimeIntervall(uds.getVoucherDate());
-	}
+    protected void fillCompanyInformation(int row) {
 
-	private boolean isInTimeIntervall(Date testDate) {
+        // Fill the first cells with company data
+        setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""));
+        setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_OWNER, ""));
+        setCellTextInItalic(row++, 0, eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_STREET, ""));
+        setCellTextInItalic(row++, 0,
+                eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_ZIP, "") + " " + eclipsePrefs.get(Constants.PREFERENCES_YOURCOMPANY_CITY, ""));
+    }
 
-		// By default, the document will be exported.
-		boolean isInIntervall = true;
+    protected void fillTimeIntervall(int row) {
 
-		// Use the time period
-		if (doNotUseTimePeriod) {
-			return true;
-		}
-		
-		// Get the date of the voucher and convert it to a
-		// GregorianCalendar object.
-//		GregorianCalendar documentDate = new GregorianCalendar();
-//		try {
-//			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-//
-//			String dateString = "";
-//
-//			// Use date  
-//			dateString = uds.getStringValueByKey("date");
-//
-//			documentDate.setTime(formatter.parse(dateString));
-//		}
-//		catch (ParseException e) {
-//			Logger.logError(e, "Error parsing Date");
-//		}
+        // Do not display a time period
+        if (doNotUseTimePeriod) {
+            return;
+        }
 
-		// Test, if the voucher's date is in the interval
-		if ((startDate != null) && (endDate != null)) {
-			if (startDate.after(testDate))
-				isInIntervall = false;
-			if (endDate.before(testDate))
-				isInIntervall = false;
-		}
+        // Display the time interval
+        //T: Sales Exporter - Text in the Calc document for the period
+        setCellTextInBold(row++, 0, exportMessages.wizardExportOutputPeriod);
+        //T: Sales Exporter - Text in the Calc document for the period
+        setCellText(row, 0, exportMessages.wizardExportOutputStartdate);
+        setCellText(row++, 1, dateFormatterService.getDateTimeAsLocalString(startDate));
+        //T: Sales Exporter - Text in the Calc document for the period
+        setCellText(row, 0, exportMessages.wizardExportOutputEnddate);
+        setCellText(row++, 1, dateFormatterService.getDateTimeAsLocalString(endDate));
+    }
 
-		// Return, if voucher is in the interval
-		return isInIntervall;
-	}
-	
-	protected boolean createSpreadSheet() {
+    /**
+     * Returns if a given data set should be used to export. Only entries in the
+     * specified time interval are exported.
+     * 
+     * @param uds
+     *            The uni data set that is tested
+     * @return <code>true</code> if the uni data set should be exported
+     */
+    protected boolean isInTimeIntervall(final AccountEntry uds) {
+        return isInTimeIntervall(uds.date);
+    }
 
-		// Create a new OpenOffice Calc document
+    /**
+     * Returns if a given data set should be used to export. Only entries in the
+     * specified time interval are exported.
+     * 
+     * @param uds
+     *            The uni data set that is tested
+     * @return <code>true</code> if the uni data set should be exported
+     */
+    protected boolean isInTimeIntervall(final Voucher uds) {
+        return isInTimeIntervall(uds.getVoucherDate());
+    }
 
-		oOdocument = null;
-		try {
-			oOdocument = SpreadsheetDocument.newSpreadsheetDocument();
-		} catch (Exception e) {
-			log.error(e, "OO Error opening CALC");
-			return false;
-		}
+    private boolean isInTimeIntervall(final Date testDate) {
 
-		// Get the spreadsheets
+        // By default, the document will be exported.
+        boolean isInIntervall = true;
 
-		// T: Name of the Table
-		String tableName = msg.pageExport;
+        // Use the time period
+        if (doNotUseTimePeriod) {
+            return true;
+        }
 
-		// Get a reference to the Export sheet
-		spreadsheet = oOdocument.getSheetByIndex(0);
-		spreadsheet.setTableName(tableName);
-		return true;
+        // Get the date of the voucher and convert it to a
+        // GregorianCalendar object.
+        //		GregorianCalendar documentDate = new GregorianCalendar();
+        //		try {
+        //			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        //
+        //			String dateString = "";
+        //
+        //			// Use date  
+        //			dateString = uds.getStringValueByKey("date");
+        //
+        //			documentDate.setTime(formatter.parse(dateString));
+        //		}
+        //		catch (ParseException e) {
+        //			Logger.logError(e, "Error parsing Date");
+        //		}
 
-	}	
+        // Test, if the voucher's date is in the interval
+        if ((startDate != null) && (endDate != null)) {
+            if (startDate.after(testDate)) {
+                isInIntervall = false;
+            }
+            if (endDate.before(testDate)) {
+                isInIntervall = false;
+            }
+        }
 
-	/**
-	 * Fill a cell with a text
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param text
-	 *            The text that will be insert
-	 *            
-	 * @return for your convenience, it returns the changed cell
-	 */
-	protected Cell setCellText(int row, int column, String text) {
-		
-		Cell cellText = CellFormatter.getCell(spreadsheet, row, column);
-		if(text != null && text.contains("\n")) {
-			cellText.setTextWrapped(true);
-			cellText.addParagraph(text.substring(0, text.indexOf('\n')));
-			cellText.addParagraph(text.substring(text.indexOf('\n')+1));
-		} else {
-			cellText.setStringValue(text);
-		}
-		return cellText;
-	}
+        // Return, if voucher is in the interval
+        return isInIntervall;
+    }
 
-	/**
-	 * Fill a cell with a text. Use a bold font.
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param text
-	 *            The text that will be insert
-	 */
-	protected void setCellTextInBold(int row, int column, String text) {
-		setCellText(row, column, text);
-		CellFormatter.setBold(spreadsheet, row, column);
-	}
+    protected boolean createSpreadSheet() {
 
-	/**
-	 * Fill a cell with a text. Use an italic font style.
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param text
-	 *            The text that will be insert
-	 */
-	protected void setCellTextInItalic(int row, int column, String text) {
-		Cell cell = setCellText(row, column, text);
-		cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.ITALIC);
-	}
+        // Create a new OpenOffice Calc document
 
-	/**
-	 * Fill a cell with a text. Use a red and bold font.
-	 * 
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param text
-	 *            The text that will be inserted
-	 */
-	protected void setCellTextInRedBold(int row, int column, String text) {
-		Cell cell = setCellText(row, column, text);
-		cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.BOLD);
-		cell.getStyleHandler().getTextPropertiesForWrite().setFontColor(Color.RED);
-	}
+        oOdocument = null;
+        try {
+            oOdocument = OdfSpreadsheetDocument.newSpreadsheetDocument();
+        } catch (Exception e) {
+            log.error(e, "OO Error opening CALC");
+            return false;
+        }
 
-	/**
-	 * Set a cell to a double value and format it with the local currency.
-	 * 
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param amount
-	 *            The value that will be inserted.
-	 */
-	protected void setCellValueAsLocalCurrency(int row, int column, MonetaryAmount amount) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		cell.setCurrencyValue(amount.getNumber().doubleValue(), amount.getCurrency().getCurrencyCode());
-		String currencyCode = numberformatter.getCurrencySymbol(amount);
-		cell.setCurrencyCode(currencyCode);
-		// TODO make it more flexible!
-		cell.setCurrencyFormat(currencyCode, "#,##0."+StringUtils.repeat("0", amount.getCurrency().getDefaultFractionDigits())+" " + currencyCode);
-	}
-	
-	protected void setCellValueAsLocalCurrency(int row, int column, Double amount) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		String currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
-		cell.setCurrencyValue(amount, currencyCode);
-		cell.setCurrencyCode(currencyCode);
-		cell.setCurrencyFormat(currencyCode, "#,##0."+StringUtils.repeat("0", DataUtils.getInstance().getDefaultCurrencyUnit().getDefaultFractionDigits())+" " + currencyCode);
-	}
-	
-	protected void setCellValueAsPercent( int row, int column, Double d) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		cell.setPercentageValue(d != null ? d : Double.valueOf(0.0));
-	}
-	
-	protected void setCellValueAsDouble( int row, int column, Double d) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		cell.setDoubleValue(d != null ? d : Double.valueOf(0.0));
-	}
-	
-	protected void setCellValueAsBoolean( int row, int column, Boolean b) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		cell.setBooleanValue(BooleanUtils.isTrue(b));
-	}
-	
-	protected void setCellValueAsDate( int row, int column, Calendar c) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		cell.setDateValue(c);
-	}
-	
-	/**
-	 * Sets the background color.
-	 *
-	 * @param row
-	 *            the row
-	 * @param column
-	 *            the column
-	 * @param color
-	 *            the color
-	 */
-	protected void setBackgroundColor(int row, int column, String color) {
-		CellFormatter.setBackgroundColor(spreadsheet, row, column, color);
-	}
+        // Get the spreadsheets
 
-	/**
-	 * Sets the background color in a given cell range.
-	 *
-	 * @param left the leftmost column in this range
-	 * @param top the topmost row in this range
-	 * @param right the rightmost column in this range
-	 * @param bottom the bottom row in this range
-	 * @param color the color to set (as String, see W3C colors)
-	 */
-	protected void setBackgroundColor(int left, int top, int right, int bottom, String color) {
-		CellFormatter.setBackgroundColor(spreadsheet, left, top, right, bottom, color);
-	}
+        // T: Name of the Table
+        String tableName = msg.pageExport;
 
-	protected void setBold(int row, int column) {
-		CellFormatter.setBold(spreadsheet, row, column);
-	}
-	protected void setBorder(int row, int column, Color color, boolean top, boolean right, boolean bottom, boolean left) {
-		CellFormatter.setBorder(spreadsheet, row, column, color, top, right, bottom, left); 
-	}
+        // Get a reference to the Export sheet
+        spreadsheet = oOdocument.getSpreadsheetTables().get(0);
+        spreadsheet.setTableName(tableName);
+        //        System.out.println("basecells");
+        //        OdfTableCell cell = CellFormatter.getCell(spreadsheet, 0, 0);
+        //        System.out.println("stylename: " + cell.getStyleName());
+        //        StyleStyleElement style = cell.getOdfElement().getOrCreateUnqiueAutomaticStyle(true, OdfStyleFamily.TableCell);
+        //        System.out.println("generated style: " + style);
 
-	protected void setFormula(int row, int column, String formula) {
-		try {
-			spreadsheet.getCellByPosition(column, row).setFormula(formula);
-		}
-		catch (IndexOutOfBoundsException e) {
-			log.error(e, "No access to cell: " + row + ":" + column);
-		}
-	}
-	
-	protected void formatAsCurrency(int row, int column) {
-		Cell cell = CellFormatter.getCell(spreadsheet, row, column);
-		String currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
-		cell.getOdfElement().setOfficeCurrencyAttribute(currencyCode);
-		cell.getOdfElement().setOfficeValueTypeAttribute(OfficeValueTypeAttribute.Value.CURRENCY.toString());
-		cell.setCurrencyFormat(currencyCode, "#,##0."+StringUtils.repeat("0", DataUtils.getInstance().getDefaultCurrencyUnit().getDefaultFractionDigits())+" " + currencyCode);
-	}
-	
-	public void save() {
-		boolean answer = true;
-		try {
-			do {
-				String fileName = createOutputFileDialog();
-				if (StringUtils.isNotBlank(fileName)) {
-					oOdocument.save(fileName);
-					MessageDialog.openInformation(shell, msg.dialogMessageboxTitleInfo,
-							String.format(exportMessages.wizardCommonSaveInfo, fileName));
-				}
-			} while(!answer);
-		} catch (Exception e) {
-			log.error(e, "Could not store exported document.");
-			MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "can't save your document: " + e.getMessage());
-		}
-	}
+        return true;
 
-	private String createOutputFileDialog() {
-		FileDialog dialog = new FileDialog(shell, SWT.SAVE);
-		String[] filterNames = new String[] { "OpenOffice Calc Files", exportMessages.wizardCommonMaskAllfiles + " (*)" };
-		String[] filterExtensions = new String[] { "*.ods", "*" };
-		String filterPath = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "/");
-		if (Util.isWindows()) {
-			filterNames = new String[] { "OpenOffice Calc Files", exportMessages.wizardCommonMaskAllfiles + " (*.*)" };
-			filterExtensions = new String[] { "*.ods", "*.*" };
-			filterPath = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "c:\\");
-		}
-		dialog.setFilterNames(filterNames);
-		dialog.setFilterExtensions(filterExtensions);
-		dialog.setFilterPath(filterPath);
-		dialog.setFileName(getOutputFileName());
-		dialog.setOverwrite(true);
-		return dialog.open();
-	}
+    }
 
-	/**
-	 * Returns the output file name. Can be overwritten.
-	 *
-	 * @return the output file name
-	 */
-	protected String getOutputFileName() {
-		return "DEFAULT";
-	}
+    /**
+     * Fill a cell with a text
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param text
+     *            The text that will be insert
+     * 
+     * @return for your convenience, it returns the changed cell
+     */
+    protected OdfTableCell setCellText(final int row, final int column, final String text) {
+        OdfTableCell cellText = CellFormatter.getCell(spreadsheet, row, column);
+        if (text != null && text.contains("\n")) {
+            cellText.setTextWrapped(true);
+            cellText.setStringValue(text);
+            //TODO Remove or fix, dependent if this works with the new api
 
-	protected void setOptimalheight(int rowIndex) {
-		Row row = RowFormatter.getRow(spreadsheet, rowIndex);
-		if(row != null) {
-			row.getOdfElement().setProperty(OdfTableRowProperties.UseOptimalRowHeight, "true");
-		}
-	}
+            //            cellText.addParagraph(text.substring(0, text.indexOf('\n')));
+            //            cellText.addParagraph(text.substring(text.indexOf('\n') + 1));
+        } else {
+            cellText.setStringValue(text);
+        }
+        return cellText;
+    }
+
+    /**
+     * Fill a cell with a text. Use a bold font.
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param text
+     *            The text that will be insert
+     */
+    protected void setCellTextInBold(final int row, final int column, final String text) {
+        setCellText(row, column, text);
+        CellFormatter.setBold(spreadsheet, row, column);
+    }
+
+    /**
+     * Fill a cell with a text. Use an italic font style.
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param text
+     *            The text that will be insert
+     */
+    protected void setCellTextInItalic(final int row, final int column, final String text) {
+        OdfTableCell cell = setCellText(row, column, text);
+        //TODO KROEHLE reenable Style
+        cell.getOdfElement().setProperty(OdfTextProperties.FontStyle, "italic");
+
+        //        cell.setgetStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.ITALIC);
+    }
+
+    /**
+     * Fill a cell with a text. Use a red and bold font.
+     * 
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param text
+     *            The text that will be inserted
+     */
+    protected void setCellTextInRedBold(final int row, final int column, final String text) {
+        OdfTableCell cell = setCellText(row, column, text);
+        cell.getOdfElement().setProperty(OdfTextProperties.FontStyle, "bold");
+        cell.getOdfElement().setProperty(OdfTextProperties.Color, "red");
+
+        //TODO KROEHLE reenable Style
+        //        cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.BOLD);
+        //        cell.getStyleHandler().getTextPropertiesForWrite().setFontColor(Color.RED);
+    }
+
+    /**
+     * Set a cell to a double value and format it with the local currency.
+     * 
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param amount
+     *            The value that will be inserted.
+     */
+    protected void setCellValueAsLocalCurrency(final int row, final int column, final MonetaryAmount amount) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        cell.setCurrencyValue(amount.getNumber().doubleValue(), amount.getCurrency().getCurrencyCode());
+        String currencyCode = numberformatter.getCurrencySymbol(amount);
+        cell.setCurrencyCode(currencyCode);
+        // TODO make it more flexible!
+        cell.setCurrencyFormat(currencyCode, "#,##0." + StringUtils.repeat("0", amount.getCurrency().getDefaultFractionDigits()) + " " + currencyCode);
+    }
+
+    protected void setCellValueAsLocalCurrency(final int row, final int column, final Double amount) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        String currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
+        cell.setCurrencyValue(amount, currencyCode);
+        cell.setCurrencyCode(currencyCode);
+        cell.setCurrencyFormat(currencyCode,
+                "#,##0." + StringUtils.repeat("0", DataUtils.getInstance().getDefaultCurrencyUnit().getDefaultFractionDigits()) + " " + currencyCode);
+    }
+
+    protected void setCellValueAsPercent(final int row, final int column, final Double d) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        cell.setPercentageValue(d != null ? d : Double.valueOf(0.0));
+    }
+
+    protected void setCellValueAsDouble(final int row, final int column, final Double d) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        cell.setDoubleValue(d != null ? d : Double.valueOf(0.0));
+    }
+
+    protected void setCellValueAsBoolean(final int row, final int column, final Boolean b) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        cell.setBooleanValue(BooleanUtils.isTrue(b));
+    }
+
+    protected void setCellValueAsDate(final int row, final int column, final Calendar c) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        cell.setDateValue(c);
+    }
+
+    /**
+     * Sets the background color.
+     *
+     * @param row
+     *            the row
+     * @param column
+     *            the column
+     * @param color
+     *            the color
+     */
+    protected void setBackgroundColor(final int row, final int column, final String color) {
+        CellFormatter.setBackgroundColor(spreadsheet, row, column, color);
+    }
+
+    /**
+     * Sets the background color in a given cell range.
+     *
+     * @param left
+     *            the leftmost column in this range
+     * @param top
+     *            the topmost row in this range
+     * @param right
+     *            the rightmost column in this range
+     * @param bottom
+     *            the bottom row in this range
+     * @param color
+     *            the color to set (as String, see W3C colors)
+     */
+    protected void setBackgroundColor(final int left, final int top, final int right, final int bottom, final String color) {
+        CellFormatter.setBackgroundColor(spreadsheet, left, top, right, bottom, color);
+    }
+
+    protected void setBold(final int row, final int column) {
+        CellFormatter.setBold(spreadsheet, row, column);
+    }
+
+    protected void setBorder(final int row, final int column, final Color color, final boolean top, final boolean right, final boolean bottom,
+            final boolean left) {
+        CellFormatter.setBorder(spreadsheet, row, column, color, top, right, bottom, left);
+    }
+
+    protected void setFormula(final int row, final int column, final String formula) {
+        try {
+            spreadsheet.getCellByPosition(column, row).setFormula(formula);
+        } catch (IndexOutOfBoundsException e) {
+            log.error(e, "No access to cell: " + row + ":" + column);
+        }
+    }
+
+    protected void formatAsCurrency(final int row, final int column) {
+        OdfTableCell cell = CellFormatter.getCell(spreadsheet, row, column);
+        String currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
+        cell.getOdfElement().setOfficeCurrencyAttribute(currencyCode);
+        cell.getOdfElement().setOfficeValueTypeAttribute(OfficeValueTypeAttribute.Value.CURRENCY.toString());
+        cell.setCurrencyFormat(currencyCode,
+                "#,##0." + StringUtils.repeat("0", DataUtils.getInstance().getDefaultCurrencyUnit().getDefaultFractionDigits()) + " " + currencyCode);
+    }
+
+    public void save() {
+        boolean answer = true;
+        try {
+            do {
+                String fileName = createOutputFileDialog();
+                if (StringUtils.isNotBlank(fileName)) {
+                    oOdocument.save(fileName);
+                    MessageDialog.openInformation(shell, msg.dialogMessageboxTitleInfo, String.format(exportMessages.wizardCommonSaveInfo, fileName));
+                }
+            } while (!answer);
+        } catch (Exception e) {
+            log.error(e, "Could not store exported document.");
+            MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "can't save your document: " + e.getMessage());
+        }
+    }
+
+    private String createOutputFileDialog() {
+        FileDialog dialog = new FileDialog(shell, SWT.SAVE);
+        String[] filterNames = new String[] { "OpenOffice Calc Files", exportMessages.wizardCommonMaskAllfiles + " (*)" };
+        String[] filterExtensions = new String[] { "*.ods", "*" };
+        String filterPath = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "/");
+        if (Util.isWindows()) {
+            filterNames = new String[] { "OpenOffice Calc Files", exportMessages.wizardCommonMaskAllfiles + " (*.*)" };
+            filterExtensions = new String[] { "*.ods", "*.*" };
+            filterPath = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "c:\\");
+        }
+        dialog.setFilterNames(filterNames);
+        dialog.setFilterExtensions(filterExtensions);
+        dialog.setFilterPath(filterPath);
+        dialog.setFileName(getOutputFileName());
+        dialog.setOverwrite(true);
+        return dialog.open();
+    }
+
+    /**
+     * Returns the output file name. Can be overwritten.
+     *
+     * @return the output file name
+     */
+    protected String getOutputFileName() {
+        return "DEFAULT";
+    }
+
+    protected void setOptimalheight(final int rowIndex) {
+        OdfTableRow row = RowFormatter.getRow(spreadsheet, rowIndex);
+        if (row != null) {
+            row.getOdfElement().setProperty(OdfTableRowProperties.UseOptimalRowHeight, "true");
+        }
+    }
 
 }

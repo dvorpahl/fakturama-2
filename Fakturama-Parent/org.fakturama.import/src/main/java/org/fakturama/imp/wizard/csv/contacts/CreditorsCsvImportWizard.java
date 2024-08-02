@@ -21,35 +21,32 @@ import com.sebulli.fakturama.util.ContactUtil;
  */
 public class CreditorsCsvImportWizard extends ContactsCsvImportWizard implements IImportWizard {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench, org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		super.init(workbench, selection);
-	}
-	
-	protected String getWizardTitle() {
-		return importMessages.wizardImportCsvCreditors;		
-	}
-	
-	@Override
-	protected boolean doImport(final String fileName, ImportOptions options) {
-		ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, ctx);
-		ctx.set(ContactUtil.class, contactUtil);
-		ContactsCsvImporter csvImporter = ContextInjectionFactory.make(ContactsCsvImporter.class, ctx);
-		csvImporter.setQuoteChar(options.getQuoteChar().charAt(0));
-		csvImporter.setSeparator(options.getSeparator().charAt(0));
-		csvImporter.importCSV(fileName, FakturamaModelPackage.CREDITOR_CLASSIFIER_ID, options.getUpdateExisting(), options.getUpdateWithEmptyValues());
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        super.init(workbench, selection);
+    }
 
-		ImportProgressDialog dialog = ContextInjectionFactory.make(ImportProgressDialog.class, ctx);
-		dialog.setStatusText(csvImporter.getResult());
+    @Override
+    protected String getWizardTitle() {
+        return importMessages.wizardImportCsvCreditors;
+    }
 
-		// Refresh the table view of all contacts
+    @Override
+    protected boolean doImport(final String fileName, final ImportOptions options) {
+        ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, ctx);
+        ctx.set(ContactUtil.class, contactUtil);
+        ContactsCsvImporter csvImporter = ContextInjectionFactory.make(ContactsCsvImporter.class, ctx);
+        csvImporter.setQuoteChar(options.getQuoteChar().charAt(0));
+        csvImporter.setSeparator(options.getSeparator().charAt(0));
+        csvImporter.importCSV(fileName, FakturamaModelPackage.CREDITOR_CLASSIFIER_ID, options.getUpdateExisting(), options.getUpdateWithEmptyValues());
+
+        ImportProgressDialog dialog = ContextInjectionFactory.make(ImportProgressDialog.class, ctx);
+        dialog.setStatusText(csvImporter.getResult());
+
+        // Refresh the table view of all contacts
         evtBroker.post("ContactEditor", "update");
 
-		return (dialog.open() == ImportProgressDialog.OK);
-	}
+        return (dialog.open() == ImportProgressDialog.OK);
+    }
 }

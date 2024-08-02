@@ -91,7 +91,7 @@ public class BuyerVolumesExporter extends OOCalcExporter {
          * @param data
          *            The data to sort
          */
-        public BuyersTotalSoldComparer(Map<String, TotalSoldAndQuantity> data) {
+        public BuyersTotalSoldComparer(final Map<String, TotalSoldAndQuantity> data) {
             super();
             this.data = data;
         }
@@ -104,7 +104,8 @@ public class BuyerVolumesExporter extends OOCalcExporter {
          * @param o2
          *            The second object
          */
-        public int compare(Object o1, Object o2) {
+        @Override
+        public int compare(final Object o1, final Object o2) {
             int result;
 
             MonetaryAmount e1 = this.data.get(o1).getTotalSoldNet();
@@ -113,8 +114,9 @@ public class BuyerVolumesExporter extends OOCalcExporter {
 
             // Two items must not be equal. If they were, they would be
             // replaces in the map
-            if (result == 0)
+            if (result == 0) {
                 result = 1;
+            }
 
             return result;
         }
@@ -129,7 +131,7 @@ public class BuyerVolumesExporter extends OOCalcExporter {
      *            Begin date
      */
     @PostConstruct
-    public void initialize(IEclipseContext ctx) {
+    public void initialize(final IEclipseContext ctx) {
         doNotUseTimePeriod = (boolean) ctx.get(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD);
         startDate = null;
         endDate = null;
@@ -201,16 +203,16 @@ public class BuyerVolumesExporter extends OOCalcExporter {
         for (Document document : documents) {
 
             // Get all items by ID from the item string
-//            List<DocumentItem> itemsStringParts = document.getItems();
+            //            List<DocumentItem> itemsStringParts = document.getItems();
 
             // Get the name of the buyer
-//            itemsStringParts.forEach(item -> buyersAndTotal.add(document.getAddressFirstLine(), item));
+            //            itemsStringParts.forEach(item -> buyersAndTotal.add(document.getAddressFirstLine(), item));
 
             DocumentSummary summary = dsc.calculate(document);
             buyersAndTotal.addDocumentSummary(document.getAddressFirstLine(), summary);
         }
 
-        SortedMap<String, TotalSoldAndQuantity> sortedBuyers = new TreeMap<String, TotalSoldAndQuantity>(
+        SortedMap<String, TotalSoldAndQuantity> sortedBuyers = new TreeMap<>(
                 new BuyersTotalSoldComparer(buyersAndTotal.getBuyers()));
         sortedBuyers.putAll(buyersAndTotal.getBuyers());
 
@@ -234,6 +236,9 @@ public class BuyerVolumesExporter extends OOCalcExporter {
             // Alternate the background color
             if (row % 2 == 0) {
                 setBackgroundColor(0, row, col - 1, row, CellFormatter.ALTERNATE_BACKGROUND_COLOR);
+            } else {
+                setBackgroundColor(0, row, col - 1, row, CellFormatter.WHITE_BACKGROUND_COLOR);
+
             }
 
             row++;

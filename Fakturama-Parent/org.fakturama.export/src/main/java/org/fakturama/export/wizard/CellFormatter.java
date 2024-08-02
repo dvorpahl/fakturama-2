@@ -1,28 +1,24 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard;
 
+import org.odftoolkit.odfdom.doc.table.OdfTable;
+import org.odftoolkit.odfdom.doc.table.OdfTableCell;
+import org.odftoolkit.odfdom.doc.table.OdfTableCellRange;
+import org.odftoolkit.odfdom.dom.style.props.OdfTableCellProperties;
+import org.odftoolkit.odfdom.dom.style.props.OdfTextProperties;
 import org.odftoolkit.odfdom.type.Color;
-import org.odftoolkit.simple.style.Border;
-import org.odftoolkit.simple.style.StyleTypeDefinitions.CellBordersType;
-import org.odftoolkit.simple.style.StyleTypeDefinitions.FontStyle;
-import org.odftoolkit.simple.style.StyleTypeDefinitions.LineType;
-import org.odftoolkit.simple.style.StyleTypeDefinitions.SupportedLinearMeasure;
-import org.odftoolkit.simple.table.Cell;
-import org.odftoolkit.simple.table.CellRange;
-import org.odftoolkit.simple.table.Table;
 
 /**
  * Formats an OpenOffice Calc cell. Sets the border, the color or the font
@@ -31,309 +27,232 @@ import org.odftoolkit.simple.table.Table;
  */
 public class CellFormatter {
 
-	/**
-	 * Set the border of a cell to a specified color
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param color
-	 *            The new color of the border
-	 * @param top
-	 *            Select, if the top border should be modified
-	 * @param right
-	 *            Select, if the right border should be modified
-	 * @param bottom
-	 *            Select, if the bottom border should be modified
-	 * @param left
-	 *            Select, if the left border should be modified
-	 */
-	public static void setBorder(Table spreadsheet, int row, int column, Color color, boolean top, boolean right, boolean bottom, boolean left) {
+    /**
+     * 
+     */
+    private static final String BORDER_NONE = "none";
+    /**
+     * 
+     */
+    private static final String BORDER_SOLID_BLACK = "0.75pt solid #000000";
 
-		// Get the cell by the row and the column
-		Cell cell = getCell(spreadsheet, row, column);
+    /**
+     * Set the border of a cell to a specified color
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param color
+     *            The new color of the border
+     * @param top
+     *            Select, if the top border should be modified
+     * @param right
+     *            Select, if the right border should be modified
+     * @param bottom
+     *            Select, if the bottom border should be modified
+     * @param left
+     *            Select, if the left border should be modified
+     */
+    public static void setBorder(final OdfTable spreadsheet, final int row, final int column, final Color color, final boolean top, final boolean right,
+            final boolean bottom, final boolean left) {
 
-		// Create an invisible border
-		Border noBorderLine = Border.NONE;
+        // Get the cell by the row and the column
+        OdfTableCell cell = getCell(spreadsheet, row, column);
 
-		// Create a single line border
-		Border singleBorderLine = new Border(color, 1.0, 0.0, 0.0, SupportedLinearMeasure.PT);
-		singleBorderLine.setLineStyle(LineType.SINGLE);
+        // Set the top border
+        if (top) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderTop, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderTop, BORDER_NONE);
+        }
 
-		// Create a border object to format a table
-//		Border tableBorder = Border.NONE;
+        // Set the bottom border
+        if (bottom) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderBottom, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderBottom, BORDER_NONE);
+        }
 
-		// Set the top border
-		if (top)
-			cell.setBorders(CellBordersType.TOP, singleBorderLine);
-		else
-			cell.setBorders(CellBordersType.TOP, noBorderLine);
-//		tableBorder.IsTopLineValid = true;
+        // Set the left border
+        if (left) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderLeft, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderLeft, BORDER_NONE);
+        }
 
-		// Set the bottom border
-		if (bottom)
-			cell.setBorders(CellBordersType.BOTTOM, singleBorderLine);
-		else
-			cell.setBorders(CellBordersType.BOTTOM, noBorderLine);
-//		tableBorder.IsBottomLineValid = true;
+        // Set the right border
+        if (right) {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderRight, BORDER_SOLID_BLACK);
+        } else {
+            cell.getOdfElement().setProperty(OdfTableCellProperties.BorderRight, BORDER_NONE);
+        }
+    }
 
-		// Set the left border
-		if (left)
-			cell.setBorders(CellBordersType.LEFT, singleBorderLine);
-		else
-			cell.setBorders(CellBordersType.LEFT, noBorderLine);
-//		tableBorder.IsLeftLineValid = true;
+    /**
+     * Set the background color of a cell
+     * 
+     * @param spreadsheet
+     *            The Spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @param color
+     *            The new color of the background
+     */
+    public static void setBackgroundColor(final OdfTable spreadsheet, final int row, final int column, final String color) {
 
-		// Set the right border
-		if (right)
-			cell.setBorders(CellBordersType.RIGHT, singleBorderLine);
-		else
-			cell.setBorders(CellBordersType.RIGHT, noBorderLine);
-//		tableBorder.IsRightLineValid = true;
+        // Get the cell by the row and the column
+        OdfTableCell cell = getCell(spreadsheet, row, column);
 
-		// other settings
-//		tableBorder.HorizontalLine = noBorderLine;
-//		tableBorder.IsHorizontalLineValid = true;
-//		tableBorder.VerticalLine = noBorderLine;
-//		tableBorder.IsVerticalLineValid = true;
+        cell.setCellBackgroundColor(Color.valueOf(color));
+    }
 
-		// Set the cell property
-//		setCellProperty(cell, "TableBorder", tableBorder);
+    /**
+     * Set the background color of a cell
+     * 
+     * @param spreadsheet
+     *            The Spreadsheet that contains the cell
+     * @param left
+     *            the leftmost column in this range
+     * @param top
+     *            the topmost row in this range
+     * @param right
+     *            the rightmost column in this range
+     * @param bottom
+     *            the bottom row in this range
+     * @param color
+     *            the color to set (as String, see W3C colors)
+     */
+    public static void setBackgroundColor(final OdfTable spreadsheet, final int left, final int top, final int right, final int bottom, final String color) {
+        // Set the new background color
+        for (int column = left; column <= right; column++) {
+            for (int row = top; row <= bottom; row++) {
+                setBackgroundColor(spreadsheet, row, column, color);
+            }
+        }
+    }
 
-	}
-//
-//	/**
-//	 * Set the text color of a cell
-//	 * 
-//	 * @param spreadsheet
-//	 *            The Spreadsheet that contains the cell
-//	 * @param row
-//	 *            The cell row
-//	 * @param column
-//	 *            The cell column
-//	 * @param color
-//	 *            The new color of the text
-//	 */
-//	public static void setColor(XSpreadsheet spreadsheet, int row, int column, int color) {
-//
-//		// Get the cell by the row and the column
-//		XCell cell = getCell(spreadsheet, row, column);
-//
-//		// Set the new color
-//		setCellProperty(cell, "CharColor", new Integer(color));
-//	}
+    /**
+     * Set the font weight of a cell to bold
+     * 
+     * @param spreadsheet
+     *            The Spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     */
+    public static void setBold(final OdfTable spreadsheet, final int row, final int column) {
 
-	/**
-	 * Set the background color of a cell
-	 * 
-	 * @param spreadsheet
-	 *            The Spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @param color
-	 *            The new color of the background
-	 */
-	public static void setBackgroundColor(Table spreadsheet, int row, int column, String color) {
+        // Get the cell by the row and the column
+        OdfTableCell cell = getCell(spreadsheet, row, column);
+        cell.getOdfElement().setProperty(OdfTextProperties.FontWeight, "bold");
+        //TODO KROEHLE reenable Style
+        // Set the new font weight
+        //        cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(OdfFontStyle.BOLD);
+    }
 
-		// Get the cell by the row and the column
-		Cell cell = getCell(spreadsheet, row, column);
-		
-		cell.setCellBackgroundColor(Color.valueOf(color));
-	}
+    /**
+     * Get a cell by spreadsheet, row and column
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param row
+     *            The cell row
+     * @param column
+     *            The cell column
+     * @return The cell
+     */
+    public static OdfTableCell getCell(final OdfTable spreadsheet, final int row, final int column) {
 
-	/**
-	 * Set the background color of a cell
-	 * 
-	 * @param spreadsheet
-	 *            The Spreadsheet that contains the cell
-	 * @param left
-	 *            the leftmost column in this range
-	 * @param top
-	 *            the topmost row in this range
-	 * @param right
-	 *            the rightmost column in this range
-	 * @param bottom
-	 *            the bottom row in this range
-	 * @param color
-	 *            the color to set (as String, see W3C colors)
-	 */
-	public static void setBackgroundColor(Table spreadsheet, int left, int top, int right, int bottom, String color) {
-		// Set the new background color
-		for (int column = left; column <= right; column++) {
-			for (int row = top; row <= bottom; row++) {
-				setBackgroundColor(spreadsheet, row, column, color);
-			}
-		}
-	}
+        // Try to get the cell
+        OdfTableCell cellByPosition = spreadsheet.getCellByPosition(column, row);
+        // TODO KROEHLE check how to correcly set default styles
+        if (cellByPosition.getOdfElement().getStyleName() == null) {
+            System.out.println("set style for " + row + ":" + column);
+            cellByPosition.getOdfElement().setStyleName("Default");
+        }
+        return cellByPosition;
+    }
 
-	/**
-	 * Set the font weight of a cell to bold
-	 * 
-	 * @param spreadsheet
-	 *            The Spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 */
-	public static void setBold(Table spreadsheet, int row, int column) {
+    /**
+     * Get a cell range by spreadsheet, left, top, right, bottom
+     * 
+     * @param spreadsheet
+     *            The spreadsheet that contains the cell
+     * @param left
+     *            The left side of the range
+     * @param top
+     *            The top side of the range
+     * @param right
+     *            The right side of the range
+     * @param bottom
+     *            The bottom side of the range
+     * @return The cell range
+     */
+    public static OdfTableCellRange getCells(final OdfTable spreadsheet, final int left, final int top, final int right, final int bottom) {
 
-		// Get the cell by the row and the column
-		Cell cell = getCell(spreadsheet, row, column);
+        // Try to get the cell
+        try {
+            return spreadsheet.getCellRangeByPosition(left, top, right, bottom);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
 
-		// Set the new font weight
-		cell.getStyleHandler().getTextPropertiesForWrite().setFontStyle(FontStyle.BOLD);
-	}
+    /**
+     * Get the name of a Calc cell by row and column
+     * 
+     * @param row
+     * @param column
+     * @return Cell name (like "A2")
+     */
+    public static String getCellName(final int row, final int column) {
 
-//	/**
-//	 * Set the font style of a cell to italic
-//	 * 
-//	 * @param spreadsheet
-//	 *            The Spreadsheet that contains the cell
-//	 * @param row
-//	 *            The cell row
-//	 * @param column
-//	 *            The cell column
-//	 */
-//	public static void setItalic(XSpreadsheet spreadsheet, int row, int column) {
-//
-//		// Get the cell by the row and the column
-//		XCell cell = getCell(spreadsheet, row, column);
-//
-//		// Set the new font style
-//		setCellProperty(cell, "CharPosture", com.sun.star.awt.FontSlant.ITALIC);
-//	}
-//
-//	/**
-//	 * Set the cell format to the local currency
-//	 * 
-//	 * @param xSpreadsheetDocument
-//	 *            The spreadsheet document
-//	 * @param spreadsheet
-//	 *            The spreadsheet that contains the cell
-//	 * @param row
-//	 *            The cell row
-//	 * @param column
-//	 *            The cell column
-//	 */
-//	public static void setLocalCurrency(XSpreadsheetDocument xSpreadsheetDocument, XSpreadsheet spreadsheet, int row, int column) {
-//
-//		// Get the cell by the row and the column
-//		XCell cell = getCell(spreadsheet, row, column);
-//
-//		// Query the number formats supplier of the spreadsheet document
-//		com.sun.star.util.XNumberFormatsSupplier xNumberFormatsSupplier = (com.sun.star.util.XNumberFormatsSupplier) UnoRuntime.queryInterface(
-//				com.sun.star.util.XNumberFormatsSupplier.class, xSpreadsheetDocument);
-//
-//		// Get the number formats from the supplier
-//		com.sun.star.util.XNumberFormats xNumberFormats = xNumberFormatsSupplier.getNumberFormats();
-//
-//		// Query the XNumberFormatTypes interface
-//		com.sun.star.util.XNumberFormatTypes xNumberFormatTypes = (com.sun.star.util.XNumberFormatTypes) UnoRuntime.queryInterface(
-//				com.sun.star.util.XNumberFormatTypes.class, xNumberFormats);
-//
-//		// Get the standard currency of the system
-//		int nCurrKey = xNumberFormatTypes.getStandardFormat(com.sun.star.util.NumberFormat.CURRENCY, new Locale());
-//
-//		// Set the new cell format
-//		setCellProperty(cell, "NumberFormat", new Integer(nCurrKey));
-//	}
+        // Most significant character
+        char cM = 0;
+        // Least significant character
+        char cL;
 
-	/**
-	 * Get a cell by spreadsheet, row and column
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param row
-	 *            The cell row
-	 * @param column
-	 *            The cell column
-	 * @return The cell
-	 */
-	public static Cell getCell(Table spreadsheet, int row, int column) {
+        // Convert the column into a decimal format with
+        // a base of 26 ( Number of letters in the alphabet) 
+        // Use 2 characters. So A will be 1, Z will be 26 and
+        // AA will be 27
+        int columnM = column / 26;
+        int columnL = column % 26;
 
-		// Try to get the cell
-		return spreadsheet.getCellByPosition(column, row);
-	}
+        // Maximum 25x26 columns
+        if (column > (25 * 26)) {
+            //			Logger.logError("Columns out of range");
+            return "ZZ1";
+        }
 
-	/**
-	 * Get a cell range by spreadsheet, left, top, right, bottom
-	 * 
-	 * @param spreadsheet
-	 *            The spreadsheet that contains the cell
-	 * @param left
-	 *            The left side of the range
-	 * @param top
-	 *            The top side of the range
-	 * @param right
-	 *            The right side of the range
-	 * @param bottom
-	 *            The bottom side of the range
-	 * @return The cell range
-	 */
-	public static CellRange getCells(Table spreadsheet, int left, int top, int right, int bottom) {
+        // Only if the column is > 26 (columnM >0), use
+        // a second letter
+        if (columnM > 0) {
+            cM = (char) ('A' + columnM - 1);
+        }
 
-		// Try to get the cell
-		try {
-			return spreadsheet.getCellRangeByPosition(left, top, right, bottom);
-		}
-		catch (IndexOutOfBoundsException e) {
-			return null;
-		}
-	}
+        // Convert the number to a letter
+        cL = (char) ('A' + columnL);
 
-	/**
-	 * Get the name of a Calc cell by row and column
-	 * 
-	 * @param row
-	 * @param column
-	 * @return Cell name (like "A2")
-	 */
-	public static String getCellName(int row, int column) {
+        // Add Column letter and row number
+        String s = "";
+        s = cL + Integer.toString(row + 1);
 
-		// Most significant character
-		char cM = 0;
-		// Least significant character
-		char cL;
+        // Use a second letter
+        if (columnM > 0) {
+            s = cM + s;
+        }
 
-		// Convert the column into a decimal format with
-		// a base of 26 ( Number of letters in the alphabet) 
-		// Use 2 characters. So A will be 1, Z will be 26 and
-		// AA will be 27
-		int columnM = column / 26;
-		int columnL = column % 26;
+        // The complete cell name
+        return s;
+    }
 
-		// Maximum 25x26 columns
-		if (column > (25 * 26)) {
-//			Logger.logError("Columns out of range");
-			return "ZZ1";
-		}
-
-		// Only if the column is > 26 (columnM >0), use
-		// a second letter
-		if (columnM > 0)
-			cM = (char) ('A' + columnM - 1);
-
-		// Convert the number to a letter
-		cL = (char) ('A' + columnL);
-
-		// Add Column letter and row number
-		String s = "";
-		s = cL + Integer.toString(row + 1);
-
-		// Use a second letter
-		if (columnM > 0)
-			s = cM + s;
-
-		// The complete cell name
-		return s;
-	}
-
-	public static final String ALTERNATE_BACKGROUND_COLOR = "#e8ebed";
-
+    public static final String ALTERNATE_BACKGROUND_COLOR = "#e8ebed";
+    public static final String WHITE_BACKGROUND_COLOR = "#ffffff";
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2016 www.fakturama.org
@@ -39,125 +39,124 @@ import com.sebulli.fakturama.resources.core.Icon;
 import com.sebulli.fakturama.resources.core.IconSize;
 
 /**
- * This is the main entry point for all export wizards. This class
- * creates a "single page" (dummy) wizard which contains a selection
- * tree of all available wizards (see {@link FakturamaExportPage}). 
+ * This is the main entry point for all export wizards. This class creates a
+ * "single page" (dummy) wizard which contains a selection tree of all available
+ * wizards (see {@link FakturamaExportPage}).
  * <p>
  * This class is similar to org.eclipse.ui.internal.dialogs.ImportExportWizard.
  *
  */
 public class FakturamaImportExportWizard extends Wizard {
-	/**
-	 * Constant used to to specify to the import/export wizard
-	 * which page should initially be shown. 
-	 */
-	public static final String IMPORT = "import";	//$NON-NLS-1$
-	/**
-	 * Constant used to to specify to the import/export wizard
-	 * which page should initially be shown. 
-	 */
-	public static final String EXPORT = "export";	//$NON-NLS-1$
-	public static final String WIZARD_MODE = "org.fakturama.wizards.importexport";	//$NON-NLS-1$
-	
+    /**
+     * Constant used to to specify to the import/export wizard which page should
+     * initially be shown.
+     */
+    public static final String IMPORT = "import"; //$NON-NLS-1$
+    /**
+     * Constant used to to specify to the import/export wizard which page should
+     * initially be shown.
+     */
+    public static final String EXPORT = "export"; //$NON-NLS-1$
+    public static final String WIZARD_MODE = "org.fakturama.wizards.importexport"; //$NON-NLS-1$
+
     private String page = null;
 
-	@Inject
-	protected IEclipseContext ctx;
-	
-	private IEclipseContext staticContext;
-	
+    @Inject
+    protected IEclipseContext ctx;
+
+    private IEclipseContext staticContext;
+
     @Inject
     @Translation
     protected Messages msg;
 
-	private ImportExportPage importExportPage;
-    
+    private ImportExportPage importExportPage;
+
     @PostConstruct
-    public void init(IExtensionRegistry registry) {
-    	String filter = "";
-    	page = (String) ctx.get(WIZARD_MODE);
-    	staticContext = EclipseContextFactory.create();
-    	
-    	registerMessages();
-    	
+    public void init(final IExtensionRegistry registry) {
+        String filter = "";
+        page = (String) ctx.get(WIZARD_MODE);
+        staticContext = EclipseContextFactory.create();
+
+        registerMessages();
+
         ImageDescriptor wizardBannerImage = null;
-        if (IMPORT.equals(page)){
-        	filter = "(component.name=myImporter)";
-        	wizardBannerImage = Icon.IMPORT_WIZ.getImageDescriptor(IconSize.WizardHeaderIconSize);
-        	setWindowTitle(msg.wizardImportCommonTitle);
-        } else if (EXPORT.equals(page)){
-        	filter = "(component.name=myExporter)";
-        	wizardBannerImage = Icon.EXPORT_WIZ.getImageDescriptor(IconSize.WizardHeaderIconSize);
-        	setWindowTitle(msg.wizardExportCommonTitle);
+        if (IMPORT.equals(page)) {
+            filter = "(component.name=myImporter)";
+            wizardBannerImage = Icon.IMPORT_WIZ.getImageDescriptor(IconSize.WizardHeaderIconSize);
+            setWindowTitle(msg.wizardImportCommonTitle);
+        } else if (EXPORT.equals(page)) {
+            filter = "(component.name=myExporter)";
+            wizardBannerImage = Icon.EXPORT_WIZ.getImageDescriptor(IconSize.WizardHeaderIconSize);
+            setWindowTitle(msg.wizardExportCommonTitle);
         }
-        
+
         /*
          * Since we have more than one IFakturamaWizardService (import and export at least) we have to distinguish
          * between them by name. Otherwise the ContextInjectionFactory (later on) takes the first fitting service reference,
          * which must not be correct. Therefore, we're looking for the correct service depending on page type and put it into 
          * a static context. This context can be used later on to inject the correct service into the wizard. 
          */
-    	try {
-    		ServiceReference<IFakturamaWizardService>[] serviceReferences = (ServiceReference<IFakturamaWizardService>[]) Activator.getContext().getServiceReferences(IFakturamaWizardService.class.getName(), filter);
-    		if(serviceReferences.length > 0) {
-    			IFakturamaWizardService service = Activator.getContext().getService(serviceReferences[0]);
-    			staticContext.set(IFakturamaWizardService.class, service);
-    		}
-		} catch (InvalidSyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try {
+            ServiceReference<IFakturamaWizardService>[] serviceReferences = (ServiceReference<IFakturamaWizardService>[]) Activator.getContext()
+                    .getServiceReferences(IFakturamaWizardService.class.getName(), filter);
+            if (serviceReferences.length > 0) {
+                IFakturamaWizardService service = Activator.getContext().getService(serviceReferences[0]);
+                staticContext.set(IFakturamaWizardService.class, service);
+            }
+        } catch (InvalidSyntaxException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         if (wizardBannerImage != null) {
-			setDefaultPageImageDescriptor(wizardBannerImage);
-		}
+            setDefaultPageImageDescriptor(wizardBannerImage);
+        }
         setNeedsProgressMonitor(true);
     }
 
-	/**
-	 * 
-	 */
-	private void registerMessages() {
-		/*
-    	 * The following lines are for registering the EclipseContext in the OSGi bundle context
-    	 * since else it is not available (including Messages). 
-    	 */
+    /**
+     * 
+     */
+    private void registerMessages() {
+        /*
+         * The following lines are for registering the EclipseContext in the OSGi bundle context
+         * since else it is not available (including Messages). 
+         */
         Bundle bundle = FrameworkUtil.getBundle(Messages.class);
         BundleContext bundleContext = bundle.getBundleContext();
         ctx.set(Messages.class, msg);
         bundleContext.registerService(IEclipseContext.class, ctx, null);
-	}
+    }
 
     @Override
     public void addPages() {
-    	IEclipseContext staticCtx = EclipseContextFactory.create();
-    	if (page.equals(IMPORT)) {
-	    	importExportPage = ContextInjectionFactory.make(ImportPage.class, ctx, staticCtx);
-		} else if (page.equals(EXPORT)) {
-	    	importExportPage = ContextInjectionFactory.make(ExportPage.class, ctx, staticCtx);
-		}
+        if (page.equals(IMPORT)) {
+            importExportPage = ContextInjectionFactory.make(ImportPage.class, ctx, staticContext);
+        } else if (page.equals(EXPORT)) {
+            importExportPage = ContextInjectionFactory.make(ExportPage.class, ctx, staticContext);
+        }
         if (importExportPage != null) {
-			addPage(importExportPage);
-		}
+            addPage(importExportPage);
+        }
     }
-    
-//    @Override
-//    public boolean canFinish() {
-//    	if(importExportPage != null && ((WizardSelectionPage)importExportPage).getSelectedNode() != null) {
-//    		return ((WizardSelectionPage)importExportPage).getSelectedNode().getWizard().canFinish();
-//    	} else {
-//    		return super.canFinish();
-//    	}
-//    }
-    
-    
+
+    //    @Override
+    //    public boolean canFinish() {
+    //    	if(importExportPage != null && ((WizardSelectionPage)importExportPage).getSelectedNode() != null) {
+    //    		return ((WizardSelectionPage)importExportPage).getSelectedNode().getWizard().canFinish();
+    //    	} else {
+    //    		return super.canFinish();
+    //    	}
+    //    }
+
     @Override
     public boolean performFinish() {
-//    	if(importExportPage != null && ((WizardSelectionPage)importExportPage).getSelectedNode() != null) {
-    		importExportPage.saveWidgetValues();
-//    		return ((WizardSelectionPage)importExportPage).getSelectedNode().getWizard().performFinish();
-//    	} else {
-    		return true;
-//    	}
+        //    	if(importExportPage != null && ((WizardSelectionPage)importExportPage).getSelectedNode() != null) {
+        importExportPage.saveWidgetValues();
+        //    		return ((WizardSelectionPage)importExportPage).getSelectedNode().getWizard().performFinish();
+        //    	} else {
+        return true;
+        //    	}
     }
-    
+
 }

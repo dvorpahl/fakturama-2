@@ -29,60 +29,58 @@ import com.sebulli.fakturama.misc.Constants;
  */
 public class ReceiptsAndExpendituresWizard extends Wizard implements IExportWizard {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
-	    
-	@Inject
-	@Preference(nodePath = "/instance/com.sebulli.fakturama.rcp")
-	private IEclipsePreferences eclipsePrefs;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	private IEclipseContext ctx;
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
 
-	// The first (and only) page of this wizard
-	ExportWizardPageStartEndDate page1;
-	VoucherExportOptionPage page2;
+    @Inject
+    @Preference(nodePath = "/instance/com.sebulli.fakturama.rcp")
+    private IEclipsePreferences eclipsePrefs;
 
-	/**
-	 * Initializes this creation wizard using the passed workbench and object
-	 * selection.
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 *      org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		setWindowTitle("Einnahmen und Ausgaben");
-		ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
+    @Inject
+    private IEclipseContext ctx;
 
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportReceiptvouchersTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportExpendituresDescription);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
-		page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
+    // The first (and only) page of this wizard
+    ExportWizardPageStartEndDate page1;
+    VoucherExportOptionPage page2;
 
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
-		page2 = ContextInjectionFactory.make(VoucherExportOptionPage.class, ctx);
+    /**
+     * Initializes this creation wizard using the passed workbench and object
+     * selection.
+     * 
+     */
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        setWindowTitle("Einnahmen und Ausgaben");
+        ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
 
-		addPage(page1);
-		addPage(page2);
-	}
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportReceiptvouchersTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportExpendituresDescription);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
+        page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
 
-	@Override
-	public boolean performFinish() {
-		ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
-		ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
-		ctx.set(VoucherExportOptionPage.SHOW_VOUCHER_SUM_COLUMN, page2.getShowVoucherSumColumn());
-		ctx.set(VoucherExportOptionPage.SHOW_ZERO_VAT_COLUMN, page2.getShowZeroVatColumn());
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
+        page2 = ContextInjectionFactory.make(VoucherExportOptionPage.class, ctx);
 
-		VoucherExporter exporter = ContextInjectionFactory.make(VoucherExporter.class, ctx);
-		return exporter.export("Einnahmen und Ausgaben", VoucherExporter.ALL);
-	}
+        addPage(page1);
+        addPage(page2);
+    }
+
+    @Override
+    public boolean performFinish() {
+        ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
+        ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
+        ctx.set(VoucherExportOptionPage.SHOW_VOUCHER_SUM_COLUMN, page2.getShowVoucherSumColumn());
+        ctx.set(VoucherExportOptionPage.SHOW_ZERO_VAT_COLUMN, page2.getShowZeroVatColumn());
+
+        VoucherExporter exporter = ContextInjectionFactory.make(VoucherExporter.class, ctx);
+        return exporter.export("Einnahmen und Ausgaben", VoucherExporter.ALL);
+    }
 
 }

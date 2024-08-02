@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="ch.qos.logback.classic.LoggerContext">
+   <implementation class="ch.qos.logback.classic.LoggerContext"/>
+   <service>
+      <provide interface="org.slf4j.ILoggerFactory"/>
+   </service>
+</scr:component>

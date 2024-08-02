@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard.sales;
@@ -38,60 +37,57 @@ import com.sebulli.fakturama.misc.Constants;
  */
 public class ExportWizardUnpaid extends Wizard implements IExportWizard {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	private IEclipseContext ctx;
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
 
-	// The first (and only) page of this wizard
-	ExportWizardPageStartEndDate page1;
-	SalesExportOptionPage page2;
+    @Inject
+    private IEclipseContext ctx;
 
+    // The first (and only) page of this wizard
+    ExportWizardPageStartEndDate page1;
+    SalesExportOptionPage page2;
 
-	/**
-	 * Initializes this creation wizard using the passed workbench and object
-	 * selection.
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 *      org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		setWindowTitle(msg.pageExport);
-		ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
+    /**
+     * Initializes this creation wizard using the passed workbench and object
+     * selection.
+     * 
+     */
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        setWindowTitle(msg.pageExport);
+        ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, null);
 
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportSalesUnpaidTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportSalesUnpaidLongdescription);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.TRUE);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_SINGLEPAGE, Boolean.FALSE);
-		page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportSalesUnpaidTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportSalesUnpaidLongdescription);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.TRUE);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_SINGLEPAGE, Boolean.FALSE);
+        page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
 
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
-		page2 = ContextInjectionFactory.make(SalesExportOptionPage.class, ctx);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportAccountsTableListentriesTitle);
+        page2 = ContextInjectionFactory.make(SalesExportOptionPage.class, ctx);
 
-		addPage(page1);
-		addPage(page2);
-	}
+        addPage(page1);
+        addPage(page2);
+    }
 
-	/**
-	 * Performs any actions appropriate in response to the user having pressed
-	 * the Finish button, or refuse if finishing now is not permitted.
-	 * 
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
-	@Override
-	public boolean performFinish() {
-		ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
-		ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
-		SalesExporter exporter = ContextInjectionFactory.make(SalesExporter.class, ctx);
-		return exporter.export(page2.getShowZeroVatColumn(), SalesExporter.UNPAID);
-	}
+    /**
+     * Performs any actions appropriate in response to the user having pressed
+     * the Finish button, or refuse if finishing now is not permitted.
+     * 
+     * @see org.eclipse.jface.wizard.Wizard#performFinish()
+     */
+    @Override
+    public boolean performFinish() {
+        ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
+        ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
+        SalesExporter exporter = ContextInjectionFactory.make(SalesExporter.class, ctx);
+        return exporter.export(page2.getShowZeroVatColumn(), SalesExporter.UNPAID);
+    }
 }
