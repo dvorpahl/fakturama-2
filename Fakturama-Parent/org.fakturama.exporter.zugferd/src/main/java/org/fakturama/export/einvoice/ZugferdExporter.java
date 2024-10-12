@@ -45,14 +45,16 @@ import com.sebulli.fakturama.office.TargetFormat;
 @Component()
 public class ZugferdExporter implements IPdfPostProcessor {
     
-    @Inject @org.eclipse.e4.core.di.annotations.Optional
+    @Inject
+    @org.eclipse.e4.core.di.annotations.Optional
     @Preference
     private IEclipsePreferences eclipsePrefs;
     
     @Inject
     private IPreferenceStore preferences;
 
-    @Inject @org.eclipse.e4.core.di.annotations.Optional
+    @Inject
+    @org.eclipse.e4.core.di.annotations.Optional
     public Shell shell;
 
     @Inject
@@ -62,7 +64,14 @@ public class ZugferdExporter implements IPdfPostProcessor {
     @Inject
     private IEclipseContext eclipseContext;
 
-	enum FinancialRole { DEBTOR, CREDITOR }
+    enum FinancialRole {
+        DEBTOR, CREDITOR
+    }
+
+    @Override
+    public int getPriority() {
+        return 30;
+    }
 
 	@Override
 	public boolean canProcess() {
@@ -83,7 +92,7 @@ public class ZugferdExporter implements IPdfPostProcessor {
 	}
 
 	@Override
-    public boolean processPdf(Optional<Invoice> invoice) {
+    public boolean processPdf(final Optional<Invoice> invoice) {
 	    
         boolean result = checkSettings();
         if(result && invoice.isPresent() && invoice.get().getBillingType().isINVOICE()) {
@@ -123,7 +132,9 @@ public class ZugferdExporter implements IPdfPostProcessor {
             result = false;
             MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNopdfset);
         }
-        if (result && eclipsePrefs.get(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT, preferences.getDefaultString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT)).isEmpty()) {
+        if (result && eclipsePrefs
+                .get(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT, preferences.getDefaultString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT))
+                .isEmpty()) {
             result = false;
             MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNopdfpath);
         }

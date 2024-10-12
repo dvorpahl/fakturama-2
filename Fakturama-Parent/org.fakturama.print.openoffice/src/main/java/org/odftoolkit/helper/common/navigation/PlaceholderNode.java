@@ -219,9 +219,9 @@ public class PlaceholderNode extends Selection {
                     parentNode.getParentNode().removeChild(parentNode);
                     return null;
                 }
-            } else if (!newText.contains("\r")) {
+            } else if (!newText.contains("\n")) {
                 OdfTextSpan s = new OdfTextSpan((OdfFileDom) parentNode.getOwnerDocument());
-                s.addContent(newText);
+                s.setTextContent(newText);
                 parentNode.replaceChild(s, getNode());
                 return s;
             }
@@ -261,7 +261,7 @@ public class PlaceholderNode extends Selection {
             }
         }
 
-        String[] st = StringUtils.splitByWholeSeparatorPreserveAllTokens(StringUtils.defaultString(newText), "\r");
+        String[] st = StringUtils.splitByWholeSeparatorPreserveAllTokens(StringUtils.defaultString(newText), "\n");
 
         // if the first line is empty, we have a flag for this case
         boolean firstSkip = false;

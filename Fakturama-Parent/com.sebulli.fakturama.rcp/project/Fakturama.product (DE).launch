@@ -16,8 +16,8 @@
     <stringAttribute key="bootstrap" value=""/>
     <stringAttribute key="checked" value="[NONE]"/>
     <booleanAttribute key="clearConfig" value="true"/>
-    <booleanAttribute key="clearws" value="true"/>
-    <booleanAttribute key="clearwslog" value="false"/>
+    <booleanAttribute key="clearws" value="false"/>
+    <booleanAttribute key="clearwslog" value="true"/>
     <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Fakturama.product (DE)"/>
     <booleanAttribute key="default" value="false"/>
     <intAttribute key="default_start_level" value="5"/>
@@ -498,7 +498,6 @@
         <setEntry value="org.hamcrest.core@default:default"/>
         <setEntry value="org.hsqldb.hsqldb*2.7.2@2:true"/>
         <setEntry value="org.javamoney.moneta@3:true"/>
-        <setEntry value="org.junit@default:default"/>
         <setEntry value="org.liquibase.core@default:default"/>
         <setEntry value="org.objectweb.asm*9.6.0@default:default"/>
         <setEntry value="org.objectweb.asm.commons*9.6.0@default:default"/>

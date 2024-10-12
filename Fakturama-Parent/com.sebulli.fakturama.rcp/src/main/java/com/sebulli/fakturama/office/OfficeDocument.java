@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -347,12 +348,15 @@ public class OfficeDocument {
                 }
 
                 context.set(Shell.class, shell);
-                for (ServiceReference<IPdfPostProcessor> serviceReference : serviceReferences) {
+                List<ServiceReference<IPdfPostProcessor>> sortedList = serviceReferences.stream().sorted(new ServiceRefComparator()).toList();
+
+                for (ServiceReference<IPdfPostProcessor> serviceReference : sortedList) {
+
                     // enrich post processor service with available Eclipse services
                     IPdfPostProcessor currentProcessor = Activator.getContext().getService(serviceReference);
                     ContextInjectionFactory.inject(currentProcessor, context);
-                    if (currentProcessor.canProcess() && document instanceof Invoice) {
-                        result = result && currentProcessor.processPdf(Optional.ofNullable((Invoice) document));
+                    if (result && currentProcessor.canProcess() && document instanceof Invoice invoice) {
+                        result = result && currentProcessor.processPdf(Optional.ofNullable(invoice));
                     }
                 }
 
@@ -582,4 +586,46 @@ public class OfficeDocument {
         this.silentMode = silentMode;
     }
 
+    class ServiceRefComparator implements Comparator<ServiceReference<IPdfPostProcessor>> {
+
+        @Override
+        public int compare(final ServiceReference<IPdfPostProcessor> ref1, final ServiceReference<IPdfPostProcessor> ref2) {
+            IPdfPostProcessor service1 = Activator.getContext().getService(ref1);
+            IPdfPostProcessor service2 = Activator.getContext().getService(ref2);
+
+            if (service1 == null && service2 == null) {
+                return 0;
+            }
+            if (service1 == null) {
+                return -1;
+            }
+            if (service2 == null) {
+                return 1;
+            }
+
+            return Integer.compare(service1.getPriority(), service2.getPriority());
+
+        }
+
+        //        @Override
+        //        public int compare(final ServiceReference<? super ServiceReference<IPdfPostProcessor>> o1,
+        //                final ServiceReference<? super ServiceReference<IPdfPostProcessor>> o2) {
+        //            IPdfPostProcessor service1 = Activator.getContext().getService(ref1);
+        //            IPdfPostProcessor service2 = Activator.getContext().getService(ref2);
+        //
+        //            if (service1 == null && service2 == null) {
+        //                return 0;
+        //            }
+        //            if (service1 == null) {
+        //                return -1;
+        //            }
+        //            if (service2 == null) {
+        //                return 1;
+        //            }
+        //
+        //            return Integer.compare(service1.getPriority(), service2.getPriority());
+        //
+        //        }
+
+    }
 }

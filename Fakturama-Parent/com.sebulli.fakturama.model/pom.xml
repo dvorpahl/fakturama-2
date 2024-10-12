@@ -1,55 +1,57 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.sebulli.fakturama</groupId>
-    <artifactId>Fakturama-Parent</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>com.sebulli.fakturama.model</artifactId>
-  <packaging>eclipse-plugin</packaging>
-  	<build>
-		<plugins>
-			
-
-			<plugin>
-				<groupId>org.bsc.maven</groupId>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.sebulli.fakturama</groupId>
+        <artifactId>Fakturama-Parent</artifactId>
+        <version>2.2.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>com.sebulli.fakturama.model</artifactId>
+    <packaging>eclipse-plugin</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
                 <version>5.0</version>
-				<executions>
-					<execution>
-						<id>eclipselink-jpa-metamodel</id>
-						<goals>
-							<goal>process</goal>
-						</goals>
-						<phase>generate-sources</phase>
-						<configuration>
-							<compilerArguments>
-                                
-								-Aeclipselink.persistencexml=${project.basedir}/META-INF/persistence.xml
-							</compilerArguments>
-							
-							<outputDirectory>${project.build.directory}/src-gen/main/java</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-				<dependencies>
-					<!-- https://mvnrepository.com/artifact/org.eclipse.persistence/org.eclipse.persistence.jpa.modelgen.processor -->
-					<dependency>
+                <executions>
+                    <execution>
+                        <id>eclipselink-jpa-metamodel</id>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <compilerArguments>
+                                -Aeclipselink.persistencexml=${project.basedir}/META-INF/persistence.xml
+                            </compilerArguments>
+
+                            <outputDirectory>
+                                ${project.build.directory}/src-gen/main/java</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!--
+                    https://mvnrepository.com/artifact/org.eclipse.persistence/org.eclipse.persistence.jpa.modelgen.processor -->
+                    <dependency>
                         <groupId>org.eclipse.persistence</groupId>
-                        <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
-                        <version>4.0.2</version>
+                        <artifactId>
+                            org.eclipse.persistence.jpa.modelgen.processor</artifactId>
+                        <version>${eclipselink.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.eclipse.persistence</groupId>
                         <artifactId>org.eclipse.persistence.jpa</artifactId>
-                        <version>4.0.2</version>
+                        <version>${eclipselink.version}</version>
                     </dependency>
 
 
-				</dependencies>
-			</plugin>
+                </dependencies>
+            </plugin>
 
-<!-- 	<plugin>
+            <!-- 	<plugin>
 		<groupId>org.codehaus.mojo</groupId>
 		<artifactId>exec-maven-plugin</artifactId>
 		<version>1.6.0</version>
@@ -74,7 +76,8 @@
 			</arguments>
 		</configuration>
 	</plugin>
- -->		</plugins>
-	</build>
+ -->
+        </plugins>
+    </build>
 
 </project>

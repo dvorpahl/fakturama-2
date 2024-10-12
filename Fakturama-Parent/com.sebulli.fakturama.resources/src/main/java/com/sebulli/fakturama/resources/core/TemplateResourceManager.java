@@ -127,7 +127,10 @@ public class TemplateResourceManager implements ITemplateResourceManager {
 
     @Override
     public Image getProgramImage(final Display display, final ProgramImages imageName) {
-        Image img = null;
+        Image img = JFaceResources.getImageRegistry().get("programm_image_" + imageName.name());
+        if (img != null && !img.isDisposed()) {
+            return img;
+        }
         try (InputStream in = FrameworkUtil.getBundle(getClass()).getResource(imageName.getPath()).openStream();) {
             img = new Image(display, in);
             JFaceResources.getImageRegistry().put("programm_image_" + imageName.name(), img);

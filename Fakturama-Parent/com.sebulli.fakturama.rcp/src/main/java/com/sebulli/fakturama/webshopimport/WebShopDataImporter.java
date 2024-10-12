@@ -935,7 +935,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         vat.setName(vatName);
         //        vat.setDescription(vatName);
         vat.setTaxValue(vatPercent);
-        vat.setValidFrom(new Date());
+        //        vat.setValidFrom(new Date());
         try {
             vat = vatsDAO.addIfNew(vat);
         } catch (FakturamaStoringException e1) {
@@ -1080,13 +1080,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         } catch (MalformedURLException e) {
             //T: Status message importing data from web shop
             log.error(e, msg.importWebshopErrorMalformedurl + " " + address);
-        } catch (IOException e) {
-            //T: Status message importing data from web shop
-            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
-        } catch (SWTException e) {
-            //T: Status message importing data from web shop (cannot transform image)
-            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
-        } catch (InterruptedException e) {
+        } catch (IOException | SWTException | InterruptedException e) {
             log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
         } finally {
             if (file != null) {
@@ -1147,7 +1141,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
     private String getStringFromInputStream(final InputStream is) {
         String line = "";
         try {
-            line = IOUtils.toString(is, "UTF-8");
+            line = IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         }

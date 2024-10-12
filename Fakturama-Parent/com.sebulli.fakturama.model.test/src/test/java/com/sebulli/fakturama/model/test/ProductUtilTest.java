@@ -19,11 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.model.Product;
@@ -32,7 +34,8 @@ import com.sebulli.fakturama.util.ProductUtil;
 /**
  *
  */
-public class ProductUtilTest {
+@ExtendWith(MockitoExtension.class)
+class ProductUtilTest {
     
 	Double quantityOfOne = Double.valueOf(1.0);
     
@@ -42,15 +45,15 @@ public class ProductUtilTest {
     
 	private ProductUtil productUtil;
 
-	@Before
+    @BeforeAll
 	public void setUp() throws Exception {
 		MockitoAnnotations.openMocks(this);
         this.productUtil = ContextInjectionFactory.make(ProductUtil.class, context);
 	}
 
 	@Test
-	public void testGetPriceByQuantity_withoutScales_success() {
-		Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(Integer.valueOf(1));
+    void testGetPriceByQuantity_withoutScales_success() {
+        Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(1);
         productUtil.setEclipsePrefs(preferences);
         Product product = new Product();
 		product.setPrice1(Double.valueOf(1.0));
@@ -59,8 +62,9 @@ public class ProductUtilTest {
 	}
 	
 	@Test
-	public void testGetPriceByQuantity_withoutScales_scaledPrice() {
-		Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(Integer.valueOf(1));
+    void testGetPriceByQuantity_withoutScales_scaledPrice() {
+
+        Mockito.when(preferences.getInt(Constants.PREFERENCES_PRODUCT_SCALED_PRICES, Mockito.anyInt())).thenReturn(1);
         productUtil.setEclipsePrefs(preferences);
 		Product product = new Product();
 		product.setPrice1(Double.valueOf(10.0));
@@ -72,7 +76,7 @@ public class ProductUtilTest {
 	}
 	
 	@Test
-	public void testGetPriceByQuantity_withScales_scaledPrice() {
+    void testGetPriceByQuantity_withScales_scaledPrice() {
 		Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(Integer.valueOf(2));
         productUtil.setEclipsePrefs(preferences);
 		Product product = new Product();

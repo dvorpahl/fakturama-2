@@ -134,10 +134,10 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
      * das XML-File in den vorgegebenen Ordner geschrieben.
      * 
      * @param invoice
-     * @param root
+     * @param invoiceXmlJaxb
      * @param zugferdProfile
      */
-    protected boolean createPdf(final Invoice invoice, final Supplier<? extends Serializable> root, final ConformanceLevel zugferdProfile) {
+    protected boolean createPdf(final Invoice invoice, final Supplier<? extends Serializable> invoiceXmlJaxb, final ConformanceLevel zugferdProfile) {
         boolean retval = true;
         String pdfFile = invoice.getPdfPath();
         PDDocument pdfa3 = null;
@@ -155,8 +155,9 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             } catch (IOException exception) {
                 log.error(exception, "can't delete old XRechnung document: " + exception.getMessage());
             }
-            createXmlFile(root, path);
+            createXmlFile(invoiceXmlJaxb, path);
         } else {
+            // this is Zugpferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
                 // create XML from structure              
                 JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
@@ -164,11 +165,11 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 Path file = Files.createTempFile("fakxml", "xml");
                 OutputStream outputStream = Files.newOutputStream(file);
 
-                context.createMarshaller().marshal(root.get(), outputStream);
+                context.createMarshaller().marshal(invoiceXmlJaxb.get(), outputStream);
                 outputStream.flush();
                 outputStream.close();
 
-                printDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
+                printXMLDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
                 PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
 
                 // embed XML
@@ -197,7 +198,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
 
     protected abstract IPdfHelper getPdfHelper();
 
-    private void printDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
+    private void printXMLDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -227,7 +228,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             testContext.createMarshaller().marshal(root.get(), outputStream);
             outputStream.flush();
             outputStream.close();
-            printDocument(new StreamSource(file.toFile()), new StreamResult(newBufferedWriter));
+            printXMLDocument(new StreamSource(file.toFile()), new StreamResult(newBufferedWriter));
         } catch (JAXBException | IOException | TransformerException e) {
             log.error(e);
         }

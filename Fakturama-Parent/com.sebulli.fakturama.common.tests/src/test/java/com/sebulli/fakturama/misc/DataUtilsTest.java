@@ -3,6 +3,10 @@
  */
 package com.sebulli.fakturama.misc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,9 +19,8 @@ import javax.money.MonetaryAmount;
 
 import org.apache.commons.lang3.StringUtils;
 import org.javamoney.moneta.Money;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -28,7 +31,7 @@ import com.sebulli.fakturama.i18n.ILocaleService;
 /**
  *
  */
-public class DataUtilsTest {
+class DataUtilsTest {
     private static final double EPSILON = 0.00000001;
 
     @Mock
@@ -39,8 +42,8 @@ public class DataUtilsTest {
     /**
      * @throws java.lang.Exception
      */
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         Mockito.when(localeService.getDefaultLocale()).thenReturn(Locale.GERMANY);
         Mockito.when(localeService.getCurrencyLocale()).thenReturn(Locale.GERMANY);
@@ -55,8 +58,8 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#getDefaultCurrencyUnit()}.
      */
     @Test
-    public void testGetDefaultCurrencyUnit() {
-        Assert.assertTrue("EUR".contentEquals(dataUtils.getDefaultCurrencyUnit().toString()));
+    void testGetDefaultCurrencyUnit() {
+        assertTrue("EUR".contentEquals(dataUtils.getDefaultCurrencyUnit().toString()));
     }
 
     /**
@@ -64,14 +67,14 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#DoublesAreEqual(java.lang.Double, java.lang.Double)}.
      */
     @Test
-    public void testDoublesAreEqual() {
+    void testDoublesAreEqual() {
         Double testValue = Double.valueOf(10);
-        Assert.assertTrue(dataUtils.DoublesAreEqual(testValue, Double.valueOf(10.000000001)));
-        Assert.assertFalse(dataUtils.DoublesAreEqual(testValue, Double.valueOf(10.0001)));
+        assertTrue(dataUtils.DoublesAreEqual(testValue, Double.valueOf(10.000000001)));
+        assertFalse(dataUtils.DoublesAreEqual(testValue, Double.valueOf(10.0001)));
 
         testValue *= -1;
-        Assert.assertTrue(dataUtils.DoublesAreEqual(testValue, Double.valueOf(-10.000000001)));
-        Assert.assertFalse(dataUtils.DoublesAreEqual(testValue, Double.valueOf(-10.0001)));
+        assertTrue(dataUtils.DoublesAreEqual(testValue, Double.valueOf(-10.000000001)));
+        assertFalse(dataUtils.DoublesAreEqual(testValue, Double.valueOf(-10.0001)));
     }
 
     /**
@@ -79,21 +82,21 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#StringToDouble(java.lang.String)}.
      */
     @Test
-    public void testStringToDouble() {
+    void testStringToDouble() {
         Double testValue = Double.valueOf(10);
-        Assert.assertEquals(testValue, dataUtils.StringToDouble("10"));
-        Assert.assertEquals(testValue, dataUtils.StringToDouble("+10"));
-        Assert.assertEquals(testValue, dataUtils.StringToDouble("10,0"));
-        Assert.assertEquals(testValue, dataUtils.StringToDouble("10.0"));
+        assertEquals(testValue, dataUtils.StringToDouble("10"));
+        assertEquals(testValue, dataUtils.StringToDouble("+10"));
+        assertEquals(testValue, dataUtils.StringToDouble("10,0"));
+        assertEquals(testValue, dataUtils.StringToDouble("10.0"));
 
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10%"));
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10,0 %"));
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10.0 %"));
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10,0 %"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10%"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10,0 %"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10.0 %"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10,0 %"));
 
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10;0 %"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("10;0 %"));
         // a little bit crazy... Should be fixed in future.
-        Assert.assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("a10#0 %"));
+        assertEquals(Double.valueOf(0.1), dataUtils.StringToDouble("a10#0 %"));
     }
 
     /**
@@ -101,18 +104,18 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#round(java.lang.Double)}.
      */
     @Test
-    public void testRound() {
+    void testRound() {
         Double testValue = Double.valueOf(10.12645);
-        Assert.assertEquals(Double.valueOf(10.13), dataUtils.round(testValue)); // scale 2 is the default
-        Assert.assertEquals(Double.valueOf(10.126), dataUtils.round(testValue, 3));
-        Assert.assertEquals(Double.valueOf(10.1265), dataUtils.round(testValue, 4));
-        Assert.assertEquals(Double.valueOf(10.12645), dataUtils.round(testValue, 5));
+        assertEquals(Double.valueOf(10.13), dataUtils.round(testValue)); // scale 2 is the default
+        assertEquals(Double.valueOf(10.126), dataUtils.round(testValue, 3));
+        assertEquals(Double.valueOf(10.1265), dataUtils.round(testValue, 4));
+        assertEquals(Double.valueOf(10.12645), dataUtils.round(testValue, 5));
 
         testValue *= -1;
-        Assert.assertEquals(Double.valueOf(-10.13), dataUtils.round(testValue)); // scale 2 is the default
-        Assert.assertEquals(Double.valueOf(-10.126), dataUtils.round(testValue, 3));
-        Assert.assertEquals(Double.valueOf(-10.1265), dataUtils.round(testValue, 4));
-        Assert.assertEquals(Double.valueOf(-10.12645), dataUtils.round(testValue, 5));
+        assertEquals(Double.valueOf(-10.13), dataUtils.round(testValue)); // scale 2 is the default
+        assertEquals(Double.valueOf(-10.126), dataUtils.round(testValue, 3));
+        assertEquals(Double.valueOf(-10.1265), dataUtils.round(testValue, 4));
+        assertEquals(Double.valueOf(-10.12645), dataUtils.round(testValue, 5));
     }
 
     /**
@@ -120,11 +123,11 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#CalculateGrossFromNet(javax.money.MonetaryAmount, java.lang.Double)}.
      */
     @Test
-    public void testCalculateGrossFromNetMonetaryAmountDouble() {
+    void testCalculateGrossFromNetMonetaryAmountDouble() {
         MonetaryAmount netValue = Money.of(BigDecimal.valueOf(100), "EUR");
         MonetaryAmount grossValue = Money.of(BigDecimal.valueOf(110), "EUR");
 
-        Assert.assertTrue(grossValue.isEqualTo(dataUtils.CalculateGrossFromNet(netValue, Double.valueOf(0.1))));
+        assertTrue(grossValue.isEqualTo(dataUtils.CalculateGrossFromNet(netValue, Double.valueOf(0.1))));
     }
 
     /**
@@ -132,8 +135,8 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#CalculateGrossFromNet(java.lang.Double, java.lang.Double)}.
      */
     @Test
-    public void testCalculateGrossFromNetDoubleDouble() {
-        Assert.assertEquals(Double.valueOf(110), dataUtils.CalculateGrossFromNet(Double.valueOf(100), Double.valueOf(0.1)), EPSILON);
+    void testCalculateGrossFromNetDoubleDouble() {
+        assertEquals(Double.valueOf(110), dataUtils.CalculateGrossFromNet(Double.valueOf(100), Double.valueOf(0.1)), EPSILON);
     }
 
     /**
@@ -141,10 +144,10 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#calculateNetFromGross(java.lang.String, java.lang.Double)}.
      */
     @Test
-    public void testCalculateNetFromGrossStringDouble() {
+    void testCalculateNetFromGrossStringDouble() {
         Double netValue = Double.valueOf(100);
         MonetaryAmount testValue = dataUtils.calculateNetFromGross("110 EUR", Double.valueOf(0.1));
-        Assert.assertEquals(netValue, testValue.getNumber().doubleValue(), EPSILON);
+        assertEquals(netValue, testValue.getNumber().doubleValue(), EPSILON);
     }
 
     /**
@@ -152,10 +155,10 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#calculateNetFromGross(java.lang.Double, java.lang.Double)}.
      */
     @Test
-    public void testCalculateNetFromGrossDoubleDouble() {
+    void testCalculateNetFromGrossDoubleDouble() {
         Double netValue = Double.valueOf(100);
         MonetaryAmount testValue = dataUtils.calculateNetFromGross(Double.valueOf(110), Double.valueOf(0.1));
-        Assert.assertEquals(netValue, testValue.getNumber().doubleValue(), EPSILON);
+        assertEquals(netValue, testValue.getNumber().doubleValue(), EPSILON);
     }
 
     /**
@@ -163,14 +166,14 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#calculateNetFromGross(java.lang.String, java.lang.Double, javax.money.MonetaryAmount)}.
      */
     @Test
-    public void testCalculateNetFromGrossStringDoubleMonetaryAmount() {
+    void testCalculateNetFromGrossStringDoubleMonetaryAmount() {
         Money amount = Money.of(Double.valueOf(100), "EUR");
         MonetaryAmount testValue = dataUtils.calculateNetFromGross("110", Double.valueOf(0.1));
-        Assert.assertEquals(amount, dataUtils.getDefaultRounding().apply(testValue));
+        assertEquals(amount, dataUtils.getDefaultRounding().apply(testValue));
 
         amount = Money.of(Double.valueOf(100.15), "EUR");
         testValue = dataUtils.calculateNetFromGross("110,17", Double.valueOf(0.1));
-        Assert.assertEquals(amount, dataUtils.getDefaultRounding().apply(testValue));
+        assertEquals(amount, dataUtils.getDefaultRounding().apply(testValue));
     }
 
     /**
@@ -178,8 +181,8 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#calculateNetFromGrossAsDouble(java.lang.Double, java.lang.Double)}.
      */
     @Test
-    public void testCalculateNetFromGrossAsDouble() {
-        Assert.assertEquals(Double.valueOf(100.0), dataUtils.calculateNetFromGrossAsDouble(110.0, 0.1), EPSILON);
+    void testCalculateNetFromGrossAsDouble() {
+        assertEquals(Double.valueOf(100.0), dataUtils.calculateNetFromGrossAsDouble(110.0, 0.1), EPSILON);
     }
 
     /**
@@ -187,14 +190,14 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#addToDate(java.util.Date, int)}.
      */
     @Test
-    public void testAddToDate() {
+    void testAddToDate() {
         LocalDateTime testValue = LocalDateTime.of(2019, 2, 10, 0, 0);
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(2019, 1, 1);
         LocalDateTime retval = dataUtils.addToDate(calendar.getTime(), 9);
-        Assert.assertTrue(String.format("returned value [%s] is not equal to expected value [%s]", retval, testValue.format(DateTimeFormatter.ISO_DATE)),
-                testValue.isEqual(retval));
+        assertTrue(testValue.isEqual(retval),
+                String.format("returned value [%s] is not equal to expected value [%s]", retval, testValue.format(DateTimeFormatter.ISO_DATE)));
     }
 
     /**
@@ -202,9 +205,9 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#removeCR(java.lang.String)}.
      */
     @Test
-    public void testRemoveCR() {
+    void testRemoveCR() {
         String aStringWithManyLinebreaks = StringUtils.join(new String[] { "a", "String", "With", "Many", "Linebreaks" }, System.lineSeparator());
-        Assert.assertTrue("aStringWithManyLinebreaks".contentEquals(dataUtils.removeCR(aStringWithManyLinebreaks)));
+        assertTrue("aStringWithManyLinebreaks".contentEquals(dataUtils.removeCR(aStringWithManyLinebreaks)));
     }
 
     /**
@@ -212,10 +215,10 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#makeOSLineFeeds(java.lang.String)}.
      */
     @Test
-    public void testMakeOSLineFeeds() {
+    void testMakeOSLineFeeds() {
         String stringWithLinefeed = "stringWith\nLinefeed";
         String stringWithOSLinefeed = "stringWith" + System.lineSeparator() + "Linefeed";
-        Assert.assertTrue(stringWithOSLinefeed.contentEquals(dataUtils.makeOSLineFeeds(stringWithLinefeed)));
+        assertTrue(stringWithOSLinefeed.contentEquals(dataUtils.makeOSLineFeeds(stringWithLinefeed)));
     }
 
     /**
@@ -223,11 +226,11 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#MultiLineStringsAreEqual(java.lang.String, java.lang.String)}.
      */
     @Test
-    public void testMultiLineStringsAreEqual() {
+    void testMultiLineStringsAreEqual() {
         DataUtils dataUtils = DataUtils.getInstance();
         String myFirstTestString = "A long line" + System.lineSeparator() + "with a break";
         String mySecondTestString = "A long line\rwith a break";
-        Assert.assertTrue(dataUtils.MultiLineStringsAreEqual(myFirstTestString, mySecondTestString));
+        assertTrue(dataUtils.MultiLineStringsAreEqual(myFirstTestString, mySecondTestString));
     }
 
     /**
@@ -235,10 +238,10 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#convertCRLF2LF(java.lang.String)}.
      */
     @Test
-    public void testConvertCRLF2LF() {
+    void testConvertCRLF2LF() {
         DataUtils dataUtils = DataUtils.getInstance();
         String myTestString = "A long line\r\nwith a break";
-        Assert.assertEquals("A long line\nwith a break", dataUtils.convertCRLF2LF(myTestString));
+        assertEquals("A long line\nwith a break", dataUtils.convertCRLF2LF(myTestString));
     }
 
     /**
@@ -246,10 +249,10 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#getSingleLine(java.lang.String)}.
      */
     @Test
-    public void testGetSingleLine() {
+    void testGetSingleLine() {
         DataUtils dataUtils = DataUtils.getInstance();
         String myTestString = "A long line" + System.lineSeparator() + "with a break";
-        Assert.assertEquals("A long line", dataUtils.getSingleLine(myTestString));
+        assertEquals("A long line", dataUtils.getSingleLine(myTestString));
     }
 
     /**
@@ -257,9 +260,9 @@ public class DataUtilsTest {
      * {@link com.sebulli.fakturama.misc.DataUtils#replaceAllAccentedChars(java.lang.String)}.
      */
     @Test
-    public void testReplaceAllAccentedChars() {
+    void testReplaceAllAccentedChars() {
         DataUtils dataUtils = DataUtils.getInstance();
-        Assert.assertEquals("eee", dataUtils.replaceAllAccentedChars("eee"));
-        Assert.assertEquals("eee", dataUtils.replaceAllAccentedChars("éèê"));
+        assertEquals("eee", dataUtils.replaceAllAccentedChars("eee"));
+        assertEquals("eee", dataUtils.replaceAllAccentedChars("éèê"));
     }
 }

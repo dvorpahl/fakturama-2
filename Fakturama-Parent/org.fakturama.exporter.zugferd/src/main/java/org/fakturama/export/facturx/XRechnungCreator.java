@@ -60,37 +60,33 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
     private IPdfHelper pdfHelper;
 
     @Override
-    public boolean createEInvoice(Optional<Invoice> invoice, ConformanceLevel zugferdProfile) {
+    public boolean createEInvoice(final Optional<Invoice> invoice, final ConformanceLevel zugferdProfile) {
+        // return if invoice is not given
+        if (invoice.isEmpty()) {
+            return false;
+        }
         Serializable invoiceXml;
         // 2. create XML file
         IEinvoice eInvoice;
         switch (zugferdProfile) {
         case FACTURX_BASIC:
-            throw new UnsupportedOperationException("not yet implemented");
-        case FACTURX_COMFORT:
-        case ZUGFERD_V2_COMFORT:
-        case ZUGFERD_V2_EN16931:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
-        case XRECHNUNG:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
+            throw new UnsupportedOperationException("Profile not supported");
         case ZUGFERD_V1_COMFORT:
             pdfHelper = new ZugferdHelper();
             eInvoice = ContextInjectionFactory.make(ZUGFeRD.class, context);
             invoiceXml = eInvoice.getInvoiceXml(invoice);
             break;
-        default:
+        case FACTURX_COMFORT, ZUGFERD_V2_COMFORT, ZUGFERD_V2_EN16931, XRECHNUNG, FACTURX_EN16931:
             eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
             invoiceXml = eInvoice.getInvoiceXml(invoice);
             break;
+        default:
+            // if we have another profile... exit with error
+            return false;
         }
         
         // 3. merge XML & PDF/A-1 to PDF/A-3
         return createPdf(invoice.get(), () -> invoiceXml, zugferdProfile);
-        //      testOutput(invoice.get());
     }
 
     @Override

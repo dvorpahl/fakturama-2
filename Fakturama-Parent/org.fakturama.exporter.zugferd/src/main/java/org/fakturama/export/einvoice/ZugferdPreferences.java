@@ -56,7 +56,6 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
     protected ZFMessages msg;
 
     @Inject
-    @Optional
     private PreferencesInDatabase preferencesInDatabase;
 
     @Inject

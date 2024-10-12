@@ -4,7 +4,7 @@
      workspace. The path for the workspace is replaced by the application
 	 while initializing the logger.
 -->
-<configuration>
+<configuration debug="true">
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -20,8 +20,11 @@
     </encoder>
   </appender> 
 
-  <logger name="com.sebulli.fakturama" level="DEBUG"/>
+ <logger name="com.sebulli.fakturama" level="INFO"/>
+  <logger name="org.mariadb.jdbc" level="INFO" />
+  <logger name="org.mariadb.jdbc.impl" level="INFO" />
 
+  
   <root level="WARN">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />

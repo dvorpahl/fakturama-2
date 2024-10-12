@@ -529,7 +529,7 @@ public class DataUtils {
      * @return The converted string
      */
     public String convertCRLF2LF(String s) {
-        s = StringUtils.defaultString(s).replaceAll("\\r\\n", "\n");
+        s = StringUtils.defaultString(s).replace("\\r\\n", "\\n").replace("\\r", "\\n");
         return s;
     }
 

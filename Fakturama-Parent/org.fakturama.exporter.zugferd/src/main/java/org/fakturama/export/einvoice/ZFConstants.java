@@ -25,4 +25,10 @@ public class ZFConstants {
 	public static final String PREFERENCES_ZUGFERD_PROFILE = "ZUGFERD_PROFILE";
 	public static final String PREFERENCES_ZUGFERD_TEST = "ZUGFERD_TEST";
     public static final String CHARSET_UTF8_KEY = "UTF-8";
+
+    public static final String PREFERENCES_EINVOICE_ACTIVE = "EINVOICE_ACTIVE";
+
+    public static final String PREFERENCES_EINVOICE_PROFILE = "EINVOICE_PROFILE";
+
+    public static final String PREFERENCES_EINVOICE_XMLPATH = "EINVOICE_XMLPATH";
 }

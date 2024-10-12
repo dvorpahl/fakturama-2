@@ -29,6 +29,7 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.angus.mail.smtp.SMTPTransport;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
@@ -63,7 +64,6 @@ import jakarta.mail.NoSuchProviderException;
 import jakarta.mail.Part;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
-import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
@@ -110,6 +110,11 @@ public class MailService implements IPdfPostProcessor {
     private static final String CONTENT_TYPE_HTML = "text/html";
 
     private static final String CONTENT_TYPE_CHARSET_SUFFIX = ";charset=";
+
+    @Override
+    public int getPriority() {
+        return 50;
+    }
 
     @Override
     public boolean canProcess() {
@@ -292,7 +297,7 @@ public class MailService implements IPdfPostProcessor {
         try {
             MimeMessage message = createMessage(settings, session);
 
-            Transport transport = null;
+            SMTPTransport transport = null;
             try {
                 transport = connectTransport(settings, session);
                 transport.sendMessage(message, message.getAllRecipients());
@@ -391,7 +396,7 @@ public class MailService implements IPdfPostProcessor {
         }
     }
 
-    protected Transport connectTransport(final MailSettings settings, final Session session) throws MessagingException {
+    protected SMTPTransport connectTransport(final MailSettings settings, final Session session) throws MessagingException {
         String username = settings.getUser();
         String password = settings.getPassword();
         if ("".equals(username)) { // probably from a placeholder
@@ -401,13 +406,13 @@ public class MailService implements IPdfPostProcessor {
             }
         }
 
-        Transport transport = getTransport(session);
+        SMTPTransport transport = getTransport(session);
         transport.connect(settings.getHost(), settings.getPort(), username, password);
         return transport;
     }
 
-    protected Transport getTransport(final Session session) throws NoSuchProviderException {
-        return session.getTransport("smtp");
+    protected SMTPTransport getTransport(final Session session) throws NoSuchProviderException {
+        return (SMTPTransport) session.getTransport("smtp");
     }
 
 }

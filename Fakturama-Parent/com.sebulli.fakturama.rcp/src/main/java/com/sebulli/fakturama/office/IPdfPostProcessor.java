@@ -27,11 +27,19 @@ import com.sebulli.fakturama.model.Invoice;
 public interface IPdfPostProcessor {
     
     /**
+     * Sets a priority on a post processor to be executed. Lower number means
+     * executed first (higher priority)
+     * 
+     * @return a priority for execution of this postProcessor
+     */
+    int getPriority();
+
+    /**
      * Checks the service if it can be run.
      * 
      * @return <code>true</code>, if the processing can be started
      */
-    public boolean canProcess();
+    boolean canProcess();
     
     /**
      * Process the PDF.
@@ -39,5 +47,5 @@ public interface IPdfPostProcessor {
      * @param inputDocument {@link Document} which is the base for the PDF
      * @return <code>true</code>, if the operation was successful
      */
-    public boolean processPdf(Optional<Invoice> inputDocument);
+    boolean processPdf(Optional<Invoice> inputDocument);
 }

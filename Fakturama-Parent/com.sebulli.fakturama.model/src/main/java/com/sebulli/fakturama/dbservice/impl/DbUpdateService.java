@@ -130,7 +130,7 @@ public class DbUpdateService implements IDbUpdateService {
                 serviceReference = (ServiceReference<DataSourceFactory>) allServiceReferences[0];
             } else {
                 serviceReference = null;
-                System.err.println("No service reference found for database connection!");
+                log.error("No service reference found for database connection!");
             }
             Properties prop = new Properties();
             prop.put(DataSourceFactory.JDBC_URL, preferenceStore.getString(PersistenceUnitProperties.JDBC_URL));
@@ -185,11 +185,10 @@ public class DbUpdateService implements IDbUpdateService {
             }
 
             if (conn == null) {
-                log.info("Creating Database connectionä ...");
+                log.info("Creating Database connection ...");
                 conn = context.getService(serviceReference).createDataSource(prop).getConnection();
             }
 
-            if (conn != null) {
                 log.info("Starting database link ...");
                 allServiceReferences = context.getAllServiceReferences(PersistenceProvider.class.getName(), null);
                 ServiceReference<PersistenceProvider> serviceReferencePP = (ServiceReference<PersistenceProvider>) allServiceReferences[0];
@@ -206,7 +205,7 @@ public class DbUpdateService implements IDbUpdateService {
                 EntityManagerFactory emf = pp.createEntityManagerFactory("unconfigured2", properties);
                 emf.createEntityManager();
                 context.registerService(EntityManagerFactory.class, emf, null);
-            }
+
         } catch (SQLException ex) {
             // handle any errors
             System.err.println("SQLException: " + ex.getMessage());
