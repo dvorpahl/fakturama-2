@@ -13,7 +13,7 @@
 
         <tycho.version>4.0.8</tycho.version>
         <tycho-extras.version>2.7.5</tycho-extras.version>
-        <eclipselink.version>5.0.0-B03</eclipselink.version>
+        <eclipselink.version>4.0.4</eclipselink.version>
         <maven.scm.plugin.version>2.0.1</maven.scm.plugin.version>
         <!-- 	<maven.compiler.release>8</maven.compiler.release> -->
         <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
@@ -126,7 +126,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-compiler-plugin</artifactId>
-                <version>${tycho.version}</version>
                 <configuration>
                     <release>17</release>
                     <fork>false</fork>

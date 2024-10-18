@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd"
+>
+    <changeSet author="boarschti" id="20241014-001">
+         <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM fkt_userproperty WHERE NAME = 'OPENOFFICE_ODT_PDF' AND T_VALUE LIKE '%ODT%'
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="fkt_userproperty">
+            <column name="NAME" value="OPENOFFICE_SAVE_ODT"/>
+            <column name="T_VALUE" value="true"/>
+            <column name="DATEADDED" valueComputed="CURRENT_TIMESTAMP" />
+            <column name="T_USER" value="System"/>
+            <column name="VALIDFROM" valueComputed="CURRENT_TIMESTAMP" />
+        </insert>
+    </changeSet>
+    
+    <changeSet author="boarschti" id="20241014-002">
+        <delete tableName="fkt_userproperty">
+            <where>NAME = 'OPENOFFICE_ODT_PDF'</where>
+        </delete>
+    </changeSet>
+</databaseChangeLog>

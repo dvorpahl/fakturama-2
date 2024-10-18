@@ -7,17 +7,16 @@ import java.util.Locale;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
-
 /**
  * Common constants for the Fakturama project.
  *
  */
 public class Constants {
-    public static final String DEFAULT_PREFERENCES_NODE="/" + InstanceScope.SCOPE + "/default/com.sebulli.fakturama.rcp";
-    
+    public static final String DEFAULT_PREFERENCES_NODE = "/" + InstanceScope.SCOPE + "/default/com.sebulli.fakturama.rcp";
+
     public static final String VIEWTABLE_PREFERENCES_FILE = "fakturamaviews.properties";
     public static final String GENERAL_WORKSPACE = "GENERAL_WORKSPACE";
-        
+
     public static final String PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR = "GENERAL_HAS_THOUSANDS_SEPARATOR";
     public static final String PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES = "GENERAL_CURRENCY_DECIMALPLACES";
     public static final String PREFERENCES_GENERAL_QUANTITY_DECIMALPLACES = "GENERAL_QUANTITY_DECIMALPLACES";
@@ -33,26 +32,26 @@ public class Constants {
      */
     public static final String PRODUCT_PICTURE_FOLDER = "/Pics/Products/";
 
-    
     /**
      * Default identifier for VAT
      */
     public static final String DEFAULT_VAT = "standardvat";
-    
+
     /**
      * Default identifier for Shipping
      */
     public static final String DEFAULT_SHIPPING = "standardshipping";
-    
+
     /**
      * Default identifier for Payment
      */
     public static final String DEFAULT_PAYMENT = "standardpayment";
-    
+
     public static final String ACCOUNT_LIST_CATEGORY = "data.list.accountnumbers";
-    
+
     /**
-     * The following constants are for hiding and showing the appropriate tool icons within the tool bar
+     * The following constants are for hiding and showing the appropriate tool
+     * icons within the tool bar
      */
     public static final String TOOLBAR_SHOW_OPEN_CALCULATOR = "TOOLBAR_SHOW_OPEN_CALCULATOR";
     public static final String TOOLBAR_SHOW_OPEN_BROWSER = "TOOLBAR_SHOW_OPEN_BROWSER";
@@ -61,7 +60,7 @@ public class Constants {
     public static final String TOOLBAR_SHOW_NEW_EXPENDITUREVOUCHER = "TOOLBAR_SHOW_NEW_EXPENDITUREVOUCHER";
     public static final String TOOLBAR_SHOW_NEW_CONTACT = "TOOLBAR_SHOW_NEW_CONTACT";
     public static final String TOOLBAR_SHOW_NEW_PRODUCT = "TOOLBAR_SHOW_NEW_PRODUCT";
-    
+
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_LETTER = "TOOLBAR_SHOW_DOCUMENT_NEW_LETTER";
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_OFFER = "TOOLBAR_SHOW_DOCUMENT_NEW_OFFER";
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_ORDER = "TOOLBAR_SHOW_DOCUMENT_NEW_ORDER";
@@ -71,11 +70,11 @@ public class Constants {
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_DUNNING = "TOOLBAR_SHOW_DOCUMENT_NEW_DUNNING";
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_INVOICE = "TOOLBAR_SHOW_DOCUMENT_NEW_INVOICE";
     public static final String TOOLBAR_SHOW_DOCUMENT_NEW_PROFORMA = "TOOLBAR_SHOW_DOCUMENT_NEW_PROFORMA";
-    
+
     public static final String TOOLBAR_SHOW_SAVE = "TOOLBAR_SHOW_SAVE";
     public static final String TOOLBAR_SHOW_PRINT = "TOOLBAR_SHOW_PRINT";
     public static final String TOOLBAR_SHOW_WEBSHOP = "TOOLBAR_SHOW_WEBSHOP";
-	public static final String TOOLBAR_SHOW_QRK_EXPORT = "TOOLBAR_SHOW_QRK_EXPORT";
+    public static final String TOOLBAR_SHOW_QRK_EXPORT = "TOOLBAR_SHOW_QRK_EXPORT";
 
     /**
      * 
@@ -128,50 +127,50 @@ public class Constants {
      */
     public static final String PREFERENCES_WEBSHOP_ENABLED = "WEBSHOP_ENABLED";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_HIDE_COUNTRIES = "CONTACT_FORMAT_HIDE_COUNTRIES";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_HIDE_COUNTRIES = "CONTACT_FORMAT_HIDE_COUNTRIES";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_ADDRESS = "CONTACT_FORMAT_ADDRESS";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_ADDRESS = "CONTACT_FORMAT_ADDRESS";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_GREETING_COMPANY = "CONTACT_FORMAT_GREETING_COMPANY";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_GREETING_COMPANY = "CONTACT_FORMAT_GREETING_COMPANY";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_GREETING_MS = "CONTACT_FORMAT_GREETING_MS";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_GREETING_MS = "CONTACT_FORMAT_GREETING_MS";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_GREETING_MR = "CONTACT_FORMAT_GREETING_MR";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_GREETING_MR = "CONTACT_FORMAT_GREETING_MR";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_CONTACT_FORMAT_GREETING_COMMON = "CONTACT_FORMAT_GREETING_COMMON";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_CONTACT_FORMAT_GREETING_COMMON = "CONTACT_FORMAT_GREETING_COMMON";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_ENABLED = "WEBSHOP_AUTHORIZATION_ENABLED";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_ENABLED = "WEBSHOP_AUTHORIZATION_ENABLED";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_PASSWORD = "WEBSHOP_AUTHORIZATION_PASSWORD";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_PASSWORD = "WEBSHOP_AUTHORIZATION_PASSWORD";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_USER = "WEBSHOP_AUTHORIZATION_USER";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_WEBSHOP_AUTHORIZATION_USER = "WEBSHOP_AUTHORIZATION_USER";
 
     /**
      * 
@@ -202,17 +201,17 @@ public class Constants {
      * Preference: Use gross or net or both for price values
      */
     public static final String PREFERENCES_PRODUCT_USE_NET_GROSS = "PRODUCT_USE_NET_GROSS";
-    
+
     /**
      * Use net and gross prices for monetary values
      */
     public static final int PRODUCT_USE_NET_AND_GROSS = 0;
-    
+
     /**
      * Use only net prices for monetary values
      */
     public static final int PRODUCT_USE_NET = 1;
-    
+
     /**
      * Use only gross prices for monetary values
      */
@@ -234,17 +233,20 @@ public class Constants {
     public static final String PREFERENCES_PRODUCT_USE_ITEMNR = "PRODUCT_USE_ITEMNR";
 
     /**
-     * The {@link Locale} for currency (might be different from application locale!)
+     * The {@link Locale} for currency (might be different from application
+     * locale!)
      */
     public static final String PREFERENCE_CURRENCY_LOCALE = "PREFERENCE_CURRENCY_LOCALE";
 
     /**
-     * Use cash rounding (Switzerland only). This is for rounding to full 0.05 SFr.
+     * Use cash rounding (Switzerland only). This is for rounding to full 0.05
+     * SFr.
      */
     public static final String PREFERENCES_CURRENCY_USE_CASHROUNDING = "CURRENCY_USE_CASHROUNDING";
 
     /**
-     * This preference is read-only and only used for an example string (formatting of a currency amount)
+     * This preference is read-only and only used for an example string
+     * (formatting of a currency amount)
      */
     public static final String PREFERENCE_CURRENCY_FORMAT_EXAMPLE = "CURRENCY_FORMAT_EXAMPLE";
 
@@ -297,12 +299,12 @@ public class Constants {
      * 
      */
     public static final String PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM = "DOCUMENT_USE_DISCOUNT_EACH_ITEM";
-	public static final String PREFERENCES_DOCUMENT_USE_VESTINGPERIOD = "DOCUMENT_USE_VESTINGPERIOD";
+    public static final String PREFERENCES_DOCUMENT_USE_VESTINGPERIOD = "DOCUMENT_USE_VESTINGPERIOD";
 
     /**
      * 
      */
-//    public static final String PREFERENCES_DOCUMENT_USE_ITEM_POS = "DOCUMENT_USE_ITEM_POS";
+    //    public static final String PREFERENCES_DOCUMENT_USE_ITEM_POS = "DOCUMENT_USE_ITEM_POS";
 
     /**
      * 
@@ -372,7 +374,7 @@ public class Constants {
 
     /** The Constant PREFERENCES_CONTACT_NAME_FORMAT. */
     public static final String PREFERENCES_CONTACT_NAME_FORMAT = "CONTACT_NAME_FORMAT";
-    
+
     public static final int CONTACT_FORMAT_FIRSTNAME_LASTNAME = 0;
     public static final int CONTACT_FORMAT_LASTNAME_FIRSTNAME = 1;
 
@@ -406,7 +408,7 @@ public class Constants {
      */
     public static final String PREFERENCES_CONTACT_USE_DELIVERY = "CONTACT_USE_DELIVERY";
 
-	public static final String PREFERENCES_CONTACT_SUPPRESS_CONTACTNUMER_CHECK = "CONTACT_SUPPRESS_CONTACTNUMER_CHECK";
+    public static final String PREFERENCES_CONTACT_SUPPRESS_CONTACTNUMER_CHECK = "CONTACT_SUPPRESS_CONTACTNUMER_CHECK";
 
     /**
      * 
@@ -423,7 +425,7 @@ public class Constants {
      */
     public static final String PREFERENCES_YOURCOMPANY_TEL = "YOURCOMPANY_COMPANY_TEL";
 
-	public static final String PREFERENCES_YOURCOMPANY_MOBILE = "PREFERENCES_YOURCOMPANY_MOBILE";
+    public static final String PREFERENCES_YOURCOMPANY_MOBILE = "PREFERENCES_YOURCOMPANY_MOBILE";
     /**
      * 
      */
@@ -443,7 +445,7 @@ public class Constants {
      * 
      */
     public static final String PREFERENCES_YOURCOMPANY_VATNR = "YOURCOMPANY_COMPANY_VATNR";
-	public static final String PREFERENCES_YOURCOMPANY_TAXNR = "YOURCOMPANY_TAXNR";
+    public static final String PREFERENCES_YOURCOMPANY_TAXNR = "YOURCOMPANY_TAXNR";
 
     /**
      * 
@@ -500,82 +502,76 @@ public class Constants {
      */
     public static final String PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT = "OPENOFFICE_PDF_PATH_FORMAT";
 
-	/** The Constant PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT. */
-	public static final String PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT = "OPENOFFICE_ADDITIONAL_PDF_PATH_FORMAT";
+    /** The Constant PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT. */
+    public static final String PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT = "OPENOFFICE_ADDITIONAL_PDF_PATH_FORMAT";
 
     /**
      * 
      */
     public static final String PREFERENCES_OPENOFFICE_ODT_PATH_FORMAT = "OPENOFFICE_ODT_PATH_FORMAT";
 
-    /**
-     * 
-     */
-    public static final String PREFERENCES_OPENOFFICE_ODT_PDF = "OPENOFFICE_ODT_PDF";
+    public static final String PREFERENCES_OPENOFFICE_SAVE_ODT = "OPENOFFICE_SAVE_ODT";
 
-    /**
-     * 
-     */
     public static final String PREFERENCES_OPENOFFICE_PATH = "OPENOFFICE_PATH";
-	public static final String PREFERENCES_QRK_EXPORT_PATH = "QRK_EXPORT_PATH";
+    public static final String PREFERENCES_QRK_EXPORT_PATH = "QRK_EXPORT_PATH";
 
-	public static final String PROPERTY_CONTACTS_CLICKHANDLER = "fakturama.datatable.contacts.clickhandler";
+    public static final String PROPERTY_CONTACTS_CLICKHANDLER = "fakturama.datatable.contacts.clickhandler";
 
-	public static final String PROPERTY_PRODUCTS_CLICKHANDLER = "fakturama.datatable.products.clickhandler";
-	public static final String PROPERTY_TEXTMODULES_CLICKHANDLER = "fakturama.datatable.texts.clickhandler";
-	public static final String PROPERTY_DELIVERIES_CLICKHANDLER = "fakturama.datatable.deliveries.clickhandler";
+    public static final String PROPERTY_PRODUCTS_CLICKHANDLER = "fakturama.datatable.products.clickhandler";
+    public static final String PROPERTY_TEXTMODULES_CLICKHANDLER = "fakturama.datatable.texts.clickhandler";
+    public static final String PROPERTY_DELIVERIES_CLICKHANDLER = "fakturama.datatable.deliveries.clickhandler";
 
-	public static final String COMMAND_SELECTITEM = "com.sebulli.fakturama.command.selectitem";
+    public static final String COMMAND_SELECTITEM = "com.sebulli.fakturama.command.selectitem";
 
-	public static final int RC_OK = 0;
+    public static final int RC_OK = 0;
 
-	public static final String WEBSHOP_NAMESPACE = "http://www.fakturama.org";
+    public static final String WEBSHOP_NAMESPACE = "http://www.fakturama.org";
 
-	public final static String PARAM_START_DATE = "startdate";
+    public final static String PARAM_START_DATE = "startdate";
 
-	public final static String PARAM_END_DATE = "enddate";
+    public final static String PARAM_END_DATE = "enddate";
 
-	/**
-	 * 
-	 */
-	public static final String PREFERENCES_EXPORTSALES_PAIDDATE = "EXPORTSALES_PAIDDATE";
-	public static final String PREFERENCES_EXPORT_CSV4DHL = "EXPORT_CSV4DHL";
+    /**
+     * 
+     */
+    public static final String PREFERENCES_EXPORTSALES_PAIDDATE = "EXPORTSALES_PAIDDATE";
+    public static final String PREFERENCES_EXPORT_CSV4DHL = "EXPORT_CSV4DHL";
 
-	/** The Constant CONTEXT_VATVALUE. */
-	public static final String CONTEXT_VATVALUE = "vatvalue";
+    /** The Constant CONTEXT_VATVALUE. */
+    public static final String CONTEXT_VATVALUE = "vatvalue";
 
-	/** The Constant CONTEXT_NETVALUE. */
-	public static final String CONTEXT_NETVALUE = "netvalue";
+    /** The Constant CONTEXT_NETVALUE. */
+    public static final String CONTEXT_NETVALUE = "netvalue";
 
-	/** The Constant CONTEXT_STYLE. */
-	public static final String CONTEXT_STYLE = "style";
+    /** The Constant CONTEXT_STYLE. */
+    public static final String CONTEXT_STYLE = "style";
 
-	/** The Constant CONTEXT_CANVAS. */
-	public static final String CONTEXT_CANVAS = "canvas";
+    /** The Constant CONTEXT_CANVAS. */
+    public static final String CONTEXT_CANVAS = "canvas";
 
-	/** The Constant DETAILPANEL_ID. */
-	public static final String DETAILPANEL_ID = "com.sebulli.fakturama.rcp.detailpanel";
+    /** The Constant DETAILPANEL_ID. */
+    public static final String DETAILPANEL_ID = "com.sebulli.fakturama.rcp.detailpanel";
 
-	public static final String PREFERENCES_OPENPDF = "OPENPDF";
+    public static final String PREFERENCES_OPENPDF = "OPENPDF";
 
-	public static final String COLOR_WHITE = "white";
-	public static final String COLOR_BGYELLOW = "bgyellow";
+    public static final String COLOR_WHITE = "white";
+    public static final String COLOR_BGYELLOW = "bgyellow";
 
-	public static final String TAX_DEFAULT_CODE = "VAT";
+    public static final String TAX_DEFAULT_CODE = "VAT";
 
-	public static final String PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX = "PREFERENCES_DOCUMENT_USE_SALES_EQUALIZATION_TAX";
+    public static final String PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX = "PREFERENCES_DOCUMENT_USE_SALES_EQUALIZATION_TAX";
 
-	public static final String PREFERENCES_PRODUCT_CHANGE_QTY = "PRODUCT_CHANGE_QTY";
-	public static final String PREFERENCES_PRODUCT_CHANGE_QTY_ORDER = "0";
-	public static final String PREFERENCES_PRODUCT_CHANGE_QTY_DELIVERY = "1";
-	public static final String PREFERENCES_PRODUCT_CHANGE_QTY_INVOICE = "2";
-	
-	public static final String PREFERENCES_HSQL_DB_PORT = "PREFERENCES_HSQL_DB_PORT";
+    public static final String PREFERENCES_PRODUCT_CHANGE_QTY = "PRODUCT_CHANGE_QTY";
+    public static final String PREFERENCES_PRODUCT_CHANGE_QTY_ORDER = "0";
+    public static final String PREFERENCES_PRODUCT_CHANGE_QTY_DELIVERY = "1";
+    public static final String PREFERENCES_PRODUCT_CHANGE_QTY_INVOICE = "2";
 
-	public static final String PARAM_STATUS =   "com.sebulli.fakturama.command.order.markas.status";
-	public static final String PARAM_PROGRESS = "com.sebulli.fakturama.command.order.markas.progress";
+    public static final String PREFERENCES_HSQL_DB_PORT = "PREFERENCES_HSQL_DB_PORT";
 
-	public static final String PARAM_ORDERID = "com.sebulli.fakturama.command.order.markas.orderid";
+    public static final String PARAM_STATUS = "com.sebulli.fakturama.command.order.markas.status";
+    public static final String PARAM_PROGRESS = "com.sebulli.fakturama.command.order.markas.progress";
+
+    public static final String PARAM_ORDERID = "com.sebulli.fakturama.command.order.markas.orderid";
 
     public static final String DISPLAY_SUCCESSFUL_PRINTING = "DISPLAY_SUCCESSFUL_PRINTING";
 

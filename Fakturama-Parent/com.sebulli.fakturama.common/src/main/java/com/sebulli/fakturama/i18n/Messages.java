@@ -777,12 +777,11 @@ public class Messages {
     public String preferencesOfficeExportasLabel;
     public String preferencesOfficeExportasOpenaction;
     public String preferencesOfficeFolder;
+    public String preferencesOfficeGeneral;
+    public String preferencesOfficeSaveOdt;
     public String preferencesOfficeFormatandpathAdditionalpdf;
     public String preferencesOfficeFormatandpathOdt;
     public String preferencesOfficeFormatandpathPdf;
-    public String preferencesOfficeOdtpdfBoth;
-    public String preferencesOfficeOdtpdfOnlyodt;
-    public String preferencesOfficeOdtpdfOnlypdf;
     public String preferencesOfficeStartnewthread;
     public String preferencesOptionalitems;
     public String preferencesOptionalitemsItemlabel;
@@ -970,10 +969,10 @@ public class Messages {
         // try to make the string representation of this key via reflection
 
         try {
-            Class<?> c = this.getClass();
+            final Class<?> c = this.getClass();
             // make the key java-like :-)
-            StringBuffer sb = new StringBuffer();
-            StringTokenizer st = new StringTokenizer(retval, ".");
+            final StringBuffer sb = new StringBuffer();
+            final StringTokenizer st = new StringTokenizer(retval, ".");
             boolean isFirst = true;
             while (st.hasMoreElements()) {
                 if (isFirst) {
@@ -984,7 +983,7 @@ public class Messages {
                 sb.append(StringUtils.capitalize(st.nextToken()));
             }
 
-            Field chap = c.getDeclaredField(sb.toString());
+            final Field chap = c.getDeclaredField(sb.toString());
             retval = (String) chap.get(this);
         } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
             retval = "?" + retval + "?";

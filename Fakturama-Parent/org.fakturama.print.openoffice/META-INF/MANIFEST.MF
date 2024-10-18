@@ -8,7 +8,7 @@ Bundle-Vendor: Fakturama.org
 Automatic-Module-Name: org.fakturama.print.openoffice
 Import-Package: org.apache.xerces.dom;version="2.12.2",
  org.w3c.dom
-Require-Bundle: org.odftoolkit.odfdom-java,
+Require-Bundle: org.odftoolkit.odfdom-java;visibility:=reexport,
  org.apache.commons.lang3;bundle-version="3.13.0",
  org.apache.commons.commons-validator;bundle-version="1.7.0",
  org.apache.commons.digester

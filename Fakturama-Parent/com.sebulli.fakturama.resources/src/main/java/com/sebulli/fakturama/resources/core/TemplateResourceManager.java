@@ -65,10 +65,10 @@ public class TemplateResourceManager implements ITemplateResourceManager {
     @Override
     public boolean createWorkspaceTemplates(final String workspace, final IEclipseContext context) {
         this.translationService = context.get(TranslationService.class);
-        BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
-        ServiceReference<ILogger> servRef = bundleContext.getServiceReference(ILogger.class);
+        final BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+        final ServiceReference<ILogger> servRef = bundleContext.getServiceReference(ILogger.class);
         this.log = bundleContext.getService(servRef);
-        String templateFolderName = translate("config.workspace.templates.name");
+        final String templateFolderName = translate("config.workspace.templates.name");
 
         // Exit if the workspace path is not set
         if (StringUtils.isBlank(workspace)) {
@@ -76,14 +76,14 @@ public class TemplateResourceManager implements ITemplateResourceManager {
         }
 
         // Exit, if the workspace path is not valid
-        Path workspacePath = Paths.get(StringUtils.removeEnd(workspace, String.valueOf(File.separatorChar)), templateFolderName);
+        final Path workspacePath = Paths.get(StringUtils.removeEnd(workspace, String.valueOf(File.separatorChar)), templateFolderName);
         if (!Files.isDirectory(workspacePath)) {
             // Create and fill the template folder, if it does not exist.
             try {
                 Files.createDirectories(workspacePath);
                 final String workspacePathString = workspacePath.toString();
                 // Copy the document templates from the resources to the file system
-                for (DocumentType doctype : DocumentType.values()) {
+                for (final DocumentType doctype : DocumentType.values()) {
                     switch (doctype) {
                     case NONE:
                         // do nothing!
@@ -100,15 +100,15 @@ public class TemplateResourceManager implements ITemplateResourceManager {
                 }
 
                 // Create the start page, if it does not exist.
-                Path startPage = Paths.get(workspacePathString, START_DOC_PATH, START_DOC_HTML);
+                final Path startPage = Paths.get(workspacePathString, START_DOC_PATH, START_DOC_HTML);
                 if (Files.notExists(startPage)) {
                     resourceCopy(TEMPLATE_PARENT_PATH + "Start/start.html", Paths.get(workspacePathString, START_DOC_PATH, START_DOC_HTML));
                     resourceCopy(TEMPLATE_PARENT_PATH + "Start/logo.png", Paths.get(workspacePathString, START_DOC_PATH, "logo.png"));
                 }
 
                 // Copy the parcel service templates
-                String translatedServiceString = StringUtils.trim(translate("page.parcelservice"));
-                Path parcelServiceFolder = Paths.get(workspacePathString, translatedServiceString); // new File(ParcelServiceManager.getTemplatePath());
+                final String translatedServiceString = StringUtils.trim(translate("page.parcelservice"));
+                final Path parcelServiceFolder = Paths.get(workspacePathString, translatedServiceString); // new File(ParcelServiceManager.getTemplatePath());
                 if (!Files.exists(parcelServiceFolder)) { // ParcelServiceManager.getRelativeTemplatePath();
                     resourceCopy(TEMPLATE_PARENT_PATH + "ParcelService/DHL.txt", Paths.get(workspacePathString, translatedServiceString, "DHL.txt"));
                     resourceCopy(TEMPLATE_PARENT_PATH + "ParcelService/eFILIALE.txt", Paths.get(workspacePathString, translatedServiceString, "eFILIALE.txt"));
@@ -116,7 +116,7 @@ public class TemplateResourceManager implements ITemplateResourceManager {
                     resourceCopy(TEMPLATE_PARENT_PATH + "ParcelService/UPS.txt", Paths.get(workspacePathString, translatedServiceString, "UPS.txt"));
                     resourceCopy(TEMPLATE_PARENT_PATH + "ParcelService/readme.txt", Paths.get(workspacePathString, translatedServiceString, "readme.txt"));
                 }
-            } catch (IOException ioex) {
+            } catch (final IOException ioex) {
                 log.error(ioex, "couldn't create template dir in workspace");
                 return false;
             }
@@ -127,15 +127,19 @@ public class TemplateResourceManager implements ITemplateResourceManager {
 
     @Override
     public Image getProgramImage(final Display display, final ProgramImages imageName) {
-        Image img = JFaceResources.getImageRegistry().get("programm_image_" + imageName.name());
+        final String internalImageName = "programm_image_" + imageName.name();
+        Image img = JFaceResources.getImageRegistry().get(internalImageName);
         if (img != null && !img.isDisposed()) {
             return img;
+        } else if (img != null) {
+            JFaceResources.getImageRegistry().remove(internalImageName);
         }
+
         try (InputStream in = FrameworkUtil.getBundle(getClass()).getResource(imageName.getPath()).openStream();) {
             img = new Image(display, in);
-            JFaceResources.getImageRegistry().put("programm_image_" + imageName.name(), img);
+            JFaceResources.getImageRegistry().put(internalImageName, img);
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error(e, "error getting image: " + e.getMessage());
         }
         return img;
@@ -154,7 +158,7 @@ public class TemplateResourceManager implements ITemplateResourceManager {
      */
     private void resourceCopy(final String resource, final Path targetFile) {
         // Create the input stream from the resource file "Templates/Invoice/Document.ott"
-        Bundle definingBundle = ResourceBundleHelper.getBundleForName(com.sebulli.fakturama.resources.Activator.BUNDLE_ID);
+        final Bundle definingBundle = ResourceBundleHelper.getBundleForName(com.sebulli.fakturama.resources.Activator.BUNDLE_ID);
 
         URL fileResource = FileLocator.find(definingBundle, new org.eclipse.core.runtime.Path(resource), null);
 
@@ -178,11 +182,11 @@ public class TemplateResourceManager implements ITemplateResourceManager {
 
             // Copy the file
             Files.copy(in, targetFile);
-        } catch (FileNotFoundException fnfex) {
+        } catch (final FileNotFoundException fnfex) {
             log.error(fnfex, "Resource file '" + resource + "' not found");
         } catch (FileAlreadyExistsException | DirectoryNotEmptyException dnee) {
             log.warn("file " + targetFile.toAbsolutePath() + " already exists in target directory.");
-        } catch (IOException ioex) {
+        } catch (final IOException ioex) {
             log.error(ioex, "Error copying the resource file " + resource + " '' to the file system.");
         }
     }
@@ -202,7 +206,7 @@ public class TemplateResourceManager implements ITemplateResourceManager {
         if (key.charAt(0) != '%') {
             key = '%' + key;
         }
-        String rc = translationService.translate(key, CONTRIBUTION_URI);
+        final String rc = translationService.translate(key, CONTRIBUTION_URI);
         if ((args == null) || (args.length == 0)) {
             return rc;
         }

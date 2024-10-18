@@ -139,20 +139,20 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
      */
     protected boolean createPdf(final Invoice invoice, final Supplier<? extends Serializable> invoiceXmlJaxb, final ConformanceLevel zugferdProfile) {
         boolean retval = true;
-        String pdfFile = invoice.getPdfPath();
+        final String pdfFile = invoice.getPdfPath();
         PDDocument pdfa3 = null;
 
         netPricesPerVat.clear();
 
         if (zugferdProfile == ConformanceLevel.XRECHNUNG) {
-            FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
-            Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-            Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
+            final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
+            final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+            final Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
                     eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, preferences.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
             // only to be on the safe side...
             try {
                 Files.deleteIfExists(path);
-            } catch (IOException exception) {
+            } catch (final IOException exception) {
                 log.error(exception, "can't delete old XRechnung document: " + exception.getMessage());
             }
             createXmlFile(invoiceXmlJaxb, path);
@@ -160,23 +160,24 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             // this is Zugpferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
                 // create XML from structure              
-                JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
+                final JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
                         .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
-                Path file = Files.createTempFile("fakxml", "xml");
-                OutputStream outputStream = Files.newOutputStream(file);
+                final Path file = Files.createTempFile("fakxml", "xml");
+                final OutputStream outputStream = Files.newOutputStream(file);
 
                 context.createMarshaller().marshal(invoiceXmlJaxb.get(), outputStream);
                 outputStream.flush();
                 outputStream.close();
 
                 printXMLDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
-                PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
+                final PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
 
                 // embed XML
                 pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo);
 
                 if (pdfFile != null) {
-                    pdfa3.save(Paths.get(pdfFile).toFile());
+                    // TODO boarschti results in pdf.pdf
+                    pdfa3.save(Paths.get(pdfFile + ".pdf").toFile());
                 } else { // dialog cancelled
                     retval = false;
                 }
@@ -187,7 +188,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 if (pdfa3 != null) {
                     try {
                         pdfa3.close();
-                    } catch (IOException ioex) {
+                    } catch (final IOException ioex) {
                         log.error(ioex, "error closing ZUGFeRD PDF document: " + ioex.getMessage());
                     }
                 }
@@ -199,8 +200,8 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
     protected abstract IPdfHelper getPdfHelper();
 
     private void printXMLDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.setOutputProperty(OutputKeys.METHOD, "xml");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -221,9 +222,9 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         createOutputDirectory(path.getParent());
 
         try (BufferedWriter newBufferedWriter = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE);) {
-            Path file = Files.createTempFile("fakxml", "xml");
-            OutputStream outputStream = Files.newOutputStream(file);
-            JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory
+            final Path file = Files.createTempFile("fakxml", "xml");
+            final OutputStream outputStream = Files.newOutputStream(file);
+            final JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory
                     .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
             testContext.createMarshaller().marshal(root.get(), outputStream);
             outputStream.flush();
@@ -238,7 +239,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         if (Files.notExists(directory)) {
             try {
                 Files.createDirectories(directory);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error(e, "can't create output directory: " + directory.toString());
             }
         }
