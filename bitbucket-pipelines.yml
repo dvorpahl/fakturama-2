@@ -8,12 +8,12 @@
 image: maven:3.9-eclipse-temurin-17
 
 pipelines:
+  caches:
+    - maven
   default:
     - parallel:
       - step:
           name: Build and Test
-          caches:
-            - maven
           script:
             - mvn -B  clean verify --file Fakturama-Parent/pom.xml -P cicd
           after-script:
