@@ -170,6 +170,8 @@ public class OfficeDocument {
             // Save the document
             if (saveOODocument(textdoc, template)) {
                 openDocument();
+            } else {
+                throw new FakturamaException("Error storing document with " + template.getFileName());
             }
 
         } catch (final Exception e) {
@@ -291,9 +293,10 @@ public class OfficeDocument {
         if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_SAVE_ODT)) {
             try {
                 createOutputDirectory(targetOdtDocumentPath.getParent());
-                Files.copy(tmpDocumentPath, targetOdtDocumentPath);
-            } catch (final IOException e) {
+                Files.copy(tmpDocumentPath, targetOdtDocumentPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (final Exception e) {
                 log.error(e);
+                return false;
             }
         }
 

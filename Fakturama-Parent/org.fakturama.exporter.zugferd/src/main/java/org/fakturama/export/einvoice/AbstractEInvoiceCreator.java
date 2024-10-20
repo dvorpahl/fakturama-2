@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -176,7 +177,6 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo);
 
                 if (pdfFile != null) {
-                    // TODO boarschti results in pdf.pdf
                     pdfa3.save(Paths.get(pdfFile + ".pdf").toFile());
                 } else { // dialog cancelled
                     retval = false;
@@ -192,6 +192,12 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                         log.error(ioex, "error closing ZUGFeRD PDF document: " + ioex.getMessage());
                     }
                 }
+            }
+
+            try {
+                Files.move(Paths.get(pdfFile + ".pdf"), Paths.get(pdfFile), StandardCopyOption.REPLACE_EXISTING);
+            } catch (final IOException e) {
+                log.error("Error editing document", e);
             }
         }
         return retval;

@@ -173,7 +173,7 @@ public class TemplateProcessor {
     @PostConstruct
     public void init() throws InvalidSyntaxException {
         contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-        ServiceReference<QRCodeService> serviceReference = Activator.getContext().getServiceReference(QRCodeService.class);
+        final ServiceReference<QRCodeService> serviceReference = Activator.getContext().getServiceReference(QRCodeService.class);
         if (serviceReference != null) {
             qrCodeService = Activator.getContext().getService(serviceReference);
             ContextInjectionFactory.inject(qrCodeService, context);
@@ -220,7 +220,7 @@ public class TemplateProcessor {
      */
     private String replaceValues(String replacements, String value) {
         replacements = StringUtils.removeEnd(StringUtils.removeStart(replacements.trim(), "{"), "}");
-        String parts[] = replacements.split(";");
+        final String parts[] = replacements.split(";");
 
         // Nothing to do
         if (parts.length < 1) {
@@ -228,8 +228,8 @@ public class TemplateProcessor {
         }
 
         // get all parts
-        for (String part : parts) {
-            String twoStrings[] = part.split(",");
+        for (final String part : parts) {
+            final String[] twoStrings = part.split(",");
             if (twoStrings.length == 2) {
 
                 // Escape sequences...
@@ -259,10 +259,10 @@ public class TemplateProcessor {
      */
     private String replaceRegex(final String replacement, final String value) {
         // split (comma may be used in the parameters)
-        String parts[] = replacement.split("\"\\s*,\\s*\"");
+        final String parts[] = replacement.split("\"\\s*,\\s*\"");
 
         // prepare params
-        String regex = TemplateProcessorHelper.decodeEntities(parts[0]);
+        final String regex = TemplateProcessorHelper.decodeEntities(parts[0]);
         if (regex.length() < 1) {
             // nothing to do
             return value;
@@ -272,7 +272,7 @@ public class TemplateProcessor {
 
         try {
             return value.replaceAll(regex, replaceBy);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("\nException in $REPLACEREGEX:" + replacement + "\nReason: " + e);
             return value;
         }
@@ -292,7 +292,7 @@ public class TemplateProcessor {
     String applyParameters(final String value, final PlaceholderParameters params) {
         String retval = value;
         if (!params.isEmpty()) {
-            for (TemplateParameter param : params.getParameters()) {
+            for (final TemplateParameter param : params.getParameters()) {
                 if (StringUtils.isNotBlank(param.getKey())) {
                     // process the parameter
                     //   note: currently there are no (valid) params with an empty body
@@ -327,61 +327,61 @@ public class TemplateProcessor {
                                 break;
                             case "FORMAT":
                                 try {
-                                    Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
+                                    final Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
                                     retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.getBody());
-                                } catch (ParseException e) {
+                                } catch (final ParseException e) {
                                     retval = "### NVL ###";
                                 }
                                 break;
                             case "DFORMAT":
                                 try {
-                                    GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-                                    SimpleDateFormat sdf = new SimpleDateFormat(param.getBody());
+                                    final GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
+                                    final SimpleDateFormat sdf = new SimpleDateFormat(param.getBody());
                                     retval = sdf.format(checkDate.getTime());
-                                } catch (IllegalArgumentException e) {
+                                } catch (final IllegalArgumentException e) {
                                     retval = "### NVL ###";
                                 }
                                 break;
                             case "FIRST":
-                                Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
+                                final Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
                                 if (lengthFIRST.compareTo(Integer.valueOf(0)) >= 0) {
-                                    int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
+                                    final int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
                                     retval = retval.substring(0, len);
                                 }
                                 break;
                             case "LAST":
-                                Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
+                                final Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
                                 if (lengthLAST.compareTo(Integer.valueOf(0)) >= 0) {
-                                    int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
+                                    final int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
                                     retval = retval.substring(retval.length() - len);
                                 }
                                 break;
                             case "RANGE":
-                                String[] boundariesRANGE = param.getBody().split(",");
+                                final String[] boundariesRANGE = param.getBody().split(",");
                                 if (boundariesRANGE.length == 2) {
                                     // for customer convenience we start counting from 1
-                                    Integer start = TemplateProcessorHelper.parseInteger(boundariesRANGE[0], 0) - 1;
-                                    Integer end = TemplateProcessorHelper.parseInteger(boundariesRANGE[1], retval.length());
+                                    final Integer start = TemplateProcessorHelper.parseInteger(boundariesRANGE[0], 0) - 1;
+                                    final Integer end = TemplateProcessorHelper.parseInteger(boundariesRANGE[1], retval.length());
                                     if (end.compareTo(Integer.valueOf(0)) >= 0) {
-                                        int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+                                        final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
                                         retval = len == 0 ? "" : retval.substring(start, len);
                                     }
                                 }
                                 break;
                             case "EXRANGE":
                                 if (!param.getBody().isEmpty()) {
-                                    String[] boundariesEXRANGE = param.getBody().split(",");
+                                    final String[] boundariesEXRANGE = param.getBody().split(",");
                                     if (boundariesEXRANGE.length == 2) {
                                         // for customer convenience we start counting from 1
-                                        Integer start = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[0], 0) - 1;
-                                        Integer end = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[1], retval.length());
+                                        final Integer start = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[0], 0) - 1;
+                                        final Integer end = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[1], retval.length());
                                         if (end.compareTo(Integer.valueOf(0)) >= 0) {
-                                            int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+                                            final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
                                             if (len == 0) {
                                                 retval = "";
                                             } else {
-                                                String first = retval.substring(0, Math.max(0, start));
-                                                String last = retval.substring(len, retval.length());
+                                                final String first = retval.substring(0, Math.max(0, start));
+                                                final String last = retval.substring(len, retval.length());
                                                 retval = first + last;
                                             }
                                         }
@@ -426,7 +426,7 @@ public class TemplateProcessor {
      * @return The extracted value
      */
     public String getDocumentInfo(final Document document, final Optional<DocumentSummary> documentSummary, final Placeholder placeholder) {
-        String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder);
+        final String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder);
         // GS/20221209 totally useless as <placeholder.getKey()> never contains a parameter !!!
         //		return interpretParameters(placeholder.getKey(), value);
         return value;
@@ -435,20 +435,20 @@ public class TemplateProcessor {
     public String fill(final Document document, final Optional<DocumentSummary> documentSummaryOpt, final String template) {
         int startOfPlaceholder = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX);
         if (startOfPlaceholder > -1) {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 
             // enable summaries in (mail) template
-            DocumentSummary documentSummary = documentSummaryOpt.orElseGet(() -> {
-                DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
+            final DocumentSummary documentSummary = documentSummaryOpt.orElseGet(() -> {
+                final DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
                 return documentSummaryCalculator.calculate(document);
             });
 
             try {
-                DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
-                org.w3c.dom.Document doc = documentBuilder.newDocument();
+                final DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+                final org.w3c.dom.Document doc = documentBuilder.newDocument();
                 int endIndex = -1;
                 String placeholderRaw = null;
-                StringBuffer result = new StringBuffer();
+                final StringBuffer result = new StringBuffer();
                 while (startOfPlaceholder > -1) {
                     // transfer non-placeholder data
                     if (startOfPlaceholder > endIndex + 1) {
@@ -461,7 +461,7 @@ public class TemplateProcessor {
                         // get placeholder w/o < and >
                         placeholderRaw = template.substring(startOfPlaceholder, endIndex + 1);
                         // now handle the placeholder = replace with text
-                        PlaceholderNode placeholderNode = new PlaceholderNode(doc.createTextNode(placeholderRaw));
+                        final PlaceholderNode placeholderNode = new PlaceholderNode(doc.createTextNode(placeholderRaw));
                         result.append(getTextForPlaceholder(placeholderNode, document, Optional.of(documentSummary)));
                         startOfPlaceholder = template.indexOf(PlaceholderNavigation.PLACEHOLDER_PREFIX, endIndex);
                     } else {
@@ -472,7 +472,7 @@ public class TemplateProcessor {
                     }
                 }
                 return result.toString();
-            } catch (ParserConfigurationException pcE) {
+            } catch (final ParserConfigurationException pcE) {
                 log.error(pcE, "Cannot parse template " + StringUtils.wrapIfMissing(template, "'"));
                 return template + "\nParserConfigurationException:\n" + pcE;
             }
@@ -493,24 +493,23 @@ public class TemplateProcessor {
         // check if we have to use sales equalization tax
         setUseSalesEquationTaxForDocument(documentReceiverDao.isSETEnabled(document));
 
-        PlaceholderNavigation navi = new PlaceholderNavigation().of(textdoc).withDelimiters(true)
+        final PlaceholderNavigation navi = new PlaceholderNavigation().of(textdoc).withDelimiters(true)
                 .withTableIdentifiers(PlaceholderTableType.ITEMS_TABLE, PlaceholderTableType.VATLIST_TABLE, PlaceholderTableType.SALESEQUALIZATIONTAX_TABLE)
                 .withImageIdentifiers(Placeholder.INVOICE_SWISSCODE.getKey(), Placeholder.INVOICE_GIROCODE.getKey(), Placeholder.YOURCOMPANY_QRVCARD.getKey())
                 .build();
-        List<PlaceholderNode> placeholderNodes = Collections.unmodifiableList(navi.getPlaceHolders());
+        final List<PlaceholderNode> placeholderNodes = Collections.unmodifiableList(navi.getPlaceHolders());
 
         // A reference to the item and vat table
-        Set<String> processedTables = new HashSet<>();
+        final Set<String> processedTables = new HashSet<>();
 
         // Get the items of the UniDataSet document
-        List<DocumentItem> itemDataSets = document.getItems().stream().sorted((i1, i2) -> {
-            return i1.getPosNr().compareTo(i2.getPosNr());
-        }).collect(Collectors.toList());
-        Set<Node> nodesMarkedForRemoving = new HashSet<>();
+        final List<DocumentItem> itemDataSets = document.getItems().stream().sorted((i1, i2) -> i1.getPosNr().compareTo(i2.getPosNr()))
+                .collect(Collectors.toList());
+        final Set<Node> nodesMarkedForRemoving = new HashSet<>();
         // Get the sign of this document ( + or -)
-        int sign = DocumentTypeUtil.findByBillingType(document.getBillingType()).getSign();
+        final int sign = DocumentTypeUtil.findByBillingType(document.getBillingType()).getSign();
 
-        for (PlaceholderNode placeholderNode : placeholderNodes) {
+        for (final PlaceholderNode placeholderNode : placeholderNodes) {
             if (!placeholderNode.isPlaceholder()) {
                 continue;
             }
@@ -525,7 +524,7 @@ public class TemplateProcessor {
                     // store parent node for later removing
                     // we have to remember the parent node since the current node is replaced (could
                     // be orphaned)
-                    TableTableRowElement row = (TableTableRowElement) placeholderNode.findParentNode(TableTableRowElement.ELEMENT_NAME.getQName(),
+                    final TableTableRowElement row = (TableTableRowElement) placeholderNode.findParentNode(TableTableRowElement.ELEMENT_NAME.getQName(),
                             placeholderNode.getNode());
 
                     // ah, but wait: sometimes the DEPOSIT placeholder isn't placed in a table...
@@ -537,10 +536,10 @@ public class TemplateProcessor {
                 placeholderNode.replaceWith(getTextForPlaceholder(placeholderNode, document, Optional.ofNullable(documentSummary)));
                 break;
             case IMAGE_NODE:
-                String text = getTextForPlaceholder(placeholderNode, document, Optional.ofNullable(documentSummary));
+                final String text = getTextForPlaceholder(placeholderNode, document, Optional.ofNullable(documentSummary));
                 if (StringUtils.isNotBlank(text)) {
-                    URI imageFileURI = Path.of(text).toUri();
-                    Pair<Integer, Integer> widthHeight = getCustomImageSize(imageFileURI, placeholderNode);
+                    final URI imageFileURI = Path.of(text).toUri();
+                    final Pair<Integer, Integer> widthHeight = getCustomImageSize(imageFileURI, placeholderNode);
                     placeholderNode.replaceWith(imageFileURI, widthHeight.getLeft(), widthHeight.getRight());
                 }
                 break;
@@ -549,8 +548,8 @@ public class TemplateProcessor {
                 // but wait: a table (e.g., "ITEM" table) could occur more than once!
                 if (!processedTables.contains(placeholderNode.getNode().getUserData("TABLE_ID"))) {
                     // get the complete row with placeholders and store it as a template
-                    OdfTableRow pRowTemplate = navi.getTableRow(placeholderNode);
-                    OdfTable pTable = pRowTemplate.getTable();
+                    final OdfTableRow pRowTemplate = navi.getTableRow(placeholderNode);
+                    final OdfTable pTable = pRowTemplate.getTable();
                     // for each item from items list create a row and replace the placeholders
                     // which table?
                     switch (placeholderNode.getTableType()) {
@@ -604,7 +603,7 @@ public class TemplateProcessor {
      * @return the text for the placeholder
      */
     private String getTextForPlaceholder(final PlaceholderNode placeholderNode, final Document document, final Optional<DocumentSummary> documentSummary) {
-        Placeholder p = Placeholder.valueOfKey(placeholderNode.getPlaceholderKey());
+        final Placeholder p = Placeholder.valueOfKey(placeholderNode.getPlaceholderKey());
         String text = null;
         if (p != null) {
             text = getDocumentInfoByPlaceholder(document, documentSummary, p);
@@ -630,12 +629,12 @@ public class TemplateProcessor {
      * @return The extracted result
      */
     private String getDocumentInfoByPlaceholder(final Document document, final Optional<DocumentSummary> documentSummary, final Placeholder placeholder) {
-        String key = placeholder.getKey();
+        final String key = placeholder.getKey();
 
         if (key.startsWith("YOURCOMPANY")) {
             // Get the company information from the preferences
-            String owner = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER);
-            String streetWithNo = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET);
+            final String owner = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER);
+            final String streetWithNo = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET);
             switch (placeholder) {
             case YOURCOMPANY_COMPANY:
                 return preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME);
@@ -716,8 +715,8 @@ public class TemplateProcessor {
         String deliverystring;
         String differentstring;
         // address and delivery address
-        DocumentReceiver billingAdress = addressManager.getBillingAdress(document);
-        DocumentReceiver deliveryAdress = addressManager.getDeliveryAdress(document);
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(document);
+        final DocumentReceiver deliveryAdress = addressManager.getDeliveryAdress(document);
         for (int i = 0; i < 2; i++) {
             String s;
             deliverystring = i == 1 ? "delivery" : "";
@@ -822,7 +821,7 @@ public class TemplateProcessor {
         try {
             if (key.equals("INVOICE.SWISSCODE")) {
                 if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), "png");
+                    final Path imageFile = createImageFile(qrCodeService.createSwissCodeQR((Invoice) document), "png");
                     return imageFile != null ? imageFile.toString() : "";
                 } else {
                     return "";
@@ -831,14 +830,14 @@ public class TemplateProcessor {
 
             if (key.equals("INVOICE.GIROCODE")) {
                 if (document instanceof Invoice) {
-                    Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), "png");
+                    final Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), "png");
                     return imageFile != null ? imageFile.toString() : "";
                 } else {
                     return "";
                 }
             }
-        } catch (InvalidParameterException e) {
-            StringBuilder msgDetail = new StringBuilder("Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
+        } catch (final InvalidParameterException e) {
+            final StringBuilder msgDetail = new StringBuilder("Bei der Erstellung des SWISS-QR-Codes sind folgende Fehler aufgetreten:\n\n");
 
             Arrays.stream(StringUtils.split(e.getMessage(), '\n')).forEach(m -> addDetailError(msgDetail, m));
 
@@ -850,11 +849,11 @@ public class TemplateProcessor {
             if (key.equals("DOCUMENT.WEIGHT.TARA")) {
                 return numberFormatterService.doubleToFormattedQuantity(document.getTara());
             }
-            double netWeightValue = document.getItems().stream().mapToDouble(d -> d.getWeight() != null ? d.getWeight() : Double.valueOf(0.0)).sum();
+            final double netWeightValue = document.getItems().stream().mapToDouble(d -> d.getWeight() != null ? d.getWeight() : Double.valueOf(0.0)).sum();
             if (key.equals("DOCUMENT.WEIGHT.NET")) {
                 return numberFormatterService.doubleToFormattedQuantity(netWeightValue);
             }
-            Double taraValue = document.getTara() != null ? document.getTara() : Double.valueOf(0.0);
+            final Double taraValue = document.getTara() != null ? document.getTara() : Double.valueOf(0.0);
             if (key.equals("DOCUMENT.WEIGHT.TOTAL")) {
                 return numberFormatterService.doubleToFormattedQuantity(netWeightValue + taraValue);
             }
@@ -896,7 +895,7 @@ public class TemplateProcessor {
             if (key.equals("ITEMS.DISCOUNT.DUEDATE")) {
                 return getDiscountDueDate(document);
             }
-            double percent = document.getPayment().getDiscountValue();
+            final double percent = document.getPayment().getDiscountValue();
             if (key.equals("ITEMS.DISCOUNT.DISCOUNTPERCENT")) {
                 return numberFormatterService.DoubleToFormatedPercent(percent);
             }
@@ -941,7 +940,7 @@ public class TemplateProcessor {
 
         // Get the reference string to other documents
         if (key.startsWith("DOCUMENT.REFERENCE.")) {
-            Transaction transaction = ContextInjectionFactory.make(Transaction.class, context).of(document);
+            final Transaction transaction = ContextInjectionFactory.make(Transaction.class, context).of(document);
             if (transaction != null) {
                 switch (key) {
                 case "DOCUMENT.REFERENCE.OFFER":
@@ -982,7 +981,7 @@ public class TemplateProcessor {
             return Integer.toString(document.getDueDays());
         }
         if (key.equals("PAYMENT.DUE.DATE")) {
-            LocalDateTime newDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
+            final LocalDateTime newDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
             return newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
         }
         if (key.equals("PAYMENT.PAID")) {
@@ -992,7 +991,7 @@ public class TemplateProcessor {
         String key2;
         String addressField;
 
-        String deliveryPrefix = "DELIVERY.";
+        final String deliveryPrefix = "DELIVERY.";
         if (key.startsWith(deliveryPrefix)) {
             key2 = key.substring(deliveryPrefix.length());
             addressField = deliveryAdress != null ? contactUtil.getAddressAsString(deliveryAdress) : contactUtil.getAddressAsString(billingAdress);
@@ -1056,12 +1055,12 @@ public class TemplateProcessor {
             if (key2.equals("ADDRESS.CITY")) {
                 return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_CITY);
             }
-            String country = contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_COUNTY);
+            final String country = contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_COUNTY);
             if (key2.equals("ADDRESS.COUNTRY")) {
                 return country;
             }
 
-            Optional<Locale> locale = localeUtil.findLocaleByDisplayCountry(country);
+            final Optional<Locale> locale = localeUtil.findLocaleByDisplayCountry(country);
             if (key2.equals("ADDRESS.COUNTRY.CODE2")) {
                 return locale.orElseGet(() -> localeUtil.getDefaultLocale()).getCountry();
             }
@@ -1089,7 +1088,7 @@ public class TemplateProcessor {
 
     private void addDetailError(final StringBuilder msgDetail, final String errorMessage) {
         if (errorMessage.contains(":")) {
-            String[] splittedString = errorMessage.split(":");
+            final String[] splittedString = errorMessage.split(":");
             msgDetail.append(getMsgKey(splittedString[0])).append(": ").append(getMessageDetail(splittedString[1])).append('\n');
         }
     }
@@ -1174,7 +1173,7 @@ public class TemplateProcessor {
             return Optional.ofNullable(contact.getCountryCode());
         }
 
-        Optional<Locale> locale = localeUtil.findByCode(contact.getCountryCode());
+        final Optional<Locale> locale = localeUtil.findByCode(contact.getCountryCode());
         if (key.equals("ADDRESS.COUNTRY")) {
             return Optional.ofNullable(locale.isPresent() ? locale.get().getDisplayCountry() : "??");
         }
@@ -1223,7 +1222,7 @@ public class TemplateProcessor {
             }
 
             if (contact.getOriginAddressId() != null) {
-                Address address = addressDAO.findById(contact.getOriginAddressId());
+                final Address address = addressDAO.findById(contact.getOriginAddressId());
                 if (address != null) {
                     switch (key) {
                     case "ADDRESS.NAMESUFFIX":
@@ -1294,7 +1293,7 @@ public class TemplateProcessor {
                     return Optional.ofNullable(contact.getEmail());
                 }
             }
-            BankAccount bankAccount = originContact.getBankAccount();
+            final BankAccount bankAccount = originContact.getBankAccount();
             if (bankAccount != null) {
                 switch (key) {
                 case "ADDRESS.BANK.ACCOUNT.HOLDER":
@@ -1348,7 +1347,7 @@ public class TemplateProcessor {
         paymenttext = StringUtils.replaceEach(paymenttext, new String[] { "<PAID.VALUE>", "<PAID.DATE>", "<DUE.DAYS>" },
                 new String[] { numberFormatterService.DoubleToFormatedPriceRound(document.getPaidValue()),
                         dateFormatterService.getFormattedLocalizedDate(document.getPayDate()), Integer.toString(document.getDueDays()) });
-        LocalDateTime dueDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
+        final LocalDateTime dueDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
         paymenttext = StringUtils.replace(paymenttext, "<DUE.DATE>", dueDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)));
 
         paymenttext = StringUtils.replace(paymenttext, "<DUE.DISCOUNT.PERCENT>",
@@ -1372,9 +1371,9 @@ public class TemplateProcessor {
         censoredAccount = censorAccountNumber(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
         paymenttext = StringUtils.replace(paymenttext, "<BANK.IBAN.CENSORED>", censoredAccount);
 
-        DocumentReceiver documentReceiver = addressManager.getBillingAdress(document);
+        final DocumentReceiver documentReceiver = addressManager.getBillingAdress(document);
         if (documentReceiver != null && documentReceiver.getOriginContactId() != null) {
-            Contact contact = contactsDAO.findById(documentReceiver.getOriginContactId());
+            final Contact contact = contactsDAO.findById(documentReceiver.getOriginContactId());
             if (contact != null && contact.getBankAccount() != null) {
                 // debitor's bank account
                 paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.ACCOUNT.HOLDER>", contact.getBankAccount().getAccountHolder());
@@ -1403,11 +1402,11 @@ public class TemplateProcessor {
     private String censorAccountNumber(final String accountNumber) {
         String retval = "";
         if (accountNumber != null) {
-            Integer bankAccountLength = accountNumber.length();
+            final Integer bankAccountLength = accountNumber.length();
             // Only set placeholder if bank account exists
             if (bankAccountLength > COUNT_OF_LAST_SHOWN_DIGITS) {
                 // Show only the last COUNT_OF_LAST_SHOWN_DIGITS digits
-                Integer bankAccountCensoredLength = bankAccountLength - COUNT_OF_LAST_SHOWN_DIGITS;
+                final Integer bankAccountCensoredLength = bankAccountLength - COUNT_OF_LAST_SHOWN_DIGITS;
                 retval = StringUtils.leftPad(accountNumber.substring(bankAccountCensoredLength), bankAccountCensoredLength, "*");
             } else {
                 retval = "***";
@@ -1434,11 +1433,11 @@ public class TemplateProcessor {
     private void fillVatTableWithData(final DocumentSummary documentSummary, final OdfTable pTable, final OdfTableRow pRowTemplate,
             final PlaceholderTableType placeholderTableType, final boolean skipIfEmpty) {
         // Get all items
-        int cellCount = pRowTemplate.getCellCount();
+        final int cellCount = pRowTemplate.getCellCount();
 
-        Iterator<VatSummaryItem> it = documentSummary.getVatSummary().iterator();
+        final Iterator<VatSummaryItem> it = documentSummary.getVatSummary().iterator();
         while (it.hasNext()) {
-            VatSummaryItem vatSummaryItem = it.next();
+            final VatSummaryItem vatSummaryItem = it.next();
 
             if (skipIfEmpty
                     && (!this.useSET || vatSummaryItem.getSalesEqTaxPercent() == null || vatSummaryItem.getSalesEqTaxPercent().equals(Double.valueOf(0.0)))) { // skip empty rows
@@ -1446,12 +1445,12 @@ public class TemplateProcessor {
             }
 
             // clone one row from template
-            TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
+            final TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
             // we always insert only ONE row to the table
-            OdfTableRow tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
+            final OdfTableRow tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
             //          Row tmpRow = pTable.appendRow();  // don't know yet why the row was appended instead of inserted...
             pTable.getOdfElement().replaceChild(newRowElement, tmpRow.getOdfElement());
-            OdfTableRow newRow = OdfTableRow.getInstance(newRowElement);
+            final OdfTableRow newRow = OdfTableRow.getInstance(newRowElement);
             // find all placeholders within row
             for (int j = 0; j < cellCount; j++) {
                 // System.out.print(".");
@@ -1468,10 +1467,10 @@ public class TemplateProcessor {
                 tmpIdx--;
 
                 // make a copy of the template cell
-                Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
+                final Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
 
                 // find all placeholders in a cell
-                NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
+                final NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
 
                 /*
                  * The appended row only has default cells (without styles
@@ -1480,10 +1479,10 @@ public class TemplateProcessor {
                  */
                 newRow.getOdfElement().replaceChild(cellNode, newRow.getCellByIndex(tmpIdx).getOdfElement());
                 // replace placeholders in this cell with current content
-                int countOfPlaceholders = cellPlaceholders.getLength();
+                final int countOfPlaceholders = cellPlaceholders.getLength();
                 for (int k = 0; k < countOfPlaceholders; k++) {
-                    Node item = cellPlaceholders.item(0);
-                    PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
+                    final Node item = cellPlaceholders.item(0);
+                    final PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
                     switch (placeholderTableType) {
                     case VATLIST_TABLE:
                         fillVatTableWithData(vatSummaryItem, cellPlaceholder);
@@ -1516,8 +1515,8 @@ public class TemplateProcessor {
      * @return
      */
     private Node fillVatTableWithData(final VatSummaryItem vatSummaryItem, final PlaceholderNode cellPlaceholder) {
-        String key = vatSummaryItem.getVatName();
-        String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
+        final String key = vatSummaryItem.getVatName();
+        final String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
         // Get the text of the column. This is to determine if it is the column
         // with the VAT description or with the VAT value
         String textValue = "";
@@ -1581,16 +1580,16 @@ public class TemplateProcessor {
         // Get all items
         for (int row = 0; row < itemDataSets.size(); row++) {
             // clone one row from template
-            TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
+            final TableTableRowElement newRowElement = (TableTableRowElement) pRowTemplate.getOdfElement().cloneNode(true);
             // we always insert only ONE row to the table
-            OdfTableRow tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
+            final OdfTableRow tmpRow = pTable.insertRowsBefore(pRowTemplate.getRowIndex(), 1).get(0);
             pTable.getOdfElement().replaceChild(newRowElement, tmpRow.getOdfElement());
-            OdfTableRow newRow = OdfTableRow.getInstance(newRowElement);
+            final OdfTableRow newRow = OdfTableRow.getInstance(newRowElement);
             // find all placeholders within row
-            int cellCount = newRowElement.getChildNodes().getLength();
+            final int cellCount = newRowElement.getChildNodes().getLength();
             for (int j = 0; j < cellCount; j++) {
                 // a template cell
-                OdfTableCell currentCell = newRow.getCellByIndex(j);
+                final OdfTableCell currentCell = newRow.getCellByIndex(j);
 
                 // skip unnecessary cells
                 if (currentCell.getOdfElement() instanceof TableCoveredTableCellElement) {
@@ -1598,10 +1597,10 @@ public class TemplateProcessor {
                 }
 
                 // make a copy of the template cell
-                Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
+                final Element cellNode = (TableTableCellElementBase) currentCell.getOdfElement().cloneNode(true);
 
                 // find all placeholders in a cell
-                NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
+                final NodeList cellPlaceholders = cellNode.getElementsByTagName(TextPlaceholderElement.ELEMENT_NAME.getQName());
 
                 /*
                  * The appended row only has default cells (without styles etc.). Therefore we
@@ -1609,12 +1608,12 @@ public class TemplateProcessor {
                  */
                 newRow.getOdfElement().replaceChild(cellNode, newRow.getCellByIndex(j).getOdfElement());
                 // replace placeholders in this cell with current content
-                int countOfPlaceholders = cellPlaceholders.getLength();
+                final int countOfPlaceholders = cellPlaceholders.getLength();
                 for (int k = 0; k < countOfPlaceholders; k++) {
-                    Node item = cellPlaceholders.item(0);
-                    PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
+                    final Node item = cellPlaceholders.item(0);
+                    final PlaceholderNode cellPlaceholder = new PlaceholderNode(item);
 
-                    OdfTextDocument mDocument = (OdfTextDocument) ((OdfFileDom) (pTable.getOdfElement().getOwnerDocument())).getDocument();
+                    final OdfTextDocument mDocument = (OdfTextDocument) ((OdfFileDom) (pTable.getOdfElement().getOwnerDocument())).getDocument();
                     cellPlaceholder.setOwnerDocument(mDocument);
                     fillItemTableWithData(itemDataSets.get(row), cellPlaceholder, sign);
                 }
@@ -1635,13 +1634,13 @@ public class TemplateProcessor {
     private void fillItemTableWithData(final DocumentItem item, final PlaceholderNode cellPlaceholder, final int sign) {
         String value = "";
         String placeholderDisplayText = cellPlaceholder.getNodeText();
-        String key = cellPlaceholder.getPlaceholderKey();
-        Price price = new Price(item, useSET, sign);
-        boolean isReplaceOptionalPrice = item.getOptional() && preferences.getBoolean(Constants.PREFERENCES_OPTIONALITEMS_REPLACE_PRICE);
+        final String key = cellPlaceholder.getPlaceholderKey();
+        final Price price = new Price(item, useSET, sign);
+        final boolean isReplaceOptionalPrice = item.getOptional() && preferences.getBoolean(Constants.PREFERENCES_OPTIONALITEMS_REPLACE_PRICE);
 
         // Get the item quantity
         if (key.equals("ITEM.QUANTITY")) {
-            NumberFormat numberInstance = NumberFormat.getNumberInstance(localeUtil.getDefaultLocale());
+            final NumberFormat numberInstance = NumberFormat.getNumberInstance(localeUtil.getDefaultLocale());
             numberInstance.setMaximumFractionDigits(10);
             value = numberInstance.format(item.getQuantity());
         }
@@ -1834,8 +1833,8 @@ public class TemplateProcessor {
 
             if (item.getPicture() != null) {
 
-                Pair<Integer, Integer> widthHeight = getCustomImageSize(item.getPicture(), cellPlaceholder);
-                Path imageFile = createImageFile(item.getPicture(), "JPG");
+                final Pair<Integer, Integer> widthHeight = getCustomImageSize(item.getPicture(), cellPlaceholder);
+                final Path imageFile = createImageFile(item.getPicture(), "JPG");
 
                 if (imageFile != null) {
                     // replace the placeholder
@@ -1849,11 +1848,11 @@ public class TemplateProcessor {
 
             if (item.getItemNumber() != null) {
 
-                byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
-                Path imageFile = createImageFile(imageBytes, "JPG");
+                final byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
+                final Path imageFile = createImageFile(imageBytes, "JPG");
 
                 if (imageFile != null) {
-                    Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
+                    final Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
                     // replace the placeholder
                     cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
                 }
@@ -1864,7 +1863,7 @@ public class TemplateProcessor {
         }
 
         else if (item.getProduct() != null) {
-            Product product = item.getProduct();
+            final Product product = item.getProduct();
             // Get the item's category
             if (key.equals("ITEM.UNIT.CATEGORY")) {
                 value = CommonConverter.getCategoryName(product.getCategories(), "/");
@@ -1901,9 +1900,9 @@ public class TemplateProcessor {
         // Use default values
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
 
-            BufferedImage image = ImageIO.read(imgStream);
-            int pictureHeight = image.getHeight();
-            int pictureWidth = image.getWidth();
+            final BufferedImage image = ImageIO.read(imgStream);
+            final int pictureHeight = image.getHeight();
+            final int pictureWidth = image.getWidth();
 
             if (pixelWidth == 0 && pixelHeight == 0) {
                 pixelWidth = pictureWidth;
@@ -1916,7 +1915,7 @@ public class TemplateProcessor {
                     pixelWidth = pictureWidth * pixelHeight / pictureHeight;
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error("Can't get size from temporary image file. Reason: " + e);
         }
 
@@ -1930,9 +1929,9 @@ public class TemplateProcessor {
 
         // Use default values
         try {
-            BufferedImage image = ImageIO.read(imageFileURI.toURL());
-            int pictureHeight = image.getHeight();
-            int pictureWidth = image.getWidth();
+            final BufferedImage image = ImageIO.read(imageFileURI.toURL());
+            final int pictureHeight = image.getHeight();
+            final int pictureWidth = image.getWidth();
 
             if (pixelWidth == 0 && pixelHeight == 0) {
                 pixelWidth = pictureWidth;
@@ -1945,7 +1944,7 @@ public class TemplateProcessor {
                     pixelWidth = pictureWidth * pixelHeight / pictureHeight;
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error("Can't get size from temporary image file. Reason: " + e);
         }
 
@@ -1962,10 +1961,10 @@ public class TemplateProcessor {
         // Read the image a first time to get width and height
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
 
-            BufferedImage image = ImageIO.read(imgStream);
+            final BufferedImage image = ImageIO.read(imgStream);
 
             // Generate the image
-            String imageName = "tmpImage" + RandomStringUtils.randomAlphanumeric(8);
+            final String imageName = "tmpImage" + RandomStringUtils.randomAlphanumeric(8);
 
             /*
              * Workaround: As long as the ODF toolkit can't handle images from a ByteStream
@@ -1973,14 +1972,14 @@ public class TemplateProcessor {
              */
             imageFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), imageName);
 
-            ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
+            final ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
             if (iis != null) {
-                Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
+                final Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
                 if (!iter.hasNext()) {
                     throw new IOException("cannot determine image format");
                 }
                 // get the first reader
-                ImageReader reader = iter.next();
+                final ImageReader reader = iter.next();
                 formatName = reader.getFormatName();
                 reader.dispose();
                 iis.close();
@@ -2017,7 +2016,7 @@ public class TemplateProcessor {
      * @return TRUE if the placeholder is in the list
      */
     public boolean isPlaceholder(final String testPlaceholder) {
-        String placeholderKey = TemplateProcessorHelper.extractPlaceholderKey(testPlaceholder);
+        final String placeholderKey = TemplateProcessorHelper.extractPlaceholderKey(testPlaceholder);
 
         // Test all placeholders
         return Placeholder.valueOfKey(placeholderKey) != null;

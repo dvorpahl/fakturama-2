@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.2.0.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="Fakturama" uid="Fakturama.ID" id="org.eclipse.platform.ide" application="org.eclipse.ant.core.antRunner" version="2.2.0.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="icon://APP_ABOUT_ICON"/>
@@ -38,6 +38,7 @@
             winExtraLargeHigh="app/app_256.bmp"/>
       </win>
    </launcher>
+
 
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
@@ -313,6 +314,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
       <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature"/>
+      <feature id="org.eclipse.swt.tools.feature" installMode="root"/>
    </features>
 
    <configurations>
@@ -344,6 +346,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <property name="osgi.splashPath" value="file:plugins/com.sebulli.fakturama.rcp" />
       <property name="osgi.instance.area" value="@user.home/.fakturama2" />
       <property name="eclipse.buildId" value="${unqualifiedVersion}.${buildQualifier}" />
+      <property name="osgi.resolveOptionalImports" value="true" />
    </configurations>
 
    <repositories>

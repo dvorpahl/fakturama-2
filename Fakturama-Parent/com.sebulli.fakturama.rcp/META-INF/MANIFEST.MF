@@ -89,7 +89,7 @@ Require-Bundle: javax.inject,
  org.eclipse.persistence.jpa;bundle-version="4.0.2",
  org.slf4j.osgi-over-slf4j;bundle-version="2.0.9",
  com.ibm.icu;bundle-version="73.2.0"
-Import-Package: jakarta.servlet;version="6.0.0",
+Import-Package: jakarta.servlet;resolution:=optional,
  javax.sql,
  org.apache.commons.io,
  org.apache.poi.ss.usermodel,
