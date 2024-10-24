@@ -59,7 +59,8 @@ public abstract class Contact extends ModelObject implements IEntity, Serializab
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, fetch = FetchType.LAZY)
+	@ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST,
+			CascadeType.REFRESH }/* , fetch = FetchType.LAZY */)
     @JoinColumns({ @JoinColumn(name = "FK_CATEGORY") })
     private ContactCategory categories = null;
 
