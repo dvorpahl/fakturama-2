@@ -859,7 +859,8 @@ public class ProductEditor extends Editor<Product> {
         numberFormat.setGroupingUsed(false);
         UpdateValueStrategy<Object, String> numbertoStringStrategy = UpdateValueStrategy.create(NumberToStringConverter.fromLong(numberFormat, false));
         UpdateValueStrategy<Object, Long> stringToNumberStrategy = UpdateValueStrategy.create(StringToNumberConverter.toLong(false));
-        bindModelValue(editorProduct, textGtin, Product_.gtin.getName(), 64, stringToNumberStrategy, numbertoStringStrategy);
+        Binding binding = bindModelValue(editorProduct, textGtin, Product_.gtin.getName(), 64, stringToNumberStrategy, numbertoStringStrategy);
+        ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
 
         bindModelValue(editorProduct, textSupplierItemNumber, Product_.supplierItemNumber.getName(), 64);
         bindModelValue(editorProduct, textDescription, Product_.description.getName(), 0); // no limit
@@ -874,8 +875,8 @@ public class ProductEditor extends Editor<Product> {
                 }
             });
 
-            Binding binding = bindModelValue(editorProduct, textQuantityUnit, Product_.quantityUnit.getName(), 80, strategy, null);
-            ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
+            Binding bindingQtu = bindModelValue(editorProduct, textQuantityUnit, Product_.quantityUnit.getName(), 80, strategy, null);
+            ControlDecorationSupport.create(bindingQtu, SWT.TOP | SWT.LEFT);
         }
         // bind the scaled prices widgets
         for (int i = 0; i < grossText.length; i++) {
