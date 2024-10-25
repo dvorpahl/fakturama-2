@@ -405,43 +405,45 @@ public class ProductEditor extends Editor<Product> {
     /**
      * Reload the product picture
      */
-    private void setPicture() {
+	private void setPicture() {
 
-       
-            Image image = null;
-            // Display the picture, if a product picture is set.
-            if (editorProduct.getPicture() != null) {
+		Image image = null;
+		// Display the picture, if a product picture is set.
+		if (editorProduct.getPicture() != null) {
 
-                // Load the image, based on the picture name, save to image registry
-                labelProductPicture.setMaxImageWidth(250);
-                try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
-                    ImageData imageData = new ImageData(bais);
-                    image = new Image(Display.getCurrent(), imageData);
-                    JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
+			// Load the image, based on the picture name, save to image registry
+			labelProductPicture.setMaxImageWidth(250);
+			image = JFaceResources.getImageRegistry().get("prodimg_" + editorProduct.getItemNumber());
+			if (image == null) {
+				try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
+					ImageData imageData = new ImageData(bais);
+					image = new Image(Display.getCurrent(), imageData);
+					JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
 
-                    labelProductPicture.setDefaultImage(image);
-                } catch (Exception e) {
-                    // catch all exceptions here since we check for errors later
-                    log.error(e, "Icon not found");
+				} catch (Exception e) {
+					// catch all exceptions here since we check for errors later
+					log.error(e, "Icon not found");
 
-                }
-            }
-            // Display an empty background if no picture is set or picture is not found.
-            if ( image == null ) {
-                try {
-                    ImageDescriptor imageDesc = JFaceResources.getImageRegistry().getDescriptor(ProgramImages.NO_PICTURE.name());
-                    if (imageDesc == null) {
-                        image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
-                        JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
-                    } else {
-                        image = imageDesc.createImage(true);
-                    }
-                    labelProductPicture.setDefaultImage(image);
-                } catch (Exception e1) {
-                    log.error(e1, "Icon not found");
-                }
-            }
-    }
+				}
+			}
+		}
+		// Display an empty background if no picture is set or picture is not found.
+		if (image == null) {
+			try {
+				ImageDescriptor imageDesc = JFaceResources.getImageRegistry()
+						.getDescriptor(ProgramImages.NO_PICTURE.name());
+				if (imageDesc == null) {
+					image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
+					JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
+				} else {
+					image = imageDesc.createImage(true);
+				}
+			} catch (Exception e1) {
+				log.error(e1, "Icon not found");
+			}
+		}
+		labelProductPicture.setDefaultImage(image);
+	}
 
     /**
      * Creates the SWT controls for this workbench part
