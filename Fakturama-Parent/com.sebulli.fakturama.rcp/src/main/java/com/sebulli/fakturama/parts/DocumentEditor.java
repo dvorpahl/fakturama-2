@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -1632,7 +1633,7 @@ public class DocumentEditor extends Editor<Document> {
         if (!DataUtils.getInstance().DoublesAreEqual(newShippingValue, currentShippingValue.getNumber().doubleValue())) {
             document.setShippingValue(newShippingValue);
             document.setShippingAutoVat(useGross ? ShippingVatType.SHIPPINGVATGROSS : ShippingVatType.SHIPPINGVATNET);
-            if (shipping != null) {
+            if (shipping != null && document.getAdditionalInfo().getShippingDescription() == null) {
                 // copy some information from previously selected Shipping record into additional info block
                 document.getAdditionalInfo().setShippingDescription(shipping.getDescription());
                 document.getAdditionalInfo().setShippingName(shipping.getName());
@@ -2277,7 +2278,7 @@ public class DocumentEditor extends Editor<Document> {
         // Selects the no VAT entry
         comboViewerNoVat.setInput(vatDao.findNoVATEntries());
         if (noVat) {
-            comboViewerNoVat.getCombo().setText(StringUtils.defaultString(noVatObject.getDescription(), noVatObject.getName()));
+            comboViewerNoVat.getCombo().setText(Objects.toString(noVatObject.getDescription(), noVatObject.getName()));
         } else {
             comboViewerNoVat.getCombo().select(0);
         }

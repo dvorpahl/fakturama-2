@@ -1,10 +1,10 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,7 +12,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;

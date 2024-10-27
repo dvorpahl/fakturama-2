@@ -847,19 +847,27 @@ public class XRechnung extends AbstractEInvoice {
      * @param invoice
      * @return
      */
-    private TradeAllowanceChargeType createTradeAllowance(final Document invoice) {
-        Double amount = invoice.getShipping() != null ? invoice.getShipping().getShippingValue() : invoice.getShippingValue();
+	private TradeAllowanceChargeType createTradeAllowance(final Document invoice) {
+		Double amount = invoice.getShipping() != null ? invoice.getShipping().getShippingValue()
+				: invoice.getShippingValue();
 
-        TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
-        retval.setChargeIndicator(createIndicator(true));
-        retval.setActualAmount(createAmount(Money.of(amount, DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-        retval.setBasisAmount(createAmount(Money.of(invoice.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-        retval.setReason(createText("Shipping costs")); // TODO Versandkosten!!!
-        //   if(invoice.getShipping() != null && invoice.getShipping().getShippingVat().getTaxValue() > 0.0) {
-        retval.setCategoryTradeTax(createTradeTax(invoice.getShipping().getShippingVat()));
-        //  }
-        return retval;
-    }
+		TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
+		retval.setChargeIndicator(createIndicator(true));
+		retval.setActualAmount(
+				createAmount(Money.of(amount, DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
+		retval.setBasisAmount(createAmount(
+				Money.of(invoice.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
+		retval.setReason(createText("Shipping costs")); // TODO Versandkosten!!!
+		if (invoice.getShipping() != null && invoice.getShipping().getShippingVat().getTaxValue() > 0.0) {
+			retval.setCategoryTradeTax(createTradeTax(invoice.getShipping().getShippingVat()));
+		} else if (invoice.getAdditionalInfo().getShippingVatValue() != null) {
+			VAT shippingVat = new VAT();
+			shippingVat.setTaxValue(invoice.getAdditionalInfo().getShippingVatValue());
+			shippingVat.setName(invoice.getAdditionalInfo().getShippingVatDescription());
+			retval.setCategoryTradeTax(createTradeTax(shippingVat));
+		}
+		return retval;
+	}
 
     private TradeTaxType createTradeTax(final VAT vatValue) {
         return createTradeTax(vatValue, vatValue.getTaxValue() > 0 ? TaxCategoryCodeContentType.S : TaxCategoryCodeContentType.Z);
