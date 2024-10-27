@@ -60,7 +60,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
@@ -215,9 +214,9 @@ public class ProductEditor extends Editor<Product> {
         String testCat = comboCategory.getText();
         // if there's no category we can skip this step
         if (StringUtils.isNotBlank(testCat)) {
-            ProductCategory contactCategory = productCategoriesDAO.getCategory(testCat, true);
+            ProductCategory productCategory = productCategoriesDAO.getCategory(testCat, true);
             // parentCategory now has the last found Category
-            editorProduct.setCategories(contactCategory);
+            editorProduct.setCategories(productCategory);
         }
 
         if (newProduct) {
