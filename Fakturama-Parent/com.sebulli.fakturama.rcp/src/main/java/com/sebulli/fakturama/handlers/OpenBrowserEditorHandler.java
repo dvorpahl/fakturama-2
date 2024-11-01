@@ -50,7 +50,7 @@ public class OpenBrowserEditorHandler {
     public static final String PARAM_URL = "com.sebulli.fakturama.command.browser.url";
     public static final String PARAM_USE_PROJECT_URL = "com.sebulli.fakturama.command.browser.useprojecturl";
 
-    public final static String FAKTURAMA_PROJECT_URL = "http://www.fakturama.info/";
+    public final static String FAKTURAMA_PROJECT_URL = "https://www.fakturama.info/";
 
     @Inject
     @Translation
@@ -91,7 +91,7 @@ public class OpenBrowserEditorHandler {
             return;
 
         // Add the "http://" or "file://"
-        if ((!url.toLowerCase().startsWith("http://")) && (!url.toLowerCase().startsWith("file://")))
+        if (!url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://") && !url.toLowerCase().startsWith("file://"))
             url = "http://" + url;
 
         // Check, if the URL is the Fakturama project

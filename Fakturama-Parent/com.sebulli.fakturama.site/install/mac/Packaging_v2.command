@@ -1,4 +1,5 @@
 #!/bin/zsh
+
 emulate -LR zsh # reset zsh options
 
 # DEVELOPER_PASSWORD is set in .bash_profile
@@ -95,6 +96,9 @@ for arg in "$@"; do
    echo "creating L10N directories..."
    mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj nl.proj no.proj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
    cd -
+   
+   # copy signed com.sun.jna to staging directory
+   cp -f /Applications/Eclipse_202306.app/Contents/Eclipse/plugins/com.sun.jna_5.13.0.jar "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
    
    # cp DS_Store ${STAGING_DIR}/.DS_Store
    
@@ -196,8 +200,17 @@ for arg in "$@"; do
    
    echo 'notarize application...'
    xcrun notarytool submit ../install/${DMG_FINAL} --keychain-profile "Fakturama-Build" --wait
-   xcrun stapler staple ../install/${DMG_FINAL}
-   spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
+   if [ $? -eq 0 ]
+   then
+       echo "Successfully notarized ../install/${DMG_FINAL}"
+   
+	   xcrun stapler staple ../install/${DMG_FINAL}
+	   spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
+   else
+   		echo "*!*!*!*!*!*!*!*!*!*! Could not notarize ../install/${DMG_FINAL}" >&2
+   		
+# xcrun notarytool log e0eab77e-76aa-40e2-af05-113abb21a890 --keychain-profile "Fakturama-Build"   		
+   fi
    
    # some fixes for Linux and Windows archives
    if [ -f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ]; then

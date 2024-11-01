@@ -1357,7 +1357,6 @@ public class TemplateProcessor {
                 documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalGross().multiply(1 - percent)) : "");
         paymenttext = StringUtils.replace(paymenttext, "<DUE.DISCOUNT.DATE>", getDiscountDueDate(document));
 
-        // FIXME doesn't exist!	    paymenttext = StringUtils.replace(paymenttext, "<BANK.ACCOUNT.HOLDER>", preferences.getString("BANK_ACCOUNT_HOLDER"));
         paymenttext = StringUtils.replace(paymenttext, "<BANK.ACCOUNT>", preferences.getString("YOURCOMPANY_COMPANY_BANKACCOUNTNR"));
         paymenttext = StringUtils.replace(paymenttext, "<BANK.IBAN>", preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
         paymenttext = StringUtils.replace(paymenttext, "<BANK.BIC>", preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC));
@@ -1376,11 +1375,11 @@ public class TemplateProcessor {
             final Contact contact = contactsDAO.findById(documentReceiver.getOriginContactId());
             if (contact != null && contact.getBankAccount() != null) {
                 // debitor's bank account
-                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.ACCOUNT.HOLDER>", contact.getBankAccount().getAccountHolder());
-                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.IBAN>", contact.getBankAccount().getIban());
-                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.BIC>", contact.getBankAccount().getBic());
-                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.NAME>", contact.getBankAccount().getBankName());
-                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.MANDATREF>", contact.getMandateReference());
+                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.ACCOUNT.HOLDER>", Objects.toString(contact.getBankAccount().getAccountHolder(), ""));
+                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.IBAN>", Objects.toString(contact.getBankAccount().getIban(), ""));
+                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.BIC>", Objects.toString(contact.getBankAccount().getBic(), ""));
+                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.NAME>", Objects.toString(contact.getBankAccount().getBankName(), ""));
+                paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.MANDATREF>", Objects.toString(contact.getMandateReference(), ""));
                 // Additional placeholder for censored bank account
                 censoredAccount = censorAccountNumber(contact.getBankAccount().getIban());
                 paymenttext = StringUtils.replace(paymenttext, "<DEBITOR.BANK.IBAN.CENSORED>", censoredAccount);
@@ -1901,19 +1900,24 @@ public class TemplateProcessor {
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
 
             final BufferedImage image = ImageIO.read(imgStream);
-            final int pictureHeight = image.getHeight();
-            final int pictureWidth = image.getWidth();
 
-            if (pixelWidth == 0 && pixelHeight == 0) {
-                pixelWidth = pictureWidth;
-                pixelHeight = pictureHeight;
+            if (image != null) {
+                final int pictureHeight = image.getHeight();
+                final int pictureWidth = image.getWidth();
+
+                if (pixelWidth == 0 && pixelHeight == 0) {
+                    pixelWidth = pictureWidth;
+                    pixelHeight = pictureHeight;
+                } else {
+                    if (pixelHeight <= 0 && pictureWidth > 0) {
+                        pixelHeight = pictureHeight * pixelWidth / pictureWidth;
+                    }
+                    if (pixelWidth <= 0 && pictureHeight > 0) {
+                        pixelWidth = pictureWidth * pixelHeight / pictureHeight;
+                    }
+                }
             } else {
-                if (pixelHeight <= 0 && pictureWidth > 0) {
-                    pixelHeight = pictureHeight * pixelWidth / pictureWidth;
-                }
-                if (pixelWidth <= 0 && pictureHeight > 0) {
-                    pixelWidth = pictureWidth * pixelHeight / pictureHeight;
-                }
+                log.error("Can't create image file.");
             }
         } catch (final IOException e) {
             log.error("Can't get size from temporary image file. Reason: " + e);
@@ -1962,30 +1966,35 @@ public class TemplateProcessor {
         try (ByteArrayInputStream imgStream = new ByteArrayInputStream(imageBytes);) {
 
             final BufferedImage image = ImageIO.read(imgStream);
+            
+            if(image != null) {
 
-            // Generate the image
-            final String imageName = "tmpImage" + RandomStringUtils.randomAlphanumeric(8);
-
-            /*
-             * Workaround: As long as the ODF toolkit can't handle images from a ByteStream
-             * we have to convert it to a temporary image and insert that into the document.
-             */
-            imageFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), imageName);
-
-            final ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
-            if (iis != null) {
-                final Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
-                if (!iter.hasNext()) {
-                    throw new IOException("cannot determine image format");
+                // Generate the image
+                final String imageName = "tmpImage" + RandomStringUtils.randomAlphanumeric(8);
+    
+                /*
+                 * Workaround: As long as the ODF toolkit can't handle images from a ByteStream
+                 * we have to convert it to a temporary image and insert that into the document.
+                 */
+                imageFile = Paths.get(preferences.getString(Constants.GENERAL_WORKSPACE), imageName);
+    
+                final ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
+                if (iis != null) {
+                    final Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
+                    if (!iter.hasNext()) {
+                        throw new IOException("cannot determine image format");
+                    }
+                    // get the first reader
+                    final ImageReader reader = iter.next();
+                    formatName = reader.getFormatName();
+                    reader.dispose();
+                    iis.close();
                 }
-                // get the first reader
-                final ImageReader reader = iter.next();
-                formatName = reader.getFormatName();
-                reader.dispose();
-                iis.close();
+    
+                ImageIO.write(image, formatName, imageFile.toFile());
+            } else {
+                log.error("Can't create image file.");
             }
-
-            ImageIO.write(image, formatName, imageFile.toFile());
         } catch (IOException | IllegalArgumentException e) {
             log.error("Can't create temporary image file. Reason: " + e);
         }

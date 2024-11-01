@@ -88,7 +88,8 @@ Require-Bundle: javax.inject,
  org.eclipse.persistence.jpa;bundle-version="4.0.2",
  org.slf4j.osgi-over-slf4j;bundle-version="2.0.9",
  com.ibm.icu,
- org.apache.commons.commons-collections4;bundle-version="4.4.0"
+ org.apache.commons.commons-collections4;bundle-version="4.4.0",
+ org.apache.commons.commons-io
 Import-Package: jakarta.servlet;resolution:=optional,
  javax.sql,
  org.apache.commons.io,

@@ -307,7 +307,7 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textNetDays.getControl());
 
         //T: Label in the payment editor
-        String[] possiblePlaceholders = new String[] { "BANK.ACCOUNT.HOLDER", "BANK.BIC", "BANK.IBAN", "BANK.IBAN.CENSORED", "BANK.NAME",
+        String[] possiblePlaceholders = new String[] { "BANK.BIC", "BANK.IBAN", "BANK.IBAN.CENSORED", "BANK.NAME",
                 "DEBITOR.BANK.ACCOUNT.HOLDER", "DEBITOR.BANK.BIC", "DEBITOR.BANK.IBAN", "DEBITOR.BANK.IBAN.CENSORED", "DEBITOR.BANK.NAME", "DEBITOR.MANDATREF",
                 "DOCUMENT.TOTAL", "DUE.DATE", "DUE.DAYS", "DUE.DISCOUNT.DATE", "DUE.DISCOUNT.DAYS", "DUE.DISCOUNT.PERCENT", "DUE.DISCOUNT.VALUE", "PAID.DATE",
                 "PAID.VALUE", "YOURCOMPANY.CREDITORID" };
