@@ -1519,9 +1519,9 @@
 					</imageobject>
 			</inlinemediaobject> Paketdienst</subtitle>
 			<para><emphasis>Die Paketdienst-Schnittstelle mußte leider vorläufig deaktiviert werden. Alle Paketdienstleister haben ihre Seiten so umgestaltet, daß der Mechanismus für die Kommunikation mit der Seite nicht mehr funktioniert.</emphasis></para>
-<!--			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender- und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para> -->
+<!--			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender- und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para>
 			<para>Siehe auch <link linkend="parcelservice_main">Paketdienst</link>
-			</para>
+			</para> -->
 		</section>
 		<section>
 			<subtitle>

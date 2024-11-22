@@ -312,8 +312,8 @@
                     </imageobject>
                 </mediaobject>
             </informalfigure>
-            <para>Siehe auch <link linkend="parcelservice_main">Einstellungen Paketdienst</link>
-            </para>
+            <!-- <para>Siehe auch <link linkend="parcelservice_main">Einstellungen Paketdienst</link>
+            </para> -->
         </section>
     </section>
     <!-- section>
@@ -498,7 +498,7 @@
             <programlisting>Sehr geehrte Damen und Herren der Firma <emphasis role="bold">{company}</emphasis></programlisting>
             wird auf einer Rechnung ersetzt zu:
             <programlisting>Sehr geehrte Damen und Herren der Firma <emphasis role="bold">Impex Import Export GmbH</emphasis></programlisting>
-            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link> und <link linkend="openoffice_placeholders_common_delivery_address_greeting">Anrede (Lieferadresse)</link>
+            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link>
             </para>
         </section>
         <section>
@@ -508,7 +508,7 @@
             <programlisting>Sehr geehrter Herr <emphasis role="bold">{lastname}</emphasis></programlisting>
             wird auf einer Rechnung ersetzt zu:
             <programlisting>Sehr geehrter Herr <emphasis role="bold">Müller</emphasis></programlisting>
-            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link> bzw. <link linkend="openoffice_placeholders_common_delivery_address_greeting">Anrede (Lieferadresse)</link>
+            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link>
             </para>
         </section>
         <section>
@@ -518,7 +518,7 @@
             <programlisting>Sehr geehrte Frau <emphasis role="bold">{lastname}</emphasis></programlisting>
             wird auf einer Rechnung ersetzt zu:
             <programlisting>Sehr geehrte Frau <emphasis role="bold">Müller</emphasis></programlisting>
-            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link> bzw. <link linkend="openoffice_placeholders_common_delivery_address_greeting">Anrede (Lieferadresse)</link>
+            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link>
             </para>
         </section>
         <section>
@@ -528,7 +528,7 @@
             <programlisting>Sehr geehrte Damen und Herren der Firma <emphasis role="bold">{company}</emphasis></programlisting>
             wird auf einer Rechnung ersetzt zu:
             <programlisting>Sehr geehrte Damen und Herren der Firma <emphasis role="bold">Impex Import Export GmbH</emphasis></programlisting>
-            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link> bzw. <link linkend="openoffice_placeholders_common_delivery_address_greeting">Anrede (Lieferadresse)</link>
+            Siehe auch <link linkend="openoffice_placeholders_common_address_greeting">Anrede (Rechnungsadresse)</link>
             </para>
         </section>
     </section>
