@@ -411,10 +411,10 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="40%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-					</inlinemediaobject>Zahlungsbedingungen</term>
+					</inlinemediaobject>Zahlungsarten</term>
 
 				<listitem>
-					<para>Öffnet eine Liste mit allen Zahlungsbedingungen im Übersichtsfenster.</para>
+					<para>Öffnet eine Liste mit allen Zahlungsarten im Übersichtsfenster.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -700,10 +700,10 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="40%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-					</inlinemediaobject>Neue Zahlungsbedingung</term>
+					</inlinemediaobject>Neue Zahlungsart</term>
 
 				<listitem>
-					<para>Erstellt eine neue Zahlungsbedingung und öffnet diese in einem Editorfenster.</para>
+					<para>Erstellt eine neue Zahlungsart und öffnet diese in einem Editorfenster.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -802,7 +802,7 @@
 					<para>Erstellt einen neuen Einnahmebeleg und öffnet diesen in einem Editorfenster.</para>
 				</listitem>
 			</varlistentry>
-			<varlistentry>
+<!--			<varlistentry>
 				<term>
 
 					<inlinemediaobject>
@@ -819,7 +819,7 @@
 			Siehe auch <link linkend="editor_editor_parcelservice">Paketdienst</link>
 					</para>
 				</listitem>
-			</varlistentry>
+			</varlistentry>  -->
 		</variablelist>
 	</section>
 	<section>
@@ -1192,9 +1192,10 @@
 						<imagedata contentdepth="80%" width="40pt"  fileref="../images/application/parcel_service_32.png" format="PNG" scalefit="1"/>
 					</imageobject>
 			</inlinemediaobject> Paket</subtitle>
-			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para>
+			<para><emphasis>Die Paketdienst-Schnittstelle mußte leider vorläufig deaktiviert werden. Alle Paketdienstleister haben ihre Seiten so umgestaltet, daß der Mechanismus für die Kommunikation mit der Seite nicht mehr funktioniert.</emphasis></para>
+<!--			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para>
 			<para>Siehe auch <link linkend="editor_editor_parcelservice">Paketdienst Editor</link> und <link linkend="parcelservice_main">Paketdienst Vorlagen</link>
-			</para>
+			</para>-->
 		</section>
 		<section>
 			<subtitle>
@@ -1384,8 +1385,8 @@
 						<imageobject role="fo">
 							<imagedata contentdepth="50%" width="20pt" fileref="../images/application/payment_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
-				</inlinemediaobject> Zahlungsbedingungen</subtitle>
-			<para>Öffnet eine Liste mit allen Zahlungsbedingungen im Übersichtsfenster.</para>
+				</inlinemediaobject> Zahlungsarten</subtitle>
+			<para>Öffnet eine Liste mit allen Zahlungsarten im Übersichtsfenster.</para>
 			<para>Siehe auch <link linkend="application_overview">Übersichtsfenster</link>
 			</para>
 		</section>
@@ -1517,7 +1518,8 @@
 						<imagedata contentdepth="40%" width="20pt" fileref="../images/application/parcel_16.png" format="PNG" scalefit="1"/>
 					</imageobject>
 			</inlinemediaobject> Paketdienst</subtitle>
-			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender- und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para>
+			<para><emphasis>Die Paketdienst-Schnittstelle mußte leider vorläufig deaktiviert werden. Alle Paketdienstleister haben ihre Seiten so umgestaltet, daß der Mechanismus für die Kommunikation mit der Seite nicht mehr funktioniert.</emphasis></para>
+<!--			<para>Öffnet die Webseite eines Paketdienstes und füllt die Formulardaten mit Absender- und Empfängeradresse. Es wird entweder die Adresse desjenigen Dokumentes verwendet, das gerade im Dokumenteneditor geöffnet ist oder die Adresse des im Übersichtsfenster markierten Dokuments.</para> -->
 			<para>Siehe auch <link linkend="parcelservice_main">Paketdienst</link>
 			</para>
 		</section>
@@ -1697,12 +1699,12 @@
 						<para>Über das Icon "Kontakt" kann eine Liste mit allen Debitoradressen geöffnet 
 						und die gewünschte Adresse ausgewählt werden (mit <keycombo action='simul'><keycap>STRG</keycap><mousebutton>Klick</mousebutton></keycombo> wird die Kreditoren-Auswahl geöffnet). Dann wird mit dem Adresstext 
 						intern auch eine Verknüpfung zu dieser Adresse hergestellt. Dadurch können beispielsweise Zusatzinformationen (Kontonummer usw.) 
-						beim Ausdruck der Rechnung mit eingeblendet werden. Ist bei dem entsprechenden Kontakt eine Zahlungsbedingung hinterlegt, wird diese 
+						beim Ausdruck der Rechnung mit eingeblendet werden. Ist bei dem entsprechenden Kontakt eine Zahlungsart hinterlegt, wird diese 
 						ebenfalls mit übernommen.</para>
 						<para>Die Adressen im Auswahldialog werden nach der entsprechenden Dokumentenart gefiltert. Wird gerade ein Rechnungsdokument bearbeitet,
 						werden nur Rechnungsadressen angezeigt. Bei einem Lieferschein werden dementsprechend nur Lieferadressen angezeigt. Wurde das Feld
-						im Kontakt leer gelassen wird die Adresse ebenfalls angezeigt. Hat ein Kontakt mehrere infrage kommende Adressen werden diese
-						in einer Baumstruktur unter dem entsprechenden Kontakteintrag anzgezeigt.</para>
+						im Kontakt leer gelassen, wird die Adresse ebenfalls angezeigt. Hat ein Kontakt mehrere infrage kommende Adressen, werden diese
+						in einer Baumstruktur unter dem entsprechenden Kontakteintrag angezeigt.</para>
 						<para>Wird für ein Rechnungsdokument ein Kontakt ausgewählt, der eine separate Lieferanschrift besitzt, so wird diese
 						ebenfalls gleich in das Adressfeld eingefügt (in einem separaten Reiter). Dasselbe gilt auch für einen Lieferschein
 						(dort wird die Rechnungsadresse aus dem Kontakt mit hinzugefügt). Die Adressreiter sind mit der Art der jeweiligen Anschrift versehen.</para>
@@ -1892,7 +1894,7 @@
 			<para>Eine Position kann ebenfalls verschoben werden, indem man die Zeile im Bereich der Positionsnummer anklickt, die Maustaste gedrückt hält und die komplette Zeile an die neue Position verschiebt.</para>
 			<tip>
 				<para>Sind alle Preise in Brutto, kann ein Preis dennoch als Nettowert eingegeben werden. Dazu bei der Eingabe des Preises ein <emphasis role="bold">netto</emphasis> anfügen. Bei Bruttopreisen ein <emphasis role="bold">brutto</emphasis> anfügen.</para>
-				<para>Beispiel:<emphasis role="bold"> 7,00€ netto</emphasis>
+				<para>Beispiel:<emphasis role="bold"> 7netto</emphasis>
 				</para>
 				<para>Siehe auch <link linkend="preferences_document">Einstellungen Dokument</link>
 				</para>
@@ -1943,9 +1945,9 @@
 			<para>Markierung, ob die Rechnung bezahlt wurde.</para>
 		</section>
 		<section>
-			<subtitle>Zahlungsbedingung</subtitle>
-			<para>Auswahl der Zahlungsbedingung. Je nach Zahlungsbedingung wird auf die Rechnung der entsprechende Text gedruckt. Wenn ein Kontakt ausgewählt wurde, bei dem bereits eine bestimmte Zahlungsbedingung hinterlegt wurde, wird diese hier vorausgewählt.</para>
-			<para>Siehe <link linkend="editor_editor_payment">Editor Zahlungsbedingung</link>
+			<subtitle>Zahlungsart</subtitle>
+			<para>Auswahl der Zahlungsart. Je nach Zahlungsart wird auf die Rechnung der entsprechende Text gedruckt. Wenn ein Kontakt ausgewählt wurde, bei dem bereits eine bestimmte Zahlungsart hinterlegt wurde, wird diese hier vorausgewählt.</para>
+			<para>Siehe <link linkend="editor_editor_payment">Editor Zahlungsart</link>
 			</para>
 		</section>
 		<section>
@@ -2130,8 +2132,6 @@
 			<para>Nummer des Kontaktes. Diese wird automatisch hochgezählt. Man kann die Nummer 
 			manuell überschreiben. Dann wird geprüft, ob die eingegebene Nummer die nächste mögliche Nummer
 			ist. Die Prüfung kann über eine Einstellung abgeschaltet werden:</para>
-			<para>Einzelne Felder wie <emphasis role="bold">Anrede, Titel, Firma oder Land</emphasis> 
-			können über die Einstellungen ausgeblendet werden, falls sie nie benutzt werden.</para>
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
@@ -2142,6 +2142,8 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
+			<para>Einzelne Felder wie <emphasis role="bold">Anrede, Titel, Firma oder Land</emphasis> 
+			können über die Einstellungen ausgeblendet werden, falls sie nie benutzt werden.</para>
 			<para>Siehe <link linkend="preferences_numberrangevalues">Nummernkreise</link>
 			</para>
 		</section>
@@ -2202,8 +2204,8 @@
 			neues E-Mail-Fenster geöffnet.</para>
 		</section>
 		<section>
-			<subtitle>Zahlungsbedingung</subtitle>
-			<para>Zahlungsbedingung des Kunden. Wird beim Anlegen eines neues Dokumentes mit diesem Kunden verwendet.</para>
+			<subtitle>Zahlungsart</subtitle>
+			<para>Zahlungsart des Kunden. Wird beim Anlegen eines neues Dokumentes mit diesem Kunden verwendet.</para>
 		</section>
 		<section>
 			<subtitle>Bonität</subtitle>
@@ -2215,7 +2217,7 @@
 		</section>
 		<section>
 			<subtitle>Netto oder Brutto</subtitle>
-			<para>Normalerweise wird im Dokumenteneditor der Preis als Netto- oder als Bruttopreis angezeigt, abhängig davon, welche Einstellung programmweit vorgenommen wurde. Für bestimmte Kunden lässt sich unabhängig davon eine andere Einstellung festlegen. Der Dokumenteneditor öffnet sich dann mit den hier eingestellten Preisen.</para>
+			<para>Normalerweise wird im Dokumenteneditor der Preis als Netto- oder als Bruttopreis angezeigt, abhängig davon, welche Einstellung programmweit vorgenommen wurde. Für bestimmte Kunden lässt sich unabhängig davon eine andere Einstellung festlegen. Der Dokumenteneditor öffnet sich dann mit den hier eingestellten Preisen. Bei der Auswahl des Kunden im Dokumenteneditor kommt auch ein entsprechender Hinweis.</para>
 		</section>
 		<section><subtitle>Ausgleichsteuer verwenden</subtitle>
 		<para>Diese Einstellung sorgt dafür, dass bei der Berechnung der Bruttopreise eine Ausgleichsteuer berücksichtigt wird (nur für einige Länder relevant).</para>
@@ -2232,12 +2234,12 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para>Zu jedem Kontakt kann eine Notiz hinterlegt werden. Ist dort ein Text vorhanden, so wird dieser bei jedem Aufruf des Texteditors in den Vordergrund gestellt.</para>
+			<para>Zu jedem Kontakt kann eine Notiz hinterlegt werden. Ist dort ein Text vorhanden, so wird dieser bei jedem Aufruf des Kunden-Editors in den Vordergrund gestellt.</para>
 			<para>Siehe auch <link linkend="preferences_contact">Einstellungen Kontakte</link>
 			</para>
 		</section>
 	</section>
-	<section>
+<!--	<section>
 		<anchor xreflabel="" xml:id="editor_editor_parcelservice"/>
 		<title>Webseite Paketdienst</title>
 		<para>Öffnet die Webseite des Paketdienstes in einem Browserfenster und füllt die Formularfelder mit den Adressdaten.</para>
@@ -2254,10 +2256,10 @@
 		<para>Die Seite mit den zu füllenden Formularfeldern muss nicht unbedingt die Startseite sein. Werden auf einer Webseite des Paketdienstes die erforderlichen Felder gefunden, werden Absender und Empfängerdaten verwendet, um diese Felder zu füllen. Dieser Vorgang wird einmalig durchgeführt. Für neue Adressdaten ist das Editorfenster neu zu öffnen.</para>
 		<para>Siehe auch <link linkend="parcelservice_main">Paketdienst</link>
 		</para>
-	</section>
+	</section> -->
 	<section>
 		<anchor xreflabel="" xml:id="editor_editor_payment"/>
-		<title>Editor Zahlungsbedingung</title>
+		<title>Editor Zahlungsart</title>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -2270,11 +2272,11 @@
 		</informalfigure>
 		<section>
 			<subtitle>Name</subtitle>
-			<para>Eindeutiger Name der Zahlungsbedingung. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
+			<para>Eindeutiger Name der Zahlungsart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
 		</section>
 		<section>
 			<subtitle>Konto</subtitle>
-			<para>Konto, auf das alle Rechnungen mit dieser Zahlungsbedingung gebucht werden.Zum Beispiel <emphasis role="bold">Bank, Kreditkarte, privat verauslagt</emphasis>. Ein neues Konto wird automatisch angelegt, wenn der Kontoname in die Auswahlliste eingetragen wird. Beim Anlegen eines Belegs wird das zuletzt ausgewählte Konto bereits voreingestellt.</para>
+			<para>Konto, auf das alle Rechnungen mit dieser Zahlungsart gebucht werden.Zum Beispiel <emphasis role="bold">Bank, Kreditkarte, privat verauslagt</emphasis>. Ein neues Konto wird automatisch angelegt, wenn der Kontoname in die Auswahlliste eingetragen wird. Beim Anlegen eines Belegs wird das zuletzt ausgewählte Konto bereits voreingestellt.</para>
 		</section>
 		<section>
 			<subtitle>Beschreibung</subtitle>
@@ -2433,11 +2435,11 @@
 		</section>
 		<section>
 			<subtitle>Standard</subtitle>
-			<para>Zeigt den Namen derjenigen Zahlungsbedingung, die momentan die Standardzahlungsbedingung ist.</para>
+			<para>Zeigt den Namen derjenigen Zahlungsart, die momentan die Standardzahlungsart ist.</para>
 		</section>
 		<section>
 			<subtitle>zum Standard machen</subtitle>
-			<para>Macht die aktuell angezeigte Zahlungsbedingung zur Standardzahlungsbedingung. Die Zahlungsbedingung muss zuvor gespeichert worden sein.</para>
+			<para>Macht die aktuell angezeigte Zahlungsart zur Standardzahlungsart. Die Zahlungsart muss zuvor gespeichert worden sein.</para>
 		</section>
 	</section>
 	<section>
@@ -2518,7 +2520,7 @@
 						<imagedata fileref="../images/editor/vat_step1.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
-						<imagedata contentdepth="90%" fileref="../images/editor/vat_step1.png" format="PNG" scalefit="1"/>
+						<imagedata contentdepth="85%" fileref="../images/editor/vat_step1.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</inlinemediaobject>
 			
@@ -2720,7 +2722,7 @@
 		</informalfigure>
 		<section>
 			<anchor xreflabel="boo" xml:id="application_overview1"/><title>Der Kategoriebaum</title>
-			<para>Alle Datensätze können in eine Kategorie eingeordnet werden. Am linken Rand des Übersichtsfensters erscheint ein Baum mit allen verwendeten Kategorien. Wird das Element <emphasis role="bold">alle</emphasis> ausgewählt, werden alle Datensätze angezeigt. Ist ein Kategorieelement angewählt, erscheinen nur diejenigen Datensätze, die in die gleiche Kategorie eingeordnet wurden.</para>
+			<para>Alle Datensätze können in eine Kategorie eingeordnet werden. Am linken Rand des Übersichtsfensters erscheint ein Baum mit allen verwendeten Kategorien, falls es einen Datensatz (Produkt, Dokument o.ä.) gibt, der in eine Kategorie einsortiert wurde. Wird das Element <emphasis role="bold">alle</emphasis> ausgewählt, werden alle Datensätze angezeigt. Ist ein Kategorieelement angewählt, erscheinen nur diejenigen Datensätze, die in die gleiche Kategorie eingeordnet wurden.</para>
 		</section>
 		<section>
 			<subtitle>Der Kategoriebaum für Dokumente</subtitle>

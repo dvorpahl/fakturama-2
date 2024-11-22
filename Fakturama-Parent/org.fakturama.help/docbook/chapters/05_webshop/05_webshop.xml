@@ -57,7 +57,7 @@
       <para>Damit Fakturama Bestellungen aus dem Webshop abrufen kann ist es notwendig, die Schnittstelle zu Fakturama auf dem Server des Shopsystems zu installieren.</para>
       <section>
         <title>Download</title>
-        <para>Im <link xl:href="http://vorlagen.fakturama.info/webshops/">Vorlagenbereich</link> auf der Fakturama-Projektseite finden sich Schnittstellen zu unterschiedlichen Shopsystemen. Entpacken Sie das entsprechende ZIP Archiv auf Ihrem Rechner. Im entpackten Ordner müssen sich die folgenden zwei Dateien befinden:</para>
+        <para>Im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenbereich</link> auf der Fakturama-Projektseite finden sich Schnittstellen zu unterschiedlichen Shopsystemen. Entpacken Sie das entsprechende ZIP Archiv auf Ihrem Rechner. Im entpackten Ordner müssen sich die folgenden zwei Dateien befinden:</para>
         <informalfigure>
           <mediaobject>
             <imageobject role="html">

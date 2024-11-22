@@ -16,12 +16,10 @@
 			<listitem>Linux (64Bit)</listitem>
 		</itemizedlist>
 		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 11 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und 
-		der PDFs sind OpenOffice.org bzw. LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im OpenOffice-Format ist kein OpenOffice/LibreOffice notwendig (nur für die PDF-Dokumente).</para>
+		der PDFs ist LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im OpenOffice-Format ist kein LibreOffice notwendig (nur für die PDF-Dokumente).</para>
 		<itemizedlist>
-			<listitem>Downloadseite OpenOffice.org: <link xl:href="http://www.openoffice.org/">http://www.openoffice.org/</link></listitem>
-			<listitem>Downloadseite LibreOffice <link xl:href="http://www.libreoffice.org/">http://www.libreoffice.org/</link></listitem>
-			<listitem>Downloadseite <trademark>Java</trademark>: <link xl:href="http://www.java.com/de/">http://www.java.com/de/</link></listitem>
-			<listitem>Überprüfen, ob <trademark>Java</trademark> bereits installiert ist: <link xl:href="http://www.java.com/de/download/installed.jsp">TEST</link></listitem>
+			<listitem>Downloadseite LibreOffice <link xl:href="https://www.libreoffice.org/">LibreOffice</link></listitem>
+			<listitem>Downloadseite <trademark>Java</trademark>: <link xl:href="https://adoptium.net/de/temurin/releases/">Adoptium</link></listitem>
 		</itemizedlist>
 		<para>Wird Fakturama zusammen mit einem Webshop betrieben, ist zusätzlich die entsprechende 
 		Webshop-Schnittstelle zu installieren. Diese befinden sich auf der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> bzw. im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link>.
@@ -29,8 +27,8 @@
 	</section>
 	
 	<section><title>Allgemeine Installationshinweise</title>
-        <para>Laden und installieren Sie <trademark>Java</trademark> und OpenOffice (bzw. LibreOffice), falls noch nicht geschehen. Starten Sie 
-        OpenOffice (bzw. LibreOffice) nach einer Installation ein erstes Mal. Es werden einige Daten wie Name und Namenskürzel abgefragt.
+        <para>Laden und installieren Sie <trademark>Java</trademark> (nur für MacOS relevant!) und LibreOffice, falls noch nicht geschehen. Starten Sie 
+        LibreOffice nach einer Installation ein erstes Mal. Es werden einige Daten wie Name und Namenskürzel abgefragt.
         Sie benötigen das Programm, um Vorlagen bearbeiten zu können bzw. aus Fakturama heraus PDFs erzeugen zu können.</para>
         <para>Sollten Sie sich für den Einsatz einer MySQL- oder MariaDB entscheiden (z. B. wegen des Mehrbenutzerzugriffes), 
         müssen Sie diese ebenfalls bereits installiert haben. Für den Betrieb von Fakturama erzeugen Sie bitte eine leere Datenbank und konfigurieren Sie zu dieser Datenbank einen Nutzer, der die Rechte zum Anlegen von Tabellen, zum Selektieren, Ändern und Löschen von Daten hat sowie Tabellen ändern darf.
@@ -100,7 +98,7 @@
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
 				</inlinemediaobject> Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte OpenOffice (oder LibreOffice). Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk2</code> bzw. <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
+			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte LibreOffice installiert sein. Auf einigen Systemen muss auch die Bibliothek <code>libwebkitgtk2</code> bzw. <code>libwebkitgtk3</code> installiert sein (das hängt von der jeweiligen Konfiguration des Fenstermanagers ab).</para>
 			<para>Alternativ kann auch die gepackte Archivdatei (*.tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
 			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle Dokumente und Vorlagen abgelegt. Beispiel:</para>
 			<programlisting>/home/Benutzername/Dokumente/MeineFirma/</programlisting>
@@ -120,8 +118,7 @@
 			</para>
 		</sect2>
 	</section>
-	<section>
-			<anchor xreflabel="" xml:id="install_install_mac_os_x"/>
+	<section><anchor xreflabel="" xml:id="install_install_mac_os_x"/>
 		<title>Installation unter einem Mac OS X Betriebssystem</title>
 		<para>Laden Sie den <inlinemediaobject>
 				<imageobject role="html">
@@ -137,7 +134,7 @@
 						<imagedata fileref="../images/install/install_macos.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
-						<imagedata contentdepth="60%" fileref="../images/install/install_macos.png" format="PNG" scalefit="1"/>
+						<imagedata contentdepth="50%" fileref="../images/install/install_macos.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
@@ -161,6 +158,16 @@
 		<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
 		</para>
 	</section>
+	<section><anchor xreflabel="" xml:id="install_unattended"/>
+		<title>Automatische Installation</title>
+		<para>Die Installer für Windows und Linux können im sog. "unbeaufsichtigten Modus" gestartet werden. Dieser erlaubt es, die komplette Installation ohne Nutzereingaben durchzuführen. Dazu muß der Installer mit dem Parameter <code>-q</code> gestartet werden. Im Normalfall werden keine bereits vorhandenen Programmdateien überschrieben. Dies kann mit dem Aufrufparameter <code>-overwrite</code> übersteuert werden. Die Installation erfolgt normalerweise in das Programmverzeichnis des jeweiligen Betriebssystems. Dies kann über den Aufrufparamater <code>-dir</code> geändert werden.</para>
+		<para>
+		Beispiel (für Windows-Installer):
+		<programlisting>installer.exe -q -dir "D:\MyApps\My Application"</programlisting>
+		</para>
+		<para>Falls während der Installation Eingaben erforderlich sind, können diese in einem sog. "Response"-File hinterlegt werden. Dieses enthält Wertepaare für die einzelnen Einstellungen. Während einer Installation über die graphische Oberfläche wird im Verzeichnis <code>.install4j</code> (im Programmverzeichnis) ein Response-File hinterlegt (<code>response.varfile</code>). Dieses kann für weitere Installationen verwendet werden.</para>
+	</section>
+	
 	<section>
 			<anchor xreflabel="" xml:id="install_start"/>
 		<title>Erstes Starten von Fakturama</title>
@@ -201,17 +208,17 @@
 				</imageobject>
 			</mediaobject>
 		</informalfigure -->
-		<para>Nach der Installation ist ein Demowebshop auf <link xl:href="http://shop.fakturama.info">shop.fakturama.info</link> in den Einstellungen vorausgewählt. Startet man den Import von Webshopdaten, 
+		<para>Nach der Installation ist ein Demowebshop auf <link xl:href="https://shop.fakturama.info/admin/fakturama2_connector_DE.php">shop.fakturama.info</link> in den Einstellungen vorausgewählt. Startet man den Import von Webshopdaten, 
 		so werden 3 Musterprodukte und 2 Musterkunden angelegt. Diese können später wieder gelöscht werden.</para>
 		<para>Vor dem Arbeiten mit Fakturama sollten noch einige Einstellungen gesetzt werden. Die Werte sind bereits sinnvoll ausgewählt, doch nicht immer passen 
 		diese auf den eigenen Arbeitsablauf.</para>
 		<para>Einige Einstellungen wie Firmendaten oder die Zugangsdaten des Webshops müssen gesetzt werden. Es empfiehlt sich, alle Einstellungen zu prüfen.</para>
-		<para>Fakturama benutzt zum Drucken von Dokumenten wie Rechnungen oder Lieferscheinen Vorlagen, die mit dem Programm OpenOffice bzw. LibreOffice erstellt wurden. 
+		<para>Fakturama benutzt zum Drucken von Dokumenten wie Rechnungen oder Lieferscheinen Vorlagen, die mit dem Programm LibreOffice erstellt wurden. 
 		Diese müssen auf das eigene Design angepasst und mit den Firmendaten versehen werden. Die Vorlagen befinden sich im Arbeitsverzeichnis im Unterordner Vorlagen (dort jeweils
 		in einem separaten Ordner).</para>
-		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien OpenOffice bzw. LibreOffice installiert sein muss. Wenn Sie Ihre Dokumente nur im OpenOffice-Format erzeugen möchten benötigen Sie dieses Programm nicht unbedingt. 
+		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien LibreOffice installiert sein muss. Wenn Sie Ihre Dokumente nur im OpenOffice-Format erzeugen möchten benötigen Sie dieses Programm nicht unbedingt. 
 		Für die Erstellung von ZUGFeRD-Dokumenten müssen Sie einmalig im LibreOffice einen PDF-Export eines beliebigen Dokumentes durchführen und dabei als Option PDF/A einstellen.</para>
-		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">OpenOffice.org / LibreOffice Vorlagen</link>
+		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">LibreOffice Vorlagen</link>
 		</para>
 		<para>Für die Aktualisierung des Programms genügt es, den neuen Installer zu starten und dann die Option zum Aktualisieren der bestehenden Installation zu nutzen. Der Installer wurde jetzt so angepaßt, daß die Einstellungsdatei für die Darstellung der Oberfläche (<computeroutput>.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</computeroutput>) gelöscht wird. Allerdings funktioniert das nur für Standard-Installationen, da bei der Installation oder dem Update von Fakturama nicht festgestellt werden kann, welches Einstellungsverzeichnis verwendet wird (das können bei mehreren Mandanten auch mehrere Verzeichnisse sein). In dem Fall müßte die Datei manuell entfernt werden.		
 		</para>

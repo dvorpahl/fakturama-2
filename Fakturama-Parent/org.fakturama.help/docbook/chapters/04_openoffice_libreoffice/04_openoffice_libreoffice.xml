@@ -2,17 +2,7 @@
 <chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xl="http://www.w3.org/1999/xlink" xml:lang="de"
 id="04_openoffice_libreoffice">
 	<anchor xreflabel="" xml:id="openoffice_main"/>
-	<title>OpenOffice.org / LibreOffice</title>
-	<informalfigure>
-		<mediaobject>
-			<imageobject role="html">
-				<imagedata fileref="../images/openoffice/ooo_logo.png" format="PNG" scalefit="1"/>
-			</imageobject>
-			<imageobject role="fo">
-				<imagedata contentdepth="80%" fileref="../images/openoffice/ooo_logo.png" format="PNG" scalefit="1" />
-			</imageobject>
-		</mediaobject>
-	</informalfigure>
+	<title>LibreOffice</title>
 	<informalfigure>
 		<mediaobject>
 			<imageobject role="html">
@@ -24,20 +14,14 @@ id="04_openoffice_libreoffice">
 		</mediaobject>
 	</informalfigure>
 	<section>
-		<title>Fakturama und OpenOffice.org / LibreOffice</title>
-		<para>Fakturama benutzt OpenOffice.org bzw. LibreOffice Writer, um Dokumente (Rechnungen, Lieferscheine usw.) in PDFs umzuwandeln und Berichte als Calc-Tabelle zu exportieren. Für die Dokumente werden Vorlagen mit Firmenlogo, Adresse usw. angelegt, die dann mit dem eigentlichen Dokumenteninhalt befüllt werden. Die Befüllung der Vorlage geschieht unabhängig von OpenOffice / LibreOffice.</para>
-	<sect2>
-		<title>OpenOffice.org Projektseite</title>
-		<para>OpenOffice.org ist eine freie Bürosoftware. Das Projekt ist Open-Source und steht in zahlreichen Sprachen und für verschiedenen Betriebssysteme zur Verfügung.</para>
-		<para>Link zur deutschsprachigen Seite des OpenOffice.org Projektes: <link xl:href="http://www.openoffice.org/de/">www.openoffice.org</link>
-		</para>
-	</sect2>
+		<title>Fakturama und LibreOffice</title>
+		<para>Fakturama benutzt LibreOffice Writer, um Dokumente (Rechnungen, Lieferscheine usw.) in PDFs umzuwandeln und Berichte als Calc-Tabelle zu exportieren. Für die Dokumente werden Vorlagen mit Firmenlogo, Adresse usw. angelegt, die dann mit dem eigentlichen Dokumenteninhalt befüllt werden. Die Befüllung der Vorlage geschieht unabhängig von LibreOffice.</para>
 	<sect2>
 		<title>LibreOffice Projektseite</title>
 		<para>LibreOffice ist eine freie Bürosoftware. Das Projekt ist Open-Source und steht in zahlreichen Sprachen und für verschiedenen Betriebssysteme zur Verfügung.</para>
 		<para>Link zur deutschsprachigen Seite des LibreOffice Projektes: <link xl:href="http://de.libreoffice.org/">de.libreoffice.org</link>
 		</para>
-		<para>Siehe auch <link linkend="preferences_openoffice">OpenOffice.org / LibreOffice Einstellungen</link>
+		<para>Siehe auch <link linkend="preferences_openoffice">LibreOffice Einstellungen</link>
 		</para>
 	</sect2>
 	</section>
@@ -67,19 +51,16 @@ id="04_openoffice_libreoffice">
 			<para>Eine Vorlage kann aus Texten, Grafiken und Tabellen bestehen. Über verschiedene Platzhalter füllt Fakturama die Vorlage mit dem entsprechenden Inhalt.</para>
 			<para>Unterschiedliche Platzhalter sind für unterschiedliche Bereiche vorgesehen:</para>
 			<itemizedlist>
-				<listitem>
-					<para> Allgemeine Platzhalter, die an jede Stelle gesetzt werden dürfen (1).</para>
-				</listitem>
-				<listitem>
-					<para> Platzhalter in der Artikeltabelle (2).</para>
-				</listitem>
-				<listitem>
-					<para> Platzhalter in der Tabelle der Zwischensumme (3).</para>
-				</listitem>
+				<listitem>Allgemeine Platzhalter, die an jede Stelle gesetzt werden dürfen (1).</listitem>
+				<listitem>Platzhalter in der Artikeltabelle (2).</listitem>
+				<listitem>Platzhalter in der Tabelle der Zwischensumme (3).</listitem>
 			</itemizedlist>
+			<tip>
+			Im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php">Vorlagenportal</link> befinden sich bereits viele von anderen Nutzern bereitgestellte Vorlagen, die verwendet werden können.
+			</tip>
 		</section>
 		<section>
-			<title>Platzhalter in OpenOffice/LibreOffice Writer</title>
+			<title>Platzhalter in LibreOffice Writer</title>
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
@@ -90,7 +71,7 @@ id="04_openoffice_libreoffice">
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para>Ein Platzhalter wird in OpenOffice/LibreOffice Writer eingefügt über das Menü <guimenuitem>Einfügen/Feldbefehl/Andere</guimenuitem> oder die Tastenkombination <keycombo>
+			<para>Ein Platzhalter wird in LibreOffice Writer eingefügt über das Menü <guimenuitem>Einfügen/Feldbefehl/Andere</guimenuitem> oder die Tastenkombination <keycombo>
 					<keycap>STRG</keycap><keysym>F2</keysym>        
 				</keycombo>. Im Dialog unter dem Reiter <emphasis role="bold">Funktionen</emphasis> als Feldtyp <emphasis role="bold">Platzhalter</emphasis> auswählen und als <emphasis role="bold">Format</emphasis> den Eintrag <emphasis role="bold">Text</emphasis>. Der Platzhalter wird in Großbuchstaben ohne die <emphasis role="bold">spitzen Klammern</emphasis> im Feld <emphasis role="bold">Platzhalter</emphasis> eingegeben.</para>
 		</section>

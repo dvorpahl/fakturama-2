@@ -12,10 +12,10 @@
         </imageobject>
       </mediaobject>
     </informalfigure>
-    <!-- section> TODO!!
+    <section>
       <title>Ordner Backup</title>
-      <para>Bei jedem Start von Fakturama wird die Datenbank komprimiert und mit Zeitstempel versehen in diesem Ordner abgelegt. Es ist damit möglich, die Datenbank zu einem Stand wieder zurückzusetzen. Produktbilder werden nicht gesichert.</para>
-    </section -->
+      <para>Bei jedem Beenden von Fakturama wird die Datenbank komprimiert und mit Zeitstempel versehen in diesem Ordner abgelegt. Es ist damit möglich, die Datenbank zu einem Stand wieder zurückzusetzen. Die Produktbilder werden in der Datenbank gespeichert und deshalb mit gesichert.</para>
+    </section>
     <section>
       <title>Ordner Database</title>
       <para>Startet man Fakturama ohne die Auswahl einer Datenbank, so speichert es alle Daten in einer HSQLDB 2.0 Datenbank. Diese Datenbank besteht aus den Dateien <filename>Database.properties</filename>, welche Einstellungen der Datenbank speichert und <filename>Database.script</filename> mit den eigentlichen Daten. Produktbilder werden ebenfalls in der Datenbank (<filename>Database.lobs</filename>) gespeichert.</para>

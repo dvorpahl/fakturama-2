@@ -1,6 +1,6 @@
 @ECHO OFF
 @REM aktuelle Fakturama-Version
-set VERSION=2.1.3
+set VERSION=2.2.0
 
 @REM Pfad setzen
 set PATH=c:\Javalibs\fop-1.1\;%PATH%;
