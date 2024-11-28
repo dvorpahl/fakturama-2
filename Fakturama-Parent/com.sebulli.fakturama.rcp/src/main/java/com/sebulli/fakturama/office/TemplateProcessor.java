@@ -541,6 +541,8 @@ public class TemplateProcessor {
                     final URI imageFileURI = Path.of(text).toUri();
                     final Pair<Integer, Integer> widthHeight = getCustomImageSize(imageFileURI, placeholderNode);
                     placeholderNode.replaceWith(imageFileURI, widthHeight.getLeft(), widthHeight.getRight());
+                } else {
+                	placeholderNode.replaceWith(text);
                 }
                 break;
             case TABLE_NODE:
@@ -812,7 +814,7 @@ public class TemplateProcessor {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalGross()) : "";
         }
         if (key.equals("DOCUMENT.TOTAL.QUANTITY")) {
-            return documentSummary.isPresent() ? Double.toString(documentSummary.get().getTotalQuantity()) : ""; // FAK-410
+            return documentSummary.isPresent() ? numberFormatterService.doubleToFormattedQuantity(documentSummary.get().getTotalQuantity()) : ""; // FAK-410
         }
         if (key.equals("DOCUMENT.ITEMS.COUNT")) {
             return String.format("%d", document.getItems().size());
@@ -1848,14 +1850,17 @@ public class TemplateProcessor {
             if (item.getItemNumber() != null) {
 
                 final byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
-                final Path imageFile = createImageFile(imageBytes, "JPG");
-
-                if (imageFile != null) {
-                    final Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
-                    // replace the placeholder
-                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+                
+                if(imageBytes != null) {
+	                final Path imageFile = createImageFile(imageBytes, "JPG");
+	
+	                if (imageFile != null) {
+	                    final Pair<Integer, Integer> widthHeight = getCustomImageSize(imageBytes, cellPlaceholder);
+	                    // replace the placeholder
+	                    cellPlaceholder.replaceWith(imageFile.toUri(), widthHeight.getLeft(), widthHeight.getRight());
+	                }
+	                return;
                 }
-                return;
             }
 
             value = "";
