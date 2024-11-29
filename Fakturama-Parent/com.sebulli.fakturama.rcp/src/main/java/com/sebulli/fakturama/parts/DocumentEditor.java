@@ -1237,17 +1237,15 @@ public class DocumentEditor extends Editor<Document> {
         retval.setDeposit(parentDoc.getDeposit());
         if ((parentPayment == null && !DocumentTypeUtil.findByBillingType(parentDoc.getBillingType()).canBePaid()) && documentType.canBePaid()) {
             // set payment method to default payment if parent document is not a payable document (e.g., an offer or delivery document)
-            long paymentId = defaultValuePrefs.getLong(Constants.DEFAULT_PAYMENT);
-            parentPayment = paymentsDao.findById(paymentId);
 
             // reset some payment-related values
             retval.setPaidValue(Double.valueOf(0.0));
             retval.setPaid(Boolean.FALSE);
             retval.setPayDate(null);
-            retval.setDueDays(parentPayment.getNetDays());
             retval.setDeposit(Boolean.FALSE);
 
         }
+        retval.setDueDays(parentPayment.getNetDays());
         retval.setPayment(parentPayment);
 
         retval.setTotalValue(parentDoc.getTotalValue());
