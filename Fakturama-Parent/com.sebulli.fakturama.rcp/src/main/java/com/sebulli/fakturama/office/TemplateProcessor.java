@@ -751,7 +751,7 @@ public class TemplateProcessor {
             return document.getCustomerRef();
         }
         if (key.equals("DOCUMENT.CONSULTANT")) {
-            return billingAdress.getConsultant();
+            return document.getBillingType().isDELIVERY() ? deliveryAdress.getConsultant() : billingAdress.getConsultant();
         }
         if (key.equals("DOCUMENT.SERVICEDATE")) {
             return dateFormatterService.getFormattedLocalizedDate(document.getServiceDate());
@@ -1127,6 +1127,12 @@ public class TemplateProcessor {
         }
         if (key.equals("ADDRESS")) {
             return Optional.ofNullable(contactUtil.getAddressAsString(contact));
+        }
+        if (key.equals("ADDRESS.ALIAS")) {
+            return Optional.ofNullable(contact.getAlias());
+        }
+        if (key.equals("ADDRESS.LOCALCONSULTANT")) {
+            return Optional.ofNullable(contact.getConsultant());
         }
         if (key.equals("ADDRESS.GENDER")) {
             return Optional.ofNullable(contactUtil.getGenderString(contact));
