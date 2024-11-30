@@ -60,7 +60,6 @@ public class GiroCodeGenerator {
         girocode.setBic(companyBankaccount.getBic());
         girocode.setIban(companyBankaccount.getIban());
         girocode.setName(defaultValuePrefs.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
-        girocode.setReference(document.getName());
         String giroText = MessageFormat.format(msg.exporterGirocodePurpose, document.getName(),dateFormatter.getFormattedLocalizedDate(document.getDocumentDate())); 
         girocode.setText(giroText);
         String generatedString = girocode.generateString();
