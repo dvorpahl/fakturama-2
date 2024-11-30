@@ -215,7 +215,7 @@ public class MailService implements IPdfPostProcessor {
         try {
             if (Files.exists(additionalFilePath)) {
                 additionalFiles = Files.list(additionalFilePath).sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase()))
-                        .map(p -> p.getFileName().toString()).toList();
+                        .map(p -> p.toAbsolutePath().toString()).toList();
             }
         } catch (IOException e) {
             log.error(e, "Error while scanning the additional files directory: " + additionalFilePath.toString());
