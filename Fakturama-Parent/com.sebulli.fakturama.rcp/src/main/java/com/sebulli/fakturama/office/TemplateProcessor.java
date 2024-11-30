@@ -471,6 +471,9 @@ public class TemplateProcessor {
                         startOfPlaceholder = -1;
                     }
                 }
+                if(endIndex + 1 < template.length()) {
+                    result.append(template.substring(endIndex + 1));
+                }
                 return result.toString();
             } catch (final ParserConfigurationException pcE) {
                 log.error(pcE, "Cannot parse template " + StringUtils.wrapIfMissing(template, "'"));
