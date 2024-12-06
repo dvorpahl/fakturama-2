@@ -96,12 +96,11 @@ for arg in "$@"; do
    echo "creating L10N directories..."
    mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj nl.proj no.proj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
    cd -
-   
+      
    # copy signed com.sun.jna to staging directory
-   cp -f /Applications/Eclipse_202306.app/Contents/Eclipse/plugins/com.sun.jna_5.13.0.jar "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
-   
-   # cp DS_Store ${STAGING_DIR}/.DS_Store
-   
+   cp -fr /Applications/Eclipse.app/Contents/Eclipse/plugins/com.sun.jna_5.14.0.v20231211-1200 "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
+   rm ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna_5.15.0.jar ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna.platform_5.15.0.jar 
+     
    pushd "${STAGING_DIR}"
    
    # strip the executable
