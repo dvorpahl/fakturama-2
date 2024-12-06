@@ -1949,18 +1949,25 @@ public class DocumentEditor extends Editor<Document> {
         updateUseGross(true);
     }
 
-    private void setAddressInTab(final CTabItem addressTab, final DocumentReceiver documentReceiver, final int position) {
-        if (addressTab != null) {
-            Text currenCTabItem = (Text) addressTab.getControl();
-            String addressAsString = contactUtil.getAddressAsString(documentReceiver);
-            currenCTabItem.setText(addressAsString);
-            updateAddressFirstLine(documentReceiver, currenCTabItem, position);
+	private void setAddressInTab(final CTabItem addressTab, final DocumentReceiver documentReceiver,
+			final int position) {
+		if (addressTab != null) {
+			Text currenCTabItem = (Text) addressTab.getControl();
+			String addressAsString;
+			if (documentReceiver != null) {
+				Address address = contactDAO.findByAddressId(documentReceiver.getOriginAddressId());
+				addressAsString = contactUtil.getAddressAsString(documentReceiver, address);
+			} else {
+				addressAsString = contactUtil.getAddressAsString(documentReceiver);
+			}
+			currenCTabItem.setText(addressAsString);
+			updateAddressFirstLine(documentReceiver, currenCTabItem, position);
 
-            part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
-            bindAddressWidgetForIndex(addressAndIconComposite.getSelectionIndex());
-            part.getTransientData().remove(BIND_MODE_INDICATOR);
-        }
-    }
+			part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
+			bindAddressWidgetForIndex(addressAndIconComposite.getSelectionIndex());
+			part.getTransientData().remove(BIND_MODE_INDICATOR);
+		}
+	}
 
     /**
      * If current document is an invoice or a delivery note and there's no

@@ -325,9 +325,13 @@ public class ContactUtil {
      * @return Complete address
      */
     public String getAddressAsString(final DocumentReceiver documentReceiver) {
-        return getAddressAsString(documentReceiver, "\n");
+        return getAddressAsString(documentReceiver, null, "\n");
     }
 
+    public String getAddressAsString(final DocumentReceiver documentReceiver, Address originAddress) {
+    	return getAddressAsString(documentReceiver, originAddress, "\n");
+    }
+    
     /**
      * Converts a {@link BillingType} into a {@link ContactType}. Note that the
      * return value can be <code>null</code>!
@@ -405,12 +409,14 @@ public class ContactUtil {
      * 
      * @return Complete address
      */
-    public String getAddressAsString(final DocumentReceiver documentReceiver, final String separator) {
+    public String getAddressAsString(final DocumentReceiver documentReceiver, Address originAddress, final String separator) {
         String addressString = "";
         // manualAddress has precedence over regular entries
         if (documentReceiver == null || documentReceiver.getManualAddress() != null) {
             // if a manual address is set we use it
             addressString = documentReceiver.getManualAddress();
+        } else if(originAddress!= null) {
+        	return getAddressAsString(AddressDTO.from(documentReceiver, originAddress), separator);
         } else {
             // else we build an address string from address fields
             return getAddressAsString(AddressDTO.from(documentReceiver), separator);
@@ -730,6 +736,7 @@ public class ContactUtil {
         formatString = replaceAllWithSpace(formatString, "\\{title\\}", contact.getTitle());
         formatString = replaceAllWithSpace(formatString, "\\{firstname\\}", contact.getFirstName());
         formatString = replaceAllWithSpace(formatString, "\\{lastname\\}", contact.getName());
+        formatString = replaceAllWithSpace(formatString, "\\{nameaddon\\}", contact.getAddressAddon());
 
         formatString = replaceAllWithSpace(formatString, "\\{street\\}", contact.getStreet());
         formatString = replaceAllWithSpace(formatString, "\\{zip\\}", contact.getZip());

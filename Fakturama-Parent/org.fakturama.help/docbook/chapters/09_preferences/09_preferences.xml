@@ -461,6 +461,9 @@
                 <para>{gender}  Platzhalter für Anrede</para>
             </listitem>
             <listitem>
+                <para>{nameaddon}  Platzhalter für Adresszusatz</para>
+            </listitem>
+            <listitem>
                 <para>{firstname}  Platzhalter für Vorname</para>
             </listitem>
             <listitem>
