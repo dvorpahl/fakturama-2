@@ -57,7 +57,12 @@ public class QRCodeServiceImpl implements QRCodeService {
     @Override
     public byte[] createVCardQRCode(Document document) {
         VCard vcard = new VCard(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
-        vcard.setAddress(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET));
+		String address = String.join(";", ";",
+				preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET),
+        		preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY), 
+        		";"+preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP), 
+        		preferences.getString(Constants.PREFERENCES_YOURCOMPANY_COUNTRY));
+        vcard.setAddress(address);
         vcard.setCompany(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
         vcard.setEmail(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL));
         vcard.setName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
