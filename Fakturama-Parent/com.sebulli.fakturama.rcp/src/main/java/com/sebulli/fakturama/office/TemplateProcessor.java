@@ -697,6 +697,8 @@ public class TemplateProcessor {
                 return preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN);
             case YOURCOMPANY_BIC:
                 return preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC);
+            case YOURCOMPANY_CREDITORID:
+            	return preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CREDITORID);
             case YOURCOMPANY_QRVCARD:
                 return createImageFile(qrCodeService.createVCardQRCode(document), "png").toString();
             default:
