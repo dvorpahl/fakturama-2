@@ -20,11 +20,12 @@ Require-Bundle: org.eclipse.e4.core.services,
  org.javamoney.moneta;bundle-version="1.4.2";visibility:=reexport,
  javax.money;bundle-version="1.1.0";visibility:=reexport,
  slf4j.api;bundle-version="2.0.13";visibility:=reexport,
- org.apache.xerces;bundle-version="2.12.2"
+ org.apache.xerces;bundle-version="2.12.2",
+ org.slf4j.osgi-over-slf4j;bundle-version="2.0.16"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.opcoach.e4.preferences,
- com.sun.jna;version="5.15.0",
+ com.sun.jna,
  jakarta.annotation;version="[2.1.0,3.0.0]",
  jakarta.inject;version="[2.0.0,3.0.0]",
  jakarta.servlet;resolution:=optional,
@@ -47,7 +48,7 @@ Import-Package: com.opcoach.e4.preferences,
  org.eclipse.swt.graphics,
  org.eclipse.swt.widgets,
  org.osgi.framework,
- org.osgi.service.component.annotations;version="1.3.0",
+ org.osgi.service.component.annotations,
  org.osgi.service.log,
  org.osgi.util.tracker,
  org.slf4j
