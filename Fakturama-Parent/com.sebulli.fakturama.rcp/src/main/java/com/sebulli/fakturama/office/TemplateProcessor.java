@@ -1539,7 +1539,8 @@ public class TemplateProcessor {
         }
         // It's the VAT value
         else if (cellPlaceholder.isPlaceholder("VATLIST.VALUES")) {
-            textValue = value;
+            // Interpret all parameters
+            textValue = applyParameters(value, cellPlaceholder.getParameters());
         } else if (cellPlaceholder.isPlaceholder("VATLIST.PERCENT")) {
             textValue = numberFormatterService.DoubleToFormatedPercent(vatSummaryItem.getVatPercent());
         } else if (cellPlaceholder.isPlaceholder("VATLIST.VATSUBTOTAL")) {
