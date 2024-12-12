@@ -87,12 +87,9 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
     @Translation
     protected ZFMessages msg;
 
-    @Inject // node: org.fakturama.export.zugferd
-    protected IPreferenceStore preferences;
-
     @Inject
     @org.eclipse.e4.core.di.annotations.Optional
-    @Preference
+    @Preference(nodePath = "org.fakturama.exporter.zugferd")
     protected IEclipsePreferences eclipsePrefs;
 
     @Inject
@@ -146,10 +143,11 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         netPricesPerVat.clear();
 
         if (zugferdProfile == ConformanceLevel.XRECHNUNG) {
+        	IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();       
             final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
             final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
             final Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
-                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, preferences.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
+                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH,defaultValuesNode.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
             // only to be on the safe side...
             try {
                 Files.deleteIfExists(path);
@@ -158,7 +156,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             }
             createXmlFile(invoiceXmlJaxb, path);
         } else {
-            // this is Zugpferd only
+            // this is Zugferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
                 // create XML from structure              
                 final JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
