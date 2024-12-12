@@ -1097,7 +1097,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private CountryIDType createCountry(final String value) {
-        String countryStr = null;
+        String countryStr = value;
         // FIXME CHANGE THIS!!!
         if (StringUtils.length(value) > 2) {
             countryStr = localeUtil.findCodeByDisplayCountry(value, "DE");
