@@ -98,8 +98,8 @@ for arg in "$@"; do
    cd -
       
    # copy signed com.sun.jna to staging directory
-   cp -fr /Applications/Eclipse.app/Contents/Eclipse/plugins/com.sun.jna_5.14.0.v20231211-1200 "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
-   rm ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna_5.15.0.jar ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna.platform_5.15.0.jar 
+   rm -rf ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna*
+   cp -fR /Applications/Eclipse.app/Contents/Eclipse/plugins/com.sun.jna* "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
      
    pushd "${STAGING_DIR}"
    

@@ -1271,7 +1271,12 @@ public class DocumentEditor extends Editor<Document> {
             DocumentItem newItem = item.clone();
             retval.addToItems(newItem);
         }
-        retval.setItemsRebate(parentDoc.getItemsRebate());
+        
+        if(retval.getBillingType().isCREDIT()) {
+            retval.setItemsRebate(parentDoc.getItemsRebate()* -1.0);
+        } else {            
+            retval.setItemsRebate(parentDoc.getItemsRebate());
+        }
 
         retval.setNoVatReference(parentDoc.getNoVatReference());
         retval.setNetGross(parentDoc.getNetGross());
@@ -1418,7 +1423,7 @@ public class DocumentEditor extends Editor<Document> {
         if (itemsDiscount != null) {
             // Convert it to negative values
             rebate = (Double) itemsDiscount.getValue();
-            if (rebate > 0) {
+            if (rebate > 0 && !document.getBillingType().isCREDIT()) {
                 rebate *= Integer.valueOf(-1);
                 itemsDiscount.setValue(rebate);
             }

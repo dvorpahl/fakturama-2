@@ -39,9 +39,9 @@
         <setEntry value="angus-activation*2.0.2@default:default"/>
         <setEntry value="bcpg*1.76.0@default:default"/>
         <setEntry value="bcprov*1.76.0@default:default"/>
-        <setEntry value="ca.odell.glazedlists*1.11.0.v20221112-0806@default:default"/>
-        <setEntry value="ch.qos.logback.classic*1.5.11@2:default"/>
-        <setEntry value="ch.qos.logback.core*1.5.11@2:false"/>
+        <setEntry value="ca.odell.glazedlists@default:default"/>
+        <setEntry value="ch.qos.logback.classic@2:default"/>
+        <setEntry value="ch.qos.logback.core@2:false"/>
         <setEntry value="com.google.protobuf@default:default"/>
         <setEntry value="com.google.zxing.core@default:default"/>
         <setEntry value="com.h2database@2:true"/>
@@ -86,8 +86,8 @@
         <setEntry value="org.apache.batik.css@default:default"/>
         <setEntry value="org.apache.batik.i18n@default:default"/>
         <setEntry value="org.apache.batik.util@default:default"/>
-        <setEntry value="org.apache.commons.cli*1.9.0@default:default"/>
-        <setEntry value="org.apache.commons.collections4*4.4.0.v20221112-0806@default:default"/>
+        <setEntry value="org.apache.commons.cli@default:default"/>
+        <setEntry value="org.apache.commons.collections4@default:default"/>
         <setEntry value="org.apache.commons.collections@default:default"/>
         <setEntry value="org.apache.commons.commons-beanutils@default:default"/>
         <setEntry value="org.apache.commons.commons-codec@default:default"/>
@@ -100,7 +100,7 @@
         <setEntry value="org.apache.commons.jxpath@default:default"/>
         <setEntry value="org.apache.commons.lang3*3.17.0@default:default"/>
         <setEntry value="org.apache.commons.logging@default:default"/>
-        <setEntry value="org.apache.commons.math3*3.6.1.v20221112-0806@default:default"/>
+        <setEntry value="org.apache.commons.math3@default:default"/>
         <setEntry value="org.apache.commons.text@default:default"/>
         <setEntry value="org.apache.felix.scr*2.2.12@1:true"/>
         <setEntry value="org.apache.httpcomponents.client5.httpclient5@default:default"/>
