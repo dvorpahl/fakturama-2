@@ -758,7 +758,7 @@ return console.askYesNo(message, true);
       </exclude>
       <jreBundle usePack200="false" />
     </unixInstaller>
-    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
+    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice,libwebkitgtk2" require64BitVm="true" arch="x86_64">
       <excludedLaunchers>
         <launcher id="44" />
       </excludedLaunchers>
@@ -776,7 +776,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice*,libwebkitgtk2*" require64BitVm="true" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="i386,amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -823,7 +823,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       </exclude>
       <jreBundle usePack200="false" />
     </macosFolder>
-    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_aarch64_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_aarch64_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice*,libwebkitgtk2*" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -839,7 +839,8 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="45" />
+    <mediaSet refId="119" />
+    <mediaSet refId="120" />
+    <mediaSet refId="577" />
   </buildIds>
-  <buildOptions disableJreBundling="true" />
 </install4j>
