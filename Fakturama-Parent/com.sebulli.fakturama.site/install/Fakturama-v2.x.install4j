@@ -839,6 +839,10 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
+    <mediaSet refId="45" />
+    <mediaSet refId="59" />
+    <mediaSet refId="119" />
     <mediaSet refId="120" />
+    <mediaSet refId="577" />
   </buildIds>
 </install4j>
