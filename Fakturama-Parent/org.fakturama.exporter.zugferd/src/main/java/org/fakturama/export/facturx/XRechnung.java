@@ -337,7 +337,7 @@ public class XRechnung extends AbstractEInvoice {
             if (originContactId != null && originContactId != 0) {
                 Contact originContact = contactsDAO.findById(originContactId);
                 String schemaId = "0088";
-                String globalId = Optional.ofNullable(originContact.getGln()).orElse(Long.valueOf(0)).toString();
+                String globalId = originContact.getGln() != null ? originContact.getGln().toString() : "";
                 String debtorId = documentReceiver.getCustomerNumber();
 
                 // additional fields from customer note takes precedence over "regular" fields 
@@ -605,13 +605,14 @@ public class XRechnung extends AbstractEInvoice {
         Price price = new Price(item);
         TradePriceType retval = null;
         String qunit = determineQuantityUnit(item.getQuantityUnit());
+        int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
         double discount = item.getItemRebate();
         switch (priceType) {
         case GROSS_PRICE:
             retval = factory.createTradePriceType();
             // "ITEM.UNIT.NET.DISCOUNTED" oder "ITEM.TOTAL.NET"?
             // Preis nach Bruttokalkulation *ohne* Umsatzsteuer(!!!) 
-            retval.setChargeAmount(createAmount(price.getUnitNet(), 2))
+            retval.setChargeAmount(createAmount(price.getUnitNet(), scale))
             // Die Anzahl von Artikeleinheiten, für die der Preis gilt (Preisbasismenge ==> 1, 10, 100,...)
             //.setBasisQuantity(createQuantity(item.getProduct().getBlock1(), qunit))
             ;
@@ -624,7 +625,7 @@ public class XRechnung extends AbstractEInvoice {
 
             retval = factory.createTradePriceType();
             // Preis nach Bruttokalkulation ohne Umsatzsteuer 
-            retval.setChargeAmount(createAmount(Money.of(item.getPrice(), DataUtils.getInstance().getDefaultCurrencyUnit()), DEFAULT_AMOUNT_SCALE))
+            retval.setChargeAmount(createAmount(Money.of(item.getPrice(), DataUtils.getInstance().getDefaultCurrencyUnit()), scale))
             // TODO Preisbasismenge??? (1, 10, 100,...)
             //          .setBasisQuantity(createQuantity(1d, qunit))
             ;
@@ -639,7 +640,7 @@ public class XRechnung extends AbstractEInvoice {
             // "ITEM.UNIT.NET.DISCOUNTED"
             // Preis nach Bruttokalkulation +- Zu-/Abschläge = Preis 
             // nach Nettokalkulation;
-            retval.setChargeAmount(createAmount(price.getUnitNetDiscounted(), 2))
+            retval.setChargeAmount(createAmount(price.getUnitNetDiscounted(), scale))
             // TODO Preisbasismenge??? (1, 10, 100,...)
             //                .setBasisQuantity(createQuantity(1d, qunit))
             ;

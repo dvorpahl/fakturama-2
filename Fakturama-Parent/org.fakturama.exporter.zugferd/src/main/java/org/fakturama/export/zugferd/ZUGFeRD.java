@@ -477,6 +477,7 @@ public class ZUGFeRD extends AbstractEInvoice {
     private TradePriceType createTradePrice(final DocumentItem item, final PriceType priceType) {
         Price price = new Price(item);
         TradePriceType retval = null;
+        int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
         String qunit = determineQuantityUnit(item.getQuantityUnit());
         double discount = item.getItemRebate();
         switch (priceType) {
@@ -485,7 +486,7 @@ public class ZUGFeRD extends AbstractEInvoice {
             // "ITEM.UNIT.NET.DISCOUNTED" oder "ITEM.TOTAL.NET"?
             // Preis nach Bruttokalkulation *ohne* Umsatzsteuer(!!!) 
             ;
-            retval.getChargeAmount().add(createAmount(price.getUnitNet(), DEFAULT_AMOUNT_SCALE))
+            retval.getChargeAmount().add(createAmount(price.getUnitNet(), scale))
             // TODO Preisbasismenge??? (1, 10, 100,...)
             // EXTENDED             ;retval.setBasisQuantity(createQuantity(1d, qunit))
             ;
@@ -515,7 +516,7 @@ public class ZUGFeRD extends AbstractEInvoice {
             // Preis nach Bruttokalkulation +- Zu-/Abschläge = Preis 
             // nach Nettokalkulation;
             ;
-            retval.getChargeAmount().add(createAmount(price.getUnitNetDiscounted(), DEFAULT_AMOUNT_SCALE))
+            retval.getChargeAmount().add(createAmount(price.getUnitNetDiscounted(), scale))
             // TODO Preisbasismenge??? (1, 10, 100,...)
             ;
             retval.setBasisQuantity(createQuantity(1d, qunit));
@@ -666,7 +667,8 @@ public class ZUGFeRD extends AbstractEInvoice {
         Double discountPercent = item.getItemRebate();
         Double amount = item.getPrice() * discountPercent;
         Price price = new Price(item);
-        double factor = Math.pow(10, DEFAULT_AMOUNT_SCALE);
+        int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
+        double factor = Math.pow(10, scale);
         double s = Math.round(price.getUnitNet().multiply(factor).getNumber().doubleValue()) / factor;
         double t = Math.round(price.getUnitNetDiscounted().multiply(factor).getNumber().doubleValue()) / factor;
         double u = Math.round((s - t) * factor) / factor;
@@ -678,7 +680,7 @@ public class ZUGFeRD extends AbstractEInvoice {
         indicatorType.setIndicator(isAllowance);
         TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
         retval.setChargeIndicator(indicatorType);
-        retval.getActualAmount().add(createAmount(Money.of(u/*amount*/, DataUtils.getInstance().getDefaultCurrencyUnit()), DEFAULT_AMOUNT_SCALE, true))
+        retval.getActualAmount().add(createAmount(Money.of(u/*amount*/, DataUtils.getInstance().getDefaultCurrencyUnit()), scale, true))
         //          ;retval.setBasisAmount(createAmount(item.getDoubleValueByKey("price")))
         ;
         retval.setReason(createText(zfMsg.zugferdExportLabelRebate));
