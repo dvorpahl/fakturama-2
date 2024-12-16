@@ -414,7 +414,7 @@ public class ContactUtil {
         // manualAddress has precedence over regular entries
         if (documentReceiver == null || documentReceiver.getManualAddress() != null) {
             // if a manual address is set we use it
-            addressString = documentReceiver.getManualAddress();
+            addressString = documentReceiver.getManualAddress().replaceAll("\\t", "");
         } else if(originAddress!= null) {
         	return getAddressAsString(AddressDTO.from(documentReceiver, originAddress), separator);
         } else {
@@ -438,12 +438,13 @@ public class ContactUtil {
      * @return
      */
     public Address createAddressFromString(final String address) {
+    	final String myAddress = address.replaceAll("\\t", "");
         Address retval = modelFactory.createAddress();
-        retval.setLocalConsultant(getDataFromAddressField(address, KEY_NAME));
-        retval.setStreet(getDataFromAddressField(address, KEY_STREET));
-        retval.setCity(getDataFromAddressField(address, KEY_CITY));
-        retval.setZip(getDataFromAddressField(address, KEY_ZIP));
-        String country = getDataFromAddressField(address, KEY_COUNTY);
+        retval.setLocalConsultant(getDataFromAddressField(myAddress, KEY_NAME));
+        retval.setStreet(getDataFromAddressField(myAddress, KEY_STREET));
+        retval.setCity(getDataFromAddressField(myAddress, KEY_CITY));
+        retval.setZip(getDataFromAddressField(myAddress, KEY_ZIP));
+        String country = getDataFromAddressField(myAddress, KEY_COUNTY);
         Optional<Locale> locale = determineCountryCode(country);
         if (locale.isPresent() && StringUtils.isNotBlank(locale.get().getCountry())) {
             retval.setCountryCode(locale.get().getCountry());
