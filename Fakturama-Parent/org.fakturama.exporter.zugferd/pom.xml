@@ -30,7 +30,25 @@
             </resource>
         </resources>
         <plugins>
-
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>
+                                    ${project.build.directory}/src-gen/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-xjc-plugin</artifactId>
@@ -50,24 +68,32 @@
                         </goals>
                         <configuration>
                             <sourceRoot>
-                                ${project.basedir}/src-gen/main/java
+                                ${project.build.directory}/src-gen/main/java
                             </sourceRoot>
                             <xsdOptions>
                                 <xsdOption>
-                                    <xsd>${project.basedir}/src/main/resources/schema/ZUGFeRD_1p0.xsd</xsd>
-                                    <bindingFile>${project.basedir}/src/main/resources/schema/invoice.xjb</bindingFile>
-                                    <packagename>org.fakturama.export.zugferd.modelgen</packagename>
-                                    <!--<extensionArgs>
-                                        <extensionArg>-Xts</extensionArg>
-                                    </extensionArgs>-->
+                                    <xsd>
+                                        ${project.basedir}/src/main/resources/schema/ZUGFeRD_1p0.xsd</xsd>
+                                    <bindingFile>
+                                        ${project.basedir}/src/main/resources/schema/invoice.xjb</bindingFile>
+                                    <packagename>
+                                        org.fakturama.export.zugferd.modelgen</packagename>
+                                    <extensionArgs>
+                                        <!--<extensionArg>-Xts</extensionArg>-->
+                                        <extensionArg>-npa</extensionArg>
+                                    </extensionArgs>
                                 </xsdOption>
                                 <xsdOption>
-                                    <xsd>${project.basedir}/src/main/resources/schema-v2/FACTUR-X_EXTENDED.xsd</xsd>
-                                    <bindingFile>${project.basedir}/src/main/resources/schema-v2/invoice.xjb</bindingFile>
-                                    <packagename>org.fakturama.export.facturx.modelgen</packagename>
-                                    <!--<extensionArgs>
-                                        <extensionArg>-Xts</extensionArg>
-                                    </extensionArgs>-->
+                                    <xsd>
+                                        ${project.basedir}/src/main/resources/schema-v2/FACTUR-X_EXTENDED.xsd</xsd>
+                                    <bindingFile>
+                                        ${project.basedir}/src/main/resources/schema-v2/invoice.xjb</bindingFile>
+                                    <packagename>
+                                        org.fakturama.export.facturx.modelgen</packagename>
+                                    <extensionArgs>
+                                        <!--<extensionArg>-Xts</extensionArg>-->
+                                        <extensionArg>-npa</extensionArg>
+                                    </extensionArgs>
                                 </xsdOption>
                             </xsdOptions>
                         </configuration>
