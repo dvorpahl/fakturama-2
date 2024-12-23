@@ -838,7 +838,9 @@
 					</inlinemediaobject>Dokumente neu organisieren</term>
 
 				<listitem>
-					<para>Verschiebt und benennt alle bereits erstellten OpenOffice- und PDF-Dokumente im Unterorder Dokumente so um, wie in den Einstellungen <emphasis role="bold">Office</emphasis> angegeben. Siehe auch <link linkend="preferences_office_path">OpenOffice.org / LibreOffice Einstellungen</link>
+					<para>Verschiebt und benennt alle bereits erstellten OpenOffice- und PDF-Dokumente im Unterorder Dokumente so um, wie in den Einstellungen <emphasis role="bold">Office</emphasis> angegeben.</para>
+					<para>Dieser Menüpunkt sollte beim Wechsel von Version 1.x auf Version 2.x verwendet werden. Wichtig ist, daß das Ursprungsverzeichnis existiert und nicht verschoben wurde, da die absoluten Pfade in der Fakturama-Datenbank gespeichert werden.
+					Siehe auch <link linkend="preferences_office_path">OpenOffice.org / LibreOffice Einstellungen</link>
 					</para>
 				</listitem>
 			</varlistentry>
