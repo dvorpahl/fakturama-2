@@ -246,14 +246,14 @@ public class ProductEditor extends Editor<Product> {
 
         try {
             int i;
-            Double lastScaledPrice = Double.valueOf(0.0);
+            double lastScaledPrice = 0.0;
 
             // fill all remaining prices with last scaled price
             for (i = 0; i < scaledPrices; i++) {
                 // at first look for the highest scaled price...
-                String methodName = String.format("getPrice%d", i + 1);
-                Object obj = MethodUtils.invokeExactMethod(editorProduct, methodName);
-                lastScaledPrice = (Double) obj;
+                 String methodName = String.format("getPrice%d", i + 1);
+                 Object obj = MethodUtils.invokeExactMethod(editorProduct, methodName);
+                 lastScaledPrice = (Double) obj;
             }
 
             // if not all 5 scales are set we set the remaining prices to the last scaled price
@@ -931,14 +931,7 @@ public class ProductEditor extends Editor<Product> {
             if (!structuredSelection.isEmpty()) {
                 // Get the first element ...
                 // Get the selected VAT
-                VAT selectedVat = (VAT) structuredSelection.getFirstElement();
-
-                // Store the old value
-                //                    Double oldVat = editorProduct.getVat().getTaxValue();
-
-                // Get the new value
-                //                    vatId = uds.getId();
-                //                    vat = uds;
+                final VAT selectedVat = (VAT) structuredSelection.getFirstElement();
 
                 // Recalculate all the price values
                 for (int i = 0; i < scaledPrices; i++) {
@@ -946,7 +939,11 @@ public class ProductEditor extends Editor<Product> {
                     // Recalculate the price values if gross is selected,
                     // So the gross value will stay constant.
                     if (!useNet) {
-                        grossText[i].setNetValue(grossText[i].getNetValue().multiply((1 + grossText[i].getVatValue()) / (1 + selectedVat.getTaxValue())));
+                    	final MonetaryAmount newNetValue = DataUtils.getInstance().calculateNetFromGross(
+                    			(Double)grossText[i].getGrossText().getValue(), 
+                    			selectedVat.getTaxValue());
+						grossText[i].setNetValue(newNetValue);
+                    	grossText[i].getNetText().setNetValue(newNetValue);
                     }
 
                     // Update net and gross text widget
