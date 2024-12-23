@@ -184,11 +184,6 @@ public class MigrationManager {
     @Inject
     private IDocumentAddressManager addressManager;
 
-    // this doesn't work because the IPreferenceStore isn't set at this stage
-    //	@Inject
-    //    @Preference(value=InstanceScope.SCOPE)
-    //    private IPreferenceStore preferences;
-
     @Inject
     @Translation
     protected Messages msg;
@@ -264,7 +259,6 @@ public class MigrationManager {
     /*
      * there's only one DAO for old data
      */
-    //   @Inject
     private OldEntitiesDAO oldDao;
 
     @Inject
@@ -275,6 +269,8 @@ public class MigrationManager {
 
     private Map<String, ItemAccountType> itemAccountTypes;
     private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+	private Map<String, Locale> localeCache = new HashMap<>();
 
     /**
      * 
@@ -289,6 +285,7 @@ public class MigrationManager {
         this.modelFactory = FakturamaModelPackage.MODELFACTORY;
         this.generalWorkspace = eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
         this.contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+        
     }
 
     /**
@@ -1039,13 +1036,13 @@ public class MigrationManager {
 
         // we don't have a CountryCode table :-(, therefore we have to look up in ULocale classes
         String country = getDeliveryConsideredValue(billingtype, oldContact.getDeliveryCountry(), oldContact.getCountry());
-        if (country.equalsIgnoreCase("deu")) {
-            country = "de";
+        if (country.equalsIgnoreCase("deu") || country.contentEquals("D") || country.contentEquals("0")) {
+            country = "Deutschland";
         }
 
-        Optional<Locale> locale = contactUtil.determineCountryCode(country);
-        if (locale.isPresent() && StringUtils.isNotBlank(locale.get().getCountry())) {
-            address.setCountryCode(locale.get().getCountry());
+        Locale locale = localeCache.computeIfAbsent(country, c -> contactUtil.determineCountryCode(c));
+        if (locale != null && StringUtils.isNotBlank(locale.getCountry())) {
+            address.setCountryCode(locale.getCountry());
         } else {
             migLogUser.info(String.format("!!! unable to determine the country for contact number [%s]", oldContact.getNr()));
         }
