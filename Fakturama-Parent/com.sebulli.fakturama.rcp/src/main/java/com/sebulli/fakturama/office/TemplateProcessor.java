@@ -1861,7 +1861,16 @@ public class TemplateProcessor {
 
             if (item.getItemNumber() != null) {
 
-                final byte[] imageBytes = qrCodeService.createEANCode(item.getItemNumber());
+            	final String eanCode;
+            	if(item.getGtin() != null) {
+            		eanCode = item.getGtin().toString();
+            	}
+            	else if(NumberUtils.isCreatable(item.getItemNumber())) {
+            		eanCode = item.getItemNumber();
+            	} else {
+            		eanCode = "";
+            	}
+                final byte[] imageBytes = qrCodeService.createEANCode(eanCode);
                 
                 if(imageBytes != null) {
 	                final Path imageFile = createImageFile(imageBytes, "JPG");
