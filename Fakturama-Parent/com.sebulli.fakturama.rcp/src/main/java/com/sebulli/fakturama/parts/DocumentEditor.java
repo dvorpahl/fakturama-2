@@ -205,7 +205,6 @@ public class DocumentEditor extends Editor<Document> {
 
     private static final String TOOLITEM_COMMAND = "toolitem_command";
     private static final String ORIGIN_RECEIVER = "ORIGIN_RECEIVER";
-    //	private static final String CURRENT_RECEIVER = "CURRENT_RECEIVER";
 
     @Inject
     protected EHandlerService handlerService;

@@ -854,7 +854,9 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
      * @generated
      */
     public void setManualAddress(String newManualAddress) {
-    	newManualAddress.replaceAll("\\t", "");
+    	if(newManualAddress != null) {
+    		newManualAddress.replaceAll("\\t", "");
+    	}
         firePropertyChange("manualAddress", this.manualAddress, newManualAddress);
         manualAddress = newManualAddress;
     }
