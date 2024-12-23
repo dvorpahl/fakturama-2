@@ -89,9 +89,19 @@ public class FileOrganizer {
      */
     private String replaceIllegalCharacters(String s) {
         if (StringUtils.isNotBlank(s)) {
-            s = s.replaceAll(" ", "_").replaceAll("\\\\", "_").replaceAll("\"", "_").replaceAll("/", "_").replaceAll("\\:", "_").replaceAll("\\*", "_")
-                    .replaceAll("\\?", "_").replaceAll("\\>", "_").replaceAll("\\<", "_").replaceAll("\\|", "_").replaceAll("\\&", "_").replaceAll("\\n", "_")
-                    .replaceAll("\\t", "_");
+            s = s.replaceAll(" ", "_")
+            	 .replaceAll("\\\\", "_")
+            	 .replaceAll("\"", "_")
+            	 .replaceAll("/", "_")
+            	 .replaceAll("\\:", "_")
+            	 .replaceAll("\\*", "_")
+                 .replaceAll("\\?", "_")
+                 .replaceAll("\\>", "_")
+                 .replaceAll("\\<", "_")
+                 .replaceAll("\\|", "_")
+                 .replaceAll("\\&", "_")
+                 .replaceAll("\\n", "_")
+                 .replaceAll("\\t", "_");
         }
         return StringUtils.defaultString(s);
     }
@@ -132,7 +142,8 @@ public class FileOrganizer {
         // Replace the placeholders
         String customerRef = replaceIllegalCharacters(document.getCustomerRef());
 
-        fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
+        fileNamePlaceholder = fileNamePlaceholder
+        		.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
                 .replaceAll("\\{docref\\}", StringUtils.defaultString(customerRef))
                 .replaceAll("\\{doctype\\}", msg.getMessageFromKey(DocumentType.getPluralString(DocumentTypeUtil.findByBillingType(document.getBillingType()))))
                 .replaceAll("\\{address\\}", StringUtils.defaultString(address)).replaceAll("\\{name\\}", name)
