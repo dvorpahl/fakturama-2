@@ -210,6 +210,7 @@ public class Messages {
     public String dialogCustomerStatisticsPart1;
     public String dialogDeletedatasetMessage;
     public String dialogDeletedatasetTitle;
+    public String dialogDeletedatasetQuestion;
     public String dialogSavechangesQuestion;
 
     public String dialogItemdescriptionHeader;

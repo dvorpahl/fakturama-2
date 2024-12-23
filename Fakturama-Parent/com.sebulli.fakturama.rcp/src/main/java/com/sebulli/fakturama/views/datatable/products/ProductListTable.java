@@ -339,15 +339,9 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 				case PRICE:
 					// Fill the price column with the net or the gross price (
 					// for quantity = 1)
-//					String priceKey = "";
 					if (getEclipsePrefs().getInt(Constants.PREFERENCES_PRODUCT_USE_NET_GROSS) == Constants.PRODUCT_USE_NET) {
-//						priceKey = "$Price1Gross";
-//                    cell.setText(new Price(product.getDoubleValueByKey("price1"), product.getDoubleValueByKeyFromOtherTable("vatid.VATS:value")).getUnitNet()
-//                            .asFormatedString());
 						return rowObject.getPrice1();
-						// return Money.of(rowObject.getPrice1(), DataUtils.getInstance().getDefaultCurrencyUnit()).multiply(1+rowObject.getVat().getTaxValue());
 					} else {
-//						priceKey = "price1";
 						return DataUtils.getInstance().CalculateGrossFromNet(rowObject.getPrice1(), rowObject.getVat().getTaxValue());
 					}
 				default:
