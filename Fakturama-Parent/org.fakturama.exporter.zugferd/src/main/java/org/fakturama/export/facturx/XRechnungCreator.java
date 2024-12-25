@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 Ralf Heydenreich
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *   Ralf Heydenreich - initial API and implementation
+ * Contributors: Ralf Heydenreich - initial API and implementation
  */
 package org.fakturama.export.facturx;
 
@@ -24,8 +23,6 @@ import org.fakturama.export.einvoice.AbstractEInvoiceCreator;
 import org.fakturama.export.einvoice.ConformanceLevel;
 import org.fakturama.export.einvoice.IEinvoice;
 import org.fakturama.export.einvoice.IPdfHelper;
-import org.fakturama.export.zugferd.ZUGFeRD;
-import org.fakturama.export.zugferd.ZugferdHelper;
 
 import com.sebulli.fakturama.model.Invoice;
 
@@ -56,7 +53,7 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
 
     @Inject
     private IEclipseContext context;
-    
+
     private IPdfHelper pdfHelper;
 
     @Override
@@ -71,11 +68,6 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
         switch (zugferdProfile) {
         case FACTURX_BASIC:
             throw new UnsupportedOperationException("Profile not supported");
-        case ZUGFERD_V1_COMFORT:
-            pdfHelper = new ZugferdHelper();
-            eInvoice = ContextInjectionFactory.make(ZUGFeRD.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
         case FACTURX_COMFORT, ZUGFERD_V2_COMFORT, ZUGFERD_V2_EN16931, XRECHNUNG, FACTURX_EN16931:
             eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
             invoiceXml = eInvoice.getInvoiceXml(invoice);
@@ -84,14 +76,14 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
             // if we have another profile... exit with error
             return false;
         }
-        
+
         // 3. merge XML & PDF/A-1 to PDF/A-3
         return createPdf(invoice.get(), () -> invoiceXml, zugferdProfile);
     }
 
     @Override
     protected IPdfHelper getPdfHelper() {
-        if(pdfHelper == null) {
+        if (pdfHelper == null) {
             pdfHelper = new FacturXHelper();
         }
         return pdfHelper;

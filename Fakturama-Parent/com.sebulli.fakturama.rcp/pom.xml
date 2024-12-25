@@ -28,7 +28,6 @@
                 <!-- see https://www.eclipse.org/forums/index.php/t/736778/ -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>process-about.mappings</id>
@@ -87,7 +86,7 @@
                         </goals>
                         <configuration>
                             <sourceRoot>
-                                ${project.basedir}/src-gen/main/java
+                                ${project.build.directory}/src-gen/main/java
                             </sourceRoot>
                             <xsdOptions>
                                 <xsdOption>

@@ -21,7 +21,7 @@
         <buildId>${buildTimestamp}</buildId>
         <releaseName>${project.version}</releaseName>
         <encoding>UTF-8</encoding>
-        <cxf-xjc-plugin.version>4.0.0</cxf-xjc-plugin.version>
+        <cxf-xjc-plugin.version>4.1.0</cxf-xjc-plugin.version>
         <parent.projectLocation>${project.basedir}</parent.projectLocation>
         <archive.skip>false</archive.skip>
     </properties>

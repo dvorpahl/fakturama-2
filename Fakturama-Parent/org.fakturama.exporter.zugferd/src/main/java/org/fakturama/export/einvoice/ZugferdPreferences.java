@@ -190,8 +190,8 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
     public void propertyChange(final PropertyChangeEvent event) {
         super.propertyChange(event);
         final boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
-        if (event.getSource() instanceof RadioGroupFieldEditor && event.getOldValue() != event.getNewValue()) {
-            final String selectionValueStr = ((RadioGroupFieldEditor) event.getSource()).getSelectionValue();
+        if (event.getSource() instanceof final RadioGroupFieldEditor rgfe && event.getOldValue() != event.getNewValue()) {
+            final String selectionValueStr = rgfe.getSelectionValue();
             final java.util.Optional<ZugferdVersion> selectionValue = Arrays.stream(ZugferdVersion.values())
                     .filter(v -> v.getVersion().equalsIgnoreCase(selectionValueStr)).findAny();
             final Combo cfCombo = getCombo(conformanceLevelCombo);

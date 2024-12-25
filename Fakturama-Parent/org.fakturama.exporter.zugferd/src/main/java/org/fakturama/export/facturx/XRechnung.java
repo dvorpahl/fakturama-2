@@ -39,7 +39,6 @@ import org.fakturama.export.facturx.modelgen.CountryIDType;
 import org.fakturama.export.facturx.modelgen.CreditorFinancialAccountType;
 import org.fakturama.export.facturx.modelgen.CreditorFinancialInstitutionType;
 import org.fakturama.export.facturx.modelgen.CrossIndustryInvoiceType;
-import org.fakturama.export.facturx.modelgen.CurrencyCodeContentType;
 import org.fakturama.export.facturx.modelgen.CurrencyCodeType;
 import org.fakturama.export.facturx.modelgen.DateTimeType;
 import org.fakturama.export.facturx.modelgen.DebtorFinancialAccountType;
@@ -62,7 +61,6 @@ import org.fakturama.export.facturx.modelgen.LineTradeDeliveryType;
 import org.fakturama.export.facturx.modelgen.LineTradeSettlementType;
 import org.fakturama.export.facturx.modelgen.NoteType;
 import org.fakturama.export.facturx.modelgen.ObjectFactory;
-import org.fakturama.export.facturx.modelgen.PaymentMeansCodeContentType;
 import org.fakturama.export.facturx.modelgen.PaymentMeansCodeType;
 import org.fakturama.export.facturx.modelgen.PercentType;
 import org.fakturama.export.facturx.modelgen.QuantityType;
@@ -115,6 +113,7 @@ import com.sebulli.fakturama.util.ContactUtil;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
 
 import jakarta.xml.bind.JAXBElement;
+import un.unece.uncefact.codelist.standard.iso.iso3alphacurrencycode._2012_08_31.ISO3AlphaCurrencyCodeContentType;
 
 /**
  * Create an XRechnung XML.
@@ -134,18 +133,18 @@ public class XRechnung extends AbstractEInvoice {
         factory = new ObjectFactory();
         itemAllowances = new DocumentAllowances();
 
-        Document invoice = invoiceDoc.get();
+        final Document invoice = invoiceDoc.get();
         // Recalculate the sum of the document before exporting
-        DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, eclipseContext);
-        DocumentSummary documentSummary = documentSummaryCalculator.calculate(invoice);
+        final DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, eclipseContext);
+        final DocumentSummary documentSummary = documentSummaryCalculator.calculate(invoice);
 
-        CrossIndustryInvoiceType root = new CrossIndustryInvoiceType();
+        final CrossIndustryInvoiceType root = new CrossIndustryInvoiceType();
         // at first create a reasonable context
-        DocumentContextParameterType ctxParam = factory.createDocumentContextParameterType();
+        final DocumentContextParameterType ctxParam = factory.createDocumentContextParameterType();
         ctxParam.setID(createIdFromString(ConformanceLevel.XRECHNUNG.getUrn()));
 
         // TODO specify the type in DocumentEditor (free text?)
-        ExchangedDocumentContextType exchangedDocCtx = factory.createExchangedDocumentContextType();
+        final ExchangedDocumentContextType exchangedDocCtx = factory.createExchangedDocumentContextType();
         exchangedDocCtx.setGuidelineSpecifiedDocumentContextParameter(ctxParam)
         /*      .setBusinessProcessSpecifiedDocumentContextParameter(
                         factory.createDocumentContextParameterType()
@@ -154,12 +153,12 @@ public class XRechnung extends AbstractEInvoice {
         root.setExchangedDocumentContext(exchangedDocCtx);
 
         // now the header information follows
-        ExchangedDocumentType exchangedDocumentType = factory.createExchangedDocumentType();
+        final ExchangedDocumentType exchangedDocumentType = factory.createExchangedDocumentType();
         exchangedDocumentType.setID(createIdFromString(invoice.getName()));
-        DocumentType documentType = DocumentTypeUtil.findByBillingType(invoice.getBillingType());
+        final DocumentType documentType = DocumentTypeUtil.findByBillingType(invoice.getBillingType());
 
         if (documentType.getCode() > 0) {
-            DocumentCodeType docTypeCode = factory.createDocumentCodeType();
+            final DocumentCodeType docTypeCode = factory.createDocumentCodeType();
             docTypeCode.setValue(DocumentCodeContentType.fromValue(Integer.toString(documentType.getCode())));
             exchangedDocumentType.setTypeCode(docTypeCode);
         }
@@ -169,7 +168,7 @@ public class XRechnung extends AbstractEInvoice {
         Optional.ofNullable(createNote(invoice.getMessage2())).ifPresent(n -> exchangedDocumentType.getIncludedNote().add(n));
         Optional.ofNullable(createNote(invoice.getMessage3())).ifPresent(n -> exchangedDocumentType.getIncludedNote().add(n));
 
-        NoteType note = factory.createNoteType();
+        final NoteType note = factory.createNoteType();
 
         String owner = String.format("%s%n%s%n%s%n%s %s%n%s", preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER),
                 preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME), preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET),
@@ -186,8 +185,8 @@ public class XRechnung extends AbstractEInvoice {
         root.setExchangedDocument(exchangedDocumentType);
 
         // now follows the huge part for trade transaction
-        SupplyChainTradeTransactionType tradeTransaction = factory.createSupplyChainTradeTransactionType();
-        HeaderTradeAgreementType tradeAgreement = factory.createHeaderTradeAgreementType();
+        final SupplyChainTradeTransactionType tradeTransaction = factory.createSupplyChainTradeTransactionType();
+        final HeaderTradeAgreementType tradeAgreement = factory.createHeaderTradeAgreementType();
         tradeAgreement.setBuyerReference(createText(invoice.getCustomerRef())); // "Kundenreferenz"
         tradeTransaction.setApplicableHeaderTradeAgreement(tradeAgreement);
 
@@ -195,7 +194,7 @@ public class XRechnung extends AbstractEInvoice {
         tradeAgreement.setSellerTradeParty(createSeller(invoice));
 
         // create buyer information
-        TradePartyType buyer = createBuyer(invoice);
+        final TradePartyType buyer = createBuyer(invoice);
         if (buyer != null) {
             tradeAgreement.setBuyerTradeParty(buyer);
         }
@@ -204,9 +203,9 @@ public class XRechnung extends AbstractEInvoice {
         //        tradeAgreement.setSellerOrderReferencedDocument(value); // Detailangaben zur zugehörigen Auftragsbestätigung
 
         // referenced order
-        Transaction transaction = ContextInjectionFactory.make(Transaction.class, eclipseContext).of(invoice);
+        final Transaction transaction = ContextInjectionFactory.make(Transaction.class, eclipseContext).of(invoice);
         if (transaction != null) {
-            ReferencedDocumentType orderRef = factory.createReferencedDocumentType();
+            final ReferencedDocumentType orderRef = factory.createReferencedDocumentType();
             orderRef.setIssuerAssignedID(createIdFromString(transaction.getReference(DocumentType.ORDER)));
             // only if ID is not empty!
             if (!StringUtils.isEmpty(transaction.getReference(DocumentType.ORDER))) {
@@ -231,10 +230,10 @@ public class XRechnung extends AbstractEInvoice {
 
         //          tradeAgreement.setSpecifiedProcuringProject(factory.createProcuringProjectType().setName("").setID(createIdFromString("Project")));
 
-        SupplyChainEventType deliveryEvent = factory.createSupplyChainEventType();
+        final SupplyChainEventType deliveryEvent = factory.createSupplyChainEventType();
         deliveryEvent.setOccurrenceDateTime(createDateTime(invoice.getServiceDate()));
 
-        HeaderTradeDeliveryType headerTradeDeliveryType = factory.createHeaderTradeDeliveryType();
+        final HeaderTradeDeliveryType headerTradeDeliveryType = factory.createHeaderTradeDeliveryType();
         headerTradeDeliveryType.setShipToTradeParty(buyer);
         headerTradeDeliveryType.setActualDeliverySupplyChainEvent(deliveryEvent)
         //                .setDespatchAdviceReferencedDocument(value)
@@ -243,21 +242,21 @@ public class XRechnung extends AbstractEInvoice {
 
         tradeTransaction.setApplicableHeaderTradeDelivery(headerTradeDeliveryType);
 
-        CurrencyCodeContentType currency = getGlobalCurrencyCode();
+        final CurrencyCodeType currency = getGlobalCurrencyCode();
 
         // Verwendungszweck, Kassenzeichen 
-        HeaderTradeSettlementType tradeSettlement = factory.createHeaderTradeSettlementType();
+        final HeaderTradeSettlementType tradeSettlement = factory.createHeaderTradeSettlementType();
         //                .setCreditorReferenceID(createIdWithSchemeFromString(idString, scheme))
         tradeSettlement.setPaymentReference(createText(invoice.getName()));
         //                .setTaxCurrencyCode(createCurrencyCode(currency))  // see ISO 4217
-        tradeSettlement.setInvoiceCurrencyCode(createCurrencyCode(currency));
+        tradeSettlement.setInvoiceCurrencyCode(currency);
 
         // TODO tradeSettlement.setPayeeTradeParty(value);   // Zahlungsempfänger
-        DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
-        Contact contact = getOriginContact(documentReceiver);
+        final DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
+        final Contact contact = getOriginContact(documentReceiver);
         TradeSettlementPaymentMeansType paymentType;
         if (contact != null) {
-            DebtorFinancialAccountType debtorAccount = createDebtorAccount(contact.getBankAccount());
+            final DebtorFinancialAccountType debtorAccount = createDebtorAccount(contact.getBankAccount());
 
             paymentType = factory.createTradeSettlementPaymentMeansType();
             paymentType.setTypeCode(createPaymentTypeCode(invoice));
@@ -272,7 +271,7 @@ public class XRechnung extends AbstractEInvoice {
             paymentType.setTypeCode(createPaymentTypeCode(invoice));
             paymentType.setInformation(createText(invoice.getPayment().getName()));
         }
-        CreditorFinancialAccountType creditor = createCreditorAccount();
+        final CreditorFinancialAccountType creditor = createCreditorAccount();
         if (creditor != null) {
             paymentType.setPayeePartyCreditorFinancialAccount(creditor);
             paymentType.setPayeeSpecifiedCreditorFinancialInstitution(createCreditorFinancialInstitution());
@@ -284,7 +283,7 @@ public class XRechnung extends AbstractEInvoice {
 
         // Detailinformationen zur Rechnungsperiode 
         if (invoice.getVestingPeriodStart() != null || invoice.getVestingPeriodEnd() != null) {
-            SpecifiedPeriodType billingSpecificPeriod = createBillingSpecificPeriod(invoice);
+            final SpecifiedPeriodType billingSpecificPeriod = createBillingSpecificPeriod(invoice);
             tradeSettlement.setBillingSpecifiedPeriod(billingSpecificPeriod);
         }
 
@@ -310,10 +309,10 @@ public class XRechnung extends AbstractEInvoice {
         //  tradeSettlement.setReceivableSpecifiedTradeAccountingAccount(null);
 
         // Get the VAT summary of the UniDataSet document
-        VatSummarySetManager vatSummarySetManager = ContextInjectionFactory.make(VatSummarySetManager.class, eclipseContext);
+        final VatSummarySetManager vatSummarySetManager = ContextInjectionFactory.make(VatSummarySetManager.class, eclipseContext);
         vatSummarySetManager.getVatSummaryItems().clear();
         vatSummarySetManager.add(invoice, Double.valueOf(1.0));
-        for (VatSummaryItem vatSummaryItem : vatSummarySetManager.getVatSummaryItems()) {
+        for (final VatSummaryItem vatSummaryItem : vatSummarySetManager.getVatSummaryItems()) {
             // für jeden Steuerbetrag muß es einen eigenen Eintrag geben
             tradeSettlement.getApplicableTradeTax().add(createTradeTax(vatSummaryItem));
         }
@@ -323,19 +322,19 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private TradePartyType createBuyer(final Document invoice) {
-        DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
+        final DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
         if (documentReceiver != null) {
-            TradePartyType buyer = factory.createTradePartyType();
+            final TradePartyType buyer = factory.createTradePartyType();
             buyer.setName(createText(invoice.getAddressFirstLine()));
             //                .setSpecifiedLegalOrganization(createLegalOrganizationType(invoice))  // not available
             buyer.setPostalTradeAddress(createAddress(invoice, ContactType.BUYER))
             //                    .setURIUniversalCommunication(email)
             //                    .setSpecifiedTaxRegistration(createTaxNumber(invoice, ContactType.BUYER))
             ;
-            Long originContactId = invoice.getReceiver() != null && !invoice.getReceiver().isEmpty() ? invoice.getReceiver().get(0).getOriginContactId()
+            final Long originContactId = invoice.getReceiver() != null && !invoice.getReceiver().isEmpty() ? invoice.getReceiver().get(0).getOriginContactId()
                     : Long.valueOf(0);
             if (originContactId != null && originContactId != 0) {
-                Contact originContact = contactsDAO.findById(originContactId);
+                final Contact originContact = contactsDAO.findById(originContactId);
                 String schemaId = "0088";
                 String globalId = originContact.getGln() != null ? originContact.getGln().toString() : "";
                 String debtorId = documentReceiver.getCustomerNumber();
@@ -362,18 +361,18 @@ public class XRechnung extends AbstractEInvoice {
 
     private String grepFromNoteField(final String noteField, final String searchPattern, final String defaultString) {
         // try to find a global schema id from note field (workaround)
-        Pattern p = Pattern.compile(searchPattern, Pattern.MULTILINE | Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(noteField);
+        final Pattern p = Pattern.compile(searchPattern, Pattern.MULTILINE | Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        final Matcher m = p.matcher(noteField);
         noteField.matches("Global.*");
         return m.matches() ? m.group(1) : defaultString;
     }
 
     private TradePartyType createSeller(final Document invoice) {
-        UniversalCommunicationType email = factory.createUniversalCommunicationType();
+        final UniversalCommunicationType email = factory.createUniversalCommunicationType();
         // EM = Electronic mail (SMPT)
         email.setURIID(createIdWithSchemeFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL), "EM"));
 
-        TradePartyType seller = factory.createTradePartyType();
+        final TradePartyType seller = factory.createTradePartyType();
         //              .setID(createIdFromString(""))  // Kennung des Verkäufers (Durch den Kunden zugewiesene Lieferantennummer)
         seller.setName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
         //              .setDescription(createText(""))  // Sonstige rechtliche Informationen des Verkäufers
@@ -400,7 +399,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private LegalOrganizationType createLegalOrganization(final Document invoice, final ContactType seller) {
-        LegalOrganizationType retval = factory.createLegalOrganizationType();
+        final LegalOrganizationType retval = factory.createLegalOrganizationType();
         retval.setID(createIdFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR)));
         if (!preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME).equalsIgnoreCase(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER))) {
             retval.setTradingBusinessName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
@@ -409,7 +408,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private LegalOrganizationType createLegalOrganizationType(final Document invoice) {
-        LegalOrganizationType retval = factory.createLegalOrganizationType();
+        final LegalOrganizationType retval = factory.createLegalOrganizationType();
         retval.setID(createIdFromString("GTIN"));
         retval.setTradingBusinessName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
         return retval;
@@ -432,22 +431,24 @@ public class XRechnung extends AbstractEInvoice {
     /**
      * @return
      */
-    private CurrencyCodeContentType getGlobalCurrencyCode() {
-        String currency = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
-        CurrencyCodeContentType retval;
+    private CurrencyCodeType getGlobalCurrencyCode() {
+        final String currency = DataUtils.getInstance().getDefaultCurrencyUnit().getCurrencyCode();
+        ISO3AlphaCurrencyCodeContentType retval;
         // TODO later on we will use JSR 354...
         switch (currency) {
         case "€":
-            retval = CurrencyCodeContentType.EUR;
+            retval = ISO3AlphaCurrencyCodeContentType.EUR;
             break;
         case "$":
-            retval = CurrencyCodeContentType.USD;
+            retval = ISO3AlphaCurrencyCodeContentType.USD;
             break;
         default:
-            retval = CurrencyCodeContentType.EUR;
+            retval = ISO3AlphaCurrencyCodeContentType.EUR;
             break;
         }
-        return retval;
+        final CurrencyCodeType cct = new CurrencyCodeType();
+        cct.setValue(retval.value());
+        return cct;
     }
 
     /**
@@ -457,7 +458,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private SupplyChainTradeLineItemType createLineItem(final DocumentItem item) {
-        SupplyChainTradeLineItemType retval = factory.createSupplyChainTradeLineItemType();
+        final SupplyChainTradeLineItemType retval = factory.createSupplyChainTradeLineItemType();
         retval.setAssociatedDocumentLineDocument(createDocumentLine(item));
         retval.setSpecifiedTradeProduct(createTradeProduct(item));
         retval.setSpecifiedLineTradeAgreement(createLineTradeAgreement(item));
@@ -476,7 +477,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private TradeProductType createTradeProduct(final DocumentItem item) {
-        TradeProductType retval = factory.createTradeProductType();
+        final TradeProductType retval = factory.createTradeProductType();
         //          .setGlobalID(createIdFromString("EAN")) // see ISO 6523
         retval.setSellerAssignedID(createIdFromString(item.getItemNumber())); // perhaps GTIN?
         retval.setBuyerAssignedID(createIdFromString("buyerassigned ID"));
@@ -490,7 +491,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private TradeCountryType createTradeCountry(final DocumentItem item) {
-        TradeCountryType retval = factory.createTradeCountryType();
+        final TradeCountryType retval = factory.createTradeCountryType();
         retval.setID(createCountry("DE"));
         return retval;
     }
@@ -502,7 +503,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private LineTradeSettlementType createLineTradeSettlement(final DocumentItem item) {
-        LineTradeSettlementType retval = factory.createLineTradeSettlementType();
+        final LineTradeSettlementType retval = factory.createLineTradeSettlementType();
         retval.getApplicableTradeTax().add(createTradeTax(item.getItemVat()));
         retval.setSpecifiedTradeSettlementLineMonetarySummation(createTradeSettlementLineMonetarySummation(item))
         //               .setAdditionalReferencedDocument(null);
@@ -519,14 +520,14 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private Collection<TradeAllowanceChargeType> createAllowanceCharges(final DocumentItem item) {
-        List<TradeAllowanceChargeType> charges = new ArrayList<>();
-        TradeAllowanceChargeType charge = createTradeAllowance(item);
+        final List<TradeAllowanceChargeType> charges = new ArrayList<>();
+        final TradeAllowanceChargeType charge = createTradeAllowance(item);
         charges.add(charge);
         return charges;
     }
 
     private SpecifiedPeriodType createBillingSpecificPeriod(final DocumentItem item) {
-        SpecifiedPeriodType retval = factory.createSpecifiedPeriodType();
+        final SpecifiedPeriodType retval = factory.createSpecifiedPeriodType();
         if (item.getVestingPeriodStart() != null) {
             retval.setStartDateTime(createDateTime(item.getVestingPeriodStart()));
         }
@@ -538,7 +539,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private SpecifiedPeriodType createBillingSpecificPeriod(final Document item) {
-        SpecifiedPeriodType retval = factory.createSpecifiedPeriodType();
+        final SpecifiedPeriodType retval = factory.createSpecifiedPeriodType();
         if (item.getVestingPeriodStart() != null) {
             retval.setStartDateTime(createDateTime(item.getVestingPeriodStart()));
         }
@@ -550,14 +551,14 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private LineTradeDeliveryType createLineTradeDelivery(final DocumentItem item) {
-        String qunit = determineQuantityUnit(item.getQuantityUnit());
-        LineTradeDeliveryType retval = factory.createLineTradeDeliveryType();
+        final String qunit = determineQuantityUnit(item.getQuantityUnit());
+        final LineTradeDeliveryType retval = factory.createLineTradeDeliveryType();
         retval.setBilledQuantity(createQuantity(item.getQuantity(), qunit));
         return retval;
     }
 
     private QuantityType createQuantity(final Double value, final String unit) {
-        QuantityType retval = factory.createQuantityType();
+        final QuantityType retval = factory.createQuantityType();
         retval.setValue(BigDecimal.valueOf(value));
         // use a default value since this field shouldn't be empty
         retval.setUnitCode(StringUtils.isBlank(unit) ? "C62" : unit);
@@ -574,7 +575,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private LineTradeAgreementType createLineTradeAgreement(final DocumentItem item) {
-        LineTradeAgreementType retval = factory.createLineTradeAgreementType();
+        final LineTradeAgreementType retval = factory.createLineTradeAgreementType();
         //          .setBuyerOrderReferencedDocument(createBuyerOrderReferencedDocument(item))
         retval.setGrossPriceProductTradePrice(createTradePrice(item, PriceType.GROSS_PRICE));
         retval.setNetPriceProductTradePrice(createTradePrice(item, PriceType.NET_PRICE_DISCOUNTED));
@@ -589,7 +590,7 @@ public class XRechnung extends AbstractEInvoice {
      */
     private ReferencedDocumentType createBuyerOrderReferencedDocument(final DocumentItem item) {
         // hier ist die Position in der zugehörigen Bestellung gemeint!
-        ReferencedDocumentType retval = factory.createReferencedDocumentType();
+        final ReferencedDocumentType retval = factory.createReferencedDocumentType();
         retval.setLineID(createIdFromString(Integer.toString(item.getPosNr())));
         return retval;
     }
@@ -602,11 +603,11 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private TradePriceType createTradePrice(final DocumentItem item, final PriceType priceType) {
-        Price price = new Price(item);
+        final Price price = new Price(item);
         TradePriceType retval = null;
-        String qunit = determineQuantityUnit(item.getQuantityUnit());
-        int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
-        double discount = item.getItemRebate();
+        final String qunit = determineQuantityUnit(item.getQuantityUnit());
+        final int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
+        final double discount = item.getItemRebate();
         switch (priceType) {
         case GROSS_PRICE:
             retval = factory.createTradePriceType();
@@ -668,14 +669,14 @@ public class XRechnung extends AbstractEInvoice {
     private String determineQuantityUnit(final String userdefinedQuantityUnit) {
         String isoUnit = "";
         if (StringUtils.isNotBlank(userdefinedQuantityUnit)) {
-            Optional<CEFACTCode> code = measureUnits.findByAbbreviation(userdefinedQuantityUnit, localeUtil.getDefaultLocale());
+            final Optional<CEFACTCode> code = measureUnits.findByAbbreviation(userdefinedQuantityUnit, localeUtil.getDefaultLocale());
             isoUnit = code.isPresent() ? code.get().getCode() : "";
         }
         return isoUnit;
     }
 
     private DocumentLineDocumentType createDocumentLine(final DocumentItem item) {
-        DocumentLineDocumentType retval = factory.createDocumentLineDocumentType();
+        final DocumentLineDocumentType retval = factory.createDocumentLineDocumentType();
         retval.setLineID(createIdFromString(item.getPosNr().toString()));
         // TODO Detailinformationen zum Freitext zur Position 
         //Optional.ofNullable(createNote(item.getDescription())).ifPresent(n -> retval.getIncludedNote().add(n));
@@ -696,23 +697,23 @@ public class XRechnung extends AbstractEInvoice {
         }
 
         if (!itemAllowances.getItemAllowances().isEmpty()) {
-            MonetaryAmount allowance = itemAllowances.getItemAllowances().values().parallelStream()
+            final MonetaryAmount allowance = itemAllowances.getItemAllowances().values().parallelStream()
                     .collect(() -> Money.of(BigDecimal.ONE, DataUtils.getInstance().getDefaultCurrencyUnit()), (a, t) -> t.add(a), (a, t) -> t.add(a));
             allowanceAmount.add(allowance);
         }
         MonetaryAmount totalAmount = Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit());
-        for (MonetaryAmount amt : netPricesPerVat.values()) {
+        for (final MonetaryAmount amt : netPricesPerVat.values()) {
             totalAmount = totalAmount.add(amt);
         }
-        MonetaryAmount taxBasisTotalAmount = totalAmount.add(documentSummary.getShippingNet()).subtract(allowanceAmount);
-        MonetaryAmount grandTotalAmount = taxBasisTotalAmount.add(documentSummary.getTotalVat());
-        TradeSettlementHeaderMonetarySummationType retval = factory.createTradeSettlementHeaderMonetarySummationType();
+        final MonetaryAmount taxBasisTotalAmount = totalAmount.add(documentSummary.getShippingNet()).subtract(allowanceAmount);
+        final MonetaryAmount grandTotalAmount = taxBasisTotalAmount.add(documentSummary.getTotalVat());
+        final TradeSettlementHeaderMonetarySummationType retval = factory.createTradeSettlementHeaderMonetarySummationType();
         retval.setLineTotalAmount(createAmount(totalAmount));
         retval.setChargeTotalAmount(createAmount(documentSummary.getShippingNet()));
         retval.setAllowanceTotalAmount(createAmount(allowanceAmount));
-        retval.getTaxBasisTotalAmount().add(createAmount(taxBasisTotalAmount));
+        retval.setTaxBasisTotalAmount(createAmount(taxBasisTotalAmount));
         retval.getTaxTotalAmount().add(createAmount(documentSummary.getTotalVat(), 2, true));
-        retval.getGrandTotalAmount().add(createAmount(grandTotalAmount));
+        retval.setGrandTotalAmount(createAmount(grandTotalAmount));
         retval.setTotalPrepaidAmount(createAmount(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit())));
         retval.setDuePayableAmount(createAmount(grandTotalAmount.subtract(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit()))));
         return retval;
@@ -723,8 +724,8 @@ public class XRechnung extends AbstractEInvoice {
          * Der Gesamtpositionsbetrag ist der Nettobetrag unter Berücksichtigung von Zu- und Abschlägen ohne 
          * Angabe des Umsatzsteuerbetrages. 
          */
-        Price price = new Price(item);
-        TradeSettlementLineMonetarySummationType retval = factory.createTradeSettlementLineMonetarySummationType();
+        final Price price = new Price(item);
+        final TradeSettlementLineMonetarySummationType retval = factory.createTradeSettlementLineMonetarySummationType();
         retval.setLineTotalAmount(createAmount(price.getTotalNetRounded()));
 
         storeNetPrice(price.getVatPercentFormatted(), price.getTotalNetRounded());
@@ -756,20 +757,20 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private TradePaymentTermsType createTradePaymentTerms(final Document invoice, final DocumentSummary documentSummary) {
-        LocalDateTime dueDate = DataUtils.getInstance().addToDate(invoice.getDocumentDate(), invoice.getDueDays());
-        TemplateProcessor placeholders = ContextInjectionFactory.make(TemplateProcessor.class, eclipseContext);
-        double percent = invoice.getPayment().getDiscountValue();
+        final LocalDateTime dueDate = DataUtils.getInstance().addToDate(invoice.getDocumentDate(), invoice.getDueDays());
+        final TemplateProcessor placeholders = ContextInjectionFactory.make(TemplateProcessor.class, eclipseContext);
+        final double percent = invoice.getPayment().getDiscountValue();
 
-        Date out = Date.from(dueDate.atZone(ZoneId.systemDefault()).toInstant());
-        Optional<String> paymentText = Optional.ofNullable(placeholders.createPaymentText(invoice, Optional.ofNullable(documentSummary), percent));
-        TradePaymentTermsType tradePaymentTerms = factory.createTradePaymentTermsType();
+        final Date out = Date.from(dueDate.atZone(ZoneId.systemDefault()).toInstant());
+        final Optional<String> paymentText = Optional.ofNullable(placeholders.createPaymentText(invoice, Optional.ofNullable(documentSummary), percent));
+        final TradePaymentTermsType tradePaymentTerms = factory.createTradePaymentTermsType();
         tradePaymentTerms.setDescription(createText(paymentText.orElse("unknown")));
         tradePaymentTerms.setDueDateDateTime(createDateTime(out));
 
-        DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
-        Contact contact = getOriginContact(documentReceiver);
+        final DocumentReceiver documentReceiver = addressManager.getBillingAdress(invoice);
+        final Contact contact = getOriginContact(documentReceiver);
         if (contact != null) {
-            IDType id = StringUtils.isNotBlank(contact.getMandateReference())
+            final IDType id = StringUtils.isNotBlank(contact.getMandateReference())
                     ? createIdWithSchemeFromString(contact.getMandateReference(), preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CREDITORID))
                     : null;
             tradePaymentTerms.setDirectDebitMandateID(id);
@@ -788,16 +789,16 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private TradeAllowanceChargeType createTradeAllowance(final DocumentItem item, final boolean withReason) {
-        Price price = new Price(item);
+        final Price price = new Price(item);
         MonetaryAmount amount = price.getTotalAllowance();
-        boolean isAllowance = amount.isPositiveOrZero();
+        final boolean isAllowance = amount.isPositiveOrZero();
         if (!isAllowance) {
             amount = amount.multiply(-1);
         }
 
         itemAllowances.add(item.getItemVat(), price.getTotalAllowance());
 
-        TradeAllowanceChargeType tradeAllowanceCharge = factory.createTradeAllowanceChargeType();
+        final TradeAllowanceChargeType tradeAllowanceCharge = factory.createTradeAllowanceChargeType();
         tradeAllowanceCharge.setChargeIndicator(createIndicator(isAllowance));
         //            .setCalculationPercent(factory.createPercentType().setValue(BigDecimal.valueOf(item.getItemRebate()))) // [CII-SR-122]
         //            .setBasisAmount(createAmount(price.getTotalNet(), 2))  // [CII-SR-123]
@@ -820,7 +821,7 @@ public class XRechnung extends AbstractEInvoice {
      * @param isAllowance
      */
     private IndicatorType createIndicator(final boolean isAllowance) {
-        IndicatorType indicator = factory.createIndicatorType();
+        final IndicatorType indicator = factory.createIndicatorType();
         indicator.setIndicator(isAllowance);
         return indicator;
     }
@@ -829,11 +830,11 @@ public class XRechnung extends AbstractEInvoice {
         MonetaryAmount amount = summary.getDiscountNet();
         // Abschlag ==> false
         // Zuschlag ==> true
-        boolean isAllowance = amount.isPositive();
+        final boolean isAllowance = amount.isPositive();
         if (!isAllowance) {
             amount = amount.multiply(-1);
         }
-        TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
+        final TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
         retval.setChargeIndicator(createIndicator(isAllowance));
         retval.setActualAmount(createAmount(amount, 2, false));
         retval.setBasisAmount(createAmount(summary.getItemsNet().add(amount), 2));
@@ -848,35 +849,32 @@ public class XRechnung extends AbstractEInvoice {
      * @param invoice
      * @return
      */
-	private TradeAllowanceChargeType createTradeAllowance(final Document invoice) {
-		Double amount = invoice.getShipping() != null ? invoice.getShipping().getShippingValue()
-				: invoice.getShippingValue();
+    private TradeAllowanceChargeType createTradeAllowance(final Document invoice) {
+        final Double amount = invoice.getShipping() != null ? invoice.getShipping().getShippingValue() : invoice.getShippingValue();
 
-		TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
-		retval.setChargeIndicator(createIndicator(true));
-		retval.setActualAmount(
-				createAmount(Money.of(amount, DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-		retval.setBasisAmount(createAmount(
-				Money.of(invoice.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-		retval.setReason(createText("Shipping costs")); // TODO Versandkosten!!!
-		if (invoice.getShipping() != null && invoice.getShipping().getShippingVat().getTaxValue() > 0.0) {
-			retval.setCategoryTradeTax(createTradeTax(invoice.getShipping().getShippingVat()));
-		} else if (invoice.getAdditionalInfo().getShippingVatValue() != null) {
-			VAT shippingVat = new VAT();
-			shippingVat.setTaxValue(invoice.getAdditionalInfo().getShippingVatValue());
-			shippingVat.setName(invoice.getAdditionalInfo().getShippingVatDescription());
-			retval.setCategoryTradeTax(createTradeTax(shippingVat));
-		}
-		return retval;
-	}
+        final TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
+        retval.setChargeIndicator(createIndicator(true));
+        retval.setActualAmount(createAmount(Money.of(amount, DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
+        retval.setBasisAmount(createAmount(Money.of(invoice.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
+        retval.setReason(createText("Shipping costs")); // TODO Versandkosten!!!
+        if (invoice.getShipping() != null && invoice.getShipping().getShippingVat().getTaxValue() > 0.0) {
+            retval.setCategoryTradeTax(createTradeTax(invoice.getShipping().getShippingVat()));
+        } else if (invoice.getAdditionalInfo().getShippingVatValue() != null) {
+            final VAT shippingVat = new VAT();
+            shippingVat.setTaxValue(invoice.getAdditionalInfo().getShippingVatValue());
+            shippingVat.setName(invoice.getAdditionalInfo().getShippingVatDescription());
+            retval.setCategoryTradeTax(createTradeTax(shippingVat));
+        }
+        return retval;
+    }
 
     private TradeTaxType createTradeTax(final VAT vatValue) {
         return createTradeTax(vatValue, vatValue.getTaxValue() > 0 ? TaxCategoryCodeContentType.S : TaxCategoryCodeContentType.Z);
     }
 
     private TradeTaxType createTradeTax(final VAT vatValue, final TaxCategoryCodeContentType taxCategoryCode) {
-        TradeTaxType retval = factory.createTradeTaxType();
-        PercentType percentType = factory.createPercentType();
+        final TradeTaxType retval = factory.createTradeTaxType();
+        final PercentType percentType = factory.createPercentType();
         percentType.setValue(BigDecimal.valueOf(vatValue.getTaxValue()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
         retval.setRateApplicablePercent(percentType);
         retval.setCategoryCode(createTaxCategoryCode(taxCategoryCode)); // see UNTDID 5305
@@ -894,11 +892,11 @@ public class XRechnung extends AbstractEInvoice {
         // VAT description
         // (unused) String key = vatSummaryItem.getVatName();
         // It's the VAT value
-        MonetaryAmount basisAmount = Optional.ofNullable(vatSummaryItem.getNet()).orElse(Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit()));
-        TaxCategoryCodeContentType taxType = vatSummaryItem.getVatPercent() == 0 ? TaxCategoryCodeContentType.Z : TaxCategoryCodeContentType.S;
-        TradeTaxType retval = factory.createTradeTaxType();
+        final MonetaryAmount basisAmount = Optional.ofNullable(vatSummaryItem.getNet()).orElse(Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit()));
+        final TaxCategoryCodeContentType taxType = vatSummaryItem.getVatPercent() == 0 ? TaxCategoryCodeContentType.Z : TaxCategoryCodeContentType.S;
+        final TradeTaxType retval = factory.createTradeTaxType();
         retval.setCalculatedAmount(createAmount(basisAmount.multiply(vatSummaryItem.getVatPercent())));
-        PercentType percentType = factory.createPercentType();
+        final PercentType percentType = factory.createPercentType();
         percentType.setValue(BigDecimal.valueOf(vatSummaryItem.getVatPercent()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
         retval.setRateApplicablePercent(percentType);
         retval.setBasisAmount(createAmount(basisAmount));
@@ -911,13 +909,13 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private TaxTypeCodeType createTaxTypeCode(final TaxTypeCodeContentType string) {
-        TaxTypeCodeType retval = factory.createTaxTypeCodeType();
+        final TaxTypeCodeType retval = factory.createTaxTypeCodeType();
         retval.setValue(string);
         return retval;
     }
 
     private TaxCategoryCodeType createTaxCategoryCode(final TaxCategoryCodeContentType taxCat) {
-        TaxCategoryCodeType retval = factory.createTaxCategoryCodeType();
+        final TaxCategoryCodeType retval = factory.createTaxCategoryCodeType();
         retval.setValue(taxCat);
         return retval;
     }
@@ -946,16 +944,16 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private AmountType createAmount(final MonetaryAmount amount, final int scale, final boolean withCurrency) {
-        BigDecimal scaledValue = BigDecimal.valueOf(amount.getNumber().doubleValue()).setScale(scale, RoundingMode.HALF_UP);
+        final BigDecimal scaledValue = BigDecimal.valueOf(amount.getNumber().doubleValue()).setScale(scale, RoundingMode.HALF_UP);
 
-        AmountType retval = factory.createAmountType();
+        final AmountType retval = factory.createAmountType();
         retval.setValue(scaledValue);
         retval.setCurrencyID(withCurrency ? amount.getCurrency().getCurrencyCode() : null);
         return retval;
     }
 
     private CreditorFinancialInstitutionType createCreditorFinancialInstitution() {
-        CreditorFinancialInstitutionType retval = factory.createCreditorFinancialInstitutionType();
+        final CreditorFinancialInstitutionType retval = factory.createCreditorFinancialInstitutionType();
         retval.setBICID(createIdFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC)));
         //              .setGermanBankleitzahlID(createIdFromString(preferences.getString("YOURCOMPANY_COMPANY_BANKCODE")))
         /*.setName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BANK)))*/
@@ -975,7 +973,7 @@ public class XRechnung extends AbstractEInvoice {
 
     private DebtorFinancialAccountType createDebtorAccount(final BankAccount bankAccount) {
         if (bankAccount != null && !StringUtils.isEmpty(bankAccount.getIban())) {
-            DebtorFinancialAccountType financialAccountType = factory.createDebtorFinancialAccountType();
+            final DebtorFinancialAccountType financialAccountType = factory.createDebtorFinancialAccountType();
             financialAccountType.setIBANID(createIdFromString(bankAccount.getIban()))
             // financialAccountType.setProprietaryID(createIdFromString(invoice.getFormatedStringValueByKeyFromOtherTable("addressid.CONTACTS:account")))
             ;
@@ -997,28 +995,22 @@ public class XRechnung extends AbstractEInvoice {
         * 49 ... Direct debit (Lastschrift)
         *                   
         */
-        PaymentMeansCodeType paymentMeansCode = factory.createPaymentMeansCodeType();
-        paymentMeansCode.setValue(PaymentMeansCodeContentType.VALUE_31);
+        final PaymentMeansCodeType paymentMeansCode = factory.createPaymentMeansCodeType();
+        paymentMeansCode.setValue(un.unece.uncefact.data.standard.qualifieddatatype._100.PaymentMeansCodeType.ContentType.VALUE_31);
         return paymentMeansCode;
-    }
-
-    private CurrencyCodeType createCurrencyCode(final CurrencyCodeContentType currency) {
-        CurrencyCodeType currencyCodeType = factory.createCurrencyCodeType();
-        currencyCodeType.setValue(currency);
-        return currencyCodeType;
     }
 
     private TaxRegistrationType createTaxNumber(final Document invoice, final ContactType contactType) {
         TaxRegistrationType retval = factory.createTaxRegistrationType();
         switch (contactType) {
         case SELLER:
-            String companyVatNo = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR);
+            final String companyVatNo = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR);
             if (!StringUtils.isEmpty(companyVatNo)) {
                 retval.setID(createIdWithSchemeFromString(getNullCheckedValue(companyVatNo), "VA"));
             }
             break;
         case BUYER:
-            DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
+            final DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
             if (!StringUtils.isEmpty(billingAddress.getVatNumber())) {
                 retval.setID(createIdWithSchemeFromString(getNullCheckedValue(billingAddress.getVatNumber()), "VA"));
             }
@@ -1044,7 +1036,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private CodeType createCode(final String value) {
-        CodeType codeType = factory.createCodeType();
+        final CodeType codeType = factory.createCodeType();
         codeType.setValue(value);
         return codeType;
     }
@@ -1053,7 +1045,7 @@ public class XRechnung extends AbstractEInvoice {
         TradeAddressType retval = null;
         switch (contactType) {
         case SELLER:
-            String countryCode = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_COUNTRY);
+            final String countryCode = preferences.getString(Constants.PREFERENCES_YOURCOMPANY_COUNTRY);
 
             retval = factory.createTradeAddressType();
             retval.setPostcodeCode(createCode(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP)));
@@ -1066,7 +1058,7 @@ public class XRechnung extends AbstractEInvoice {
 
             break;
         case BUYER:
-            DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
+            final DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
             retval = factory.createTradeAddressType();
             // attention! Mind the manualAddress!
             if (billingAddress.getManualAddress() == null) {
@@ -1079,7 +1071,7 @@ public class XRechnung extends AbstractEInvoice {
                 //      retval.setCountrySubDivisionName(null)
 
             } else {
-                Address addressFromString = contactUtil.createAddressFromString(billingAddress.getManualAddress());
+                final Address addressFromString = contactUtil.createAddressFromString(billingAddress.getManualAddress());
                 retval.setPostcodeCode(createCode(addressFromString.getZip()));
                 retval.setLineOne(createText(addressFromString.getStreet()));
                 //      retval.setLineTwo(is empty at the moment)
@@ -1104,14 +1096,14 @@ public class XRechnung extends AbstractEInvoice {
             countryStr = localeUtil.findCodeByDisplayCountry(value, "DE");
         }
         // null values aren't allowed!
-        CountryIDType countryTypeId = factory.createCountryIDType();
+        final CountryIDType countryTypeId = factory.createCountryIDType();
         countryTypeId.setValue(CountryIDContentType.fromValue(Optional.ofNullable(countryStr).orElse("DE")));
         return countryTypeId;
     }
 
     private TradeContactType createContact(final Document invoice, final ContactType contactType) {
-        TradeContactType contact = factory.createTradeContactType();
-        UniversalCommunicationType email = factory.createUniversalCommunicationType();
+        final TradeContactType contact = factory.createTradeContactType();
+        final UniversalCommunicationType email = factory.createUniversalCommunicationType();
         switch (contactType) {
         case SELLER:
             contact.setPersonName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER)));
@@ -1126,7 +1118,7 @@ public class XRechnung extends AbstractEInvoice {
             break;
         case BUYER:
 
-            DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
+            final DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
             if (billingAdress != null) {
                 email.setURIID(createIdWithSchemeFromString(billingAdress.getEmail(), "EM"));
                 contact.setPersonName(createText(invoice.getAddressFirstLine()));
@@ -1142,7 +1134,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private UniversalCommunicationType createCommunicationItem(final String communicationItem) {
-        UniversalCommunicationType universalCommunicationType = factory.createUniversalCommunicationType();
+        final UniversalCommunicationType universalCommunicationType = factory.createUniversalCommunicationType();
         universalCommunicationType.setCompleteNumber(createText(communicationItem));
         return universalCommunicationType;
     }
@@ -1159,7 +1151,7 @@ public class XRechnung extends AbstractEInvoice {
         DateTimeType dateValue = null;
         if (dateString != null) {
             dateValue = factory.createDateTimeType();
-            DateTimeType.DateTimeString dateTypeString = factory.createDateTimeTypeDateTimeString();
+            final DateTimeType.DateTimeString dateTypeString = factory.createDateTimeTypeDateTimeString();
             dateTypeString.setValue(sdfDest.format(dateString));
             dateTypeString.setFormat("102");
             dateValue.setDateTimeString(dateTypeString);
@@ -1179,7 +1171,7 @@ public class XRechnung extends AbstractEInvoice {
         FormattedDateTimeType dateValue = null;
         if (dateString != null) {
             dateValue = factory.createFormattedDateTimeType();
-            DateTimeString dateTypeString = factory.createFormattedDateTimeTypeDateTimeString();
+            final DateTimeString dateTypeString = factory.createFormattedDateTimeTypeDateTimeString();
             dateTypeString.setValue(sdfDest.format(dateString));
             dateTypeString.setFormat("102");
             dateValue.setDateTimeString(dateTypeString);
@@ -1205,7 +1197,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     private IDType createIdWithSchemeFromString(final String idString, final String scheme) {
-        IDType idType = factory.createIDType();
+        final IDType idType = factory.createIDType();
         idType.setValue(idString);
         idType.setSchemeID(scheme);
 

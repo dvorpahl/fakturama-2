@@ -123,7 +123,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
     /** The Constant DEFAULT_PRICE_SCALE. */
     protected static final int DEFAULT_AMOUNT_SCALE = 4;
 
-    protected static SimpleDateFormat sdfDest = new SimpleDateFormat("yyyyMMdd");
+    protected final SimpleDateFormat sdfDest = new SimpleDateFormat("yyyyMMdd");
     protected Map<String, MonetaryAmount> netPricesPerVat = new HashMap<>();
 
     /**
@@ -143,18 +143,20 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         netPricesPerVat.clear();
 
         if (zugferdProfile == ConformanceLevel.XRECHNUNG) {
-        	IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();       
-            final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
-            final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-            final Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
-                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH,defaultValuesNode.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
-            // only to be on the safe side...
             try {
+                final IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();
+                final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
+                final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+                final Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
+                        eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, defaultValuesNode.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)),
+                        invoice);
+                // only to be on the safe side...
                 Files.deleteIfExists(path);
-            } catch (final IOException exception) {
+                createXmlFile(invoiceXmlJaxb, path);
+
+            } catch (final Exception exception) {
                 log.error(exception, "can't delete old XRechnung document: " + exception.getMessage());
             }
-            createXmlFile(invoiceXmlJaxb, path);
         } else {
             // this is Zugferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
