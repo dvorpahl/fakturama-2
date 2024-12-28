@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -72,22 +73,26 @@ public class QRCodeServiceImpl implements QRCodeService {
         return qrCodeFile.toByteArray();
     }
     
-    @Override
-    public byte[] createEANCode(String productNumber) {
-            EAN13Writer barcodeWriter = new EAN13Writer();
+	@Override
+	public byte[] createEANCode(String productNumber) {
+		byte[] imageBytes = null;
+		if(StringUtils.isAllBlank(productNumber)) {
+			return imageBytes;
+		}
+		
+		EAN13Writer barcodeWriter = new EAN13Writer();
 
-            byte[] imageBytes = null;
-            try {
-                BitMatrix bitMatrix = barcodeWriter.encode(productNumber, BarcodeFormat.EAN_13, 300, 50);
-                BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-                
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(bufferedImage, "jpg", baos);
-                imageBytes = baos.toByteArray();    
-                
-            } catch (IllegalArgumentException | IOException e) {
-                log.error(e, "wrong EAN code for product '"+productNumber+"'");
-            }
-            return imageBytes;
-    }
+		try {
+			BitMatrix bitMatrix = barcodeWriter.encode(productNumber, BarcodeFormat.EAN_13, 300, 50);
+			BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(bufferedImage, "jpg", baos);
+			imageBytes = baos.toByteArray();
+
+		} catch (IllegalArgumentException | IOException e) {
+			log.error(e, "wrong EAN code for product '" + productNumber + "'");
+		}
+		return imageBytes;
+	}
 }
