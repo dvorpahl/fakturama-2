@@ -612,10 +612,10 @@ public class TemplateProcessor {
         String text = null;
         if (p != null) {
             text = getDocumentInfoByPlaceholder(document, documentSummary, p);
-            // If the String is non empty, replace the OS new line with the OpenOffice new line
-            if (StringUtils.isNotBlank(text)) {
-                text = text.replaceAll("\n", "\r");
-            }
+//            // If the String is non empty, replace the OS new line with the OpenOffice new line
+//            if (StringUtils.isNotBlank(text)) {
+//                text = text.replaceAll("\n", "\r");
+//            }
             if (placeholderNode.getNodeType() == PlaceholderNodeType.NORMAL_NODE) {
                 text = applyParameters(text, placeholderNode.getParameters());
             }
@@ -745,63 +745,44 @@ public class TemplateProcessor {
             }
         }
 
-        // Get information from the document
-        if (key.equals("DOCUMENT.TYPE")) {
-            return msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(document.getBillingType()).getSingularKey());
-        }
-        if (key.equals("DOCUMENT.NAME")) {
-            return document.getName();
-        }
-        if (key.equals("DOCUMENT.CUSTOMERREF")) {
-            return document.getCustomerRef();
-        }
-        if (key.equals("DOCUMENT.CONSULTANT")) {
-            return document.getBillingType().isDELIVERY() ? deliveryAdress.getConsultant() : billingAdress.getConsultant();
-        }
-        if (key.equals("DOCUMENT.SERVICEDATE")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getServiceDate());
-        }
-        if (key.equals("DOCUMENT.MESSAGE")) {
-            return document.getMessage();
-        }
-        if (key.equals("DOCUMENT.MESSAGE1")) {
-            return document.getMessage();
-        }
-        if (key.equals("DOCUMENT.MESSAGE2")) {
-            return document.getMessage2();
-        }
-        if (key.equals("DOCUMENT.MESSAGE3")) {
-            return document.getMessage3();
-        }
-        if (key.equals("DOCUMENT.TRANSACTION")) {
-            return Optional.ofNullable(document.getTransactionId()).orElse(Integer.valueOf(0)).toString();
-        }
-        if (key.equals("DOCUMENT.INVOICE")) {
-            return document.getInvoiceReference() != null ? document.getInvoiceReference().getName() : "";
-        }
-        if (key.equals("DOCUMENT.WEBSHOP.ID")) {
-            return document.getWebshopId();
-        }
-        if (key.equals("DOCUMENT.WEBSHOP.DATE")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getWebshopDate());
-        }
-        if (key.equals("DOCUMENT.ORDER.DATE")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getOrderDate());
-        }
-        if (key.equals("DOCUMENT.VESTINGPERIOD.START")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getVestingPeriodStart());
-        }
-        if (key.equals("DOCUMENT.VESTINGPERIOD.END")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getVestingPeriodEnd());
-        }
-        if (key.equals("DOCUMENT.ITEMS.GROSS")) {
-            return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getItemsGross()) : "";
-        }
-
-        if (key.equals("DOCUMENT.ITEMS.NET")) {
-            return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getItemsNet()) : "";
-        }
-
+        switch (key) {
+		case "DOCUMENT.TYPE":
+			return msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(document.getBillingType()).getSingularKey());
+		case "DOCUMENT.NAME":
+			return document.getName();
+		case "DOCUMENT.CUSTOMERREF":
+			return document.getCustomerRef();
+		case "DOCUMENT.CONSULTANT":
+			return document.getBillingType().isDELIVERY() ? deliveryAdress.getConsultant() : billingAdress.getConsultant();
+		case "DOCUMENT.SERVICEDATE":
+			return dateFormatterService.getFormattedLocalizedDate(document.getServiceDate());
+		case "DOCUMENT.MESSAGE":
+			return document.getMessage();
+		case "DOCUMENT.MESSAGE1":
+			return document.getMessage();
+		case "DOCUMENT.MESSAGE2":
+			return document.getMessage2();
+		case "DOCUMENT.MESSAGE3":
+			return document.getMessage3();
+		case "DOCUMENT.TRANSACTION":
+			return Optional.ofNullable(document.getTransactionId()).orElse(Integer.valueOf(0)).toString();
+		case "DOCUMENT.INVOICE":
+			return document.getInvoiceReference() != null ? document.getInvoiceReference().getName() : "";
+		case "DOCUMENT.WEBSHOP.ID":
+			return document.getWebshopId();
+		case "DOCUMENT.WEBSHOP.DATE":
+			return dateFormatterService.getFormattedLocalizedDate(document.getWebshopDate());
+		case "DOCUMENT.ORDER.DATE":
+			return dateFormatterService.getFormattedLocalizedDate(document.getOrderDate());
+		case "DOCUMENT.VESTINGPERIOD.START":
+			return dateFormatterService.getFormattedLocalizedDate(document.getVestingPeriodStart());
+		case "DOCUMENT.VESTINGPERIOD.END":
+			return dateFormatterService.getFormattedLocalizedDate(document.getVestingPeriodEnd());
+		case "DOCUMENT.ITEMS.GROSS":
+			return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getItemsGross()) : "";
+		case "DOCUMENT.ITEMS.NET":
+			return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getItemsNet()) : "";
+		}
         // FAK-432
         // discount is negative
         if (key.equals("DOCUMENT.ITEMS.NET.DISCOUNTED")) {
@@ -811,20 +792,16 @@ public class TemplateProcessor {
         }
         if (key.equals("DOCUMENT.TOTAL.NET")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalNet()) : "";
-        }
-        if (key.equals("DOCUMENT.TOTAL.VAT")) {
+        } else if (key.equals("DOCUMENT.TOTAL.VAT")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalVat()) : "";
-        }
-        if (key.equals("DOCUMENT.TOTAL.GROSS")) {
+        } else if (key.equals("DOCUMENT.TOTAL.GROSS")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalGross()) : "";
-        }
-        if (key.equals("DOCUMENT.TOTAL.QUANTITY")) {
+        } else if (key.equals("DOCUMENT.TOTAL.QUANTITY")) {
             return documentSummary.isPresent() ? numberFormatterService.doubleToFormattedQuantity(documentSummary.get().getTotalQuantity()) : ""; // FAK-410
-        }
-        if (key.equals("DOCUMENT.ITEMS.COUNT")) {
+        } else if (key.equals("DOCUMENT.ITEMS.COUNT")) {
             return String.format("%d", document.getItems().size());
         }
-
+        
         try {
             if (key.equals("INVOICE.SWISSCODE")) {
                 if (document instanceof Invoice) {
@@ -868,17 +845,13 @@ public class TemplateProcessor {
 
         if (key.equals("DOCUMENT.DEPOSIT.DEPOSIT")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getDeposit()) : "";
-        }
-        if (key.equals("DOCUMENT.DEPOSIT.FINALPAYMENT")) {
+        } else if (key.equals("DOCUMENT.DEPOSIT.FINALPAYMENT")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getFinalPayment()) : "";
-        }
-        if (key.equals("DOCUMENT.DEPOSIT.DEP_TEXT")) {
+        } else if (key.equals("DOCUMENT.DEPOSIT.DEP_TEXT")) {
             return preferences.getString(Constants.PREFERENCES_DEPOSIT_TEXT);
-        }
-        if (key.equals("DOCUMENT.DEPOSIT.FINALPMT_TEXT")) {
+        } else if (key.equals("DOCUMENT.DEPOSIT.FINALPMT_TEXT")) {
             return preferences.getString(Constants.PREFERENCES_FINALPAYMENT_TEXT);
         }
-
         if (key.equals("ITEMS.DISCOUNT.PERCENT")
                 && Optional.ofNullable(document.getItemsRebate()).orElse(NumberUtils.DOUBLE_ZERO).compareTo(NumberUtils.DOUBLE_ZERO) != 0) {
             Double itemsRebate = document.getItemsRebate();
@@ -905,18 +878,13 @@ public class TemplateProcessor {
             final double percent = document.getPayment().getDiscountValue();
             if (key.equals("ITEMS.DISCOUNT.DISCOUNTPERCENT")) {
                 return numberFormatterService.DoubleToFormatedPercent(percent);
-            }
-            if (key.equals("ITEMS.DISCOUNT.VALUE")) {
+            } else if (key.equals("ITEMS.DISCOUNT.VALUE")) {
                 return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalGross().multiply(1 - percent)) : "";
-            }
-            if (key.equals("ITEMS.DISCOUNT.NETVALUE")) {
+            } else if (key.equals("ITEMS.DISCOUNT.NETVALUE")) {
                 return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalNet().multiply(1 - percent)) : "";
-            }
-            if (key.equals("ITEMS.DISCOUNT.TARAVALUE")) {
+            } else if (key.equals("ITEMS.DISCOUNT.TARAVALUE")) {
                 return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getTotalVat().multiply(1 - percent)) : "";
-            }
-
-            if (key.equals("PAYMENT.TEXT")) {
+            } else if (key.equals("PAYMENT.TEXT")) {
 
                 // Replace the placeholders in the payment text
                 return createPaymentText(document, documentSummary, percent);
@@ -925,26 +893,19 @@ public class TemplateProcessor {
 
         if (key.equals("SHIPPING.NET")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getShippingNet()) : "";
-        }
-        if (key.equals("SHIPPING.VAT")) {
+        } else if (key.equals("SHIPPING.VAT")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getShippingVat()) : "";
-        }
-        if (key.equals("SHIPPING.GROSS")) {
+        } else if (key.equals("SHIPPING.GROSS")) {
             return documentSummary.isPresent() ? numberFormatterService.formatCurrency(documentSummary.get().getShippingGross()) : "";
-        }
-        if (key.equals("SHIPPING.NAME")) {
+        } else if (key.equals("SHIPPING.NAME")) {
             return document.getShipping() != null ? document.getShipping().getName() : "";
-        }
-        if (key.equals("SHIPPING.DESCRIPTION")) {
+        } else if (key.equals("SHIPPING.DESCRIPTION")) {
             return document.getShipping() != null ? document.getShipping().getDescription() : document.getAdditionalInfo().getShippingDescription();
-        }
-        if (key.equals("SHIPPING.VAT.DESCRIPTION")) {
+        } else if (key.equals("SHIPPING.VAT.DESCRIPTION")) {
             return document.getShipping() != null ? document.getShipping().getShippingVat().getDescription() : "";
-        }
-        if (key.equals("DOCUMENT.DUNNING.LEVEL") && document.getBillingType() == BillingType.DUNNING) {
+        } else if (key.equals("DOCUMENT.DUNNING.LEVEL") && document.getBillingType() == BillingType.DUNNING) {
             return ((Dunning) document).getDunningLevel().toString();
         }
-
         // Get the reference string to other documents
         if (key.startsWith("DOCUMENT.REFERENCE.")) {
             final Transaction transaction = ContextInjectionFactory.make(Transaction.class, context).of(document);
@@ -974,27 +935,21 @@ public class TemplateProcessor {
             }
         }
 
-        //setProperty("PAYMENT.NAME", document.getStringValueByKey("paymentname"));
-        if (key.equals("PAYMENT.DESCRIPTION")) {
-            return document.getPayment() != null ? document.getPayment().getDescription() : document.getAdditionalInfo().getPaymentDescription();
-        }
-        if (key.equals("PAYMENT.PAID.VALUE")) {
-            return numberFormatterService.DoubleToFormatedPriceRound(document.getPaidValue());
-        }
-        if (key.equals("PAYMENT.PAID.DATE")) {
-            return dateFormatterService.getFormattedLocalizedDate(document.getPayDate());
-        }
-        if (key.equals("PAYMENT.DUE.DAYS")) {
-            return Integer.toString(document.getDueDays());
-        }
-        if (key.equals("PAYMENT.DUE.DATE")) {
-            final LocalDateTime newDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
-            return newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
-        }
-        if (key.equals("PAYMENT.PAID")) {
-            return BooleanUtils.toStringTrueFalse(document.getPaid());
-        }
-
+        switch (key) {
+		case "PAYMENT.DESCRIPTION":
+			return document.getPayment() != null ? document.getPayment().getDescription() : document.getAdditionalInfo().getPaymentDescription();
+		case "PAYMENT.PAID.VALUE":
+			return numberFormatterService.DoubleToFormatedPriceRound(document.getPaidValue());
+		case "PAYMENT.PAID.DATE":
+			return dateFormatterService.getFormattedLocalizedDate(document.getPayDate());
+		case "PAYMENT.DUE.DAYS":
+			return Integer.toString(document.getDueDays());
+		case "PAYMENT.DUE.DATE":
+			final LocalDateTime newDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
+			return newDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+		case "PAYMENT.PAID":
+			return BooleanUtils.toStringTrueFalse(document.getPaid());
+		}
         String key2;
         String addressField;
 
@@ -1032,36 +987,28 @@ public class TemplateProcessor {
         }
         // There is no reference - Try to get the information from the address field
         else {
-            if (key2.equals("ADDRESS.FIRSTLINE")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_ADDRESSFIRSTLINE);
-            }
-            if (key2.equals("ADDRESS.NAME")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_NAME);
-            }
-            if (key2.equals("ADDRESS.FIRSTNAME")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_FIRSTNAME);
-            }
-            if (key2.equals("ADDRESS.LASTNAME")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_LASTNAME);
-            }
-            if (key2.equals("ADDRESS.COMPANY")) {
-                return contactUtil.getDataFromAddressField(addressField, "company");
-            }
-            if (key2.equals("ADDRESS.STREET")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREET);
-            }
-            if (key2.equals("ADDRESS.STREETNAME")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREETNAME);
-            }
-            if (key2.equals("ADDRESS.STREETNO")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREETNO);
-            }
-            if (key2.equals("ADDRESS.ZIP")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_ZIP);
-            }
-            if (key2.equals("ADDRESS.CITY")) {
-                return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_CITY);
-            }
+            switch (key2) {
+			case "ADDRESS.FIRSTLINE":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_ADDRESSFIRSTLINE);
+			case "ADDRESS.NAME":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_NAME);
+			case "ADDRESS.FIRSTNAME":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_FIRSTNAME);
+			case "ADDRESS.LASTNAME":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_LASTNAME);
+			case "ADDRESS.COMPANY":
+				return contactUtil.getDataFromAddressField(addressField, "company");
+			case "ADDRESS.STREET":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREET);
+			case "ADDRESS.STREETNAME":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREETNAME);
+			case "ADDRESS.STREETNO":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_STREETNO);
+			case "ADDRESS.ZIP":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_ZIP);
+			case "ADDRESS.CITY":
+				return contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_CITY);
+			}
             final String country = contactUtil.getDataFromAddressField(addressField, ContactUtil.KEY_COUNTY);
             if (key2.equals("ADDRESS.COUNTRY")) {
                 return country;
@@ -1070,15 +1017,11 @@ public class TemplateProcessor {
             final Optional<Locale> locale = localeUtil.findLocaleByDisplayCountry(country);
             if (key2.equals("ADDRESS.COUNTRY.CODE2")) {
                 return locale.orElseGet(() -> localeUtil.getDefaultLocale()).getCountry();
-            }
-            if (key2.equals("ADDRESS.COUNTRY.CODE3")) {
+            } else if (key2.equals("ADDRESS.COUNTRY.CODE3")) {
                 return locale.orElseGet(() -> localeUtil.getDefaultLocale()).getISO3Country();
-            }
-
-            if (key2.equals("ADDRESS.GREETING")) {
+            } else if (key2.equals("ADDRESS.GREETING")) {
                 return contactUtil.getCommonGreeting();
             }
-
             // indeterminable fields in this case
             if (key.equals("ADDRESS.BANK.ACCOUNT.HOLDER") || key.equals("ADDRESS.BANK.ACCOUNT") || key.equals("ADDRESS.BANK.CODE")
                     || key.equals("ADDRESS.BANK.NAME") || key.equals("ADDRESS.BANK.IBAN") || key.equals("ADDRESS.BANK.BIC") || key.equals("ADDRESS.NR")
@@ -1129,71 +1072,53 @@ public class TemplateProcessor {
     private Optional<String> checkAddressPlaceholders(final DocumentReceiver contact, String key, final ContactType billing) {
         if (key.startsWith(billing.getName())) {
             key = key.replaceAll(billing.getName() + "\\.", "");
-        }
-        if (key.equals("ADDRESS")) {
-            return Optional.ofNullable(contactUtil.getAddressAsString(contact));
-        }
-        if (key.equals("ADDRESS.ALIAS")) {
-            return Optional.ofNullable(contact.getAlias());
-        }
-        if (key.equals("ADDRESS.LOCALCONSULTANT")) {
-            return Optional.ofNullable(contact.getConsultant());
-        }
-        if (key.equals("ADDRESS.GENDER")) {
-            return Optional.ofNullable(contactUtil.getGenderString(contact));
-        }
-        if (key.equals("ADDRESS.GREETING")) {
-            return Optional.ofNullable(contactUtil.getGreeting(contact));
-        }
-        if (key.equals("ADDRESS.TITLE")) {
-            return Optional.ofNullable(contact.getTitle());
-        }
-        if (key.equals("ADDRESS.NAME")) {
-            return Optional.ofNullable(contactUtil.getFirstAndLastName(contact));
-        }
-        if (key.equals("ADDRESS.NAMEWITHCOMPANY")) {
-            return Optional.ofNullable(contactUtil.getNameWithCompany(contact));
-        }
-        if (key.equals("ADDRESS.FIRSTANDLASTNAME")) {
-            return Optional.ofNullable(contactUtil.getFirstAndLastName(contact));
-        }
-        if (key.equals("ADDRESS.FIRSTNAME")) {
-            return Optional.ofNullable(contact.getFirstName());
-        }
-        if (key.equals("ADDRESS.LASTNAME")) {
-            return Optional.ofNullable(contact.getName());
-        }
-        if (key.equals("ADDRESS.COMPANY")) {
-            return Optional.ofNullable(contact.getCompany());
-        }
-
-        if (key.equals("ADDRESS.STREET")) {
-            return Optional.ofNullable(contact.getStreet());
-        }
-        if (key.equals("ADDRESS.STREETNAME")) {
-            return Optional.ofNullable(contactUtil.getStreetName(contact.getStreet()));
-        }
-        if (key.equals("ADDRESS.STREETNO")) {
-            return Optional.ofNullable(contactUtil.getStreetNo(contact.getStreet()));
-        }
-        if (key.equals("ADDRESS.ZIP")) {
-            return Optional.ofNullable(contact.getZip());
-        }
-        if (key.equals("ADDRESS.CITY")) {
-            return Optional.ofNullable(contact.getCity());
-        }
-        if (key.equals("ADDRESS.COUNTRY.CODE2")) {
-            return Optional.ofNullable(contact.getCountryCode());
-        }
-
+        } 
+		switch (key) {
+		case "ADDRESS":
+			return Optional.ofNullable(contactUtil.getAddressAsString(contact));
+		case "ADDRESS.ALIAS":
+			return Optional.ofNullable(contact.getAlias());
+		case "ADDRESS.LOCALCONSULTANT":
+			return Optional.ofNullable(contact.getConsultant());
+		case "ADDRESS.GENDER":
+			return Optional.ofNullable(contactUtil.getGenderString(contact));
+		case "ADDRESS.GREETING":
+			return Optional.ofNullable(contactUtil.getGreeting(contact));
+		case "ADDRESS.TITLE":
+			return Optional.ofNullable(contact.getTitle());
+		case "ADDRESS.NAME":
+			return Optional.ofNullable(contactUtil.getFirstAndLastName(contact));
+		case "ADDRESS.NAMEWITHCOMPANY":
+			return Optional.ofNullable(contactUtil.getNameWithCompany(contact));
+		case "ADDRESS.FIRSTANDLASTNAME":
+			return Optional.ofNullable(contactUtil.getFirstAndLastName(contact));
+		case "ADDRESS.FIRSTNAME":
+			return Optional.ofNullable(contact.getFirstName());
+		case "ADDRESS.LASTNAME":
+			return Optional.ofNullable(contact.getName());
+		case "ADDRESS.COMPANY":
+			return Optional.ofNullable(contact.getCompany());
+		case "ADDRESS.STREET":
+			return Optional.ofNullable(contact.getStreet());
+		case "ADDRESS.STREETNAME":
+			return Optional.ofNullable(contactUtil.getStreetName(contact.getStreet()));
+		case "ADDRESS.STREETNO":
+			return Optional.ofNullable(contactUtil.getStreetNo(contact.getStreet()));
+		case "ADDRESS.ZIP":
+			return Optional.ofNullable(contact.getZip());
+		case "ADDRESS.CITY":
+			return Optional.ofNullable(contact.getCity());
+		case "ADDRESS.COUNTRY.CODE2":
+			return Optional.ofNullable(contact.getCountryCode());
+		}
+        
         final Optional<Locale> locale = localeUtil.findByCode(contact.getCountryCode());
         if (key.equals("ADDRESS.COUNTRY")) {
             return Optional.ofNullable(locale.isPresent() ? locale.get().getDisplayCountry() : "??");
-        }
-        if (key.equals("ADDRESS.COUNTRY.CODE3")) {
+        } else if (key.equals("ADDRESS.COUNTRY.CODE3")) {
             return Optional.ofNullable(locale.isPresent() ? locale.get().getISO3Country() : "???");
         }
-
+        
         Contact originContact;
         originContact = contact.getOriginContactId() != null ? contactsDAO.findById(contact.getOriginContactId()) : null;
         if (originContact != null) {
@@ -1224,13 +1149,10 @@ public class TemplateProcessor {
             if (key.equals("ADDRESS.BIRTHDAY")) {
                 return Optional
                         .ofNullable(originContact.getBirthday() == null ? "" : dateFormatterService.getFormattedLocalizedDate(originContact.getBirthday()));
-            }
-
-            if (key.equals("ADDRESS.DISCOUNT")) {
+            } else if (key.equals("ADDRESS.DISCOUNT")) {
                 return Optional
                         .ofNullable(numberFormatterService.DoubleToFormatedPercent(Optional.ofNullable(originContact.getDiscount()).orElse(Double.valueOf(0))));
-            }
-            if (key.equals("ADDRESS.MANDATEREFERENCE")) {
+            } else if (key.equals("ADDRESS.MANDATEREFERENCE")) {
                 return Optional.ofNullable(originContact.getMandateReference());
             }
 
@@ -1274,37 +1196,28 @@ public class TemplateProcessor {
                     }
                 }
             } else {
-                // use OLD contact fields (deprecated!)
-                if (key.equals("ADDRESS.PHONE")) {
-                    return Optional.ofNullable(contact.getPhone());
-                }
-                if (key.equals("ADDRESS.PHONE.PRE")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), true));
-                }
-                if (key.equals("ADDRESS.PHONE.POST")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), false));
-                }
-                if (key.equals("ADDRESS.FAX")) {
-                    return Optional.ofNullable(contact.getFax());
-                }
-                if (key.equals("ADDRESS.FAX.PRE")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), true));
-                }
-                if (key.equals("ADDRESS.FAX.POST")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), false));
-                }
-                if (key.equals("ADDRESS.MOBILE")) {
-                    return Optional.ofNullable(contact.getMobile());
-                }
-                if (key.equals("ADDRESS.MOBILE.PRE")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), true));
-                }
-                if (key.equals("ADDRESS.MOBILE.POST")) {
-                    return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), false));
-                }
-                if (key.equals("ADDRESS.EMAIL")) {
-                    return Optional.ofNullable(contact.getEmail());
-                }
+                switch (key) {
+				case "ADDRESS.PHONE":
+					return Optional.ofNullable(contact.getPhone());
+				case "ADDRESS.PHONE.PRE":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), true));
+				case "ADDRESS.PHONE.POST":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getPhone(), false));
+				case "ADDRESS.FAX":
+					return Optional.ofNullable(contact.getFax());
+				case "ADDRESS.FAX.PRE":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), true));
+				case "ADDRESS.FAX.POST":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getFax(), false));
+				case "ADDRESS.MOBILE":
+					return Optional.ofNullable(contact.getMobile());
+				case "ADDRESS.MOBILE.PRE":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), true));
+				case "ADDRESS.MOBILE.POST":
+					return Optional.ofNullable(TemplateProcessorHelper.getTelPrePost(contact.getMobile(), false));
+				case "ADDRESS.EMAIL":
+					return Optional.ofNullable(contact.getEmail());
+				}
             }
             final BankAccount bankAccount = originContact.getBankAccount();
             if (bankAccount != null) {
@@ -1328,11 +1241,9 @@ public class TemplateProcessor {
         }
         if (key.equals("ADDRESS.NR")) {
             return Optional.ofNullable(contact.getCustomerNumber());
-        }
-        if (key.equals("ADDRESS.SUPPLIER.NUMBER")) {
+        } else if (key.equals("ADDRESS.SUPPLIER.NUMBER")) {
             return Objects.isNull(originContact) ? Optional.empty() : Optional.ofNullable(originContact.getSupplierNumber());
-        }
-        if (key.equals("ADDRESS.GLN")) {
+        } else if (key.equals("ADDRESS.GLN")) {
             return Optional.ofNullable(Optional.ofNullable(contact.getGln()).orElse(Long.valueOf(0)).toString());
         }
         return Optional.empty();
@@ -2056,5 +1967,4 @@ public class TemplateProcessor {
         // Test all placeholders
         return Placeholder.valueOfKey(placeholderKey) != null;
     }
-
 }
