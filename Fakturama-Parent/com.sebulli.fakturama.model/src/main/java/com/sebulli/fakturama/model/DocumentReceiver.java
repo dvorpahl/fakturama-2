@@ -280,6 +280,10 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
     @Basic()
     @Column(name = "NAME")
     private String name = null;
+    
+    @Basic()
+    @Column(name = "NAME_ADDON")
+    private String nameAddon = null;
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
@@ -1261,6 +1265,10 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
 
         return name;
     }
+    public String getNameAddon() {
+    	
+    	return nameAddon;
+    }
 
     /**
      * Sets the '{@link DocumentReceiver#getName() <em>name</em>}' feature.
@@ -1276,6 +1284,10 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
     public void setName(String newName) {
         firePropertyChange("name", this.name, newName);
         name = newName;
+    }
+    public void setNameAddon(String newNameAddon) {
+    	firePropertyChange("nameAddon", this.nameAddon, newNameAddon);
+    	nameAddon = newNameAddon;
     }
 
     /**

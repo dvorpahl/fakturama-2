@@ -81,7 +81,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.widgets.CompositeFactory;
 import org.eclipse.jface.widgets.LabelFactory;
 import org.eclipse.jface.widgets.SashFormFactory;
-import org.eclipse.jface.widgets.TextFactory;
 import org.eclipse.nebula.widgets.cdatetime.CDT;
 import org.eclipse.nebula.widgets.cdatetime.CDateTime;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
@@ -338,6 +337,7 @@ public class DocumentEditor extends Editor<Document> {
     private Label netWeight;
     private Label totalWeight;
     private SashForm sashForm;
+	private Map<Integer, ISideEffect> addressChangeSideEffect = new HashMap<>();
 
     /**
      * This method is for setting the dirty state to <code>true</code>. This
@@ -363,7 +363,6 @@ public class DocumentEditor extends Editor<Document> {
             setDirty(true);
         }
     };
-	private ISideEffect addressWidgetWatcher;
 
     /**
      * Mark this document as printed
@@ -406,10 +405,10 @@ public class DocumentEditor extends Editor<Document> {
             itemListTable.getNatTable().commitAndCloseActiveCellEditor();
         }
 
-        // set focus outside of address tab (needed for address widget to update its value)
+        // set focus outside of address tab
         addressAndIconComposite.getSelection().getControl().traverse(SWT.TRAVERSE_TAB_NEXT);
-        addressWidgetWatcher.runIfDirty();
-
+        addressChangeSideEffect.get(addressAndIconComposite.getSelectionIndex()).runIfDirty();
+        
         if (newDocument || document.getId() == 0) {
             // Check if the document number is the next one
             if (!document.getBillingType().isLETTER()) {
@@ -611,9 +610,10 @@ public class DocumentEditor extends Editor<Document> {
      * Checks the address field(s) for changed entries.
      */
     private void checkForChangedAddresses() {
+
         // Show a warning if the entered address is not similar to the address
         // of the document which is set by the address ID.
-        // Compare only if current address is from the same origin as the stored adress.
+        // Compare only if current address is from the same origin as the stored address.
         // (Else the user has selected another address from Contact list.)
         JaroWinklerSimilarity jaroWinklerSimilarity = new JaroWinklerSimilarity();
         for (CTabItem tabItem : addressAndIconComposite.getItems()) {
@@ -621,16 +621,16 @@ public class DocumentEditor extends Editor<Document> {
             DocumentReceiver documentReceiver = selectedAddresses.get(tabItem.getData(ADDRESS_TAB_BILLINGTYPE));
             String addressAsString = contactUtil.getAddressAsString(addressDTO, System.lineSeparator());
             if (!addressAsString.isEmpty() && addressDTO != null && addressDTO.getAddressId() == documentReceiver.getOriginAddressId()
-                && jaroWinklerSimilarity.apply(DataUtils.getInstance().removeCR(addressAsString),
-                        DataUtils.getInstance().removeCR(((Text) tabItem.getControl()).getText())) < 0.75) {
-            		MessageDialog.openWarning(top.getShell(),
-	                    // T: Title of the dialog that appears if the document is assigned to an other
-	                    // address.
-	                    msg.editorDocumentErrorWrongcontactTitle,
-	
-	                    // T: Text of the dialog that appears if the document is assigned to an other
-	                    // address.
-	                    MessageFormat.format(msg.editorDocumentErrorWrongcontactMsg, addressAsString));
+                    && jaroWinklerSimilarity.apply(DataUtils.getInstance().removeCR(addressAsString),
+                            DataUtils.getInstance().removeCR(((Text) tabItem.getControl()).getText())) < 0.75) {
+                MessageDialog.openWarning(top.getShell(),
+                        // T: Title of the dialog that appears if the document is assigned to an other
+                        // address.
+                        msg.editorDocumentErrorWrongcontactTitle,
+
+                        // T: Text of the dialog that appears if the document is assigned to an other
+                        // address.
+                        MessageFormat.format(msg.editorDocumentErrorWrongcontactMsg, addressAsString));
             }
         }
     }
@@ -724,70 +724,76 @@ public class DocumentEditor extends Editor<Document> {
 
     }
 
-    /**
-     * This is the "manual" implementation of the UpdateValueStrategy, since it
-     * seems not to be possible for updating a list of receivers which are
-     * displayed in a CTabFolder widget. The UpdateValueStrategy is for
-     * displaying a DocumentReceiver's address in an address tab. Since the
-     * address tab only contains a plain Text field, the values from
-     * DocumentReceiver has to be converted. Furthermore, the value in the Text
-     * field can be overwritten. In this case, the values from DocumentReceiver
-     * has to be cleared an the manualAddress field has to be set. For comparing
-     * the original Documentreceiver's address with the currently selected (or
-     * entered) one it is stored in the data field of the text widget.
-     */
-    private void bindAddressWidgetForIndex(final int index) {
-        final Text currentAddressTabWidget = txtAddresses.get(index);
-        ISideEffectFactory sideEffectFactory = WidgetSideEffects.createFactory(currentAddressTabWidget);
-        ISWTObservableValue<String> observedText = WidgetProperties.text(SWT.FocusOut).observe(currentAddressTabWidget);
-        addressWidgetWatcher = sideEffectFactory.create(observedText::getValue, addressString -> {
-            BillingType billingType = (BillingType) addressAndIconComposite.getSelection().getData(ADDRESS_TAB_BILLINGTYPE);
-            DocumentReceiver currentReceiver = selectedAddresses.get(billingType);
-            //			DocumentReceiver currentReceiver = (DocumentReceiver) currentAddressTabWidget.getData(CURRENT_RECEIVER);
-            if (currentReceiver == null) {
-                // should not occur
-                return;
-                // throw new RuntimeException("can't get DocumentReceiver from current CTabItem.");
-            }
-            if (((MPart) getMDirtyablePart()).getTransientData().get(BIND_MODE_INDICATOR) == null) {
-                // only if not in bind mode
+	/**
+	 * This is the "manual" implementation of the UpdateValueStrategy, since it
+	 * seems not to be possible for updating a list of receivers which are displayed
+	 * in a CTabFolder widget. The UpdateValueStrategy is for displaying a
+	 * DocumentReceiver's address in an address tab. Since the address tab only
+	 * contains a plain Text field, the values from DocumentReceiver has to be
+	 * converted. Furthermore, the value in the Text field can be overwritten. In
+	 * this case, the values from DocumentReceiver has to be cleared an the
+	 * manualAddress field has to be set. For comparing the original
+	 * Documentreceiver's address with the currently selected (or entered) one it is
+	 * stored in the data field of the text widget.
+	 */
+	private void bindAddressWidgetForIndex(final int index) {
+		final Text currentAddressTabWidget = txtAddresses.get(index);
+		addressChangeSideEffect.computeIfAbsent(index, i -> {
+			ISideEffectFactory sideEffectFactory = WidgetSideEffects.createFactory(currentAddressTabWidget);
+			ISWTObservableValue<String> observedText = WidgetProperties.text(SWT.FocusOut)
+					.observe(currentAddressTabWidget);
+			ISideEffect sideEffect = sideEffectFactory.create(observedText::getValue, addressString -> {
+				final CTabItem currentTab = addressAndIconComposite.getItem(index);
+				BillingType billingType = (BillingType) currentTab.getData(ADDRESS_TAB_BILLINGTYPE);
+				DocumentReceiver currentReceiver = selectedAddresses.get(billingType);
+				if (currentReceiver == null) {
+					// should not occur
+					return;
+					// throw new RuntimeException("can't get DocumentReceiver from current
+					// CTabItem.");
+				}
+				if (((MPart) getMDirtyablePart()).getTransientData().get(BIND_MODE_INDICATOR) == null) {
+					// only if not in bind mode
+					String currentTabContent = ((Text) currentTab.getControl()).getText();
 
-                // Test if the txtAddress field was modified
-                // ("modified" means that the content of the text field differs from the address
-                // from current DocumentReceiver and was manually(!) changed)
-                boolean addressModified = !DataUtils.getInstance().MultiLineStringsAreEqual(contactUtil.getAddressAsString(currentReceiver),
-                        observedText.getValue());
-                // TODO check if FAK-276 is working!
+					// Test if the txtAddress field was modified
+					// ("modified" means that the content of the text field differs from the address
+					// from current DocumentReceiver and was manually(!) changed)
+					boolean addressModified = !DataUtils.getInstance().MultiLineStringsAreEqual(
+							contactUtil.getAddressAsString(currentReceiver), currentTabContent);
+					// TODO check if FAK-276 is working!
 
-                if (addressModified) {
-                    // DocumentReceiver was changed manually
-                    currentReceiver = clearAddressFields(currentReceiver);
-                    currentReceiver.setManualAddress(observedText.getValue());
+					if (addressModified) {
+						// DocumentReceiver was changed manually
+						currentReceiver = clearAddressFields(currentReceiver);
+						currentReceiver.setManualAddress(currentTabContent);
 
-                    /*
-                     * possible cases:
-                     * 
-                     * Document | Adresse alt        | Adresse neu        | Aktion
-                     * neu      | --                 | Adr. aus Kontakten | neuer DocumentReceiver mit dieser Adresse  (v) ==> firstLine wird nicht angezeigt
-                     * neu      | --                 | manuelle Adr.      | neuer DocumentReceiver mit dieser Adresse  (v)
-                     * vorh.    | Adr. aus Kontakten | Adr. aus Kontakten | DocumentReceiver mit neuer Adresse füllen, manualAddress null setzen  (v) ==> firstLine wird nicht angezeigt
-                     * vorh.    | manuelle Eingabe   | Adr. aus Kontakten | DocumentReceiver mit neuer Adresse füllen, manualAddress null setzen  (v)
-                     * vorh.    | Adr. aus Kontakten | manuelle Eingabe 1)| DocumentReceiver leeren, manualAddress setzen  (v)
-                     * vorh.    | manuelle Eingabe   | manuelle Eingabe   | DocumentReceiver leeren, manualAddress setzen  (v)
-                     * 
-                     * 1) "manuelle Eingabe" kann hier auch heißen, daß die bestehende Adresse einfach geändert wurde.
-                     */
-                    setDirty(true);
-                }
-                updateAddressFirstLine(currentReceiver, currentAddressTabWidget, index);
-            } else {
-                // if in bind mode, fill address Text widget with DocumentReceiver's value
-                observedText.setValue(contactUtil.getAddressAsString(currentReceiver));
-            }
-        });
-    }
+/*
+ * possible cases:
+ * 
+ * Document | Adresse alt        | Adresse neu        | Aktion
+ * neu      | --                 | Adr. aus Kontakten | neuer DocumentReceiver mit dieser Adresse  (v) ==> firstLine wird nicht angezeigt
+ * neu      | --                 | manuelle Adr.      | neuer DocumentReceiver mit dieser Adresse  (v)
+ * vorh.    | Adr. aus Kontakten | Adr. aus Kontakten | DocumentReceiver mit neuer Adresse füllen, manualAddress null setzen  (v) ==> firstLine wird nicht angezeigt
+ * vorh.    | manuelle Eingabe   | Adr. aus Kontakten | DocumentReceiver mit neuer Adresse füllen, manualAddress null setzen  (v)
+ * vorh.    | Adr. aus Kontakten | manuelle Eingabe 1)| DocumentReceiver leeren, manualAddress setzen  (v)
+ * vorh.    | manuelle Eingabe   | manuelle Eingabe   | DocumentReceiver leeren, manualAddress setzen  (v)
+ * 
+ * 1) "manuelle Eingabe" kann hier auch heißen, daß die bestehende Adresse einfach geändert wurde.
+ */
+						setDirty(true);
+					}
+					updateAddressFirstLine(currentReceiver, currentAddressTabWidget, index);
+				} else {
+					// if in bind mode, fill address Text widget with DocumentReceiver's value
+					observedText.setValue(contactUtil.getAddressAsString(currentReceiver));
+				}
+			});
+			return sideEffect;
+		});
+	}
 
-    private void updateAddressFirstLine(final DocumentReceiver currentReceiver, final Text currentAddressTabWidget, final int index) {
+	private void updateAddressFirstLine(final DocumentReceiver currentReceiver, final Text currentAddressTabWidget, final int index) {
         // Set the "addressFirstLine" value to the first line of the
         // contact address (in case of setting a new address from selection
         // the addressFirstLine property wouldn't be updated).
@@ -2724,14 +2730,14 @@ public class DocumentEditor extends Editor<Document> {
         addressTabItem.setText(msg.getMessageFromKey(documentType.getAddressKey()));
 
         // The address field
-        Text currentAddress = TextFactory.newText(SWT.BORDER | SWT.MULTI | SWT.V_SCROLL)
-        		.layoutData(GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).create())
-        		.create(addressAndIconComposite);
+        Text currentAddress = new Text(addressAndIconComposite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 
         // initially both objects are equal
         currentAddress.setData(ORIGIN_RECEIVER, AddressDTO.from(documentReceiver));
         selectedAddresses.put(documentReceiver.getBillingType(), documentReceiver);
+        //		addressTabItem.setToolTipText("'ne Adresse ");
 
+        GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).applyTo(currentAddress);
         addressTabItem.setControl(currentAddress);
         txtAddresses.add(currentAddress);
         return addressTabItem;
