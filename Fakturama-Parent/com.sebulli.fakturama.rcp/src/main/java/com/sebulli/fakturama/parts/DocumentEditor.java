@@ -42,6 +42,7 @@ import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.UpdateValueStrategy;
+import org.eclipse.core.databinding.observable.sideeffect.ISideEffect;
 import org.eclipse.core.databinding.observable.sideeffect.ISideEffectFactory;
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.core.databinding.validation.ValidationStatus;
@@ -80,6 +81,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.widgets.CompositeFactory;
 import org.eclipse.jface.widgets.LabelFactory;
 import org.eclipse.jface.widgets.SashFormFactory;
+import org.eclipse.jface.widgets.TextFactory;
 import org.eclipse.nebula.widgets.cdatetime.CDT;
 import org.eclipse.nebula.widgets.cdatetime.CDateTime;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
@@ -361,6 +363,7 @@ public class DocumentEditor extends Editor<Document> {
             setDirty(true);
         }
     };
+	private ISideEffect addressWidgetWatcher;
 
     /**
      * Mark this document as printed
@@ -403,8 +406,9 @@ public class DocumentEditor extends Editor<Document> {
             itemListTable.getNatTable().commitAndCloseActiveCellEditor();
         }
 
-        // set focus outside of address tab
-        txtCustomerRef.setFocus();
+        // set focus outside of address tab (needed for address widget to update its value)
+        addressAndIconComposite.getSelection().getControl().traverse(SWT.TRAVERSE_TAB_NEXT);
+        addressWidgetWatcher.runIfDirty();
 
         if (newDocument || document.getId() == 0) {
             // Check if the document number is the next one
@@ -607,7 +611,6 @@ public class DocumentEditor extends Editor<Document> {
      * Checks the address field(s) for changed entries.
      */
     private void checkForChangedAddresses() {
-
         // Show a warning if the entered address is not similar to the address
         // of the document which is set by the address ID.
         // Compare only if current address is from the same origin as the stored adress.
@@ -618,16 +621,16 @@ public class DocumentEditor extends Editor<Document> {
             DocumentReceiver documentReceiver = selectedAddresses.get(tabItem.getData(ADDRESS_TAB_BILLINGTYPE));
             String addressAsString = contactUtil.getAddressAsString(addressDTO, System.lineSeparator());
             if (!addressAsString.isEmpty() && addressDTO != null && addressDTO.getAddressId() == documentReceiver.getOriginAddressId()
-                    && jaroWinklerSimilarity.apply(DataUtils.getInstance().removeCR(addressAsString),
-                            DataUtils.getInstance().removeCR(((Text) tabItem.getControl()).getText())) < 0.75) {
-                MessageDialog.openWarning(top.getShell(),
-                        // T: Title of the dialog that appears if the document is assigned to an other
-                        // address.
-                        msg.editorDocumentErrorWrongcontactTitle,
-
-                        // T: Text of the dialog that appears if the document is assigned to an other
-                        // address.
-                        MessageFormat.format(msg.editorDocumentErrorWrongcontactMsg, addressAsString));
+                && jaroWinklerSimilarity.apply(DataUtils.getInstance().removeCR(addressAsString),
+                        DataUtils.getInstance().removeCR(((Text) tabItem.getControl()).getText())) < 0.75) {
+            		MessageDialog.openWarning(top.getShell(),
+	                    // T: Title of the dialog that appears if the document is assigned to an other
+	                    // address.
+	                    msg.editorDocumentErrorWrongcontactTitle,
+	
+	                    // T: Text of the dialog that appears if the document is assigned to an other
+	                    // address.
+	                    MessageFormat.format(msg.editorDocumentErrorWrongcontactMsg, addressAsString));
             }
         }
     }
@@ -737,10 +740,8 @@ public class DocumentEditor extends Editor<Document> {
         final Text currentAddressTabWidget = txtAddresses.get(index);
         ISideEffectFactory sideEffectFactory = WidgetSideEffects.createFactory(currentAddressTabWidget);
         ISWTObservableValue<String> observedText = WidgetProperties.text(SWT.FocusOut).observe(currentAddressTabWidget);
-        // react on changes inside the Text widget (which contains the String
-        // representation of an address)
-        sideEffectFactory.create(observedText::getValue, addressString -> {
-            BillingType billingType = (BillingType) addressAndIconComposite.getItem(index).getData(ADDRESS_TAB_BILLINGTYPE);
+        addressWidgetWatcher = sideEffectFactory.create(observedText::getValue, addressString -> {
+            BillingType billingType = (BillingType) addressAndIconComposite.getSelection().getData(ADDRESS_TAB_BILLINGTYPE);
             DocumentReceiver currentReceiver = selectedAddresses.get(billingType);
             //			DocumentReceiver currentReceiver = (DocumentReceiver) currentAddressTabWidget.getData(CURRENT_RECEIVER);
             if (currentReceiver == null) {
@@ -2723,14 +2724,14 @@ public class DocumentEditor extends Editor<Document> {
         addressTabItem.setText(msg.getMessageFromKey(documentType.getAddressKey()));
 
         // The address field
-        Text currentAddress = new Text(addressAndIconComposite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+        Text currentAddress = TextFactory.newText(SWT.BORDER | SWT.MULTI | SWT.V_SCROLL)
+        		.layoutData(GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).create())
+        		.create(addressAndIconComposite);
 
         // initially both objects are equal
         currentAddress.setData(ORIGIN_RECEIVER, AddressDTO.from(documentReceiver));
         selectedAddresses.put(documentReceiver.getBillingType(), documentReceiver);
-        //		addressTabItem.setToolTipText("'ne Adresse ");
 
-        GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).applyTo(currentAddress);
         addressTabItem.setControl(currentAddress);
         txtAddresses.add(currentAddress);
         return addressTabItem;
