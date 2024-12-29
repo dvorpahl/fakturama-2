@@ -91,15 +91,12 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
         CriteriaQuery<Debitor> query = cb.createQuery(getEntityClass());
         Root<Debitor> debitorQuery = query.from(getEntityClass());
         // filter all Debitors with matching addresses
-        query.distinct(true).select(debitorQuery)
-                .where(cb.and(debitorQuery.get(Debitor_.customerNumber).isNotNull(), cb.not(debitorQuery.get(Debitor_.deleted))/*
-                                                                                                                                * , cb.or(
-                                                                                                                                * cb.isEmpty(debitorQuery.join(Contact_.addresses).
-                                                                                                                                * get(Address_.contactTypes)),
-                                                                                                                                * debitorQuery.join(Contact_.addresses).get(
-                                                                                                                                * Address_.contactTypes).in(contactType) )
-                                                                                                                                */
-                )).orderBy(cb.asc(debitorQuery.get(Debitor_.customerNumber)));
+		query.distinct(true).select(debitorQuery).where(
+				cb.and(debitorQuery.get(Debitor_.customerNumber).isNotNull(),
+					cb.not(debitorQuery.get(Debitor_.deleted))//,
+					)
+				)
+				.orderBy(cb.asc(debitorQuery.get(Debitor_.customerNumber)));
         TypedQuery<Debitor> q = getEntityManager().createQuery(query);
         q.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
         //        q.setHint(QueryHints.REFRESH, HintValues.TRUE); 
@@ -109,23 +106,13 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
         List<Debitor> debitorsFromDb = q.getResultList();
         List<DebitorAddress> treeItems = new ArrayList<>();
 
-        /*
-         * Create a list of DebitorAddresses. This is done by creating at least one
-         * entry (for the main address) and some child entries for other matching addresses.
-         */
+        // Create a list of DebitorAddresses
         for (Debitor debitor : debitorsFromDb) {
             List<Address> addresses = debitor.getAddresses();
-            DebitorAddress treeItemDebitorAddress;
-            if (addresses.size() >= 1) {
-                // create the first entry for a debitor
-                treeItemDebitorAddress = createDebitorTreeItem(debitor, addresses.get(0));
-                if (addresses.size() > 1) {
-                    // if more than one address exists create child entries
-                    addresses.subList(1, addresses.size()).stream()
-                            .filter(adr -> adr.getContactTypes().isEmpty() || adr.getContactTypes().contains(contactType))
-                            .forEach(adr -> treeItems.add(createDebitorTreeItem(debitor, adr)));
-                }
-                treeItems.add(treeItemDebitorAddress);
+            if (!addresses.isEmpty()) {
+				addresses.stream()
+                    .filter(adr -> adr.getContactTypes().isEmpty() || adr.getContactTypes().contains(contactType))
+                    .forEach(adr -> treeItems.add(createDebitorTreeItem(debitor, adr)));
             }
         }
 
