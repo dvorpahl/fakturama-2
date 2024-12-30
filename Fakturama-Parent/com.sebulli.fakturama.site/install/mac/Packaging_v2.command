@@ -11,7 +11,7 @@ die(){
 	local m="$1"  # the first arg 
 	local e=$2    # the second arg
 	echo "$m" 
-	exit $e
+	exit $e/Users/rheydenreich/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site/target/products/Fakturama.ID/macosx/cocoa/x86_64/Fakturama2.app/Contents/Eclipse/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info
 }
       
 export PLUGIN_ROOT=/Users/rheydenreich/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site
@@ -82,8 +82,12 @@ for arg in "$@"; do
    echo "staging dir created: ${STAGING_DIR}"
    
    # prepare the correct directory structure
+   echo unzipping product file...
    tar -xf ${PLUGIN_ROOT}/target/products/Fakturama.ID-macosx.cocoa.${ARCHITECTURE}.tar.gz -C "${STAGING_DIR}"
    
+   # this is only if you want to use the unpacked directory for some purposes...
+   # cp -R ${PLUGIN_ROOT}/target/products/Fakturama.ID/macosx/cocoa/${ARCHITECTURE}/${APP_NAME}.app "${STAGING_DIR}"
+      
    # ... cp anything else you want in the DMG - documentation, etc.
    
    # copy current JRE into the product
@@ -94,12 +98,20 @@ for arg in "$@"; do
    # enable some L10N (specific to MacOS)
    cd "${STAGING_DIR}"/${APP_NAME}.app/Contents/Resources
    echo "creating L10N directories..."
-   mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj nl.proj no.proj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
+   mkdir -v ar_LY.lproj de_AT.lproj de_CH.lproj de_LI.lproj de.lproj el.lproj es.lproj eu.lproj fr.lproj hu.lproj it.lproj nl.proj pl.lproj ro.lproj ru.lproj sk.lproj sv.lproj tr.lproj uk.lproj
    cd -
+    
+   # the following lines are only because com.sun.jna plug-in has a dynlib inside which isn't signed with this process,
+   # so that the resulting DMG cannot be notarized. So, I've copied the com.sun.jna plug-in from an existing local 
+   # Eclipse installation into this product. After this the bundles.info has to be updated with current plug-in path.
+   # This is weird, but I don't have another solution for this problem.
       
-   # copy signed com.sun.jna to staging directory
+   # copy signed com.sun.jna into staging directory
    rm -rf ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna*
-   cp -fR /Applications/Eclipse.app/Contents/Eclipse/plugins/com.sun.jna* "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
+   cp -fR /Applications/Eclipse_202412.app/Contents/Eclipse/plugins/com.sun.jna* "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
+      
+   # the empty parameter is a hack for weird MacOS sed :-/
+   sed -i '' 's@com.sun.jna,5.15.0,plugins/com.sun.jna_5.15.0.jar,4,false@com.sun.jna,5.15.0.v20240915-2000,plugins/com.sun.jna_5.15.0.v20240915-2000/,4,false@g' ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info
      
    pushd "${STAGING_DIR}"
    
