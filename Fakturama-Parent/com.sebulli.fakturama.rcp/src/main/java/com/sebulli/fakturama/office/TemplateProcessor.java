@@ -1262,15 +1262,16 @@ public class TemplateProcessor {
      * @return fully formatted {@link Payment} text
      */
     public String createPaymentText(final Document document, final Optional<DocumentSummary> documentSummary, final double percent) {
-        // String paymenttext = document.getPayment().getPaidText();
         String paymenttext = document.getAdditionalInfo().getPaymentText();
         if (paymenttext == null && document.getPayment() != null) {
             // try to get the default payment text from payment entry, if one exists
             paymenttext = BooleanUtils.toBoolean(document.getPaid()) ? document.getPayment().getPaidText() : document.getPayment().getUnpaidText();
         }
-        paymenttext = StringUtils.replaceEach(paymenttext, new String[] { "<PAID.VALUE>", "<PAID.DATE>", "<DUE.DAYS>" },
+        paymenttext = StringUtils.replaceEach(paymenttext, 
+        		new String[] { "<PAID.VALUE>", "<PAID.DATE>", "<DUE.DAYS>" },
                 new String[] { numberFormatterService.DoubleToFormatedPriceRound(document.getPaidValue()),
-                        dateFormatterService.getFormattedLocalizedDate(document.getPayDate()), Integer.toString(document.getDueDays()) });
+                        dateFormatterService.getFormattedLocalizedDate(document.getPayDate()), 
+                        Integer.toString(document.getDueDays()) });
         final LocalDateTime dueDate = DataUtils.getInstance().addToDate(document.getDocumentDate(), document.getDueDays());
         paymenttext = StringUtils.replace(paymenttext, "<DUE.DATE>", dueDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)));
 

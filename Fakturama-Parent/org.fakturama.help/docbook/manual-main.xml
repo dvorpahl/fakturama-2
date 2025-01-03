@@ -158,8 +158,8 @@
 					</question>
 					<answer>
 						<para>
-	Man kann den Installer mit dem Schalter <code>-manual</code> aufrufen, dann kann man die Laufzeitumgebung auswählen.
-	</para>
+							Man kann den Installer mit dem Schalter <code>-manual</code> aufrufen, dann kann man die Laufzeitumgebung auswählen.
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -176,17 +176,19 @@ Attribut gibt es natürlich nicht, deswegen kann die Datenbank nicht initialisie
 				<qandaentry>
 					<question>
 						<para>Verwendung von MySQL ab Version x bringt Fehler</para>
+						<para>Symptom:
+							<programlisting>
+						Tue Jun 20 21:33:55 CEST 2017 WARN: Establishing SSL connection without server's identity verification is not recommended. According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set. For compliance with existing applications not using SSL the verifyServerCertificate property is set to 'false'. You need either to explicitly disable SSL by setting useSSL=false, or set useSSL=true and provide truststore for server certificate verification.
+							</programlisting></para>
 					</question>
 					<answer>
-						<para>Symptom:
-	<programlisting>
-Tue Jun 20 21:33:55 CEST 2017 WARN: Establishing SSL connection without server's identity verification is not recommended. According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set. For compliance with existing applications not using SSL the verifyServerCertificate property is set to 'false'. You need either to explicitly disable SSL by setting useSSL=false, or set useSSL=true and provide truststore for server certificate verification.
-	</programlisting>
-Abhilfe: An die URL noch folgendes anhängen: <code>?useSSL=false</code>.
-also z. B. 
-<programlisting>jdbc:mysql://rhehomesrv/fakturama?useSSL=false&#038;characterEncoding=utf8&#038;useUnicode=yes</programlisting>
+						<para>
+							Abhilfe: An die URL noch folgendes anhängen: <code>?useSSL=false</code>.
+							also z. B. 
+							<programlisting>jdbc:mysql://rhehomesrv/fakturama?useSSL=false&#038;characterEncoding=utf8&#038;useUnicode=yes</programlisting>
 						</para>
-						<para>Als Alternative wird der Einsatz einer verschlüsselten Verbindung empfohlen. Wie diese einzurichten ist steht im <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/raw/develop/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">HowTo-Dokument</link>.</para>
+						<para>Als Alternative wird der Einsatz einer verschlüsselten Verbindung empfohlen. Wie diese einzurichten ist steht im <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/raw/develop/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">HowTo-Dokument</link>.
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -195,12 +197,12 @@ also z. B.
 					</question>
 					<answer>
 						<para>Folgendes prüfen:
-	<itemizedlist spacing="compact">
+							<itemizedlist spacing="compact">
 								<listitem>welche Java-Version wird verwendet?</listitem>
 								<listitem>stehen in <code>~/.fakturama2/.metadata/.log</code> (bei Linux / Mac OS) bzw. <code>%USERPROFILE%\.fakturama2\.metadata\.log</code>  irgendwelche Hinweise?</listitem>
 							</itemizedlist>
-Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
-</para>
+							Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -209,8 +211,8 @@ Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
 					</question>
 					<answer>
 						<para>Die Ursache dafür kann ein Lock-Eintrag in der Datenbank sein. Zur Fehlerbereinigung muß die Datei <code>Database.script</code> mit einem Texteditor geändert werden. In dieser Datei muß die Zeile 
-<programlisting>INSERT INTO DATABASECHANGELOGLOCK...</programlisting> gesucht und entfernt werden.
-</para>
+						<programlisting>INSERT INTO DATABASECHANGELOGLOCK...</programlisting> gesucht und entfernt werden.
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -219,9 +221,8 @@ Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
 					</question>
 					<answer>
 						<para>
-siehe dazu den entsprechenden <link xl:href="https://www.fakturama.info/community/fakturama-2/umschalten-auf-mysql/">Foreneintrag</link>.
-Wichtig ist hier, als <code>bind-addr</code>
-							<code>0.0.0.0</code> anzugeben.</para>
+						siehe dazu den entsprechenden <link xl:href="https://www.fakturama.info/community/fakturama-2/umschalten-auf-mysql/">Foreneintrag</link>.
+						Wichtig ist hier, als <code>bind-addr</code> <code>0.0.0.0</code> anzugeben.</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -250,12 +251,12 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 					</question>
 					<answer>
 						<para>Da die Anwendung nicht signiert ist lehnt MacOS den start via Finder ab. Der Start über die Kommandozeile funktioniert allerdings. Deswegen kann man folgendes Script auf dem Desktop platzieren (Dateiendung <code>.sh</code>) und diesem das Fakturama-Icon zuweisen:
-		<programlisting>
-		#!/bin/bash
-		/Applications/Fakturama2.app/Contents/MacOS/Fakturama
-		</programlisting>
-		Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.
-</para>
+							<programlisting>
+							#!/bin/bash
+							/Applications/Fakturama2.app/Contents/MacOS/Fakturama
+							</programlisting>
+							Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -264,14 +265,14 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 					</question>
 					<answer>
 						<para>Zunächst folgendes in einem Terminalfenster eingeben:
-        <programlisting>
-cd /Applications
-xattr -d com.apple.quarantine Fakturama2.app
-        </programlisting>
-       Anschließend im Finder mit gedrückter CTRL-Taste das Fakturama-Icon anklicken und in dem aufklappenden Menü "Öffnen" wählen. Dann muss man nur noch die Netzwerkverbindung zulassen. 
-       Die nachfolgenden Aufrufe funktionieren dann auch ohne CTRL-Taste. </para>
-						<para>Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.
-	</para>
+							<programlisting>
+					cd /Applications
+					xattr -d com.apple.quarantine Fakturama2.app
+							</programlisting>
+						   Anschließend im Finder mit gedrückter CTRL-Taste das Fakturama-Icon anklicken und in dem aufklappenden Menü "Öffnen" wählen. Dann muss man nur noch die Netzwerkverbindung zulassen. 
+						   Die nachfolgenden Aufrufe funktionieren dann auch ohne CTRL-Taste.
+					    </para>
+						<para>Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -283,8 +284,12 @@ xattr -d com.apple.quarantine Fakturama2.app
 					</answer>
 				</qandaentry>
 				<qandaentry>
-					<question><para>Druckproblem in LibreOffice unter macOS (Drucken dauert extrem lange)</para></question>
-					<answer><para>Die Lösung wurde im <link xl:href="https://www.fakturama.info/community/postid/21451/">Forum</link> gepostet.</para></answer>
+					<question>
+						<para>Druckproblem in LibreOffice unter macOS (Drucken dauert extrem lange)</para>
+					</question>
+					<answer>
+						<para>Die Lösung wurde im <link xl:href="https://www.fakturama.info/community/postid/21451/">Forum</link> gepostet.</para>
+					</answer>
 				</qandaentry>
 			</qandadiv>
 			<qandadiv>
@@ -292,17 +297,17 @@ xattr -d com.apple.quarantine Fakturama2.app
 				<qandaentry>
 					<question>
 						<para>Der Installer meldet folgenden Fehler:
-		<programlisting>
-Fehler: Fehler bei der Transaktionsüberprüfung:
-package Fakturama2-2.0.4-20190317-1.x86_64 does not verify: no digest
-		</programlisting>
+							<programlisting>
+					Fehler: Fehler bei der Transaktionsüberprüfung:
+					package Fakturama2-2.0.4-20190317-1.x86_64 does not verify: no digest
+							</programlisting>
 						</para>
 					</question>
 					<answer>
 						<para>Im Terminal folgenden Befehl ausführen (dabei natürlich das korrekte Installer-Paket angeben)
-<programlisting>
-sudo rpm -i --nodigest Installer_Fakturama_linux_x64_2.0.4.rpm 
-</programlisting>
+							<programlisting>
+							sudo rpm -i --nodigest Installer_Fakturama_linux_x64_2.0.4.rpm 
+							</programlisting>
 						</para>
 					</answer>
 				</qandaentry>
@@ -313,30 +318,54 @@ sudo rpm -i --nodigest Installer_Fakturama_linux_x64_2.0.4.rpm
 					</question>
 					<answer>
 						<para>Hier hilft oft die Installation des WebToolkits:
-			<programlisting>
-			apt-get install libwebkitgtk-3.0-0
-			</programlisting>
-			Weitere Hinweise zur Fehlerbehebung gibt es auch im <link xl:href="https://www.fakturama.info/community/postid/21043/">Forum</link>. Insbesondere Das Problem mit der libwebkitgtk-Bibliothek wurde hier intensiv behandelt. Ggf. hilft auch die Installation des Pakets libwebkit2gtk-4.0-37.
-			</para>
+							<programlisting>
+							apt-get install libwebkitgtk-3.0-0
+							</programlisting>
+							Weitere Hinweise zur Fehlerbehebung gibt es auch im <link xl:href="https://www.fakturama.info/community/postid/21043/">Forum</link>. Insbesondere Das Problem mit der libwebkitgtk-Bibliothek wurde hier intensiv behandelt. Ggf. hilft auch die Installation des Pakets libwebkit2gtk-4.0-37.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Fakturama stürzt beim Start mit folgender Meldung ab:
+							<programlisting>
+			SWT WebKitGDBus: error creating DBus server Error binding to address (GUnixSocketAddress): No such file or directory
+			SWT WebKit: error initializing DBus server, dBusServer == 0
+
+			(Fakturama:87677): GLib-GIO-CRITICAL **: 08:14:06.114: g_dbus_server_get_client_address: assertion 'G_IS_DBUS_SERVER (server)' failed
+			#
+			# A fatal error has been detected by the Java Runtime Environment:
+			#
+			#  SIGSEGV (0xb) at pc=0x00007f2a2443ed16, pid=87677, tid=87678
+							</programlisting>
+						</para>
+					</question>
+					<answer>
+						<para>Die Lösung besteht darin, ein bestimmtes Verzeichnis anzulegen:
+							<programlisting>
+							mkdir /tmp/SWT-GDBusServer
+							</programlisting>
+						</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
 					<question>
 						<para>Unklarer Absturz unter Linux</para>
+						<para>
+							Symptom:
+							<programlisting>
+				!MESSAGE Unable to create class 'com.sebulli.fakturama.views.datatable.documents.DocumentsListTable' from bundle '860'
+				!STACK 0
+				org.eclipse.e4.core.di.InjectionException: java.lang.NoClassDefFoundError: org/eclipse/swt/events/SelectionListener
+					at org.eclipse.e4.core.internal.di.InjectorImpl.internalMake(InjectorImpl.java:410)
+					at org.eclipse.e4.core.internal.di.InjectorImpl.make(InjectorImpl.java:318)
+				</programlisting>
+						</para>
 					</question>
 					<answer>
 						<para>
-Symptom:
-			<programlisting>
-!MESSAGE Unable to create class 'com.sebulli.fakturama.views.datatable.documents.DocumentsListTable' from bundle '860'
-!STACK 0
-org.eclipse.e4.core.di.InjectionException: java.lang.NoClassDefFoundError: org/eclipse/swt/events/SelectionListener
-	at org.eclipse.e4.core.internal.di.InjectorImpl.internalMake(InjectorImpl.java:410)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.make(InjectorImpl.java:318)
-</programlisting>
+							Lösung: Schalter <code>-DSWT_GTK3=0</code> oder Schalter <code>-clean -consoleLog</code> beim Start der Anwendung über die Console (Terminal) mitgeben
 						</para>
-						<para>
-Lösung: Schalter <code>-DSWT_GTK3=0</code> oder Schalter <code>-clean -consoleLog</code> beim Start der Anwendung über die Console (Terminal) mitgeben</para>
 					</answer>
 				</qandaentry>
 				<qandaentry>
@@ -345,17 +374,17 @@ Lösung: Schalter <code>-DSWT_GTK3=0</code> oder Schalter <code>-clean -consoleL
 					</question>
 					<answer>
 						<para>Das file-locking von libreoffice macht Probleme, wenn die Datei von einem Netzlaufwerk über nfs geholt wird. Abhilfe schafft das Ausschalten des file-lockings in der Datei <code>/usr/lib/libreoffice/program/soffice</code>:
-<programlisting>
-# file locking now enabled by default
-SAL_ENABLE_FILE_LOCKING=1
-export SAL_ENABLE_FILE_LOCKING
-</programlisting>
-ändern in
-<programlisting>
-# file locking now enabled by default  - disabled
-#SAL_ENABLE_FILE_LOCKING=1
-#export SAL_ENABLE_FILE_LOCKING
-</programlisting>
+							<programlisting>
+							# file locking now enabled by default
+							SAL_ENABLE_FILE_LOCKING=1
+							export SAL_ENABLE_FILE_LOCKING
+							</programlisting>
+							ändern in
+							<programlisting>
+							# file locking now enabled by default  - disabled
+							#SAL_ENABLE_FILE_LOCKING=1
+							#export SAL_ENABLE_FILE_LOCKING
+							</programlisting>
 						</para>
 					</answer>
 				</qandaentry>
@@ -367,8 +396,8 @@ export SAL_ENABLE_FILE_LOCKING
 						<para>Unter Linux, egal mit welcher UI, wird auf eine Mime-Datenbank zugegriffen. Diese befindet sich unter <code>/usr/share/mime/</code>
 und spezifisch für einen Benutzer in <code>~/.local/share/mime/</code>.</para>
 						<para>
-Zum Beispiel:
-<informaltable>
+							Zum Beispiel:
+							<informaltable>
 								<tgroup cols='3'>
 									<colspec colwidth='1.3in'/>
 									<colspec colwidth='1.3in'/>

@@ -7,10 +7,10 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.l
     <changeSet author="boarschti" id="20241014-001">
          <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
-                SELECT COUNT(*) FROM fkt_userproperty WHERE NAME = 'OPENOFFICE_ODT_PDF' AND T_VALUE LIKE '%ODT%'
+                SELECT COUNT(*) FROM FKT_USERPROPERTY WHERE NAME = 'OPENOFFICE_ODT_PDF' AND T_VALUE LIKE '%ODT%'
             </sqlCheck>
         </preConditions>
-        <insert tableName="fkt_userproperty">
+        <insert tableName="FKT_USERPROPERTY">
             <column name="NAME" value="OPENOFFICE_SAVE_ODT"/>
             <column name="T_VALUE" value="true"/>
             <column name="DATEADDED" valueComputed="CURRENT_TIMESTAMP" />
@@ -20,7 +20,7 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.l
     </changeSet>
     
     <changeSet author="boarschti" id="20241014-002">
-        <delete tableName="fkt_userproperty">
+        <delete tableName="FKT_USERPROPERTY">
             <where>NAME = 'OPENOFFICE_ODT_PDF'</where>
         </delete>
     </changeSet>
