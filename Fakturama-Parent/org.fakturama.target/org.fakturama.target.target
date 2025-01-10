@@ -84,19 +84,19 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpg-jdk18on</artifactId>
-				<version>1.76</version>
+				<version>1.79</version>
 				<type>jar</type>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.76</version>
+				<version>1.79</version>
 				<type>jar</type>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.76</version>
+				<version>1.79</version>
 				<type>jar</type>
 			</dependency>
 		</dependencies>
@@ -280,12 +280,12 @@
 	<location includeDependencyDepth="direct" includeDependencyScopes="compile" includeSource="true" missingManifest="generate" type="Maven">
 		<dependencies>
 			<dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-platform</artifactId>
-                <version>5.15.0</version>
-                <type>jar</type>
-            </dependency>
-            <dependency>
+				<groupId>net.java.dev.jna</groupId>
+				<artifactId>jna-platform</artifactId>
+				<version>5.15.0</version>
+				<type>jar</type>
+			</dependency>
+			<dependency>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-core</artifactId>
 				<version>4.25.0</version>
@@ -372,13 +372,13 @@
 			<dependency>
 				<groupId>org.hsqldb</groupId>
 				<artifactId>hsqldb</artifactId>
-                <version>2.7.4</version>
+				<version>2.7.4</version>
 				<type>jar</type>
 			</dependency>
 			<dependency>
 				<groupId>org.mariadb.jdbc</groupId>
 				<artifactId>mariadb-java-client</artifactId>
-                <version>3.5.0</version>
+				<version>3.5.0</version>
 				<type>jar</type>
 			</dependency>
 		</dependencies>
