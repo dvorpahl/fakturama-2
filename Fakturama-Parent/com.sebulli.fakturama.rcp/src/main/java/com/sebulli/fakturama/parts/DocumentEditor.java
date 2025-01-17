@@ -1278,8 +1278,8 @@ public class DocumentEditor extends Editor<Document> {
             retval.addToItems(newItem);
         }
         
-        if(retval.getBillingType().isCREDIT()) {
-            retval.setItemsRebate(parentDoc.getItemsRebate()* -1.0);
+        if(retval.getBillingType().isCREDIT() && parentDoc.getItemsRebate() != null) {
+            retval.setItemsRebate(parentDoc.getItemsRebate() * -1.0);
         } else {            
             retval.setItemsRebate(parentDoc.getItemsRebate());
         }
