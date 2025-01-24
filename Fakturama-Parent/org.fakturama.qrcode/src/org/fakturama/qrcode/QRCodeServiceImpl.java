@@ -3,6 +3,7 @@ package org.fakturama.qrcode;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
@@ -47,12 +48,12 @@ public class QRCodeServiceImpl implements QRCodeService {
     }
 
     @Override
-    public byte[] createGiroCode(Invoice document) {
+    public byte[] createGiroCode(Invoice document, Map<String, Object> params) {
         BankAccount companyBankaccount = new BankAccount();
         companyBankaccount.setBic(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC));
         companyBankaccount.setIban(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
         GiroCodeGenerator giroCodeGenerator = ContextInjectionFactory.make(GiroCodeGenerator.class, context);
-        return giroCodeGenerator.createGiroCode(document, companyBankaccount);
+        return giroCodeGenerator.createGiroCode(document, companyBankaccount, params);
     }
     
     @Override

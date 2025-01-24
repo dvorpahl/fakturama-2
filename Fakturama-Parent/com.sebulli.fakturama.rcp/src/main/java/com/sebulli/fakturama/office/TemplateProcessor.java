@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -396,7 +397,7 @@ public class TemplateProcessor {
                     break;
                 case "MARGIN":
                 	if (!param.getValue().isEmpty()) {
-                		final Integer margin = TemplateProcessorHelper.parseInteger(param.getValue(), retval.length());
+                		final var margin = TemplateProcessorHelper.parseInteger(param.getValue(), 0);
                 		retval = margin.toString();
                 	}
                 	break;
@@ -825,7 +826,8 @@ public class TemplateProcessor {
 
             if (key.equals("INVOICE.GIROCODE")) {
                 if (document instanceof Invoice) {
-                    final Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document), "png");
+                	final var margin = placeholderParameters.getParameterBody("MARGIN", "4");
+                    final Path imageFile = createImageFile(qrCodeService.createGiroCode((Invoice) document, Map.of("MARGIN", margin)), "png");
                     return imageFile != null ? imageFile.toString() : "";
                 } else {
                     return "";
