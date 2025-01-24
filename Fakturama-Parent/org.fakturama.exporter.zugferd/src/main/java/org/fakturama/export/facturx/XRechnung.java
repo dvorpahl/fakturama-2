@@ -374,7 +374,13 @@ public class XRechnung extends AbstractEInvoice {
         email.setURIID(createIdWithSchemeFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL), "EM"));
 
         TradePartyType seller = factory.createTradePartyType();
-        //              .setID(createIdFromString(""))  // Kennung des Verkäufers (Durch den Kunden zugewiesene Lieferantennummer)
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
+        if(billingAdress != null && billingAdress.getOriginContactId() != null) {
+	        final Optional<Contact> contact = Optional.ofNullable(contactsDAO.findById(billingAdress.getOriginContactId()));
+	        contact.ifPresent(c -> 
+	        	seller.getID().add(createIdFromString(c.getSupplierNumber().toString()))  // Kennung des Verkäufers (Durch den Kunden zugewiesene Lieferantennummer)
+        	);
+        }
         seller.setName(createText(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
         //              .setDescription(createText(""))  // Sonstige rechtliche Informationen des Verkäufers
         seller.setSpecifiedLegalOrganization(createLegalOrganizationType(invoice));
