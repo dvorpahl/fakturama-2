@@ -164,7 +164,9 @@ public class PlaceholderNode extends Selection {
             theKey = StringUtils.removeStart(StringUtils.removeEnd(content, PlaceholderNavigation.PLACEHOLDER_SUFFIX),
                     PlaceholderNavigation.PLACEHOLDER_PREFIX);
             // w/ parameter(s)
-            theKey = theKey.contains("$") ? theKey.split("\\" + PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() : theKey.toUpperCase();
+            theKey = theKey.contains("$")
+            		? theKey.split("\\" + PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() 
+            		: theKey.toUpperCase();
         }
         this.placeholderKey = theKey;
         if (tableType == null && nodeType == PlaceholderNodeType.TABLE_NODE && node != null && node.getNodeType() == Node.ELEMENT_NODE) {

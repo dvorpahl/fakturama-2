@@ -18,6 +18,12 @@ class TemplateProcessorTest {
         TemplateProcessor p = new TemplateProcessor();
         assertEquals("FooBar", p.applyParameters("DINGSDA$PRE:Foo", "Bar"), "placeholder was not correctly substituted with param!");
     }
+    
+    @Test
+    void testInterpretParameters_placeholderHasMoreThanOneParam_Success() {
+    	TemplateProcessor p = new TemplateProcessor();
+    	assertEquals("Foo", p.applyParameters("DINGSDA$PRE:Foo$FIRST:3", "Bar"), "placeholder was not correctly substituted with param!");
+    }
 
     @Test
     void testInterpretParameters_placeholderHasFirstParam_Success() {

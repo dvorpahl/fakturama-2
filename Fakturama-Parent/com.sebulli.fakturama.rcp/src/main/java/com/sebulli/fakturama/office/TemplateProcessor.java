@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -65,7 +66,6 @@ import org.odftoolkit.helper.common.navigation.PlaceholderNode;
 import org.odftoolkit.helper.common.navigation.PlaceholderNode.PlaceholderNodeType;
 import org.odftoolkit.helper.common.navigation.PlaceholderNode.PlaceholderTableType;
 import org.odftoolkit.helper.common.navigation.PlaceholderParameters;
-import org.odftoolkit.helper.common.navigation.TemplateParameter;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
@@ -287,119 +287,129 @@ public class TemplateProcessor {
      * @param params
      *            the parameters container object
      * @return The value modified by the parameters</br>
-     *         or the unmodified value if <code>params.isEmpty() == true</code>
+     *         or the unmodified value if <code>params.isEmpty()</code>
      */
+    // TODO [REFACTOR] Verschieben nach PlaceholderParameters (als Methode), 
+    // dann sollte das auch einfach als List<PlaceholderParameter> (ohne s!)
+    // hier übergeben werden. Die Placeholder können ihre Werte selber ermitteln,
+    // das sollte nicht von hier außen gemacht werden.
+    // Dazu muß aber auch im PlaceholderNode was umgestellt werden.
+    // siehe https://bugs.fakturama.info/view.php?id=1182
     String applyParameters(final String value, final PlaceholderParameters params) {
         String retval = value;
-        if (!params.isEmpty()) {
-            for (final TemplateParameter param : params.getParameters()) {
-                if (StringUtils.isNotBlank(param.getKey())) {
-                    // process the parameter
-                    //   note: currently there are no (valid) params with an empty body
-                    if (StringUtils.isNotEmpty(param.getBody())) {
-                        if (StringUtils.isEmpty(retval)) {
-                            // params operating on an empty value
-                            //   note: this switch is currently not really needed, just in place for easy extension
-                            switch (param.getKey()) {
-                            case "EMPTY":
-                                retval = param.getBody();
-                                break;
-                            default:
-                                break; // do nothing
-                            }
-                        } else {
-                            // params operating on a non-empty value
-                            switch (param.getKey()) {
-                            case "PRE":
-                                retval = param.getBody() + retval;
-                                break;
-                            case "POST":
-                                retval += param.getBody();
-                                break;
-                            case "INONELINE":
-                                retval = StringInOneLine(retval, param.getBody());
-                                break;
-                            case "REPLACE":
-                                retval = replaceValues(param.getBody(), retval);
-                                break;
-                            case "REPLACEREGEX": // GS/ [ADD TemplateParameters]
-                                retval = replaceRegex(param.getBody(), retval);
-                                break;
-                            case "FORMAT":
-                                try {
-                                    final Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
-                                    retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.getBody());
-                                } catch (final ParseException e) {
-                                    retval = "### NVL ###";
-                                }
-                                break;
-                            case "DFORMAT":
-                                try {
-                                    final GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-                                    final SimpleDateFormat sdf = new SimpleDateFormat(param.getBody());
-                                    retval = sdf.format(checkDate.getTime());
-                                } catch (final IllegalArgumentException e) {
-                                    retval = "### NVL ###";
-                                }
-                                break;
-                            case "FIRST":
-                                final Integer lengthFIRST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
-                                if (lengthFIRST.compareTo(Integer.valueOf(0)) >= 0) {
-                                    final int len = lengthFIRST.compareTo(retval.length()) < 0 ? lengthFIRST : retval.length();
-                                    retval = retval.substring(0, len);
-                                }
-                                break;
-                            case "LAST":
-                                final Integer lengthLAST = TemplateProcessorHelper.parseInteger(param.getBody(), retval.length());
-                                if (lengthLAST.compareTo(Integer.valueOf(0)) >= 0) {
-                                    final int len = lengthLAST.compareTo(retval.length()) < 0 ? lengthLAST : retval.length();
-                                    retval = retval.substring(retval.length() - len);
-                                }
-                                break;
-                            case "RANGE":
-                                final String[] boundariesRANGE = param.getBody().split(",");
-                                if (boundariesRANGE.length == 2) {
-                                    // for customer convenience we start counting from 1
-                                    final Integer start = TemplateProcessorHelper.parseInteger(boundariesRANGE[0], 0) - 1;
-                                    final Integer end = TemplateProcessorHelper.parseInteger(boundariesRANGE[1], retval.length());
-                                    if (end.compareTo(Integer.valueOf(0)) >= 0) {
-                                        final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
-                                        retval = len == 0 ? "" : retval.substring(start, len);
-                                    }
-                                }
-                                break;
-                            case "EXRANGE":
-                                if (!param.getBody().isEmpty()) {
-                                    final String[] boundariesEXRANGE = param.getBody().split(",");
-                                    if (boundariesEXRANGE.length == 2) {
-                                        // for customer convenience we start counting from 1
-                                        final Integer start = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[0], 0) - 1;
-                                        final Integer end = TemplateProcessorHelper.parseInteger(boundariesEXRANGE[1], retval.length());
-                                        if (end.compareTo(Integer.valueOf(0)) >= 0) {
-                                            final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
-                                            if (len == 0) {
-                                                retval = "";
-                                            } else {
-                                                final String first = retval.substring(0, Math.max(0, start));
-                                                final String last = retval.substring(len, retval.length());
-                                                retval = first + last;
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-                            default:
-                                break; // do nothing
-                            }
-                            // intermediate encode special entities that may have been added by a parameter processing
-                            // so the retval is ready ('clean') for more processing (or return)
-                            retval = TemplateProcessorHelper.decodeEntities(retval);
+        if (params.isEmpty()) {
+        	return retval;
+        }
+        for (final Entry<String, String> param : params.getEntries()) {
+            // process the parameter
+            //   note: currently there are no (valid) params with an empty body
+            if (StringUtils.isEmpty(retval)) {
+                // params operating on an empty value
+                //   note: this switch is currently not really needed, just in place for easy extension
+                switch (param.getKey()) {
+                case "EMPTY":
+                    retval = param.getValue();
+                    break;
+                default:
+                    break; // do nothing
+                }
+            } else {
+                // params operating on a non-empty value
+                switch (param.getKey()) {
+                case "PRE":
+                    retval = param.getValue() + retval;
+                    break;
+                case "POST":
+                    retval += param.getValue();
+                    break;
+                case "INONELINE":
+                    retval = StringInOneLine(retval, param.getValue());
+                    break;
+                case "REPLACE":
+                    retval = replaceValues(param.getValue(), retval);
+                    break;
+                case "REPLACEREGEX": // GS/ [ADD TemplateParameters]
+                    retval = replaceRegex(param.getValue(), retval);
+                    break;
+                case "FORMAT":
+                    try {
+                        final Double parsedDouble = localizedNumberFormat.parse(retval).doubleValue();
+                        retval = numberFormatterService.DoubleToDecimalFormatedValue(parsedDouble, param.getValue());
+                    } catch (final ParseException e) {
+                        retval = "### NVL ###";
+                    }
+                    break;
+                case "DFORMAT":
+                    try {
+                        final GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
+                        final SimpleDateFormat sdf = new SimpleDateFormat(param.getValue());
+                        retval = sdf.format(checkDate.getTime());
+                    } catch (final IllegalArgumentException e) {
+                        retval = "### NVL ###";
+                    }
+                    break;
+                case "FIRST":
+                    final Integer paramLengthFirst = TemplateProcessorHelper.parseInteger(param.getValue(), retval.length());
+                    if (paramLengthFirst.compareTo(Integer.valueOf(0)) >= 0) {
+                        final int len = paramLengthFirst.compareTo(retval.length()) < 0 ? paramLengthFirst : retval.length();
+                        retval = retval.substring(0, len);
+                    }
+                    break;
+                case "LAST":
+                    final Integer paramLengthLast = TemplateProcessorHelper.parseInteger(param.getValue(), retval.length());
+                    if (paramLengthLast.compareTo(Integer.valueOf(0)) >= 0) {
+                        final int len = paramLengthLast.compareTo(retval.length()) < 0 ? paramLengthLast : retval.length();
+                        retval = retval.substring(retval.length() - len);
+                    }
+                    break;
+                case "RANGE":
+                    final String[] paramBoundariesRange = param.getValue().split(",");
+                    if (paramBoundariesRange.length == 2) {
+                        // for customer convenience we start counting from 1
+                        final Integer start = TemplateProcessorHelper.parseInteger(paramBoundariesRange[0], 0) - 1;
+                        final Integer end = TemplateProcessorHelper.parseInteger(paramBoundariesRange[1], retval.length());
+                        if (end.compareTo(Integer.valueOf(0)) >= 0) {
+                            final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+                            retval = len == 0 ? "" : retval.substring(start, len);
                         }
                     }
+                    break;
+                case "EXRANGE":
+                    if (!param.getValue().isEmpty()) {
+                        final String[] paramBoundariesExrange = param.getValue().split(",");
+                        if (paramBoundariesExrange.length == 2) {
+                            // for customer convenience we start counting from 1
+                            final Integer start = TemplateProcessorHelper.parseInteger(paramBoundariesExrange[0], 0) - 1;
+                            final Integer end = TemplateProcessorHelper.parseInteger(paramBoundariesExrange[1], retval.length());
+                            if (end.compareTo(Integer.valueOf(0)) >= 0) {
+                                final int len = end.compareTo(retval.length()) < 0 ? end : retval.length();
+                                if (len == 0) {
+                                    retval = "";
+                                } else {
+                                    final String first = retval.substring(0, Math.max(0, start));
+                                    final String last = retval.substring(len, retval.length());
+                                    retval = first + last;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case "MARGIN":
+                	if (!param.getValue().isEmpty()) {
+                		final Integer margin = TemplateProcessorHelper.parseInteger(param.getValue(), retval.length());
+                		retval = margin.toString();
+                	}
+                	break;
+                default:
+                    break; // do nothing
                 }
+                // intermediate encode special entities that may have been added by a parameter processing
+                // so the retval is ready ('clean') for more processing (or return)
+                retval = TemplateProcessorHelper.decodeEntities(retval);
             }
         }
         return retval;
+
     }
 
     /**
@@ -426,7 +436,7 @@ public class TemplateProcessor {
      * @return The extracted value
      */
     public String getDocumentInfo(final Document document, final Optional<DocumentSummary> documentSummary, final Placeholder placeholder) {
-        final String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder);
+        final String value = getDocumentInfoByPlaceholder(document, documentSummary, placeholder, null);
         // GS/20221209 totally useless as <placeholder.getKey()> never contains a parameter !!!
         //		return interpretParameters(placeholder.getKey(), value);
         return value;
@@ -608,10 +618,10 @@ public class TemplateProcessor {
      * @return the text for the placeholder
      */
     private String getTextForPlaceholder(final PlaceholderNode placeholderNode, final Document document, final Optional<DocumentSummary> documentSummary) {
-        final Placeholder p = Placeholder.valueOfKey(placeholderNode.getPlaceholderKey());
+        final Placeholder placeholder = Placeholder.valueOfKey(placeholderNode.getPlaceholderKey());
         String text = null;
-        if (p != null) {
-            text = getDocumentInfoByPlaceholder(document, documentSummary, p);
+        if (placeholder != null) {
+            text = getDocumentInfoByPlaceholder(document, documentSummary, placeholder, placeholderNode.getParameters());
 //            // If the String is non empty, replace the OS new line with the OpenOffice new line
 //            if (StringUtils.isNotBlank(text)) {
 //                text = text.replaceAll("\n", "\r");
@@ -629,11 +639,12 @@ public class TemplateProcessor {
      * 
      * @param document
      *            The document
+     * @param placeholderParameters 
      * @param key
      *            The key to extract
      * @return The extracted result
      */
-    private String getDocumentInfoByPlaceholder(final Document document, final Optional<DocumentSummary> documentSummary, final Placeholder placeholder) {
+    private String getDocumentInfoByPlaceholder(final Document document, final Optional<DocumentSummary> documentSummary, final Placeholder placeholder, PlaceholderParameters placeholderParameters) {
         final String key = placeholder.getKey();
 
         if (key.startsWith("YOURCOMPANY")) {
