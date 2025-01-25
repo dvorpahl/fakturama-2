@@ -74,18 +74,24 @@ public class ZugferdExporter implements IPdfPostProcessor {
     @Override
     public boolean canProcess() {
         /*
-        * Zunächst muß geprüft werden, ob OO/LO auch PDF/A erzeugt. Dazu muß man in der Datei 
-        d:\Programme\LibreOffice 5\share\registry\main.xcd
-        den Schlüssel
-        
-        <oor:data>
-        	<oor:component-schema oor:package="org.openoffice.Office" oor:name="Common" xml:lang="en-US"><component>		
-        	   <group oor:name="Filter"><group oor:name="PDF"><group oor:name="Export">
-        		  <prop oor:name="SelectPdfVersion" oor:type="xs:int" oor:nillable="false"><value>0</value></prop>
-        		  
-        prüfen. Der Wert muß auf "1" stehen. Siehe dazu https://wiki.openoffice.org/wiki/API/Tutorials/PDF_export
-        Idee: Vor dem Speichern den Wert umsetzen und am Schluß wieder zurücksetzen.
-        */
+         * Zunächst muß geprüft werden, ob OO/LO auch PDF/A erzeugt. Dazu muß
+         * man in der Datei
+         * d:\Programme\LibreOffice 5\share\registry\main.xcd
+         * den Schlüssel
+         * 
+         * <oor:data>
+         * <oor:component-schema oor:package="org.openoffice.Office"
+         * oor:name="Common" xml:lang="en-US"><component>
+         * <group oor:name="Filter"><group oor:name="PDF"><group
+         * oor:name="Export">
+         * <prop oor:name="SelectPdfVersion" oor:type="xs:int"
+         * oor:nillable="false"><value>0</value></prop>
+         * 
+         * prüfen. Der Wert muß auf "1" stehen. Siehe dazu
+         * https://wiki.openoffice.org/wiki/API/Tutorials/PDF_export
+         * Idee: Vor dem Speichern den Wert umsetzen und am Schluß wieder
+         * zurücksetzen.
+         */
         return eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, Boolean.FALSE);
     }
 
@@ -105,9 +111,9 @@ public class ZugferdExporter implements IPdfPostProcessor {
                 // currently only COMFORT profile is supported
                 final String conformanceLevel = eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, ConformanceLevel.XRECHNUNG.name());
                 zugferdProfile = ConformanceLevel.valueOf(conformanceLevel);
-            } else { // V1
-                zugferdProfile = ConformanceLevel.ZUGFERD_V1_COMFORT;
-                //    	        invoiceCreator = ContextInjectionFactory.make(ZUGFeRDCreator.class, eclipseContext);
+            } else {
+                throw new UnsupportedOperationException("Die Version ist nicht verfügbar");
+
             }
             invoiceCreator = ContextInjectionFactory.make(XRechnungCreator.class, eclipseContext);
             result = invoiceCreator.createEInvoice(invoice, zugferdProfile);

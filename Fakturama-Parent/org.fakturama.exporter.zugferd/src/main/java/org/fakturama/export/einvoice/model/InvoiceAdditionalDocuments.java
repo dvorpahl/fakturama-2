@@ -19,36 +19,38 @@ package org.fakturama.export.einvoice.model;
 public class InvoiceAdditionalDocuments {
 
     /**
-     * BT-122 Kennung
+     * <strong>BT-122</strong> Kennung
      */
     private String supportingDocumentReference;
 
     /**
-     * BT-123 Beschreibung
+     * <strong>BT-123</strong> Beschreibung
      */
     private String supportingDocumentDescription;
 
     /**
-     * BT-124 Externer Dateiname oder Verweis
+     * <strong>BT-124</strong> Externer Dateiname oder Verweis
      */
     private String externalDocumentLocation;
 
     /**
-     * BT-125 Dokument (Base64)
+     * <strong>BT-125</strong> Dokument (Base64)
      */
     private String attachedDocument;
 
     /**
-     * BT-125-1 Mimecode der Anlage
+     * <strong>BT-125-1</strong> Mimecode der Anlage
      */
     private String attachedDocumentMimeCode;
 
     /**
-     * BT-125-2 Dateiname der Anlage
+     * <strong>BT-125-2</strong> Dateiname der Anlage
      */
     private String attachedDocumentFilename;
 
     /**
+     * Field <strong>BT-122</strong> Kennung
+     * 
      * @return the supportingDocumentReference
      */
     public String getSupportingDocumentReference() {
@@ -56,6 +58,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-122</strong> Kennung
+     * 
      * @param supportingDocumentReference
      *            the supportingDocumentReference to set
      */
@@ -64,6 +68,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-123</strong> Beschreibung
+     * 
      * @return the supportingDocumentDescription
      */
     public String getSupportingDocumentDescription() {
@@ -71,6 +77,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-123</strong> Beschreibung
+     * 
      * @param supportingDocumentDescription
      *            the supportingDocumentDescription to set
      */
@@ -79,6 +87,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-124</strong> Externer Dateiname oder Verweis
+     * 
      * @return the externalDocumentLocation
      */
     public String getExternalDocumentLocation() {
@@ -86,6 +96,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-124</strong> Externer Dateiname oder Verweis
+     * 
      * @param externalDocumentLocation
      *            the externalDocumentLocation to set
      */
@@ -94,6 +106,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125</strong> Dokument (Base64)
+     * 
      * @return the attachedDocument
      */
     public String getAttachedDocument() {
@@ -101,6 +115,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125</strong> Dokument (Base64)
+     * 
      * @param attachedDocument
      *            the attachedDocument to set
      */
@@ -109,6 +125,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125-1</strong> Mimecode der Anlage
+     * 
      * @return the attachedDocumentMimeCode
      */
     public String getAttachedDocumentMimeCode() {
@@ -116,6 +134,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125-1</strong> Mimecode der Anlage
+     * 
      * @param attachedDocumentMimeCode
      *            the attachedDocumentMimeCode to set
      */
@@ -124,6 +144,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125-2</strong> Dateiname der Anlage
+     * 
      * @return the attachedDocumentFilename
      */
     public String getAttachedDocumentFilename() {
@@ -131,6 +153,8 @@ public class InvoiceAdditionalDocuments {
     }
 
     /**
+     * Field <strong>BT-125-2</strong> Dateiname der Anlage
+     * 
      * @param attachedDocumentFilename
      *            the attachedDocumentFilename to set
      */

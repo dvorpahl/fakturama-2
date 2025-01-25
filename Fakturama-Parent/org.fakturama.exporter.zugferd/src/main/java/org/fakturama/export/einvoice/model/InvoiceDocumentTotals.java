@@ -14,150 +14,61 @@
 package org.fakturama.export.einvoice.model;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 public class InvoiceDocumentTotals {
     /**
-     * BG-23 Aufschlüsslung der Steuern
+     * BT-106 Summe aller Positionen (netto)
      */
-    public class InvoiceVatBreakdown {
-
-        /**
-         * BT-116 Gesamtsumme Netto
-         */
-        private BigDecimal vatCategoryTaxableAmount;
-
-        /**
-         * BT-117 Steuerbetrag
-         */
-        private BigDecimal vatCategoryTaxAmount;
-
-        /**
-         * BT-118 Steuerkategorie
-         */
-        private String vatCategoryCode;
-
-        /**
-         * BT-119 Steuersatz
-         */
-        private BigDecimal vatCategoryRate;
-
-        /**
-         * BT-120 Befreiungsgrund
-         */
-        private String vatExemptionReasonText;
-
-        /**
-         * BT-121 Code für Befreiungsgrund
-         */
-        private String vatExemptionReasonCode;
-
-        /**
-         * @return the vatCategoryTaxableAmount
-         */
-        public BigDecimal getVatCategoryTaxableAmount() {
-            return vatCategoryTaxableAmount;
-        }
-
-        /**
-         * @param vatCategoryTaxableAmount
-         *            the vatCategoryTaxableAmount to set
-         */
-        public void setVatCategoryTaxableAmount(final BigDecimal vatCategoryTaxableAmount) {
-            this.vatCategoryTaxableAmount = vatCategoryTaxableAmount;
-        }
-
-        /**
-         * @return the vatCategoryTaxAmount
-         */
-        public BigDecimal getVatCategoryTaxAmount() {
-            return vatCategoryTaxAmount;
-        }
-
-        /**
-         * @param vatCategoryTaxAmount
-         *            the vatCategoryTaxAmount to set
-         */
-        public void setVatCategoryTaxAmount(final BigDecimal vatCategoryTaxAmount) {
-            this.vatCategoryTaxAmount = vatCategoryTaxAmount;
-        }
-
-        /**
-         * @return the vatCategoryCode
-         */
-        public String getVatCategoryCode() {
-            return vatCategoryCode;
-        }
-
-        /**
-         * @param vatCategoryCode
-         *            the vatCategoryCode to set
-         */
-        public void setVatCategoryCode(final String vatCategoryCode) {
-            this.vatCategoryCode = vatCategoryCode;
-        }
-
-        /**
-         * @return the vatCategoryRate
-         */
-        public BigDecimal getVatCategoryRate() {
-            return vatCategoryRate;
-        }
-
-        /**
-         * @param vatCategoryRate
-         *            the vatCategoryRate to set
-         */
-        public void setVatCategoryRate(final BigDecimal vatCategoryRate) {
-            this.vatCategoryRate = vatCategoryRate;
-        }
-
-        /**
-         * @return the vatExemptionReasonText
-         */
-        public String getVatExemptionReasonText() {
-            return vatExemptionReasonText;
-        }
-
-        /**
-         * @param vatExemptionReasonText
-         *            the vatExemptionReasonText to set
-         */
-        public void setVatExemptionReasonText(final String vatExemptionReasonText) {
-            this.vatExemptionReasonText = vatExemptionReasonText;
-        }
-
-        /**
-         * @return the vatExemptionReasonCode
-         */
-        public String getVatExemptionReasonCode() {
-            return vatExemptionReasonCode;
-        }
-
-        /**
-         * @param vatExemptionReasonCode
-         *            the vatExemptionReasonCode to set
-         */
-        public void setVatExemptionReasonCode(final String vatExemptionReasonCode) {
-            this.vatExemptionReasonCode = vatExemptionReasonCode;
-        }
-
-    }
-
     private BigDecimal sumOfInvoiceLineNetAmount;
-    private BigDecimal sumOfAllowancesOnDocumentLevel;
-    private BigDecimal sumOfChargesOnDocumentLevel;
-    private BigDecimal invoiceTotalAmountWithoutVat;
-    private BigDecimal invoiceTotalVatAmount;
-    private BigDecimal invoiceTotalVatAmountInAccountingCurrency;
-    private BigDecimal invoiceTotalAmountWithVat;
-    private BigDecimal paidAmount;
-    private BigDecimal roundingAmount;
-    private BigDecimal amountDueForPayment;
-    private List<InvoiceVatBreakdown> invoiceVatBreakdowns = new ArrayList<>();
 
     /**
+     * BT-107 Summe Nachlässe (netto)
+     */
+    private BigDecimal sumOfAllowancesOnDocumentLevel;
+
+    /**
+     * BT-108 Summe Zuschläge (netto)
+     */
+    private BigDecimal sumOfChargesOnDocumentLevel;
+
+    /**
+     * BT-109 Gesamtsumme (netto)
+     */
+    private BigDecimal invoiceTotalAmountWithoutVat;
+
+    /**
+     * BT-110 Summe Umsatzsteuer
+     */
+    private BigDecimal invoiceTotalVatAmount;
+
+    /**
+     * BT-111 Ust Betrag in Währung des Verkäufers
+     */
+    private BigDecimal invoiceTotalVatAmountInAccountingCurrency;
+
+    /**
+     * BT-112 Gesamtsumme (brutto)
+     */
+    private BigDecimal invoiceTotalAmountWithVat;
+
+    /**
+     * BT-113 Gezahlter Betrag
+     */
+    private BigDecimal paidAmount;
+
+    /**
+     * BT-114 Rundungsbetrag
+     */
+    private BigDecimal roundingAmount;
+
+    /**
+     * BT-115 Fälliger Betrag
+     */
+    private BigDecimal amountDueForPayment;
+
+    /**
+     * Field BT-106 Summe aller Positionen (netto)
+     * 
      * @return the sumOfInvoiceLineNetAmount
      */
     public BigDecimal getSumOfInvoiceLineNetAmount() {
@@ -165,6 +76,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-106 Summe aller Positionen (netto)
+     * 
      * @param sumOfInvoiceLineNetAmount
      *            the sumOfInvoiceLineNetAmount to set
      */
@@ -173,6 +86,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-107 Summe Nachlässe (netto)
+     * 
      * @return the sumOfAllowancesOnDocumentLevel
      */
     public BigDecimal getSumOfAllowancesOnDocumentLevel() {
@@ -180,6 +95,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-107 Summe Nachlässe (netto)
+     * 
      * @param sumOfAllowancesOnDocumentLevel
      *            the sumOfAllowancesOnDocumentLevel to set
      */
@@ -188,6 +105,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-108 Summe Zuschläge (netto)
+     * 
      * @return the sumOfChargesOnDocumentLevel
      */
     public BigDecimal getSumOfChargesOnDocumentLevel() {
@@ -195,6 +114,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-108 Summe Zuschläge (netto)
+     * 
      * @param sumOfChargesOnDocumentLevel
      *            the sumOfChargesOnDocumentLevel to set
      */
@@ -203,6 +124,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-109 Gesamtsumme (netto)
+     * 
      * @return the invoiceTotalAmountWithoutVat
      */
     public BigDecimal getInvoiceTotalAmountWithoutVat() {
@@ -210,6 +133,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-109 Gesamtsumme (netto)
+     * 
      * @param invoiceTotalAmountWithoutVat
      *            the invoiceTotalAmountWithoutVat to set
      */
@@ -218,6 +143,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-110 Summe Umsatzsteuer
+     * 
      * @return the invoiceTotalVatAmount
      */
     public BigDecimal getInvoiceTotalVatAmount() {
@@ -225,6 +152,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-110 Summe Umsatzsteuer
+     * 
      * @param invoiceTotalVatAmount
      *            the invoiceTotalVatAmount to set
      */
@@ -233,6 +162,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-111 Ust Betrag in Währung des Verkäufers
+     * 
      * @return the invoiceTotalVatAmountInAccountingCurrency
      */
     public BigDecimal getInvoiceTotalVatAmountInAccountingCurrency() {
@@ -240,6 +171,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-111 Ust Betrag in Währung des Verkäufers
+     * 
      * @param invoiceTotalVatAmountInAccountingCurrency
      *            the invoiceTotalVatAmountInAccountingCurrency to set
      */
@@ -248,6 +181,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-112 Gesamtsumme (brutto)
+     * 
      * @return the invoiceTotalAmountWithVat
      */
     public BigDecimal getInvoiceTotalAmountWithVat() {
@@ -255,6 +190,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-112 Gesamtsumme (brutto)
+     * 
      * @param invoiceTotalAmountWithVat
      *            the invoiceTotalAmountWithVat to set
      */
@@ -263,6 +200,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-113 Gezahlter Betrag
+     * 
      * @return the paidAmount
      */
     public BigDecimal getPaidAmount() {
@@ -270,6 +209,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-113 Gezahlter Betrag
+     * 
      * @param paidAmount
      *            the paidAmount to set
      */
@@ -278,6 +219,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-114 Rundungsbetrag
+     * 
      * @return the roundingAmount
      */
     public BigDecimal getRoundingAmount() {
@@ -285,6 +228,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-114 Rundungsbetrag
+     * 
      * @param roundingAmount
      *            the roundingAmount to set
      */
@@ -293,6 +238,8 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-115 Fälliger Betrag
+     * 
      * @return the amountDueForPayment
      */
     public BigDecimal getAmountDueForPayment() {
@@ -300,26 +247,13 @@ public class InvoiceDocumentTotals {
     }
 
     /**
+     * Field BT-115 Fälliger Betrag
+     * 
      * @param amountDueForPayment
      *            the amountDueForPayment to set
      */
     public void setAmountDueForPayment(final BigDecimal amountDueForPayment) {
         this.amountDueForPayment = amountDueForPayment;
-    }
-
-    /**
-     * @return the invoiceVatBreakdowns
-     */
-    public List<InvoiceVatBreakdown> getInvoiceVatBreakdowns() {
-        return invoiceVatBreakdowns;
-    }
-
-    /**
-     * @param invoiceVatBreakdowns
-     *            the invoiceVatBreakdowns to set
-     */
-    public void setInvoiceVatBreakdowns(final List<InvoiceVatBreakdown> invoiceVatBreakdowns) {
-        this.invoiceVatBreakdowns = invoiceVatBreakdowns;
     }
 
 }

@@ -279,8 +279,11 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         hookDoubleClickCommand(nattable, gridLayer, null);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getAdditionalParameters()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#
+     * getAdditionalParameters()
      */
     @Override
     protected Map<String, Object> getAdditionalParameters() {
@@ -307,8 +310,9 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         natTable.addConfiguration(new SingleClickSortConfiguration());
 
         /*
-         * add feedback behavior to nattable (i.e., if a cell is selected, inform the
-         * TreeTable about it) 
+         * add feedback behavior to nattable (i.e., if a cell is selected,
+         * inform the
+         * TreeTable about it)
          */
         natTable.addLayerListener(new ILayerListener() {
             // Default selection behavior selects cells by default.
@@ -327,7 +331,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                                 topicTreeViewer.setTransaction(selectedObject.getTransactionId());
                             } else {
                                 // reset transaction id
-                                topicTreeViewer.setTransaction(Long.valueOf(-1));
+                                topicTreeViewer.setTransaction(-1l);
                             }
                             topicTreeViewer.setContactFromDocument(selectedObject);
                             changePopupEntries(null);
@@ -343,7 +347,8 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         gridLayer.getSelectionLayer().addLayerListener(esl);
 
         /*
-         * Set the background color for this table. Could only set here, because otherwise 
+         * Set the background color for this table. Could only set here, because
+         * otherwise
          * it would be overwritten with default configurations.
          */
         natTable.setBackground(GUIHelper.COLOR_WHITE);
@@ -382,23 +387,23 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             public Object getDataValue(final Document rowObject, final int columnIndex) {
                 final DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
                 switch (descriptor) {
-                case ICON:
-                case STATE:
-                case PRINTED:
-                    return specialCellValueProvider.getDataValue(rowObject, descriptor);
-                case DATE:
-                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
-                case DOCUMENT:
-                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex - 1);
-                case NAME:
-                    return columnPropertyAccessor.getDataValue(rowObject, 1);
-                case CUSTREF:
-                    return columnPropertyAccessor.getDataValue(rowObject, 4);
-                case TOTAL:
-                    // alternative: return rowObject.getFirstName();
-                    return columnPropertyAccessor.getDataValue(rowObject, 3);
-                default:
-                    break;
+                    case ICON:
+                    case STATE:
+                    case PRINTED:
+                        return specialCellValueProvider.getDataValue(rowObject, descriptor);
+                    case DATE:
+                        return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
+                    case DOCUMENT:
+                        return columnPropertyAccessor.getDataValue(rowObject, columnIndex - 1);
+                    case NAME:
+                        return columnPropertyAccessor.getDataValue(rowObject, 1);
+                    case CUSTREF:
+                        return columnPropertyAccessor.getDataValue(rowObject, 4);
+                    case TOTAL:
+                        // alternative: return rowObject.getFirstName();
+                        return columnPropertyAccessor.getDataValue(rowObject, 3);
+                    default:
+                        break;
                 }
                 return null;
             }
@@ -455,13 +460,13 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         //        IDataProvider columnHeaderDataProvider = new ListViewColumnHeaderDataProvider<Document>(propertyNames, derivedColumnPropertyAccessor); 
 
         /*
-        // Mark the columns that are used by the search function.
-        searchColumns = new String[4];
-        searchColumns[0] = "name";
-        searchColumns[1] = "date";
-        searchColumns[2] = "addressfirstline";
-        searchColumns[3] = "total";
-        */
+         * // Mark the columns that are used by the search function.
+         * searchColumns = new String[4];
+         * searchColumns[0] = "name";
+         * searchColumns[1] = "date";
+         * searchColumns[2] = "addressfirstline";
+         * searchColumns[3] = "total";
+         */
         final MatcherEditor<Document> textMatcherEditor = new TextWidgetMatcherEditor<>(searchText.getTextControl(),
                 GlazedLists.textFilterator(Document.class, Document_.name.getName(), Document_.addressFirstLine.getName(), Document_.customerRef.getName()));
 
@@ -490,9 +495,12 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.TOTAL.getPosition(), MONEYVALUE_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.DATE.getPosition(), DATE_CELL_LABEL);
 
-        final NatTable natTable = new NatTable(searchAndTableComposite/*, 
-                                                                      SWT.NO_REDRAW_RESIZE | SWT.DOUBLE_BUFFERED | SWT.BORDER*/, gridLayer.getGridLayer(),
-                false);
+        final NatTable natTable = new NatTable(
+                searchAndTableComposite/*
+                                        * ,
+                                        * SWT.NO_REDRAW_RESIZE |
+                                        * SWT.DOUBLE_BUFFERED | SWT.BORDER
+                                        */, gridLayer.getGridLayer(), false);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
 
@@ -705,8 +713,11 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         return ID;
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getEditorId()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getEditorId()
      */
     @Override
     protected String getEditorId() {
@@ -802,36 +813,39 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             if (canonicalValue != null) {
                 final Icon value = (Icon) canonicalValue;
                 switch (value) {
-                case COMMAND_ORDER_PENDING:
-                    retval = msg.documentOrderStateOpen;
-                    break;
-                case COMMAND_ORDER_SHIPPED:
-                    retval = msg.documentOrderStateShipped;
-                    break;
-                case COMMAND_ORDER_PROCESSING:
-                    retval = msg.documentOrderStateInprogress;
-                    break;
-                case COMMAND_CHECKED:
-                    retval = msg.documentOrderStatePaid;
-                    //                    retval = msg.documentOrderStateClosed;
-                    break;
-                case COMMAND_ERROR:
-                    /* only for dunnings: We have to show the count of current dunning.
-                     * Therefore we have to extract the currently displayed value and 
-                     * look at the dunning level.
-                     */
-                    final Document rowObject = gridLayer.getBodyDataProvider().getRowObject(cell.getRowIndex());
-                    if (rowObject.getBillingType() == BillingType.DUNNING) {
-                        final int dunningLevel = ((Dunning) rowObject).getDunningLevel();
-                        //T: Marking of a dunning in the document table.
-                        //T: Format: "Dunning No. xx"
-                        retval = MessageFormat.format(msg.documentDunningStatemarkerName, dunningLevel);
-                    } else {
-                        retval = msg.documentOrderStateUnpaid;
-                    }
-                    break;
-                default:
-                    break;
+                    case COMMAND_ORDER_PENDING:
+                        retval = msg.documentOrderStateOpen;
+                        break;
+                    case COMMAND_ORDER_SHIPPED:
+                        retval = msg.documentOrderStateShipped;
+                        break;
+                    case COMMAND_ORDER_PROCESSING:
+                        retval = msg.documentOrderStateInprogress;
+                        break;
+                    case COMMAND_CHECKED:
+                        retval = msg.documentOrderStatePaid;
+                        //                    retval = msg.documentOrderStateClosed;
+                        break;
+                    case COMMAND_ERROR:
+                        /*
+                         * only for dunnings: We have to show the count of
+                         * current dunning.
+                         * Therefore we have to extract the currently displayed
+                         * value and
+                         * look at the dunning level.
+                         */
+                        final Document rowObject = gridLayer.getBodyDataProvider().getRowObject(cell.getRowIndex());
+                        if (rowObject.getBillingType() == BillingType.DUNNING) {
+                            final int dunningLevel = ((Dunning) rowObject).getDunningLevel();
+                            //T: Marking of a dunning in the document table.
+                            //T: Format: "Dunning No. xx"
+                            retval = MessageFormat.format(msg.documentDunningStatemarkerName, dunningLevel);
+                        } else {
+                            retval = msg.documentOrderStateUnpaid;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             return retval;

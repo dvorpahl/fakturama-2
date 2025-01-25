@@ -23,7 +23,7 @@ public class InvoiceDeliveryInformation {
     /**
      * BT-70 Name des Empfängers
      */
-    private String deliverToParty_name;
+    private String deliverToPartyName;
 
     /**
      * BT-71 Lieferort
@@ -43,24 +43,30 @@ public class InvoiceDeliveryInformation {
     /**
      * BG-15: Lieferadresse
      */
-    private final AddressData deliveryAddress = new AddressData();
+    private AddressData deliveryAddress = new AddressData();
 
     /**
+     * Field BT-70 Name des Empfängers
+     * 
      * @return the deliverToParty_name
      */
-    public String getDeliverToParty_name() {
-        return deliverToParty_name;
+    public String getDeliverToPartyName() {
+        return deliverToPartyName;
     }
 
     /**
+     * Field BT-70 Name des Empfängers
+     * 
      * @param deliverToParty_name
      *            the deliverToParty_name to set
      */
-    public void setDeliverToParty_name(final String deliverToParty_name) {
-        this.deliverToParty_name = deliverToParty_name;
+    public void setDeliverToPartyName(final String deliverToParty_name) {
+        this.deliverToPartyName = deliverToParty_name;
     }
 
     /**
+     * Field BT-71 Lieferort
+     * 
      * @return the deliverToLocationIdentifier
      */
     public String getDeliverToLocationIdentifier() {
@@ -68,6 +74,8 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BT-71 Lieferort
+     * 
      * @param deliverToLocationIdentifier
      *            the deliverToLocationIdentifier to set
      */
@@ -76,6 +84,8 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BT-71-1 Schema zum Lieferort
+     * 
      * @return the deliverToLocationIdentifierSchemeIdentifier
      */
     public String getDeliverToLocationIdentifierSchemeIdentifier() {
@@ -83,6 +93,8 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BT-71-1 Schema zum Lieferort
+     * 
      * @param deliverToLocationIdentifierSchemeIdentifier
      *            the deliverToLocationIdentifierSchemeIdentifier to set
      */
@@ -91,6 +103,8 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BT-72 Lieferdatum
+     * 
      * @return the actualDeliveryDate
      */
     public LocalDate getActualDeliveryDate() {
@@ -98,6 +112,8 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BT-72 Lieferdatum
+     * 
      * @param actualDeliveryDate
      *            the actualDeliveryDate to set
      */
@@ -106,10 +122,22 @@ public class InvoiceDeliveryInformation {
     }
 
     /**
+     * Field BG-15: Lieferadresse
+     * 
      * @return the deliveryAddress
      */
     public AddressData getDeliveryAddress() {
         return deliveryAddress;
+    }
+
+    /**
+     * Field BG-15: Lieferadresse
+     * 
+     * @param deliveryAddress
+     *            the deliveryAddress to set
+     */
+    public void setDeliveryAddress(final AddressData deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
 
 }

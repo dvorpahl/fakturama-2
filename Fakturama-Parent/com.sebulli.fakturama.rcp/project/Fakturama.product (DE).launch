@@ -104,8 +104,10 @@
     </setAttribute>
     <setAttribute key="selected_target_bundles">
         <setEntry value="angus-activation*2.0.2@default:true"/>
-        <setEntry value="bcpg*1.76.0@default:default"/>
-        <setEntry value="bcprov*1.76.0@default:default"/>
+        <setEntry value="bcpg*1.79.0@default:default"/>
+        <setEntry value="bcpkix@default:default"/>
+        <setEntry value="bcprov*1.79.0@default:default"/>
+        <setEntry value="bcutil@default:default"/>
         <setEntry value="ca.odell.glazedlists@default:default"/>
         <setEntry value="ch.qos.logback.classic@3:true"/>
         <setEntry value="ch.qos.logback.core@3:true"/>
@@ -830,7 +832,7 @@
         <setEntry value="org.glassfish.hk2.utils@default:default"/>
         <setEntry value="org.glassfish.jaxb.core@default:default"/>
         <setEntry value="org.glassfish.jaxb.runtime@default:default"/>
-        <setEntry value="org.hsqldb.hsqldb@2:true"/>
+        <setEntry value="org.hsqldb.hsqldb*2.7.4@2:true"/>
         <setEntry value="org.javamoney.moneta@3:true"/>
         <setEntry value="org.liquibase.core@default:default"/>
         <setEntry value="org.objectweb.asm*9.6.0@default:default"/>

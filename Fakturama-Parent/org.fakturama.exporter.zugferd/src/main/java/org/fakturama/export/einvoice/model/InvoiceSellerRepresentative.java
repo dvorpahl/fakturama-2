@@ -34,6 +34,8 @@ public class InvoiceSellerRepresentative {
     private AddressData sellerTaxRepresentativeAddress = new AddressData();
 
     /**
+     * Field BT-62 Name Steuervertreter
+     * 
      * @return the sellerTaxRepresentativeName
      */
     public String getSellerTaxRepresentativeName() {
@@ -41,6 +43,8 @@ public class InvoiceSellerRepresentative {
     }
 
     /**
+     * Field BT-62 Name Steuervertreter
+     * 
      * @param sellerTaxRepresentativeName
      *            the sellerTaxRepresentativeName to set
      */
@@ -49,6 +53,8 @@ public class InvoiceSellerRepresentative {
     }
 
     /**
+     * Field BT-63 Umsatzsteuer-ID Steuervertreter
+     * 
      * @return the sellerTaxRepresentativeVatIdentifier
      */
     public String getSellerTaxRepresentativeVatIdentifier() {
@@ -56,6 +62,8 @@ public class InvoiceSellerRepresentative {
     }
 
     /**
+     * Field BT-63 Umsatzsteuer-ID Steuervertreter
+     * 
      * @param sellerTaxRepresentativeVatIdentifier
      *            the sellerTaxRepresentativeVatIdentifier to set
      */
@@ -64,6 +72,8 @@ public class InvoiceSellerRepresentative {
     }
 
     /**
+     * Field BG-12 Adresse des Steuervertreters
+     * 
      * @return the sellerTaxRepresentativeAddress
      */
     public AddressData getSellerTaxRepresentativeAddress() {
@@ -71,6 +81,8 @@ public class InvoiceSellerRepresentative {
     }
 
     /**
+     * Field BG-12 Adresse des Steuervertreters
+     * 
      * @param sellerTaxRepresentativeAddress
      *            the sellerTaxRepresentativeAddress to set
      */

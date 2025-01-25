@@ -82,7 +82,7 @@ public class InvoiceSeller {
     /**
      * insert BG-5
      */
-    private final AddressData sellerAddress = new AddressData();
+    private AddressData sellerAddress = new AddressData();
 
     /************************************************
      * BG-6 Kontaktdaten des Verkäufers
@@ -132,6 +132,9 @@ public class InvoiceSeller {
      */
     private String payeeLegalRegistrationIdentifierSchemeIdentifier;
 
+    /**
+     * insert BG-11 Steuervertreter des Verkäufers
+     */
     private InvoiceSellerRepresentative invoiceSellerRepresentative = new InvoiceSellerRepresentative();
 
     public InvoiceSeller() {
@@ -139,6 +142,9 @@ public class InvoiceSeller {
     }
 
     /**
+     * 
+     * Field BT-27 Firmenname
+     * 
      * @return the sellerName
      */
     public String getSellerName() {
@@ -146,6 +152,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-27 Firmenname
+     * 
      * @param sellerName
      *            the sellerName to set
      */
@@ -154,6 +162,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-28 Abweichender Handelsname
+     * 
      * @return the sellerTradingName
      */
     public String getSellerTradingName() {
@@ -161,6 +171,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-28 Abweichender Handelsname
+     * 
      * @param sellerTradingName
      *            the sellerTradingName to set
      */
@@ -169,6 +181,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-29 Kennung (Kreditorennumme / Lieferantennummer)
+     * 
      * @return the sellerIdentifier
      */
     public String getSellerIdentifier() {
@@ -176,6 +190,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-29 Kennung (Kreditorennumme / Lieferantennummer)
+     * 
      * @param sellerIdentifier
      *            the sellerIdentifier to set
      */
@@ -184,6 +200,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-29-1 Schema für Kennung
+     * 
      * @return the sellerIdentifierSchemeIdentifier
      */
     public String getSellerIdentifierSchemeIdentifier() {
@@ -191,6 +209,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-29-1 Schema für Kennung
+     * 
      * @param sellerIdentifierSchemeIdentifier
      *            the sellerIdentifierSchemeIdentifier to set
      */
@@ -199,6 +219,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-30 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @return the sellerLegalRegistrationIdentifier
      */
     public String getSellerLegalRegistrationIdentifier() {
@@ -206,6 +228,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-30 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @param sellerLegalRegistrationIdentifier
      *            the sellerLegalRegistrationIdentifier to set
      */
@@ -214,6 +238,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-30-1 Schema / Typ der Kennung
+     * 
      * @return the sellerLegalRegistrationIdentifierSchemeIdentifier
      */
     public String getSellerLegalRegistrationIdentifierSchemeIdentifier() {
@@ -221,6 +247,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-30-1 Schema / Typ der Kennung
+     * 
      * @param sellerLegalRegistrationIdentifierSchemeIdentifier
      *            the sellerLegalRegistrationIdentifierSchemeIdentifier to set
      */
@@ -229,6 +257,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-31 Umsatzsteuer-ID
+     * 
      * @return the sellerVatIdentifier
      */
     public String getSellerVatIdentifier() {
@@ -236,6 +266,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-31 Umsatzsteuer-ID
+     * 
      * @param sellerVatIdentifier
      *            the sellerVatIdentifier to set
      */
@@ -244,6 +276,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-32 Steuernummer
+     * 
      * @return the sellerTaxRegistrationIdentifier
      */
     public String getSellerTaxRegistrationIdentifier() {
@@ -251,6 +285,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-32 Steuernummer
+     * 
      * @param sellerTaxRegistrationIdentifier
      *            the sellerTaxRegistrationIdentifier to set
      */
@@ -259,6 +295,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-32-1 Schema zur Steuernummer
+     * 
      * @return the sellerTaxRegistrationIdentifierSchemeIdentifier
      */
     public String getSellerTaxRegistrationIdentifierSchemeIdentifier() {
@@ -266,6 +304,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-32-1 Schema zur Steuernummer
+     * 
      * @param sellerTaxRegistrationIdentifierSchemeIdentifier
      *            the sellerTaxRegistrationIdentifierSchemeIdentifier to set
      */
@@ -274,6 +314,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-33 zusätzliche rechtliche Informationen
+     * 
      * @return the sellerAdditionalLegalInformation
      */
     public String getSellerAdditionalLegalInformation() {
@@ -281,6 +323,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-33 zusätzliche rechtliche Informationen
+     * 
      * @param sellerAdditionalLegalInformation
      *            the sellerAdditionalLegalInformation to set
      */
@@ -289,6 +333,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-34 Erreichbarkeit des Verkäufers (EMail)
+     * 
      * @return the sellerElectronicAddress
      */
     public String getSellerElectronicAddress() {
@@ -296,6 +342,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-34 Erreichbarkeit des Verkäufers (EMail)
+     * 
      * @param sellerElectronicAddress
      *            the sellerElectronicAddress to set
      */
@@ -304,6 +352,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-34-1 Typ der Adresse
+     * 
      * @return the sellerElectronicAddressSchemeIdentifier
      */
     public String getSellerElectronicAddressSchemeIdentifier() {
@@ -311,6 +361,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-34-1 Typ der Adresse
+     * 
      * @param sellerElectronicAddressSchemeIdentifier
      *            the sellerElectronicAddressSchemeIdentifier to set
      */
@@ -319,6 +371,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field insert BG-5
+     * 
      * @return the sellerAddress
      */
     public AddressData getSellerAddress() {
@@ -326,6 +380,18 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field insert BG-5
+     * 
+     * @param sellerAddress
+     *            the sellerAddress to set
+     */
+    public void setSellerAddress(final AddressData sellerAddress) {
+        this.sellerAddress = sellerAddress;
+    }
+
+    /**
+     * Field BT-41 Name, Kontaktperson
+     * 
      * @return the sellerContactPoint
      */
     public String getSellerContactPoint() {
@@ -333,6 +399,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-41 Name, Kontaktperson
+     * 
      * @param sellerContactPoint
      *            the sellerContactPoint to set
      */
@@ -341,6 +409,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-42 Telefonnummer
+     * 
      * @return the sellerContactTelephoneNumber
      */
     public String getSellerContactTelephoneNumber() {
@@ -348,6 +418,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-42 Telefonnummer
+     * 
      * @param sellerContactTelephoneNumber
      *            the sellerContactTelephoneNumber to set
      */
@@ -356,6 +428,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-43 E-Mail
+     * 
      * @return the sellerContactEmailAddress
      */
     public String getSellerContactEmailAddress() {
@@ -363,6 +437,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-43 E-Mail
+     * 
      * @param sellerContactEmailAddress
      *            the sellerContactEmailAddress to set
      */
@@ -371,6 +447,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-59 Name
+     * 
      * @return the payeeName
      */
     public String getPayeeName() {
@@ -378,6 +456,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-59 Name
+     * 
      * @param payeeName
      *            the payeeName to set
      */
@@ -386,6 +466,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-60 Kennung
+     * 
      * @return the payeeIdentifier
      */
     public String getPayeeIdentifier() {
@@ -393,6 +475,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-60 Kennung
+     * 
      * @param payeeIdentifier
      *            the payeeIdentifier to set
      */
@@ -401,6 +485,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-60-1 Schema Kennung
+     * 
      * @return the payeeIdentifierSchemeIdentifier
      */
     public String getPayeeIdentifierSchemeIdentifier() {
@@ -408,6 +494,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-60-1 Schema Kennung
+     * 
      * @param payeeIdentifierSchemeIdentifier
      *            the payeeIdentifierSchemeIdentifier to set
      */
@@ -416,6 +504,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-61 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @return the payeeLegalRegistrationIdentifier
      */
     public String getPayeeLegalRegistrationIdentifier() {
@@ -423,6 +513,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-61 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @param payeeLegalRegistrationIdentifier
      *            the payeeLegalRegistrationIdentifier to set
      */
@@ -431,6 +523,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-61-1 Schema zur Kennung
+     * 
      * @return the payeeLegalRegistrationIdentifierSchemeIdentifier
      */
     public String getPayeeLegalRegistrationIdentifierSchemeIdentifier() {
@@ -438,6 +532,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field BT-61-1 Schema zur Kennung
+     * 
      * @param payeeLegalRegistrationIdentifierSchemeIdentifier
      *            the payeeLegalRegistrationIdentifierSchemeIdentifier to set
      */
@@ -446,6 +542,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field insert BG-11 Steuervertreter des Verkäufers
+     * 
      * @return the invoiceSellerRepresentative
      */
     public InvoiceSellerRepresentative getInvoiceSellerRepresentative() {
@@ -453,6 +551,8 @@ public class InvoiceSeller {
     }
 
     /**
+     * Field insert BG-11 Steuervertreter des Verkäufers
+     * 
      * @param invoiceSellerRepresentative
      *            the invoiceSellerRepresentative to set
      */

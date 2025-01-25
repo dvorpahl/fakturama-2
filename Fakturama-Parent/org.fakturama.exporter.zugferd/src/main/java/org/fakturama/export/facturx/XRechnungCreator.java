@@ -19,12 +19,18 @@ import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.fakturama.export.einvoice.AbstractEInvoiceCreator;
 import org.fakturama.export.einvoice.ConformanceLevel;
 import org.fakturama.export.einvoice.IEinvoice;
 import org.fakturama.export.einvoice.IPdfHelper;
+import org.fakturama.export.einvoice.converter.EInvoiceConverter;
+import org.fakturama.export.einvoice.converter.InvoiceConverterException;
+import org.fakturama.export.einvoice.model.EInvoice;
 
+import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.model.Invoice;
+import com.sebulli.fakturama.util.ContactUtil;
 
 /**
  * Generator class for XRechnung /Factur-x files.
@@ -56,25 +62,45 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
 
     private IPdfHelper pdfHelper;
 
+    @Inject // node: org.fakturama.export.zugferd
+    protected IPreferenceStore preferences;
+
+    @Inject
+    private ILogger log;
+
     @Override
     public boolean createEInvoice(final Optional<Invoice> invoice, final ConformanceLevel zugferdProfile) {
         // return if invoice is not given
         if (invoice.isEmpty()) {
             return false;
         }
+
+        // transform Invoice into standard Model for electronic invoices
+
+        // now use new model to create further xml files
         Serializable invoiceXml;
         // 2. create XML file
-        IEinvoice eInvoice;
-        switch (zugferdProfile) {
-        case FACTURX_BASIC:
-            throw new UnsupportedOperationException("Profile not supported");
-        case FACTURX_COMFORT, ZUGFERD_V2_COMFORT, ZUGFERD_V2_EN16931, XRECHNUNG, FACTURX_EN16931:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
-        default:
-            // if we have another profile... exit with error
+        final IEinvoice eInvoiceImpl;
+        final ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, eclipseContext);
+
+        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager);
+        EInvoice eInvoice;
+        try {
+            eInvoice = converter.convertInvoice(invoice.orElseThrow());
+            // set vars related to profile
+            converter.postProcess(eInvoice, zugferdProfile);
+        } catch (final InvoiceConverterException e) {
+            log.warn("Invoice was null, cannot proceed");
             return false;
+        }
+        switch (zugferdProfile) {
+            case ZUGFERD_V2_EN16931, FACTURX_EN16931, XRECHNUNG:
+                eInvoiceImpl = ContextInjectionFactory.make(XRechnung.class, context);
+                invoiceXml = eInvoiceImpl.getInvoiceXml(eInvoice);
+                break;
+            default:
+                // if we have another profile... exit with error
+                return false;
         }
 
         // 3. merge XML & PDF/A-1 to PDF/A-3

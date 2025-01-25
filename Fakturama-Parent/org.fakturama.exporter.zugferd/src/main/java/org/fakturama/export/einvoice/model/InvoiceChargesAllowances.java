@@ -56,6 +56,8 @@ public class InvoiceChargesAllowances {
     private String reasonCode;
 
     /**
+     * Field BT-92, BT-99 Betrag Netto
+     * 
      * @return the amount
      */
     public BigDecimal getAmount() {
@@ -63,6 +65,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-92, BT-99 Betrag Netto
+     * 
      * @param amount
      *            the amount to set
      */
@@ -71,6 +75,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-93, BT-100 Basisbetrag Netto
+     * 
      * @return the baseAmount
      */
     public BigDecimal getBaseAmount() {
@@ -78,6 +84,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-93, BT-100 Basisbetrag Netto
+     * 
      * @param baseAmount
      *            the baseAmount to set
      */
@@ -86,6 +94,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-94, BT-101 Prozentsatz
+     * 
      * @return the percentage
      */
     public BigDecimal getPercentage() {
@@ -93,6 +103,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-94, BT-101 Prozentsatz
+     * 
      * @param percentage
      *            the percentage to set
      */
@@ -101,6 +113,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-95, BT-102 Umsatzsteuerkategorie
+     * 
      * @return the vatCategoryCode
      */
     public String getVatCategoryCode() {
@@ -108,6 +122,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-95, BT-102 Umsatzsteuerkategorie
+     * 
      * @param vatCategoryCode
      *            the vatCategoryCode to set
      */
@@ -116,6 +132,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-96, BT-103 Umsatzsteuersatz
+     * 
      * @return the vatRate
      */
     public BigDecimal getVatRate() {
@@ -123,6 +141,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-96, BT-103 Umsatzsteuersatz
+     * 
      * @param vatRate
      *            the vatRate to set
      */
@@ -131,6 +151,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-97, BT-104 Begründung
+     * 
      * @return the reason
      */
     public String getReason() {
@@ -138,6 +160,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-97, BT-104 Begründung
+     * 
      * @param reason
      *            the reason to set
      */
@@ -146,6 +170,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-98, BT-105 Code zur Begründung
+     * 
      * @return the reasonCode
      */
     public String getReasonCode() {
@@ -153,6 +179,8 @@ public class InvoiceChargesAllowances {
     }
 
     /**
+     * Field BT-98, BT-105 Code zur Begründung
+     * 
      * @param reasonCode
      *            the reasonCode to set
      */

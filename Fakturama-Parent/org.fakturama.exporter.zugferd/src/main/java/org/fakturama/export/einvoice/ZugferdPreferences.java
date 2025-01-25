@@ -98,14 +98,11 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         super(GRID);
 
         featureMap = new EnumMap<>(ZugferdVersion.class);
-        featureMap.put(ZugferdVersion.V1, new String[][] {
-                //          { ConformanceLevel.ZUGFERD_V1_BASIC.toString(), ConformanceLevel.ZUGFERD_V1_BASIC.toString() }, 
-                { ConformanceLevel.ZUGFERD_V1_COMFORT.toString(), ConformanceLevel.ZUGFERD_V1_COMFORT.toString() } });
 
-        featureMap.put(ZugferdVersion.V2_1, new String[][] { { ConformanceLevel.ZUGFERD_V2_COMFORT.toString(), ConformanceLevel.ZUGFERD_V2_COMFORT.toString() },
-                //            { ConformanceLevel.ZUGFERD_V2_EN16931.toString(), ConformanceLevel.ZUGFERD_V2_EN16931.toString()}, 
-                { ConformanceLevel.XRECHNUNG.toString(), ConformanceLevel.XRECHNUNG.toString() },
-                { ConformanceLevel.FACTURX_EN16931.toString(), ConformanceLevel.FACTURX_EN16931.toString() } });
+        featureMap.put(ZugferdVersion.V2_1,
+                new String[][] { { ConformanceLevel.ZUGFERD_V2_EN16931.toString(), ConformanceLevel.ZUGFERD_V2_EN16931.toString() },
+                        { ConformanceLevel.XRECHNUNG.toString(), ConformanceLevel.XRECHNUNG.toString() },
+                        { ConformanceLevel.FACTURX_EN16931.toString(), ConformanceLevel.FACTURX_EN16931.toString() } });
     }
 
     /**

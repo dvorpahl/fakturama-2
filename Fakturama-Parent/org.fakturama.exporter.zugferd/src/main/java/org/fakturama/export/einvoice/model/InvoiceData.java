@@ -154,6 +154,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-1 Rechnungsnummer
+     * 
      * @return the invoiceNumber
      */
     public String getInvoiceNumber() {
@@ -161,6 +163,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-1 Rechnungsnummer
+     * 
      * @param invoiceNumber
      *            the invoiceNumber to set
      */
@@ -169,6 +173,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-2 Rechnungsdatum
+     * 
      * @return the invoiceIssueDate
      */
     public LocalDate getInvoiceIssueDate() {
@@ -176,6 +182,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-2 Rechnungsdatum
+     * 
      * @param invoiceIssueDate
      *            the invoiceIssueDate to set
      */
@@ -184,6 +192,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-3 Rechnungsart
+     * 
      * @return the invoiceTypeCode
      */
     public String getInvoiceTypeCode() {
@@ -191,6 +201,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-3 Rechnungsart
+     * 
      * @param invoiceTypeCode
      *            the invoiceTypeCode to set
      */
@@ -199,6 +211,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-5 Währung
+     * 
      * @return the invoiceCurrencyCode
      */
     public String getInvoiceCurrencyCode() {
@@ -206,6 +220,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-5 Währung
+     * 
      * @param invoiceCurrencyCode
      *            the invoiceCurrencyCode to set
      */
@@ -214,6 +230,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-6 Währung Steuer (nur gefüllt, falls ungleich BT-5)
+     * 
      * @return the vatAccountingCurrencyCode
      */
     public String getVatAccountingCurrencyCode() {
@@ -221,6 +239,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-6 Währung Steuer (nur gefüllt, falls ungleich BT-5)
+     * 
      * @param vatAccountingCurrencyCode
      *            the vatAccountingCurrencyCode to set
      */
@@ -229,6 +249,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-7 Buchungsdatum Umsatzsteuer
+     * 
      * @return the valueAddedTaxPointDate
      */
     public LocalDate getValueAddedTaxPointDate() {
@@ -236,6 +258,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-7 Buchungsdatum Umsatzsteuer
+     * 
      * @param valueAddedTaxPointDate
      *            the valueAddedTaxPointDate to set
      */
@@ -244,6 +268,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-8 Buchungscode Umsatzsteuer
+     * 
      * @return the valueAddedTaxPointDateCode
      */
     public String getValueAddedTaxPointDateCode() {
@@ -251,6 +277,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-8 Buchungscode Umsatzsteuer
+     * 
      * @param valueAddedTaxPointDateCode
      *            the valueAddedTaxPointDateCode to set
      */
@@ -259,6 +287,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-9 Fälligkeitsdatum
+     * 
      * @return the paymentDueDate
      */
     public LocalDate getPaymentDueDate() {
@@ -266,6 +296,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-9 Fälligkeitsdatum
+     * 
      * @param paymentDueDate
      *            the paymentDueDate to set
      */
@@ -274,6 +306,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-10 Käuferreferenz (z.B. Leitweg-ID)
+     * 
      * @return the buyerReference
      */
     public String getBuyerReference() {
@@ -281,6 +315,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-10 Käuferreferenz (z.B. Leitweg-ID)
+     * 
      * @param buyerReference
      *            the buyerReference to set
      */
@@ -289,6 +325,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-11 Projektnummer
+     * 
      * @return the projectReference
      */
     public String getProjectReference() {
@@ -296,6 +334,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-11 Projektnummer
+     * 
      * @param projectReference
      *            the projectReference to set
      */
@@ -304,6 +344,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-12 Vertragsnummer
+     * 
      * @return the contractReference
      */
     public String getContractReference() {
@@ -311,6 +353,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-12 Vertragsnummer
+     * 
      * @param contractReference
      *            the contractReference to set
      */
@@ -319,6 +363,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-13 Bestellnummer
+     * 
      * @return the purchaseOrderReference
      */
     public String getPurchaseOrderReference() {
@@ -326,6 +372,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-13 Bestellnummer
+     * 
      * @param purchaseOrderReference
      *            the purchaseOrderReference to set
      */
@@ -334,6 +382,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-14 Auftragsnummer
+     * 
      * @return the salesOrderReference
      */
     public String getSalesOrderReference() {
@@ -341,6 +391,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-14 Auftragsnummer
+     * 
      * @param salesOrderReference
      *            the salesOrderReference to set
      */
@@ -349,6 +401,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-15 referenzierte Empfangsbestätigung
+     * 
      * @return the receivingAdviceReference
      */
     public String getReceivingAdviceReference() {
@@ -356,6 +410,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-15 referenzierte Empfangsbestätigung
+     * 
      * @param receivingAdviceReference
      *            the receivingAdviceReference to set
      */
@@ -364,6 +420,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-16 referenzierte Versandanzeige
+     * 
      * @return the despatchAdviceReference
      */
     public String getDespatchAdviceReference() {
@@ -371,6 +429,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-16 referenzierte Versandanzeige
+     * 
      * @param despatchAdviceReference
      *            the despatchAdviceReference to set
      */
@@ -379,6 +439,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-17 Vergabenummer
+     * 
      * @return the tenderOrLotReference
      */
     public String getTenderOrLotReference() {
@@ -386,6 +448,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-17 Vergabenummer
+     * 
      * @param tenderOrLotReference
      *            the tenderOrLotReference to set
      */
@@ -394,6 +458,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-18 Objektkennung (Verkäufer)
+     * 
      * @return the invoicedObjectIdentifier
      */
     public String getInvoicedObjectIdentifier() {
@@ -401,6 +467,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-18 Objektkennung (Verkäufer)
+     * 
      * @param invoicedObjectIdentifier
      *            the invoicedObjectIdentifier to set
      */
@@ -409,6 +477,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-18-1 Bildungsmuster Objektkennung
+     * 
      * @return the invoicedObjectIdentifierSchemeIdentifier
      */
     public String getInvoicedObjectIdentifierSchemeIdentifier() {
@@ -416,6 +486,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-18-1 Bildungsmuster Objektkennung
+     * 
      * @param invoicedObjectIdentifierSchemeIdentifier
      *            the invoicedObjectIdentifierSchemeIdentifier to set
      */
@@ -424,6 +496,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-19 Buchhaltungsinformationen
+     * 
      * @return the buyerAccountingReference
      */
     public String getBuyerAccountingReference() {
@@ -431,6 +505,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-19 Buchhaltungsinformationen
+     * 
      * @param buyerAccountingReference
      *            the buyerAccountingReference to set
      */
@@ -439,6 +515,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-20 Zahlungsbedingungen, Skonto
+     * 
      * @return the paymentTerms
      */
     public String getPaymentTerms() {
@@ -446,6 +524,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-20 Zahlungsbedingungen, Skonto
+     * 
      * @param paymentTerms
      *            the paymentTerms to set
      */
@@ -454,6 +534,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-23 Kontext des Geschäftsprozesses
+     * 
      * @return the businessProcessType
      */
     public String getBusinessProcessType() {
@@ -461,6 +543,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-23 Kontext des Geschäftsprozesses
+     * 
      * @param businessProcessType
      *            the businessProcessType to set
      */
@@ -469,6 +553,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-24 Identifier (Version XRechnung / Zugpferd, ...)
+     * 
      * @return the specificationIdentifier
      */
     public String getSpecificationIdentifier() {
@@ -476,6 +562,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-24 Identifier (Version XRechnung / Zugpferd, ...)
+     * 
      * @param specificationIdentifier
      *            the specificationIdentifier to set
      */
@@ -484,6 +572,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-73 Abrechnungszeitraum (von)
+     * 
      * @return the invoicingPeriodStartDate
      */
     public LocalDate getInvoicingPeriodStartDate() {
@@ -491,6 +581,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-73 Abrechnungszeitraum (von)
+     * 
      * @param invoicingPeriodStartDate
      *            the invoicingPeriodStartDate to set
      */
@@ -499,6 +591,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-74 Abrechnungszeitraum (bis)
+     * 
      * @return the invoicingPeriodEndDate
      */
     public LocalDate getInvoicingPeriodEndDate() {
@@ -506,6 +600,8 @@ public class InvoiceData {
     }
 
     /**
+     * Field BT-74 Abrechnungszeitraum (bis)
+     * 
      * @param invoicingPeriodEndDate
      *            the invoicingPeriodEndDate to set
      */

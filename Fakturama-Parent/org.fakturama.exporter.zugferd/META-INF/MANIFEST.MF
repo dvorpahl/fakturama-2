@@ -31,7 +31,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.glassfish.jaxb.runtime;bundle-version="4.0.3";visibility:=reexport,
  org.glassfish.jaxb.core;bundle-version="4.0.3",
  com.sun.istack.commons-runtime;bundle-version="4.2.0",
- wrapped.org.glassfish.jaxb.txw2;bundle-version="4.0.3"
+ wrapped.org.glassfish.jaxb.txw2;bundle-version="4.0.3",
+ bcpg;bundle-version="1.79.0",
+ bcpkix;bundle-version="1.79.0",
+ bcprov;bundle-version="1.79.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Localization: OSGI-INF/l10n/zfbundle
 Bundle-ActivationPolicy: lazy

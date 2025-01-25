@@ -61,6 +61,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-35, BT-50, BT-64, BT-75 Adresszeile 1
+     * 
      * @return the addressLine1
      */
     public String getAddressLine1() {
@@ -68,6 +70,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-35, BT-50, BT-64, BT-75 Adresszeile 1
+     * 
      * @param addressLine1
      *            the addressLine1 to set
      */
@@ -76,6 +80,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-36, BT-51, BT-65, BT-76 Adresszeile 2, Postfach
+     * 
      * @return the addressLine2
      */
     public String getAddressLine2() {
@@ -83,6 +89,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-36, BT-51, BT-65, BT-76 Adresszeile 2, Postfach
+     * 
      * @param addressLine2
      *            the addressLine2 to set
      */
@@ -91,6 +99,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-162, BT-163, BT-164, BT-165 Adresszeile 3, Adresszusatz
+     * 
      * @return the addressLine3
      */
     public String getAddressLine3() {
@@ -98,6 +108,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-162, BT-163, BT-164, BT-165 Adresszeile 3, Adresszusatz
+     * 
      * @param addressLine3
      *            the addressLine3 to set
      */
@@ -106,6 +118,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-37, BT-52, BT-66, BT-77 Ort
+     * 
      * @return the city
      */
     public String getCity() {
@@ -113,6 +127,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-37, BT-52, BT-66, BT-77 Ort
+     * 
      * @param city
      *            the city to set
      */
@@ -121,6 +137,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-38, BT-53, BT-67, BT-78 Postleitzahl
+     * 
      * @return the postCode
      */
     public String getPostCode() {
@@ -128,6 +146,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-38, BT-53, BT-67, BT-78 Postleitzahl
+     * 
      * @param postCode
      *            the postCode to set
      */
@@ -136,6 +156,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-39, BT-54, BT-68, BT-79 Bundesland
+     * 
      * @return the countrySubdivision
      */
     public String getCountrySubdivision() {
@@ -143,6 +165,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-39, BT-54, BT-68, BT-79 Bundesland
+     * 
      * @param countrySubdivision
      *            the countrySubdivision to set
      */
@@ -151,6 +175,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-40, BT-55, BT-69, BT-80 Land
+     * 
      * @return the countryCode
      */
     public String getCountryCode() {
@@ -158,6 +184,8 @@ public class AddressData {
     }
 
     /**
+     * Field BT-40, BT-55, BT-69, BT-80 Land
+     * 
      * @param countryCode
      *            the countryCode to set
      */

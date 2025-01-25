@@ -66,7 +66,7 @@ public class InvoiceBuyer {
     /**
      * insert BG-8
      */
-    private final AddressData buyerAddress = new AddressData();
+    private AddressData buyerAddress = new AddressData();
 
     /****
      * BG-9 Kontaktdaten des Verkäufers
@@ -92,6 +92,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-44 Firmenname
+     * 
      * @return the buyerName
      */
     public String getBuyerName() {
@@ -99,6 +101,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-44 Firmenname
+     * 
      * @param buyerName
      *            the buyerName to set
      */
@@ -107,6 +111,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-45 Abweichender Handelsname
+     * 
      * @return the buyerTradingName
      */
     public String getBuyerTradingName() {
@@ -114,6 +120,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-45 Abweichender Handelsname
+     * 
      * @param buyerTradingName
      *            the buyerTradingName to set
      */
@@ -122,6 +130,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-46 Kennung (Kreditorennumme / Lieferantennummer)
+     * 
      * @return the buyerIdentifier
      */
     public String getBuyerIdentifier() {
@@ -129,6 +139,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-46 Kennung (Kreditorennumme / Lieferantennummer)
+     * 
      * @param buyerIdentifier
      *            the buyerIdentifier to set
      */
@@ -137,6 +149,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-46-1 Schema für Kennung
+     * 
      * @return the buyerIdentifierSchemeIdentifier
      */
     public String getBuyerIdentifierSchemeIdentifier() {
@@ -144,6 +158,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-46-1 Schema für Kennung
+     * 
      * @param buyerIdentifierSchemeIdentifier
      *            the buyerIdentifierSchemeIdentifier to set
      */
@@ -152,6 +168,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-47 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @return the buyerLegalRegistrationIdentifier
      */
     public String getBuyerLegalRegistrationIdentifier() {
@@ -159,6 +177,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-47 Handelsregisternummer / Eindeutige Kennung
+     * 
      * @param buyerLegalRegistrationIdentifier
      *            the buyerLegalRegistrationIdentifier to set
      */
@@ -167,6 +187,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-47-1 Schema / Typ der Kennung
+     * 
      * @return the buyerLegalRegistrationIdentifierSchemeIdentifier
      */
     public String getBuyerLegalRegistrationIdentifierSchemeIdentifier() {
@@ -174,6 +196,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-47-1 Schema / Typ der Kennung
+     * 
      * @param buyerLegalRegistrationIdentifierSchemeIdentifier
      *            the buyerLegalRegistrationIdentifierSchemeIdentifier to set
      */
@@ -182,6 +206,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-48 Umsatzsteuer-ID
+     * 
      * @return the buyerVatIdentifier
      */
     public String getBuyerVatIdentifier() {
@@ -189,6 +215,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-48 Umsatzsteuer-ID
+     * 
      * @param buyerVatIdentifier
      *            the buyerVatIdentifier to set
      */
@@ -197,6 +225,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-49 Erreichbarkeit des Verkäufers (EMail)
+     * 
      * @return the buyerElectronicAddress
      */
     public String getBuyerElectronicAddress() {
@@ -204,6 +234,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-49 Erreichbarkeit des Verkäufers (EMail)
+     * 
      * @param buyerElectronicAddress
      *            the buyerElectronicAddress to set
      */
@@ -212,6 +244,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-49-1 Typ der Adresse
+     * 
      * @return the buyerElectronicAddressSchemeIdentifier
      */
     public String getBuyerElectronicAddressSchemeIdentifier() {
@@ -219,6 +253,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-49-1 Typ der Adresse
+     * 
      * @param buyerElectronicAddressSchemeIdentifier
      *            the buyerElectronicAddressSchemeIdentifier to set
      */
@@ -227,6 +263,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-56 Name, Kontaktperson
+     * 
      * @return the buyerContactPoint
      */
     public String getBuyerContactPoint() {
@@ -234,6 +272,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-56 Name, Kontaktperson
+     * 
      * @param buyerContactPoint
      *            the buyerContactPoint to set
      */
@@ -242,6 +282,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-57 Telefonnummer
+     * 
      * @return the buyerContactTelephoneNumber
      */
     public String getBuyerContactTelephoneNumber() {
@@ -249,6 +291,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-57 Telefonnummer
+     * 
      * @param buyerContactTelephoneNumber
      *            the buyerContactTelephoneNumber to set
      */
@@ -257,6 +301,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-58 E-Mail
+     * 
      * @return the buyerContactEmailAddress
      */
     public String getBuyerContactEmailAddress() {
@@ -264,6 +310,8 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field BT-58 E-Mail
+     * 
      * @param buyerContactEmailAddress
      *            the buyerContactEmailAddress to set
      */
@@ -272,10 +320,22 @@ public class InvoiceBuyer {
     }
 
     /**
+     * Field insert BG-8
+     * 
      * @return the buyerAddress
      */
     public AddressData getBuyerAddress() {
         return buyerAddress;
+    }
+
+    /**
+     * Field insert BG-8
+     * 
+     * @param buyerAddress
+     *            the buyerAddress to set
+     */
+    public void setBuyerAddress(final AddressData buyerAddress) {
+        this.buyerAddress = buyerAddress;
     }
 
 }

@@ -14,7 +14,6 @@
 package org.fakturama.export.einvoice.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,100 +21,6 @@ import java.util.List;
  * BG-25 Positionen
  */
 public class InvoicePosition {
-
-    /**
-     * BG-26 Rechnungszeiträume für Positionen
-     */
-    public class InvoiceLinePeriod {
-
-        /**
-         * BT-134 Startdatum Abrechnung
-         */
-        private LocalDate invoiceLinePeriodStartDate;
-
-        /**
-         * BT-135 Enddatum Abrechnung
-         */
-        private LocalDate invoiceLinePeriodEndDate;
-
-        /**
-         * @return the invoiceLinePeriodStartDate
-         */
-        public LocalDate getInvoiceLinePeriodStartDate() {
-            return invoiceLinePeriodStartDate;
-        }
-
-        /**
-         * @param invoiceLinePeriodStartDate
-         *            the invoiceLinePeriodStartDate to set
-         */
-        public void setInvoiceLinePeriodStartDate(final LocalDate invoiceLinePeriodStartDate) {
-            this.invoiceLinePeriodStartDate = invoiceLinePeriodStartDate;
-        }
-
-        /**
-         * @return the invoiceLinePeriodEndDate
-         */
-        public LocalDate getInvoiceLinePeriodEndDate() {
-            return invoiceLinePeriodEndDate;
-        }
-
-        /**
-         * @param invoiceLinePeriodEndDate
-         *            the invoiceLinePeriodEndDate to set
-         */
-        public void setInvoiceLinePeriodEndDate(final LocalDate invoiceLinePeriodEndDate) {
-            this.invoiceLinePeriodEndDate = invoiceLinePeriodEndDate;
-        }
-
-    }
-
-    /**
-     * BG-32 Metadaten zur Position
-     */
-    public class InvoicePositionMetadata {
-
-        /**
-         * BT-160 Schlüssel zum Metadatum
-         */
-        private String itemAttributeName;
-
-        /**
-         * BT-161 Wert zum Metadatum
-         */
-        private String itemAttributeValue;
-
-        /**
-         * @return the itemAttributeName
-         */
-        public String getItemAttributeName() {
-            return itemAttributeName;
-        }
-
-        /**
-         * @param itemAttributeName
-         *            the itemAttributeName to set
-         */
-        public void setItemAttributeName(final String itemAttributeName) {
-            this.itemAttributeName = itemAttributeName;
-        }
-
-        /**
-         * @return the itemAttributeValue
-         */
-        public String getItemAttributeValue() {
-            return itemAttributeValue;
-        }
-
-        /**
-         * @param itemAttributeValue
-         *            the itemAttributeValue to set
-         */
-        public void setItemAttributeValue(final String itemAttributeValue) {
-            this.itemAttributeValue = itemAttributeValue;
-        }
-
-    }
 
     /**
      * BT-126 Positionskennung / Positionsnummer
@@ -140,7 +45,7 @@ public class InvoicePosition {
     /**
      * BT-129 Menge
      */
-    private String invoicedQuantity;
+    private BigDecimal invoicedQuantity;
 
     /**
      * BT-130 Einheit
@@ -150,7 +55,7 @@ public class InvoicePosition {
     /**
      * BT-131 Gesamtpreis Netto
      */
-    private String invoiceLineNetAmount;
+    private BigDecimal invoiceLineNetAmount;
 
     /**
      * BT-132 Bestellreferenz / Auftragsreferenz des Käufers
@@ -165,7 +70,7 @@ public class InvoicePosition {
     /**
      * BG-26 Rechnungszeiträume Position
      */
-    private List<InvoiceLinePeriod> invoiceLinePeriods = new ArrayList<>();
+    private InvoiceLinePeriod invoiceLinePeriod;
 
     /**
      * BG-27 Zeilenabschläge
@@ -280,6 +185,8 @@ public class InvoicePosition {
     private List<InvoicePositionMetadata> invoicePositionMetadatas = new ArrayList<>();
 
     /**
+     * Field BT-126 Positionskennung / Positionsnummer
+     * 
      * @return the invoiceLineIdentifier
      */
     public String getInvoiceLineIdentifier() {
@@ -287,6 +194,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-126 Positionskennung / Positionsnummer
+     * 
      * @param invoiceLineIdentifier
      *            the invoiceLineIdentifier to set
      */
@@ -295,6 +204,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-127 Positionstext
+     * 
      * @return the invoiceLineNote
      */
     public String getInvoiceLineNote() {
@@ -302,6 +213,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-127 Positionstext
+     * 
      * @param invoiceLineNote
      *            the invoiceLineNote to set
      */
@@ -310,6 +223,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-128 Artikelkennung des Verkäufers
+     * 
      * @return the invoiceLineObjectIdentifier
      */
     public String getInvoiceLineObjectIdentifier() {
@@ -317,6 +232,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-128 Artikelkennung des Verkäufers
+     * 
      * @param invoiceLineObjectIdentifier
      *            the invoiceLineObjectIdentifier to set
      */
@@ -325,6 +242,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-128-1 Code für Artikelkennung
+     * 
      * @return the invoiceLineObjectIdentifierSchemeIdentifier
      */
     public String getInvoiceLineObjectIdentifierSchemeIdentifier() {
@@ -332,6 +251,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-128-1 Code für Artikelkennung
+     * 
      * @param invoiceLineObjectIdentifierSchemeIdentifier
      *            the invoiceLineObjectIdentifierSchemeIdentifier to set
      */
@@ -340,21 +261,27 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-129 Menge
+     * 
      * @return the invoicedQuantity
      */
-    public String getInvoicedQuantity() {
+    public BigDecimal getInvoicedQuantity() {
         return invoicedQuantity;
     }
 
     /**
+     * Field BT-129 Menge
+     * 
      * @param invoicedQuantity
      *            the invoicedQuantity to set
      */
-    public void setInvoicedQuantity(final String invoicedQuantity) {
+    public void setInvoicedQuantity(final BigDecimal invoicedQuantity) {
         this.invoicedQuantity = invoicedQuantity;
     }
 
     /**
+     * Field BT-130 Einheit
+     * 
      * @return the invoicedQuantityUnitOfMeasureCode
      */
     public String getInvoicedQuantityUnitOfMeasureCode() {
@@ -362,6 +289,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-130 Einheit
+     * 
      * @param invoicedQuantityUnitOfMeasureCode
      *            the invoicedQuantityUnitOfMeasureCode to set
      */
@@ -370,21 +299,27 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-131 Gesamtpreis Netto
+     * 
      * @return the invoiceLineNetAmount
      */
-    public String getInvoiceLineNetAmount() {
+    public BigDecimal getInvoiceLineNetAmount() {
         return invoiceLineNetAmount;
     }
 
     /**
+     * Field BT-131 Gesamtpreis Netto
+     * 
      * @param invoiceLineNetAmount
      *            the invoiceLineNetAmount to set
      */
-    public void setInvoiceLineNetAmount(final String invoiceLineNetAmount) {
+    public void setInvoiceLineNetAmount(final BigDecimal invoiceLineNetAmount) {
         this.invoiceLineNetAmount = invoiceLineNetAmount;
     }
 
     /**
+     * Field BT-132 Bestellreferenz / Auftragsreferenz des Käufers
+     * 
      * @return the referencedPurchaseOrderLineReference
      */
     public String getReferencedPurchaseOrderLineReference() {
@@ -392,6 +327,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-132 Bestellreferenz / Auftragsreferenz des Käufers
+     * 
      * @param referencedPurchaseOrderLineReference
      *            the referencedPurchaseOrderLineReference to set
      */
@@ -400,6 +337,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-133 Kontierungshinweis
+     * 
      * @return the invoiceLineBuyerAccountingReference
      */
     public String getInvoiceLineBuyerAccountingReference() {
@@ -407,6 +346,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-133 Kontierungshinweis
+     * 
      * @param invoiceLineBuyerAccountingReference
      *            the invoiceLineBuyerAccountingReference to set
      */
@@ -415,21 +356,27 @@ public class InvoicePosition {
     }
 
     /**
-     * @return the invoiceLinePeriods
+     * BG-26 Rechnungszeiträume Position
+     * 
+     * @return the invoiceLinePeriod
      */
-    public List<InvoiceLinePeriod> getInvoiceLinePeriods() {
-        return invoiceLinePeriods;
+    public InvoiceLinePeriod getInvoiceLinePeriod() {
+        return invoiceLinePeriod;
     }
 
     /**
-     * @param invoiceLinePeriods
-     *            the invoiceLinePeriods to set
+     * BG-26 Rechnungszeiträume Position
+     * 
+     * @param invoiceLinePeriod
+     *            the invoiceLinePeriod to set
      */
-    public void setInvoiceLinePeriods(final List<InvoiceLinePeriod> invoiceLinePeriods) {
-        this.invoiceLinePeriods = invoiceLinePeriods;
+    public void setInvoiceLinePeriod(final InvoiceLinePeriod invoiceLinePeriod) {
+        this.invoiceLinePeriod = invoiceLinePeriod;
     }
 
     /**
+     * BG-27 Zeilenabschläge
+     * 
      * @return the invoiceLineAllowances
      */
     public List<InvoiceChargesAllowances> getInvoiceLineAllowances() {
@@ -437,6 +384,8 @@ public class InvoicePosition {
     }
 
     /**
+     * BG-27 Zeilenabschläge
+     * 
      * @param invoiceLineAllowances
      *            the invoiceLineAllowances to set
      */
@@ -445,6 +394,8 @@ public class InvoicePosition {
     }
 
     /**
+     * BG-28 Zeilenzuschläge
+     * 
      * @return the invoiceLineCharges
      */
     public List<InvoiceChargesAllowances> getInvoiceLineCharges() {
@@ -452,6 +403,8 @@ public class InvoicePosition {
     }
 
     /**
+     * BG-28 Zeilenzuschläge
+     * 
      * @param invoiceLineCharges
      *            the invoiceLineCharges to set
      */
@@ -460,6 +413,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-146 Preis pro Einheit netto, nach Rabatt
+     * 
      * @return the itemNetPrice
      */
     public BigDecimal getItemNetPrice() {
@@ -467,6 +422,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-146 Preis pro Einheit netto, nach Rabatt
+     * 
      * @param itemNetPrice
      *            the itemNetPrice to set
      */
@@ -475,6 +432,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-147 Rabatt (Gesamt)
+     * 
      * @return the itemPriceDiscount
      */
     public BigDecimal getItemPriceDiscount() {
@@ -482,6 +441,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-147 Rabatt (Gesamt)
+     * 
      * @param itemPriceDiscount
      *            the itemPriceDiscount to set
      */
@@ -490,6 +451,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-148 Preis pro Einheit netto, vor Rabatt
+     * 
      * @return the itemGrossPrice
      */
     public BigDecimal getItemGrossPrice() {
@@ -497,6 +460,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-148 Preis pro Einheit netto, vor Rabatt
+     * 
      * @param itemGrossPrice
      *            the itemGrossPrice to set
      */
@@ -505,6 +470,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-149 Menge
+     * 
      * @return the itemPriceBaseQuantity
      */
     public BigDecimal getItemPriceBaseQuantity() {
@@ -512,6 +479,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-149 Menge
+     * 
      * @param itemPriceBaseQuantity
      *            the itemPriceBaseQuantity to set
      */
@@ -520,6 +489,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-150 Einheit
+     * 
      * @return the itemPriceBaseQuantityUnitOfMeasure
      */
     public BigDecimal getItemPriceBaseQuantityUnitOfMeasure() {
@@ -527,6 +498,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-150 Einheit
+     * 
      * @param itemPriceBaseQuantityUnitOfMeasure
      *            the itemPriceBaseQuantityUnitOfMeasure to set
      */
@@ -535,6 +508,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-151 Umsatzteuerkategorie
+     * 
      * @return the invoicedItemVatCategoryCode
      */
     public String getInvoicedItemVatCategoryCode() {
@@ -542,6 +517,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-151 Umsatzteuerkategorie
+     * 
      * @param invoicedItemVatCategoryCode
      *            the invoicedItemVatCategoryCode to set
      */
@@ -550,6 +527,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-152 Umsatzsteuersatz
+     * 
      * @return the invoicedItemVatRate
      */
     public BigDecimal getInvoicedItemVatRate() {
@@ -557,6 +536,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-152 Umsatzsteuersatz
+     * 
      * @param invoicedItemVatRate
      *            the invoicedItemVatRate to set
      */
@@ -565,6 +546,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-153 Artikebezeichnung
+     * 
      * @return the itemName
      */
     public String getItemName() {
@@ -572,6 +555,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-153 Artikebezeichnung
+     * 
      * @param itemName
      *            the itemName to set
      */
@@ -580,6 +565,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-154 Artikelbeschreibung
+     * 
      * @return the itemDescription
      */
     public String getItemDescription() {
@@ -587,6 +574,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-154 Artikelbeschreibung
+     * 
      * @param itemDescription
      *            the itemDescription to set
      */
@@ -595,6 +584,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-155 Artikelnummer
+     * 
      * @return the itemSellersIdentifier
      */
     public String getItemSellersIdentifier() {
@@ -602,6 +593,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-155 Artikelnummer
+     * 
      * @param itemSellersIdentifier
      *            the itemSellersIdentifier to set
      */
@@ -610,6 +603,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-156 Artikelkennung des Käufers
+     * 
      * @return the itemBuyersIdentifier
      */
     public String getItemBuyersIdentifier() {
@@ -617,6 +612,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-156 Artikelkennung des Käufers
+     * 
      * @param itemBuyersIdentifier
      *            the itemBuyersIdentifier to set
      */
@@ -625,6 +622,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-157 Artikelnummer laut Schema
+     * 
      * @return the itemStandardIdentifier
      */
     public String getItemStandardIdentifier() {
@@ -632,6 +631,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-157 Artikelnummer laut Schema
+     * 
      * @param itemStandardIdentifier
      *            the itemStandardIdentifier to set
      */
@@ -640,6 +641,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-157-1 Schema zur Artikelnummer
+     * 
      * @return the itemStandardIdentifierSchemeIdentifier
      */
     public String getItemStandardIdentifierSchemeIdentifier() {
@@ -647,6 +650,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-157-1 Schema zur Artikelnummer
+     * 
      * @param itemStandardIdentifierSchemeIdentifier
      *            the itemStandardIdentifierSchemeIdentifier to set
      */
@@ -655,6 +660,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158 Klassifizierung des Artikels
+     * 
      * @return the itemClassificationIdentifier
      */
     public String getItemClassificationIdentifier() {
@@ -662,6 +669,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158 Klassifizierung des Artikels
+     * 
      * @param itemClassificationIdentifier
      *            the itemClassificationIdentifier to set
      */
@@ -670,6 +679,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158-1 Schema zur Klassifizierung
+     * 
      * @return the itemClassificationIdentifierSchemeIdentifier
      */
     public String getItemClassificationIdentifierSchemeIdentifier() {
@@ -677,6 +688,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158-1 Schema zur Klassifizierung
+     * 
      * @param itemClassificationIdentifierSchemeIdentifier
      *            the itemClassificationIdentifierSchemeIdentifier to set
      */
@@ -685,6 +698,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158-2 Version des Schema zur Klassifizierung
+     * 
      * @return the itemClassificationIdentifierSchemeVersionIdentifier
      */
     public String getItemClassificationIdentifierSchemeVersionIdentifier() {
@@ -692,6 +707,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-158-2 Version des Schema zur Klassifizierung
+     * 
      * @param itemClassificationIdentifierSchemeVersionIdentifier
      *            the itemClassificationIdentifierSchemeVersionIdentifier to set
      */
@@ -700,6 +717,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-159 Ursprungsland des Artikels
+     * 
      * @return the itemCountryOfOrigin
      */
     public String getItemCountryOfOrigin() {
@@ -707,6 +726,8 @@ public class InvoicePosition {
     }
 
     /**
+     * Field BT-159 Ursprungsland des Artikels
+     * 
      * @param itemCountryOfOrigin
      *            the itemCountryOfOrigin to set
      */
@@ -715,6 +736,8 @@ public class InvoicePosition {
     }
 
     /**
+     * insert BG-32 Metadaten zur Position
+     * 
      * @return the invoicePositionMetadatas
      */
     public List<InvoicePositionMetadata> getInvoicePositionMetadatas() {
@@ -722,6 +745,8 @@ public class InvoicePosition {
     }
 
     /**
+     * insert BG-32 Metadaten zur Position
+     * 
      * @param invoicePositionMetadatas
      *            the invoicePositionMetadatas to set
      */

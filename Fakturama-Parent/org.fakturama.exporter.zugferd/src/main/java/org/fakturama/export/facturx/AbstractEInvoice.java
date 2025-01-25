@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 www.fakturama.org
@@ -9,12 +9,12 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
- 
+
 package org.fakturama.export.facturx;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,66 +50,69 @@ public abstract class AbstractEInvoice implements IEinvoice {
      * This is for distinguishing the different contact entries.
      *
      */
-    public enum ContactType { SELLER, BUYER }
+    public enum ContactType {
+        SELLER, BUYER
+    }
 
     //  enum InvoiceeTradeParty { DERIVED, }
     public enum PriceType {
-        GROSS_PRICE,
-        NET_PRICE,
-        NET_PRICE_DISCOUNTED
+        GROSS_PRICE, NET_PRICE, NET_PRICE_DISCOUNTED
     }
-    
+
     @Inject
     @Translation
     protected ZFMessages zfMsg;
-    
+
     @Inject
     @Translation
     protected Messages messages;
-    
+
     @Inject // node: org.fakturama.export.zugferd
     protected IPreferenceStore preferences;
-    
-    @Inject @org.eclipse.e4.core.di.annotations.Optional
+
+    @Inject
+    @org.eclipse.e4.core.di.annotations.Optional
     @Preference
     protected IEclipsePreferences eclipsePrefs;
 
     @Inject
     protected IEclipseContext eclipseContext;
-    
-    @Inject ILogger log;
+
+    @Inject
+    ILogger log;
 
     @Inject
     protected CEFACTCodeDAO measureUnits;
-    
+
     @Inject
     protected ILocaleService localeUtil;
-    
+
     @Inject
     protected ContactsDAO contactsDAO;
-    
+
     @Inject
     protected INumberFormatterService numberFormatterService;
 
     @Inject
     protected IDateFormatterService dateFormatterService;
-    
+
     @Inject
     protected IDocumentAddressManager addressManager;
 
-    @Inject @org.eclipse.e4.core.di.annotations.Optional
+    @Inject
+    @org.eclipse.e4.core.di.annotations.Optional
     protected Shell shell;
-    
+
     /** The Constant DEFAULT_PRICE_SCALE. */
     protected static final int DEFAULT_AMOUNT_SCALE = 4;
 
-    protected static SimpleDateFormat sdfDest = new SimpleDateFormat("yyyyMMdd");
+    protected static DateTimeFormatter sdfDest = DateTimeFormatter.ofPattern("yyyyMMdd");
     protected Map<String, MonetaryAmount> netPricesPerVat = new HashMap<>();
 
     protected ObjectFactory factory;
 
-    protected Contact getOriginContact(DocumentReceiver contact) {
-        if(contact.getOriginContactId() != null) {
+    protected Contact getOriginContact(final DocumentReceiver contact) {
+        if (contact.getOriginContactId() != null) {
             return contactsDAO.findById(contact.getOriginContactId());
         }
         return null;

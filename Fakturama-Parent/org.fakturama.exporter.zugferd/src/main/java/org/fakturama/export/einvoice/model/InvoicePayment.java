@@ -22,115 +22,33 @@ import java.util.List;
 public class InvoicePayment {
 
     /**
-     * BG-17 Überweisungen
-     */
-    public class InvoiceCreditTransfer {
-
-        /**
-         * BT-84 IBAN
-         */
-        private String paymentAccountIdentifier;
-
-        /**
-         * BT-85 Kontoinhaber
-         */
-        private String paymentAccountName;
-
-        /**
-         * BT-86 BIC
-         */
-        private String paymentServiceProviderIdentifier;
-
-        /**
-         * @return the paymentAccountIdentifier
-         */
-        public String getPaymentAccountIdentifier() {
-            return paymentAccountIdentifier;
-        }
-
-        /**
-         * @param paymentAccountIdentifier
-         *            the paymentAccountIdentifier to set
-         */
-        public void setPaymentAccountIdentifier(final String paymentAccountIdentifier) {
-            this.paymentAccountIdentifier = paymentAccountIdentifier;
-        }
-
-        /**
-         * @return the paymentAccountName
-         */
-        public String getPaymentAccountName() {
-            return paymentAccountName;
-        }
-
-        /**
-         * @param paymentAccountName
-         *            the paymentAccountName to set
-         */
-        public void setPaymentAccountName(final String paymentAccountName) {
-            this.paymentAccountName = paymentAccountName;
-        }
-
-        /**
-         * @return the paymentServiceProviderIdentifier
-         */
-        public String getPaymentServiceProviderIdentifier() {
-            return paymentServiceProviderIdentifier;
-        }
-
-        /**
-         * @param paymentServiceProviderIdentifier
-         *            the paymentServiceProviderIdentifier to set
-         */
-        public void setPaymentServiceProviderIdentifier(final String paymentServiceProviderIdentifier) {
-            this.paymentServiceProviderIdentifier = paymentServiceProviderIdentifier;
-        }
-
-    }
-
-    /**
      * BT-81 Zahlungsmittel (Code)
      */
     private String paymentMeansTypeCode;
-
     /**
      * BT-82 Zahlungsmittel
      */
     private String paymentMeansText;
-
     /**
      * BT-83 Verwendungszweck
      */
     private String remittanceInformation;
-
     /************************************************
      * BG-17 Bezahlung Kreditkarte
      ************************************************/
     private List<InvoiceCreditTransfer> invoiceCreditTransfers = new ArrayList<>();
-
-    /************************************************
-     * BG-18 Bezahlung Kreditkarte
-     ************************************************/
-
     /**
      * BT-87 Kreditkartennummer
      */
     private String paymentCardPrimaryAccountNumber;
-
     /**
      * BT-88 Kreditkarteninhaber
      */
     private String paymentCardHolderName;
-
-    /************************************************
-     * BG-19 SEPA-Lastschrift
-     ************************************************/
-
     /**
      * BT-89 Mandatsreferenz
      */
     private String mandateReferenceIdentifier;
-
     /**
      * BT-90 Gläubiger-ID
      */
@@ -140,7 +58,17 @@ public class InvoicePayment {
      */
     private String debitedAccountIdentifier;
 
+    /************************************************
+     * BG-18 Bezahlung Kreditkarte
+     ************************************************/
+
+    /************************************************
+     * BG-19 SEPA-Lastschrift
+     ************************************************/
+
     /**
+     * Field BT-81 Zahlungsmittel (Code)
+     * 
      * @return the paymentMeansTypeCode
      */
     public String getPaymentMeansTypeCode() {
@@ -148,6 +76,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-81 Zahlungsmittel (Code)
+     * 
      * @param paymentMeansTypeCode
      *            the paymentMeansTypeCode to set
      */
@@ -156,6 +86,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-82 Zahlungsmittel
+     * 
      * @return the paymentMeansText
      */
     public String getPaymentMeansText() {
@@ -163,6 +95,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-82 Zahlungsmittel
+     * 
      * @param paymentMeansText
      *            the paymentMeansText to set
      */
@@ -171,6 +105,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-83 Verwendungszweck
+     * 
      * @return the remittanceInformation
      */
     public String getRemittanceInformation() {
@@ -178,6 +114,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-83 Verwendungszweck
+     * 
      * @param remittanceInformation
      *            the remittanceInformation to set
      */
@@ -186,6 +124,8 @@ public class InvoicePayment {
     }
 
     /**
+     * insert BG-17 Bezahlung Kreditkarte
+     * 
      * @return the invoiceCreditTransfers
      */
     public List<InvoiceCreditTransfer> getInvoiceCreditTransfers() {
@@ -193,6 +133,8 @@ public class InvoicePayment {
     }
 
     /**
+     * insert BG-17 Bezahlung Kreditkarte
+     * 
      * @param invoiceCreditTransfers
      *            the invoiceCreditTransfers to set
      */
@@ -201,6 +143,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-87 Kreditkartennummer
+     * 
      * @return the paymentCardPrimaryAccountNumber
      */
     public String getPaymentCardPrimaryAccountNumber() {
@@ -208,6 +152,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-87 Kreditkartennummer
+     * 
      * @param paymentCardPrimaryAccountNumber
      *            the paymentCardPrimaryAccountNumber to set
      */
@@ -216,6 +162,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-88 Kreditkarteninhaber
+     * 
      * @return the paymentCardHolderName
      */
     public String getPaymentCardHolderName() {
@@ -223,6 +171,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-88 Kreditkarteninhaber
+     * 
      * @param paymentCardHolderName
      *            the paymentCardHolderName to set
      */
@@ -231,6 +181,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-89 Mandatsreferenz
+     * 
      * @return the mandateReferenceIdentifier
      */
     public String getMandateReferenceIdentifier() {
@@ -238,6 +190,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-89 Mandatsreferenz
+     * 
      * @param mandateReferenceIdentifier
      *            the mandateReferenceIdentifier to set
      */
@@ -246,6 +200,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-90 Gläubiger-ID
+     * 
      * @return the bankAssignedCreditorIdentifier
      */
     public String getBankAssignedCreditorIdentifier() {
@@ -253,6 +209,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-90 Gläubiger-ID
+     * 
      * @param bankAssignedCreditorIdentifier
      *            the bankAssignedCreditorIdentifier to set
      */
@@ -261,6 +219,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-91 IBAN
+     * 
      * @return the debitedAccountIdentifier
      */
     public String getDebitedAccountIdentifier() {
@@ -268,6 +228,8 @@ public class InvoicePayment {
     }
 
     /**
+     * Field BT-91 IBAN
+     * 
      * @param debitedAccountIdentifier
      *            the debitedAccountIdentifier to set
      */

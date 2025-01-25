@@ -29,6 +29,8 @@ public class InvoiceNote {
     private String invoiceNote;
 
     /**
+     * Field BT-21 Betreff
+     * 
      * @return the invoiceNoteSubjectCode
      */
     public String getInvoiceNoteSubjectCode() {
@@ -36,6 +38,8 @@ public class InvoiceNote {
     }
 
     /**
+     * Field BT-21 Betreff
+     * 
      * @param invoiceNoteSubjectCode
      *            the invoiceNoteSubjectCode to set
      */
@@ -44,6 +48,8 @@ public class InvoiceNote {
     }
 
     /**
+     * Field BT-22 Bemerkungen (ACHTUNG SCHEMA)
+     * 
      * @return the invoiceNote
      */
     public String getInvoiceNote() {
@@ -51,6 +57,8 @@ public class InvoiceNote {
     }
 
     /**
+     * Field BT-22 Bemerkungen (ACHTUNG SCHEMA)
+     * 
      * @param invoiceNote
      *            the invoiceNote to set
      */

@@ -161,8 +161,8 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
             // this is Zugferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
                 // create XML from structure              
-                final JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
-                        .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
+                final JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext("org.fakturama.export.facturx.modelgen",
+                        this.getClass().getClassLoader(), null);
                 final Path file = Files.createTempFile("fakxml", "xml");
                 final OutputStream outputStream = Files.newOutputStream(file);
 

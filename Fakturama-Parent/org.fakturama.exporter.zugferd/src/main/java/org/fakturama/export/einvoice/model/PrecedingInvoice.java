@@ -35,6 +35,8 @@ public class PrecedingInvoice {
     }
 
     /**
+     * Field BT-25 vorausgegangene Rechnungsnummer
+     * 
      * @return the precedingInvoiceReference
      */
     public String getPrecedingInvoiceReference() {
@@ -42,6 +44,8 @@ public class PrecedingInvoice {
     }
 
     /**
+     * Field BT-25 vorausgegangene Rechnungsnummer
+     * 
      * @param precedingInvoiceReference
      *            the precedingInvoiceReference to set
      */
@@ -50,6 +54,8 @@ public class PrecedingInvoice {
     }
 
     /**
+     * Field BT-26 Rechnungsdatum
+     * 
      * @return the precedingInvoiceIssueDate
      */
     public LocalDate getPrecedingInvoiceIssueDate() {
@@ -57,6 +63,8 @@ public class PrecedingInvoice {
     }
 
     /**
+     * Field BT-26 Rechnungsdatum
+     * 
      * @param precedingInvoiceIssueDate
      *            the precedingInvoiceIssueDate to set
      */

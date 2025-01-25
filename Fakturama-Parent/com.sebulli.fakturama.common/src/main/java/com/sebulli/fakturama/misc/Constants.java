@@ -12,6 +12,9 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
  *
  */
 public class Constants {
+    private Constants() {
+    }
+
     public static final String DEFAULT_PREFERENCES_NODE = "/" + InstanceScope.SCOPE + "/default/com.sebulli.fakturama.rcp";
 
     public static final String VIEWTABLE_PREFERENCES_FILE = "fakturamaviews.properties";
@@ -527,9 +530,9 @@ public class Constants {
 
     public static final String WEBSHOP_NAMESPACE = "http://www.fakturama.org";
 
-    public final static String PARAM_START_DATE = "startdate";
+    public static final String PARAM_START_DATE = "startdate";
 
-    public final static String PARAM_END_DATE = "enddate";
+    public static final String PARAM_END_DATE = "enddate";
 
     /**
      * 

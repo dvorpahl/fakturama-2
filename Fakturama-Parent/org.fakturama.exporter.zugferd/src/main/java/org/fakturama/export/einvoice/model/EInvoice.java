@@ -28,13 +28,18 @@ public class EInvoice {
     private InvoiceSeller invoiceSeller = new InvoiceSeller();
     private InvoiceBuyer invoiceBuyer = new InvoiceBuyer();
     private InvoiceSellerRepresentative invoiceSellerRepresentative;
-    private InvoiceDeliveryInformation invoiceDeliveryInformation;
+    private InvoiceDeliveryInformation invoiceDeliveryInformation = new InvoiceDeliveryInformation();
     private InvoicePayment invoicePayment = new InvoicePayment();
     private List<InvoiceChargesAllowances> invoiceAllowances = new ArrayList<>();
     private List<InvoiceChargesAllowances> invoiceCharges = new ArrayList<>();
-    private List<InvoiceDocumentTotals> invoiceDocumentTotals = new ArrayList<>();
+    private InvoiceDocumentTotals invoiceDocumentTotals = new InvoiceDocumentTotals();
     private List<InvoiceAdditionalDocuments> invoiceAdditionalDocuments = new ArrayList<>();
     private List<InvoicePosition> invoicePositions = new ArrayList<>();
+
+    /**
+     * BG-23 Aufschlüsselung der Umsatzsteuer auf Ebene der Rechnung
+     */
+    private List<InvoiceVatBreakdown> invoiceVatBreakdowns = new ArrayList<>();
 
     /**
      * 
@@ -196,7 +201,7 @@ public class EInvoice {
     /**
      * @return the invoiceDocumentTotals
      */
-    public List<InvoiceDocumentTotals> getInvoiceDocumentTotals() {
+    public InvoiceDocumentTotals getInvoiceDocumentTotals() {
         return invoiceDocumentTotals;
     }
 
@@ -204,7 +209,7 @@ public class EInvoice {
      * @param invoiceDocumentTotals
      *            the invoiceDocumentTotals to set
      */
-    public void setInvoiceDocumentTotals(final List<InvoiceDocumentTotals> invoiceDocumentTotals) {
+    public void setInvoiceDocumentTotals(final InvoiceDocumentTotals invoiceDocumentTotals) {
         this.invoiceDocumentTotals = invoiceDocumentTotals;
     }
 
@@ -236,6 +241,25 @@ public class EInvoice {
      */
     public void setInvoicePositions(final List<InvoicePosition> invoicePositions) {
         this.invoicePositions = invoicePositions;
+    }
+
+    /**
+     * insert BG-23 Aufschlüsselung der Umsatzsteuer auf Ebene der Rechnung
+     * 
+     * @return the invoiceVatBreakdowns
+     */
+    public List<InvoiceVatBreakdown> getInvoiceVatBreakdowns() {
+        return invoiceVatBreakdowns;
+    }
+
+    /**
+     * inert BG-23 Aufschlüsselung der Umsatzsteuer auf Ebene der Rechnung
+     * 
+     * @param invoiceVatBreakdowns
+     *            the invoiceVatBreakdowns to set
+     */
+    public void setInvoiceVatBreakdowns(final List<InvoiceVatBreakdown> invoiceVatBreakdowns) {
+        this.invoiceVatBreakdowns = invoiceVatBreakdowns;
     }
 
 }
