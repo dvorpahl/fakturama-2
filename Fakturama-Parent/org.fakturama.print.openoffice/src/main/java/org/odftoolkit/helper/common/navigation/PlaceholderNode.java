@@ -16,14 +16,13 @@ import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
 import org.odftoolkit.odfdom.dom.element.text.TextParagraphElementBase;
 import org.odftoolkit.odfdom.dom.element.text.TextPlaceholderElement;
+import org.odftoolkit.odfdom.dom.element.text.TextSpanElement;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextExtractor;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextSpan;
 import org.odftoolkit.odfdom.incubator.search.InvalidNavigationException;
 import org.odftoolkit.odfdom.incubator.search.Selection;
-import org.odftoolkit.odfdom.incubator.search.TextNavigation;
-import org.odftoolkit.odfdom.incubator.search.TextSelection;
 import org.odftoolkit.odfdom.pkg.OdfElement;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
 import org.odftoolkit.odfdom.type.Length;
@@ -165,7 +164,9 @@ public class PlaceholderNode extends Selection {
             theKey = StringUtils.removeStart(StringUtils.removeEnd(content, PlaceholderNavigation.PLACEHOLDER_SUFFIX),
                     PlaceholderNavigation.PLACEHOLDER_PREFIX);
             // w/ parameter(s)
-            theKey = theKey.contains("$") ? theKey.split("\\" + PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() : theKey.toUpperCase();
+            theKey = theKey.contains("$")
+            		? theKey.split("\\" + PlaceholderParameters.PARAMETER_SEPARATOR)[0].toUpperCase() 
+            		: theKey.toUpperCase();
         }
         this.placeholderKey = theKey;
         if (tableType == null && nodeType == PlaceholderNodeType.TABLE_NODE && node != null && node.getNodeType() == Node.ELEMENT_NODE) {
@@ -203,13 +204,13 @@ public class PlaceholderNode extends Selection {
                 // confusing empty lines are generated
                 boolean canBeRemoved = true;
                 for (int i = 0; i < parentNode.getChildNodes().getLength(); i++) {
-                    Node n = parentNode.getChildNodes().item(i);
-                    if (n == getNode() || n.getTextContent().isEmpty()) {
+                    Node childNode = parentNode.getChildNodes().item(i);
+                    if (childNode == getNode() || childNode.getTextContent().isEmpty()) {
                         continue;
                     }
 
                     // check only first level children
-                    if (n.hasChildNodes()) {
+                    if (childNode.hasChildNodes()) {
                         canBeRemoved = false;
                         break;
                     }
@@ -220,10 +221,10 @@ public class PlaceholderNode extends Selection {
                     return null;
                 }
             } else if (!newText.contains("\n")) {
-                OdfTextSpan s = new OdfTextSpan((OdfFileDom) parentNode.getOwnerDocument());
-                s.setTextContent(newText);
-                parentNode.replaceChild(s, getNode());
-                return s;
+                OdfTextSpan span = new OdfTextSpan((OdfFileDom) parentNode.getOwnerDocument());
+                span.setTextContent(newText);
+                parentNode.replaceChild(span, getNode());
+                return span;
             }
         }
 
@@ -261,20 +262,30 @@ public class PlaceholderNode extends Selection {
             }
         }
 
-        String[] st = StringUtils.splitByWholeSeparatorPreserveAllTokens(StringUtils.defaultString(newText), "\n");
+        // Splits by any platform-specific newline
+        String[] splittedString = StringUtils.defaultString(newText).split("\\R");
 
         // if the first line is empty, we have a flag for this case
         boolean firstSkip = false;
-        for (String s : st) {
-            if (s.isEmpty() && !firstSkip) {
+        
+        // create a "template node" by cloning the original node
+        Node templateNode = parentNode.cloneNode(false);
+        
+        for (String stringPart : splittedString) {
+            if (stringPart.isEmpty() && !firstSkip) {
                 continue;
             }
+            TextLineBreakElement lineBreakElement = new TextLineBreakElement((OdfFileDom) parentNode.getOwnerDocument());
             firstSkip = true;
-            // create a "template node" by cloning the original node
-            Node templateNode = parentNode.cloneNode(false);
-            templateNode.setTextContent(s);
-            substitutes.add(templateNode);
+            // Create a span for each line
+            TextSpanElement span = new TextSpanElement((OdfFileDom) parentNode.getOwnerDocument());
+            span.setTextContent(stringPart);
+            
+         // Append the span to the paragraph
+            templateNode.appendChild(span).appendChild(lineBreakElement);;
         }
+
+        substitutes.add(templateNode);
 
         // now lets assemble the nodes altogether.
         /*
@@ -311,7 +322,8 @@ public class PlaceholderNode extends Selection {
         while (it.hasNext()) {
             Node node = it.next();
             TextLineBreakElement lineBreakElement = new TextLineBreakElement((OdfFileDom) parentNode.getOwnerDocument());
-            Node lineBreak = insertedNode == null ? parentNode.getParentNode().insertBefore(lineBreakElement, parentNode.getNextSibling())
+            Node lineBreak = insertedNode == null 
+            		? parentNode.getParentNode().insertBefore(lineBreakElement, parentNode.getNextSibling())
                     : parentNode.getParentNode().insertBefore(lineBreakElement, insertedNode);
             insertedNode = parentNode.getParentNode().insertBefore(node, lineBreak);
         }
@@ -331,7 +343,7 @@ public class PlaceholderNode extends Selection {
         OdfDrawImage odfDrawImage = (OdfDrawImage) odfDrawFrame.newDrawImageElement();
         try {
             // new image packages this and includes it in the document
-            String imagePackagePath = odfDrawImage.newImage(uri);
+            odfDrawImage.newImage(uri);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -404,29 +416,6 @@ public class PlaceholderNode extends Selection {
             } else {
                 return findParentNode(qName, startNode.getParentNode());
             }
-        }
-        return null;
-    }
-
-    /**
-     * Converts this placeholder to a {@link TextSelection} object.
-     *
-     * @param elementBase
-     *
-     * @return
-     */
-    private TextSelection getTextSelection(final OdfElement elementBase) {
-        TextNavigation search;
-        try {
-            search = new TextNavigation(getNode().getTextContent(), ownerDocument);
-            if (search.hasNext()) {
-                return search.next();
-            }
-            //            search.match(elementBase);
-            //            SelectionManager selectionManager = new SelectionManager();
-            //            TextSelection ts = new TextSelection(getNode().getTextContent(), elementBase, 0, selectionManager);
-            //            return ts;
-        } catch (Exception e) {
         }
         return null;
     }
@@ -511,7 +500,7 @@ public class PlaceholderNode extends Selection {
      *            the first node to compare
      * @param node2
      *            the second node to compare
-     * @return the comparision result (0 if both node texts are equal)
+     * @return the comparison result (0 if both node texts are equal)
      */
     public static int compareByText(final PlaceholderNode node1, final PlaceholderNode node2) {
         return node1.compareTo(node2);

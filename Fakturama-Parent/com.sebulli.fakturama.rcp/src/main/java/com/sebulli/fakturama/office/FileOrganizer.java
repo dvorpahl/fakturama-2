@@ -89,9 +89,19 @@ public class FileOrganizer {
      */
     private String replaceIllegalCharacters(String s) {
         if (StringUtils.isNotBlank(s)) {
-            s = s.replaceAll(" ", "_").replaceAll("\\\\", "_").replaceAll("\"", "_").replaceAll("/", "_").replaceAll("\\:", "_").replaceAll("\\*", "_")
-                    .replaceAll("\\?", "_").replaceAll("\\>", "_").replaceAll("\\<", "_").replaceAll("\\|", "_").replaceAll("\\&", "_").replaceAll("\\n", "_")
-                    .replaceAll("\\t", "_");
+            s = s.replaceAll(" ", "_")
+            	 .replaceAll("\\\\", "_")
+            	 .replaceAll("\"", "_")
+            	 .replaceAll("/", "_")
+            	 .replaceAll("\\:", "_")
+            	 .replaceAll("\\*", "_")
+                 .replaceAll("\\?", "_")
+                 .replaceAll("\\>", "_")
+                 .replaceAll("\\<", "_")
+                 .replaceAll("\\|", "_")
+                 .replaceAll("\\&", "_")
+                 .replaceAll("\\n", "_")
+                 .replaceAll("\\t", "_");
         }
         return StringUtils.defaultString(s);
     }
@@ -128,11 +138,13 @@ public class FileOrganizer {
         String name = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getName()));
         String companyOrName = replaceIllegalCharacters(contactUtil.getCompanyOrLastname(documentContact));
         String alias = replaceIllegalCharacters(StringUtils.defaultString(documentContact.getAlias()));
+        final boolean templateContainsDocname = fileNamePlaceholder.contains("{docname}");
 
         // Replace the placeholders
         String customerRef = replaceIllegalCharacters(document.getCustomerRef());
 
-        fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
+        fileNamePlaceholder = fileNamePlaceholder
+        		.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
                 .replaceAll("\\{docref\\}", StringUtils.defaultString(customerRef))
                 .replaceAll("\\{doctype\\}", msg.getMessageFromKey(DocumentType.getPluralString(DocumentTypeUtil.findByBillingType(document.getBillingType()))))
                 .replaceAll("\\{address\\}", StringUtils.defaultString(address)).replaceAll("\\{name\\}", name)
@@ -148,16 +160,29 @@ public class FileOrganizer {
         Pattern p = Pattern.compile("\\{(\\d*)nr\\}");
         Matcher m = p.matcher(fileNamePlaceholder);
         if (m.find()) { // found?
-            String replaceNumberString = "%d"; // default
-            if (m.groupCount() > 0) { // has some digits before <nr>?
-                String numberString = m.group(1); // get the length for the resulting number
-                if (StringUtils.isNumeric(numberString)) { // is this really a number?
-                    // build a format replacement string
-                    replaceNumberString = "%0" + numberString + "d";
-                }
+        	String replacementString;
+            
+            /*
+             * Special case: For letters there's no document number. So, if the file name template contains only 
+             * year, month and running number, the output file would overwritten on each new document for the same customer.
+             * Therefore, we decided to replace the "nr" placeholder with "docname", if it isn't already contained in the template.
+             */
+            if(document.getBillingType().isLETTER() && !templateContainsDocname) {
+            	replacementString = replaceIllegalCharacters(document.getName());
+            } else {
+            
+	            String replaceNumberString = "%d"; // default
+	            if (m.groupCount() > 0) { // has some digits before <nr>?
+	                String numberString = m.group(1); // get the length for the resulting number
+	                if (StringUtils.isNumeric(numberString)) { // is this really a number?
+	                    // build a format replacement string
+	                    replaceNumberString = "%0" + numberString + "d";
+	                }
+	            }
+	
+				replacementString = createNumberReplacementString(document, replaceNumberString);
             }
-
-            String replacementString = createNumberReplacementString(document, replaceNumberString);
+            
             fileNamePlaceholder = fileNamePlaceholder.replaceAll("\\{\\d*nr\\}", replacementString);
         }
 

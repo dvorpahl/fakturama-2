@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -110,7 +111,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     private Button radioButtonKeepNumberBackups;
     private Button radioButtonDeleteBackupsOlderThan;
 
-    private static Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+    private final AtomicReference<Map<Object, Boolean>> seen = new AtomicReference<>(new ConcurrentHashMap<>());
 
     /**
      * Constructor
@@ -135,14 +136,13 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         currencySettings = new Group(getFieldEditorParent(), SWT.SHADOW_IN | SWT.BORDER_SOLID);
         GridLayoutFactory.swtDefaults().margins(10, 20).numColumns(2).applyTo(currencySettings);
         currencySettings.setText(msg.preferencesGeneralCurrencyGroup);
-        Locale[] locales = NumberFormat.getAvailableLocales();
+        final Locale[] locales = NumberFormat.getAvailableLocales();
         final Collator collator = Collator.getInstance(Locale.getDefault());
         collator.setStrength(Collator.SECONDARY);
-        List<Locale> currencyLocaleList = Arrays.stream(locales).filter(l -> l.getCountry().length() == 2 && StringUtils.length(l.getLanguage()) < 3)
-                .sorted((o1, o2) -> collator.compare(o1.getDisplayCountry(), o2.getDisplayCountry())).filter(distinctByKey(l -> l.getDisplayCountry()))
-                .toList();
-        String[][] currencyLocales = new String[currencyLocaleList.size()][2];
-        for (Locale locale : currencyLocaleList) {
+        final List<Locale> currencyLocaleList = Arrays.stream(locales).filter(l -> l.getCountry().length() == 2 && StringUtils.length(l.getLanguage()) < 3)
+                .sorted((o1, o2) -> collator.compare(o1.getDisplayCountry(), o2.getDisplayCountry())).filter(distinctByKey(Locale::getDisplayCountry)).toList();
+        final String[][] currencyLocales = new String[currencyLocaleList.size()][2];
+        for (final Locale locale : currencyLocaleList) {
             currencyLocales[index][0] = String.format("%s", locale.getDisplayCountry());
             currencyLocales[index][1] = String.format("%s/%s", locale.getLanguage(), locale.getCountry());
             index++;
@@ -163,7 +163,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
 
         cashCheckbox = new BooleanFieldEditor(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING, msg.preferencesGeneralCurrencyCashrounding, currencySettings);
         cashCheckbox.getDescriptionControl(currencySettings).setToolTipText(msg.preferencesGeneralCurrencyCashroundingTooltip);
-        String localeString = getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
+        final String localeString = getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
         if (!localeString.endsWith("CH")) {
             cashCheckbox.setEnabled(false, currencySettings);
         }
@@ -194,17 +194,17 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         addField(useCurrencySymbolCheckbox);
 
         // Backup handling
-        Group backupSettings = WidgetFactory.group(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(3).margins(2, 7).create())
+        final Group backupSettings = WidgetFactory.group(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(3).margins(2, 7).create())
                 .layoutData(GridDataFactory.fillDefaults().span(2, 1).create()).create(getFieldEditorParent());
         backupSettings.setText(msg.preferencesGeneralBackupStrategy);
 
-        Composite radioButtonContainer = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(1).create())
+        final Composite radioButtonContainer = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(1).create())
                 .layoutData(GridDataFactory.swtDefaults().span(1, 2).align(SWT.BEGINNING, SWT.BEGINNING).create()).create(backupSettings);
-        Composite valueFieldContainer = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(3).create())
+        final Composite valueFieldContainer = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(3).create())
                 .layoutData(GridDataFactory.fillDefaults().span(1, 2).grab(true, false).create()).create(backupSettings);
 
         // get text blocks
-        String[] messageForOlderThan = msg.preferencesGeneralBackupStrategyOlderthan.split("#");
+        final String[] messageForOlderThan = msg.preferencesGeneralBackupStrategyOlderthan.split("#");
         radioButtonDeleteBackupsOlderThan = WidgetFactory.button(SWT.RADIO).text(messageForOlderThan[0]).create(radioButtonContainer);
         backupSettingDeleteBackupsOlderThan = new IntegerFieldEditor(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN, "", valueFieldContainer) {
 
@@ -225,7 +225,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         WidgetFactory.label(SWT.NONE).text(messageForOlderThan[1]).layoutData(GridDataFactory.swtDefaults().align(SWT.BEGINNING, SWT.CENTER).create())
                 .create(backupSettings);
 
-        String[] messageForKeepBackups = msg.preferencesGeneralBackupStrategyKeep.split("#");
+        final String[] messageForKeepBackups = msg.preferencesGeneralBackupStrategyKeep.split("#");
         radioButtonKeepNumberBackups = WidgetFactory.button(SWT.RADIO).text(messageForKeepBackups[0]).create(radioButtonContainer);
         backupSettingKeepNumberBackups = new IntegerFieldEditor(Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS, "", valueFieldContainer) {
 
@@ -246,7 +246,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
 
         // Info: DB connection string
         WidgetFactory.label(SWT.NONE).text(msg.preferencesGeneralDatabase).create(getFieldEditorParent());
-        Text dbConnectionInfo = WidgetFactory.text(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().hint(300, SWT.DEFAULT).create())
+        final Text dbConnectionInfo = WidgetFactory.text(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().hint(300, SWT.DEFAULT).create())
                 .text(getPreferenceStore().getString(PersistenceUnitProperties.JDBC_URL)).create(getFieldEditorParent());
         dbConnectionInfo.setEditable(false);
 
@@ -260,14 +260,14 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     protected void initialize() {
         super.initialize();
 
-        boolean isOlderThanSelected = getPreferenceStore().getString(Constants.PREFERENCES_BACKUP_STRATEGY)
+        final boolean isOlderThanSelected = getPreferenceStore().getString(Constants.PREFERENCES_BACKUP_STRATEGY)
                 .equals(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN);
         radioButtonDeleteBackupsOlderThan.setSelection(isOlderThanSelected);
         radioButtonKeepNumberBackups.setSelection(!isOlderThanSelected);
     }
 
-    public static <T> Predicate<T> distinctByKey(final Function<? super T, Object> keyExtractor) {
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    public <T> Predicate<T> distinctByKey(final Function<? super T, Object> keyExtractor) {
+        return t -> seen.get().putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     /**
@@ -281,8 +281,10 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         super.propertyChange(event);
 
         /*
-         * The current value of the radiogroup can't only read from attribute "value", but this attribute is private and 
-         * has no getter. This forced me to use another ugly hack... Please, excuse me...
+         * The current value of the radiogroup can't only read from attribute
+         * "value", but this attribute is private and
+         * has no getter. This forced me to use another ugly hack... Please,
+         * excuse me...
          */
         String value = CurrencySettingEnum.SYMBOL.name(); // only as a precaution
         try {
@@ -295,10 +297,10 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
 
         CurrencySettingEnum currencySetting = CurrencySettingEnum.valueOf(value);
         if (event.getSource() instanceof ComboFieldEditor) {
-            String newValue = (String) event.getNewValue();
+            final String newValue = (String) event.getNewValue();
             cashCheckbox.loadDefault();
-            String exampleFormat = calculateExampleCurrencyFormatString(newValue, thousandsSeparatorCheckbox.getBooleanValue(), cashCheckbox.getBooleanValue(),
-                    currencySetting);
+            final String exampleFormat = calculateExampleCurrencyFormatString(newValue, thousandsSeparatorCheckbox.getBooleanValue(),
+                    cashCheckbox.getBooleanValue(), currencySetting);
             example.setText(exampleFormat);
         } else if (event.getSource() instanceof BooleanFieldEditor
                 && (((BooleanFieldEditor) event.getSource()).getPreferenceName().equals(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING)
@@ -326,13 +328,13 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
             try {
                 privateStringMethod = ComboFieldEditor.class.getDeclaredMethod("getComboBoxControl", Composite.class);
                 privateStringMethod.setAccessible(true);
-                Combo returnValue = (Combo) privateStringMethod.invoke(currencyLocaleCombo, currencySettings);
+                final Combo returnValue = (Combo) privateStringMethod.invoke(currencyLocaleCombo, currencySettings);
                 privateValueMethod = ComboFieldEditor.class.getDeclaredMethod("getValueForName", String.class);
                 privateValueMethod.setAccessible(true);
-                String localeString = returnValue.getText();
+                final String localeString = returnValue.getText();
                 value = (String) privateValueMethod.invoke(currencyLocaleCombo, localeString);
 
-                String exampleFormat = calculateExampleCurrencyFormatString(value, useThousandsSeparator, useCashRounding, currencySetting);
+                final String exampleFormat = calculateExampleCurrencyFormatString(value, useThousandsSeparator, useCashRounding, currencySetting);
                 example.setText(exampleFormat);
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -352,14 +354,14 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
      */
     private String calculateExampleCurrencyFormatString(final String localeString, final boolean useThousandsSeparator, final boolean useCashRounding,
             final CurrencySettingEnum currencySetting) {
-        double myNumber = -1234.56864;
+        final double myNumber = -1234.56864;
         String retval = "";
-        Pattern pattern = Pattern.compile("(\\w{2})/(\\w{2})");
-        Matcher matcher = pattern.matcher(localeString);
+        final Pattern pattern = Pattern.compile("(\\w{2})/(\\w{2})");
+        final Matcher matcher = pattern.matcher(localeString);
         if (matcher.matches() && matcher.groupCount() > 1) {
-            String s = matcher.group(1);
-            String s2 = matcher.group(2);
-            Locale locale = new Locale(s, s2);
+            final String s = matcher.group(1);
+            final String s2 = matcher.group(2);
+            final Locale locale = new Locale(s, s2);
 
             // NumberFormat form;
             // if(currencySetting == CurrencySettingEnum.NONE) {
@@ -372,9 +374,11 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
             // decimalPlaces.getIntValue() : 2);
             // retval = form.format(myNumber);
 
-            /* 
-             * Can't work directly with JavaMoney classes (ServiceProviders) since
-             * they already loaded by DataUtils and therefore the classloader gets
+            /*
+             * Can't work directly with JavaMoney classes (ServiceProviders)
+             * since
+             * they already loaded by DataUtils and therefore the classloader
+             * gets
              * confused.
              */
             if (cashCheckbox != null) {
@@ -414,7 +418,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     @Synchronize
     public void loadOrSaveUserValuesFromDB(final IEclipseContext context) {
         if (preferencesInDatabase != null) {
-            Boolean isWrite = (Boolean) context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
+            final Boolean isWrite = (Boolean) context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
             syncWithPreferencesFromDatabase(BooleanUtils.toBoolean(isWrite));
         }
     }
@@ -436,15 +440,15 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         node.setDefault(Constants.PREFERENCES_CURRENCY_USE_SYMBOL, CurrencySettingEnum.SYMBOL.name());
 
         //Set the default currency locale from current locale
-        Locale defaultLocale = localeUtil.getCurrencyLocale();
-        String currencyLocaleString = defaultLocale.getLanguage() + "/" + defaultLocale.getCountry();
+        final Locale defaultLocale = localeUtil.getCurrencyLocale();
+        final String currencyLocaleString = defaultLocale.getLanguage() + "/" + defaultLocale.getCountry();
 
         // Quick hack: numberFormatterService has to be re-initialized since the scale is 0 
         numberFormatterService.update();
 
         node.setDefault(Constants.PREFERENCE_CURRENCY_LOCALE, currencyLocaleString);
-        CurrencySettingEnum currencySetting = CurrencySettingEnum.valueOf(node.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL));
-        String exampleFormat = calculateExampleCurrencyFormatString(currencyLocaleString, true, false, currencySetting);
+        final CurrencySettingEnum currencySetting = CurrencySettingEnum.valueOf(node.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL));
+        final String exampleFormat = calculateExampleCurrencyFormatString(currencyLocaleString, true, false, currencySetting);
         node.setDefault(Constants.PREFERENCE_CURRENCY_FORMAT_EXAMPLE, exampleFormat);
         node.setDefault(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN, Integer.valueOf(0));
         node.setDefault(Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS, Integer.valueOf(10));
@@ -468,7 +472,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
             getPreferenceStore().setValue(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS);
         }
 
-        boolean preferencesSuccessfulStored = super.performOk();
+        final boolean preferencesSuccessfulStored = super.performOk();
         if (preferencesSuccessfulStored) {
             localeUtil.refresh();
             DataUtils.getInstance().refresh();

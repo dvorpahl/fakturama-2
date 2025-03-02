@@ -630,7 +630,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         if (selectedEntries > 0 && getEntityClass().isInstance(selection.get(0))) {
             if (selectedEntries > 1) {
                 confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle,
-                        MessageFormat.format("Do you REALLY want to kill {0} entries?", selectedEntries));
+                        MessageFormat.format(msg.dialogDeletedatasetQuestion, selectedEntries));
                 if (!confirmation) {
                     return;
                 }

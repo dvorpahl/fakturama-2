@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.fakturama.export.facturx.XRechnungCreator;
 import org.osgi.service.component.annotations.Component;
 
+import com.sebulli.fakturama.exception.FakturamaException;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.IPdfPostProcessor;
@@ -96,7 +97,7 @@ public class ZugferdExporter implements IPdfPostProcessor {
     }
 
     @Override
-    public boolean processPdf(final Optional<Invoice> invoice) {
+    public boolean processPdf(final Optional<Invoice> invoice) throws FakturamaException {
 
         boolean result = checkSettings();
         if (result && invoice.isPresent() && invoice.get().getBillingType().isINVOICE()) {

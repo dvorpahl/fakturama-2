@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -39,6 +40,9 @@ import com.sebulli.fakturama.model.ReliabilityType;
 public class ContactUtil {
     @Inject
     private ILocaleService localeUtil;
+
+    @Inject
+    private IEclipseContext context;
 
     /**
      * Address key for the country field.
@@ -106,6 +110,13 @@ public class ContactUtil {
     private IPreferenceStore eclipsePrefs;
 
     private FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
+//    
+//    @PostConstruct
+//    public void init() {
+//    	((LocaleUtil)localeUtil).getInstance();
+//    	this.localeUtil = ContextInjectionFactory.make(ILocaleService.class, context);
+//    	System.out.println();
+//    }
 
     private String getNameWithCompany(final AddressDTO contact) {
         String line = "";
@@ -445,9 +456,9 @@ public class ContactUtil {
         retval.setCity(getDataFromAddressField(myAddress, KEY_CITY));
         retval.setZip(getDataFromAddressField(myAddress, KEY_ZIP));
         String country = getDataFromAddressField(myAddress, KEY_COUNTY);
-        Optional<Locale> locale = determineCountryCode(country);
-        if (locale.isPresent() && StringUtils.isNotBlank(locale.get().getCountry())) {
-            retval.setCountryCode(locale.get().getCountry());
+        Locale locale = determineCountryCode(country);
+        if (locale != null && StringUtils.isNotBlank(locale.getCountry())) {
+            retval.setCountryCode(locale.getCountry());
         }
 
         // if all fields are empty we must not create a new address object
@@ -464,7 +475,11 @@ public class ContactUtil {
      *            the country string to look up
      * @return a {@link Locale} or an empty Optional, if not found
      */
-    public Optional<Locale> determineCountryCode(final String country) {
+    public Locale determineCountryCode(final String country) {
+    	if(StringUtils.isBlank(country)) {
+    		return localeUtil.getDefaultLocale();
+    	}
+    	
         /*
          * Since the country may be given as localized string (e.g., "Deutschland") or as non-localized string (e.g., "Germany"),
          * we have to look up the whole Locales
@@ -474,20 +489,23 @@ public class ContactUtil {
         if (StringUtils.length(country) > 3) {
             locale = localeUtil.findLocaleByDisplayCountry(country);
         } else {
-            locale = StringUtils.isEmpty(country) ? Optional.of(localeUtil.getDefaultLocale()) : localeUtil.findByCode(country);
+    		locale = StringUtils.isEmpty(country) ? Optional.of(localeUtil.getDefaultLocale()) : localeUtil.findByCode(country);
         }
+        
         // if not found we try to find it in localized form
         if (!locale.isPresent()) {
             Locale[] availableLocales = Locale.getAvailableLocales();
             for (Locale locale2 : availableLocales) {
                 // don't try to make it parallel() because then it takes longer than a single stream!
-                locale = Arrays.stream(availableLocales).filter(l -> l.getDisplayCountry(locale2).equalsIgnoreCase(country)).findFirst();
+                locale = Arrays.stream(availableLocales)
+                		.filter(l -> l.getDisplayCountry(locale2).equalsIgnoreCase(country))
+                		.findFirst();
                 if (locale.isPresent()) {
                     break;
                 }
             }
         }
-        return locale;
+        return locale.orElse(localeUtil.getDefaultLocale());
     }
 
     /**

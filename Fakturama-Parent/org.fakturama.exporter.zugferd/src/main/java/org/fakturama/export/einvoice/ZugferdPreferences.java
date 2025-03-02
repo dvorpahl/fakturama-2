@@ -15,7 +15,6 @@ package org.fakturama.export.einvoice;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -30,7 +29,6 @@ import org.eclipse.jface.preference.BooleanPropertyAction;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.nebula.widgets.opal.checkboxgroup.CheckBoxGroup;
@@ -128,23 +126,12 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
 
         //		addField(new BooleanFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_TEST, msg.zugferdPreferencesTestmode, getFieldEditorParent()));
 
-        final RadioGroupFieldEditor zugferdVersionRadioGroup = new RadioGroupFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_VERSION, msg.zugferdPreferencesVersion,
-                2, new String[][] { { ZugferdVersion.V1.getDescription(), ZugferdVersion.V1.getVersion() },
-                        { ZugferdVersion.V2_1.getDescription(), ZugferdVersion.V2_1.getVersion() } },
-                editorParent);
-        addField(zugferdVersionRadioGroup);
-
         // fill combo box according to selected version!
         final String zfVersionStr = StringUtils.defaultIfBlank(getPreferenceStore().getString(ZFConstants.PREFERENCES_ZUGFERD_VERSION),
                 getPreferenceStore().getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_VERSION));
 
-        java.util.Optional<ZugferdVersion> zfVersion = Arrays.stream(ZugferdVersion.values()).filter(v -> v.getVersion().equalsIgnoreCase(zfVersionStr))
-                .findAny();
-        if (!featureMap.containsKey(zfVersion.get())) {
-            // emergency exit
-            zfVersion = java.util.Optional.of(ZugferdVersion.V2_1);
-        }
-        conformanceLevelCombo = new ComboFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, msg.zugferdPreferencesProfile, featureMap.get(zfVersion.get()),
+        final ZugferdVersion zfVersion = ZugferdVersion.V2_1;
+        conformanceLevelCombo = new ComboFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, msg.zugferdPreferencesProfile, featureMap.get(zfVersion),
                 editorParent);
         addField(conformanceLevelCombo);
 
@@ -187,17 +174,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
     public void propertyChange(final PropertyChangeEvent event) {
         super.propertyChange(event);
         final boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
-        if (event.getSource() instanceof final RadioGroupFieldEditor rgfe && event.getOldValue() != event.getNewValue()) {
-            final String selectionValueStr = rgfe.getSelectionValue();
-            final java.util.Optional<ZugferdVersion> selectionValue = Arrays.stream(ZugferdVersion.values())
-                    .filter(v -> v.getVersion().equalsIgnoreCase(selectionValueStr)).findAny();
-            final Combo cfCombo = getCombo(conformanceLevelCombo);
-            cfCombo.removeAll();
-            Arrays.stream(featureMap.get(selectionValue.get())).forEach(v -> cfCombo.add(v[0]));
-            cfCombo.select(0);
-
-            enableXRechnungPathField(isZFActive, cfCombo.getText());
-        } else if (event.getSource() instanceof ComboFieldEditor) {
+        if (event.getSource() instanceof ComboFieldEditor) {
             enableXRechnungPathField(isZFActive, (String) event.getNewValue());
         }
     }

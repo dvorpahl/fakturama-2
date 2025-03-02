@@ -828,6 +828,11 @@ id="04_openoffice_libreoffice">
 								<emphasis role="bold">&lt;ITEM.NR$EXRANGE:3,5&gt;</emphasis> wird zu "12678", falls die komplette Artikelnummer (ITEM.NR) "12345678" lautet.</para>
 						</entry>
 					</row>
+					<row>
+						<entry>MARGIN</entry>
+						<entry><para>Mit diesem Parameter kann man festlegen, wie breit der Rand um einen GiroCode sein soll (der Parameter wirkt aktuell nur dort).</para>
+						</entry>
+					</row>
 				</tbody>
 			</tgroup>
 		</informaltable>

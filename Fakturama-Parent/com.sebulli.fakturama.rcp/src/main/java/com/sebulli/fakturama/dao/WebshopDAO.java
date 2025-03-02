@@ -59,19 +59,19 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
     }
 
     public List<WebshopStateMapping> findAllForWebshop(final String webshopId) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<WebShop> criteria = cb.createQuery(getEntityClass());
-        Root<WebShop> root = criteria.from(getEntityClass());
-        CriteriaQuery<WebShop> cq = criteria.where(cb.equal(root.<WebShop> get(WebShop_.name.getName()), webshopId));
-        TypedQuery<WebShop> query = getEntityManager().createQuery(cq);
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<WebShop> criteria = cb.createQuery(getEntityClass());
+        final Root<WebShop> root = criteria.from(getEntityClass());
+        final CriteriaQuery<WebShop> cq = criteria.where(cb.equal(root.get(WebShop_.name), webshopId));
+        final TypedQuery<WebShop> query = getEntityManager().createQuery(cq);
         // TODO doesn't work :-(
         //		query.setHint(QueryHints.FETCH, "FKT_WEBSHOP." + WebShop_.stateMapping.getName()/* + "." + WebshopStateMapping_.name.getName()*/);
         WebShop result;
         try {
             result = query.getSingleResult();
             // initialize the stateMapping manually...
-            result.getStateMapping().forEach(e -> e.getDeleted());
-        } catch (NoResultException e) {
+            result.getStateMapping().forEach(WebshopStateMapping::getDeleted);
+        } catch (final NoResultException e) {
             result = null;
         }
         return result != null ? result.getStateMapping() : Collections.emptyList();
@@ -79,15 +79,15 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
 
     @Override
     protected Set<Predicate> getRestrictions(final WebShop object, final CriteriaBuilder criteriaBuilder, final Root<WebShop> root) {
-        Set<Predicate> restrictions = new HashSet<>();
+        final Set<Predicate> restrictions = new HashSet<>();
         restrictions.add(criteriaBuilder.equal(root.get(WebShop_.name), object.getName()));
         return restrictions;
     }
 
     @Override
     protected Map<Class<WebShop>, Vector<String>> getAlwaysIncludeAttributes() {
-        Map<Class<WebShop>, Vector<String>> map = new HashMap<>();
-        Vector<String> attribVector = new Vector<>();
+        final Map<Class<WebShop>, Vector<String>> map = new HashMap<>();
+        final Vector<String> attribVector = new Vector<>();
         attribVector.addElement(WebShop_.stateMapping.getName() + "." + WebshopStateMapping_.webshopState.getName());
         attribVector.addElement(WebShop_.stateMapping.getName() + "." + WebshopStateMapping_.fakturamaOrderState.getName());
         map.put(getEntityClass(), attribVector);
@@ -96,7 +96,7 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
 
     @Override
     protected QueryByExamplePolicy getQueryByExamplePolicy() {
-        QueryByExamplePolicy policy = new WebshopStateQueryByExamplePolicy();
+        final QueryByExamplePolicy policy = new WebshopStateQueryByExamplePolicy();
         policy.addSpecialOperation(String.class, "containsSubstring");
         policy.setAttributesToAlwaysInclude(getAlwaysIncludeAttributes());
         policy.setShouldUseEqualityForNulls(true);
@@ -113,21 +113,21 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
     public WebShop clearOldMappings(final String webshopId) throws FakturamaStoringException {
         WebShop webShop = findByName(webshopId);
         if (webShop != null) {
-            List<Long> orphanedStateIds = webShop.getStateMapping().stream().map(WebshopStateMapping::getId).collect(Collectors.toList());
+            final List<Long> orphanedStateIds = webShop.getStateMapping().stream().map(WebshopStateMapping::getId).collect(Collectors.toList());
             webShop.setStateMapping(new ArrayList<>());
 
             // remove old mapping entries from database
-            CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
-            CriteriaDelete<WebshopStateMapping> deleteQuery = criteriaBuilder.createCriteriaDelete(WebshopStateMapping.class);
-            Root<WebshopStateMapping> root = deleteQuery.from(WebshopStateMapping.class);
+            final CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+            final CriteriaDelete<WebshopStateMapping> deleteQuery = criteriaBuilder.createCriteriaDelete(WebshopStateMapping.class);
+            final Root<WebshopStateMapping> root = deleteQuery.from(WebshopStateMapping.class);
             deleteQuery.where(root.get(WebshopStateMapping_.id).in(orphanedStateIds));
             try {
                 checkConnection();
-                EntityTransaction trx = getEntityManager().getTransaction();
+                final EntityTransaction trx = getEntityManager().getTransaction();
                 trx.begin();
                 getEntityManager().createQuery(deleteQuery).executeUpdate();
                 trx.commit();
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 throw new FakturamaStoringException("Error cleaning web shop state mappings from database for your web shop (name=" + webshopId + ").", e);
             }
 
@@ -138,7 +138,7 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
 
     public Optional<WebshopStateMapping> findOrderState(final String webshopId, final String status) {
         Optional<WebshopStateMapping> mapping = Optional.empty();
-        WebShop result = findByName(webshopId);
+        final WebShop result = findByName(webshopId);
         if (result != null) {
             mapping = result.getStateMapping().stream().filter(s -> status.equalsIgnoreCase(s.getName())).findFirst();
         }
@@ -155,7 +155,7 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
      */
     public String createWebShopIdentifier(final String webShopUrl) {
         String retval = "DEFAULT_SHOP_ID";
-        String[] splittedUrl = StringUtils.split(webShopUrl, "/");
+        final String[] splittedUrl = StringUtils.split(webShopUrl, "/");
         if (splittedUrl.length > 2) {
             retval = splittedUrl[1];
         }
@@ -170,9 +170,9 @@ public class WebshopDAO extends AbstractDAO<WebShop> {
         @SuppressWarnings("rawtypes")
         @Override
         public boolean shouldIncludeInQuery(final Class aClass, final String attributeName, final Object attributeValue) {
-            boolean preCheckedValue = super.shouldIncludeInQuery(aClass, attributeName, attributeValue);
+            final boolean preCheckedValue = super.shouldIncludeInQuery(aClass, attributeName, attributeValue);
             // enumerate all attributes which don't have to come into the query
-            boolean retval = !excludedAttributes.contains(attributeName);
+            final boolean retval = !excludedAttributes.contains(attributeName);
             return retval && preCheckedValue;
         }
     }

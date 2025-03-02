@@ -19,6 +19,7 @@ import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.fakturama.export.einvoice.AbstractEInvoiceCreator;
 import org.fakturama.export.einvoice.ConformanceLevel;
@@ -28,6 +29,8 @@ import org.fakturama.export.einvoice.converter.EInvoiceConverter;
 import org.fakturama.export.einvoice.converter.InvoiceConverterException;
 import org.fakturama.export.einvoice.model.EInvoice;
 
+import com.sebulli.fakturama.exception.FakturamaException;
+import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.util.ContactUtil;
@@ -68,8 +71,12 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
     @Inject
     private ILogger log;
 
+    @Inject
+    @Translation
+    protected Messages msg;
+
     @Override
-    public boolean createEInvoice(final Optional<Invoice> invoice, final ConformanceLevel zugferdProfile) {
+    public boolean createEInvoice(final Optional<Invoice> invoice, final ConformanceLevel zugferdProfile) throws FakturamaException {
         // return if invoice is not given
         if (invoice.isEmpty()) {
             return false;
@@ -82,15 +89,14 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
         // 2. create XML file
         final IEinvoice eInvoiceImpl;
         final ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, eclipseContext);
-
-        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager);
+        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager, msg);
         EInvoice eInvoice;
         try {
             eInvoice = converter.convertInvoice(invoice.orElseThrow());
             // set vars related to profile
             converter.postProcess(eInvoice, zugferdProfile);
         } catch (final InvoiceConverterException e) {
-            log.warn("Invoice was null, cannot proceed");
+            log.error(e, "Error converting invoice to EInvoice");
             return false;
         }
         switch (zugferdProfile) {

@@ -39,6 +39,7 @@ public class DocumentAddressManager implements IDocumentAddressManager {
 		documentReceiver.setPhone(address.getPhone());
 		documentReceiver.setFax(address.getFax());
 		documentReceiver.setConsultant(address.getLocalConsultant());
+		documentReceiver.setNameAddon(address.getAddressAddon());
 
 		// copy fields from contact
 		documentReceiver.setOriginContactId(contact.getId());

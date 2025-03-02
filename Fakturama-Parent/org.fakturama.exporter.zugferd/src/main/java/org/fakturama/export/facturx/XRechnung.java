@@ -192,18 +192,13 @@ public class XRechnung extends AbstractEInvoice {
         //            final DebtorFinancialAccountType debtorAccount = createDebtorAccount(contact.getBankAccount());
         //
         paymentType = factory.createTradeSettlementPaymentMeansType();
-        //            paymentType.setTypeCode(createPaymentTypeCode(eInvoice));
-        //            paymentType.setInformation(createText(invoice.getPayment().getName()));
+        paymentType.setTypeCode(createPaymentTypeCode(eInvoice));
+        paymentType.setInformation(createText(eInvoice.getInvoicePayment().getPaymentMeansText()));
         //            //                    .setApplicableTradeSettlementFinancialCard(value)
         //            paymentType.setPayerPartyDebtorFinancialAccount(debtorAccount)
         //            //                                .setPaymentReference(createText(invoice.getName())) /* customerref ? */
         //            ;
         //
-        //        } else {
-        paymentType = factory.createTradeSettlementPaymentMeansType();
-        //            paymentType.setTypeCode(createPaymentTypeCode(invoice));
-        //            paymentType.setInformation(createText(invoice.getPayment().getName()));
-        //        }
         final CreditorFinancialAccountType creditor = createCreditorAccount();
         if (creditor != null) {
             paymentType.setPayeePartyCreditorFinancialAccount(creditor);

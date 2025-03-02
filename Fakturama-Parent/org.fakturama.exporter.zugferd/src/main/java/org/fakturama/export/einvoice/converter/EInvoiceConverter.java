@@ -57,6 +57,7 @@ import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.Transaction;
 import com.sebulli.fakturama.dto.VatSummaryItem;
 import com.sebulli.fakturama.dto.VatSummarySetManager;
+import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.misc.DocumentType;
@@ -97,25 +98,32 @@ public class EInvoiceConverter {
     private final ContactUtil contactUtil;
 
     protected ContactsDAO contactsDAO;
+    private DocumentSummary documentSummary;
+
+    private final Messages msg;
 
     public EInvoiceConverter(final IEclipseContext eclipseContext, final IPreferenceStore preferences, final ContactsDAO contactsDAO,
-            final ContactUtil contactUtil, final IDocumentAddressManager addressManager) {
+            final ContactUtil contactUtil, final IDocumentAddressManager addressManager, final Messages msg) {
         this.eclipseContext = eclipseContext;
         this.preferences = preferences;
         this.contactUtil = contactUtil;
         this.addressManager = addressManager;
         this.contactsDAO = contactsDAO;
-
+        this.msg = msg;
     }
 
     public EInvoice postProcess(final EInvoice eInvoice, final ConformanceLevel zugferdProfile) {
         switch (zugferdProfile) {
             case XRECHNUNG:
+                // BT-23
                 eInvoice.getInvoiceData().setBusinessProcessType("urn:fdc:peppol.eu:2017:poacc:billing:01:1.0");
+                // BT-24
                 eInvoice.getInvoiceData().setSpecificationIdentifier("urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0");
                 break;
             case FACTURX_EN16931, ZUGFERD_V2_EN16931:
+                // BT-23
                 eInvoice.getInvoiceData().setBusinessProcessType(null);
+                // BT-24
                 eInvoice.getInvoiceData().setSpecificationIdentifier("urn:cen.eu:en16931:2017");
                 break;
         }
@@ -148,7 +156,18 @@ public class EInvoiceConverter {
      */
     private void setInvoiceTotals(final EInvoice eInvoice, final Invoice invoice) {
         final InvoiceDocumentTotals documentTotals = eInvoice.getInvoiceDocumentTotals();
+        if (this.documentSummary != null) {
+            // BT-108
+            documentTotals.setSumOfChargesOnDocumentLevel(moneyToBigDecimal(documentSummary.getShippingNet()));
+            // BT-110
+            documentTotals.setInvoiceTotalVatAmount(moneyToBigDecimal(documentSummary.getTotalVat()));
 
+        }
+
+    }
+
+    private BigDecimal moneyToBigDecimal(final MonetaryAmount money) {
+        return BigDecimal.valueOf(money.getNumber().doubleValueExact());
     }
 
     /**
@@ -177,12 +196,15 @@ public class EInvoiceConverter {
             // für jeden Steuerbetrag muß es einen eigenen Eintrag geben
             final MonetaryAmount basisAmount = Optional.ofNullable(vatSummaryItem.getNet())
                     .orElse(Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit()));
+            // BT-118
             invoiceVatBreakdown.setVatCategoryCode(vatSummaryItem.getVatPercent() == 0 ? "Z" : "S");
+            // BT-119
             invoiceVatBreakdown.setVatCategoryRate(
                     BigDecimal.valueOf(vatSummaryItem.getVatPercent()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
-            invoiceVatBreakdown.setVatCategoryTaxableAmount(BigDecimal.valueOf(basisAmount.getNumber().doubleValueExact()));
-            invoiceVatBreakdown
-                    .setVatCategoryTaxAmount(BigDecimal.valueOf(basisAmount.multiply(vatSummaryItem.getVatPercent()).getNumber().doubleValueExact()));
+            // BT-116
+            invoiceVatBreakdown.setVatCategoryTaxableAmount(moneyToBigDecimal(basisAmount));
+            // BT-117
+            invoiceVatBreakdown.setVatCategoryTaxAmount(moneyToBigDecimal(basisAmount.multiply(vatSummaryItem.getVatPercent())));
             vatBreakdowns.add(invoiceVatBreakdown);
         }
     }
@@ -195,28 +217,38 @@ public class EInvoiceConverter {
         final List<InvoicePosition> invoicePositions = eInvoice.getInvoicePositions();
         for (final DocumentItem invoiceItem : invoice.getItems()) {
             final InvoicePosition position = new InvoicePosition();
+            // BT-126
             position.setInvoiceLineIdentifier(StringUtils.trimToNull(invoiceItem.getPosNr().toString()));
+            // BT-155
             position.setItemSellersIdentifier(StringUtils.trimToNull(invoiceItem.getItemNumber()));
+            // BT-153
             position.setItemName(StringUtils.trimToNull(invoiceItem.getName()));
+            // BT-154
             position.setItemDescription(StringUtils.trimToNull(invoiceItem.getDescription()));
+            // BT-159
             position.setItemCountryOfOrigin("DE");
 
-            // VAT
+            // BT-152 VAT
             position.setInvoicedItemVatRate(
                     BigDecimal.valueOf(invoiceItem.getItemVat().getTaxValue()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
+            // BT-151
             position.setInvoicedItemVatCategoryCode(invoiceItem.getItemVat().getTaxValue() > 0 ? "S" : "Z"); // see UNTDID 5305
 
+            // BT-129
             position.setInvoicedQuantity(BigDecimal.valueOf(invoiceItem.getQuantity()));
+            // BT-130
             position.setInvoicedQuantityUnitOfMeasureCode(invoiceItem.getQuantityUnit());
 
             // Rechnungszeiträume
             final InvoiceLinePeriod period = new InvoiceLinePeriod();
             boolean periodToAdd = false;
             if (invoiceItem.getVestingPeriodStart() != null) {
+                // BT-134
                 period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZONE_ID_UTC));
                 periodToAdd = true;
             }
             if (invoiceItem.getVestingPeriodEnd() != null) {
+                // BT-135
                 period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZONE_ID_UTC));
                 periodToAdd = true;
             }
@@ -227,9 +259,12 @@ public class EInvoiceConverter {
             final Price price = new Price(BooleanUtils.isTrue(invoiceItem.getOptional()) ? Double.valueOf(0.0) : invoiceItem.getQuantity(),
                     Money.of(invoiceItem.getPrice() * 1, DataUtils.getInstance().getDefaultCurrencyUnit()), invoiceItem.getItemVat().getTaxValue(),
                     invoiceItem.getItemRebate(), BooleanUtils.toBoolean(invoiceItem.getNoVat()), false, null);
-            position.setItemPriceDiscount(BigDecimal.valueOf(price.getUnitNetDiscounted().getNumber().doubleValue()).setScale(2, RoundingMode.HALF_UP));
-            position.setItemGrossPrice(BigDecimal.valueOf(price.getUnitGross().getNumber().doubleValue()).setScale(2, RoundingMode.HALF_UP));
-            position.setItemNetPrice(BigDecimal.valueOf(price.getUnitNet().getNumber().doubleValue()).setScale(2, RoundingMode.HALF_UP));
+            // BT-147
+            position.setItemPriceDiscount(moneyToBigDecimal(price.getUnitNetDiscounted()).setScale(2, RoundingMode.HALF_UP));
+            // BT-148
+            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(2, RoundingMode.HALF_UP));
+            // BT-146
+            position.setItemNetPrice(moneyToBigDecimal(price.getUnitNet()).setScale(2, RoundingMode.HALF_UP));
 
             invoicePositions.add(position);
         }
@@ -258,6 +293,10 @@ public class EInvoiceConverter {
         final InvoicePayment payment = eInvoice.getInvoicePayment();
         final UNTDID4461 code = UNTDID4461.getByCode(invoice.getPayment().getCode());
 
+        if (code == null) {
+            throw new UnsupportedCodeException("Payment Code not set");
+        }
+
         switch (code) {
             case VALUE_10:
                 // Barzahlung
@@ -277,8 +316,11 @@ public class EInvoiceConverter {
                 final List<InvoiceCreditTransfer> listInvoiceCreditTransfers = new ArrayList<>();
                 final InvoiceCreditTransfer invoiceCreditTransfer = new InvoiceCreditTransfer();
                 listInvoiceCreditTransfers.add(invoiceCreditTransfer);
+                // BT-84
                 invoiceCreditTransfer.setPaymentAccountIdentifier(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
+                // BT-86
                 invoiceCreditTransfer.setPaymentServiceProviderIdentifier(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC));
+                // BT-85
                 invoiceCreditTransfer.setPaymentAccountName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
                 payment.setInvoiceCreditTransfers(listInvoiceCreditTransfers);
                 break;
@@ -292,12 +334,15 @@ public class EInvoiceConverter {
                 break;
             case VALUE_ZZZ:
                 // Sonstige Zahlungsweise, unbekannt
+                break;
             default:
                 throw new UnsupportedCodeException("Code " + code.getCode() + "is not supported");
         }
+        // BT-81
         payment.setPaymentMeansTypeCode(code.getCode());
         // Vorerst Translation key, später Übersetzung
-        payment.setPaymentMeansText(code.getTranslationKey());
+        // BT-82
+        payment.setPaymentMeansText(invoice.getPayment().getDescription());
 
         // Zahlungsbedingungen hier erstellen
 
@@ -313,9 +358,11 @@ public class EInvoiceConverter {
             return;
         }
         if (invoice.getServiceDate() != null) {
+            // BT-72
             invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), EInvoiceConverter.ZONE_ID_UTC));
         }
         // for now, same as invoice address
+        // BG-15
         invoiceDeliveryInformation.setDeliveryAddress(eInvoice.getInvoiceBuyer().getBuyerAddress());
     }
 
@@ -329,14 +376,22 @@ public class EInvoiceConverter {
 
         final InvoiceBuyer invoiceBuyer = eInvoice.getInvoiceBuyer();
         final AddressData address = invoiceBuyer.getBuyerAddress();
+        invoiceBuyer.setBuyerName(billingAddress.getName());
+        invoiceBuyer.setBuyerElectronicAddress(billingAddress.getEmail());
 
         // attention! Mind the manualAddress!
         if (billingAddress.getManualAddress() == null) {
+            // BT-38, BT-53, BT-67, BT-78
             address.setPostCode(billingAddress.getZip());
+            // BT-35, BT-50, BT-64, BT-75 
             address.setAddressLine1(billingAddress.getStreet());
+
             //      retval.setLineTwo(is empty at the moment)
             //      retval.setLineThree(is empty at the moment);
+
+            // BT-37, BT-52, BT-66, BT-77 
             address.setCity(billingAddress.getCity());
+            // BT-40, BT-55, BT-69, BT-80
             address.setCountryCode(billingAddress.getCountryCode()); // Nur die Alpha-2 Darstellung darf verwendet werden
             //      retval.setCountrySubDivisionName(null)
 
@@ -370,8 +425,11 @@ public class EInvoiceConverter {
             }
         }
         // use global-ID if its not null, else id (with no schema)
+        // BT-46
         invoiceBuyer.setBuyerIdentifier(Objects.toString(globalId, debtorId));
+        // BT-46-1
         invoiceBuyer.setBuyerIdentifierSchemeIdentifier(globalId != null ? schemaId : null);
+        // BT-48
         invoiceBuyer.setBuyerVatIdentifier(billingAddress.getVatNumber());
     }
 
@@ -390,7 +448,9 @@ public class EInvoiceConverter {
         final List<InvoiceNote> invoiceNote = eInvoice.getInvoiceNotes();
         if (StringUtils.trimToNull(invoice.getMessage()) != null) {
             final InvoiceNote note = new InvoiceNote();
+            // BT-22
             note.setInvoiceNote(StringUtils.trimToEmpty(invoice.getMessage()));
+            // BT-21
             note.setInvoiceNoteSubjectCode("AAK"); // Information on the price conditions that are expected or given.
             invoiceNote.add(note);
         }
@@ -410,25 +470,34 @@ public class EInvoiceConverter {
 
     private void setInvoiceData(final EInvoice eInvoice, final Invoice invoice) throws InvoiceConverterException {
         final InvoiceData invoiceData = eInvoice.getInvoiceData();
+        // BT-1
         invoiceData.setInvoiceNumber(StringUtils.trimToNull(invoice.getName()));
+        // BT-2
         invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), EInvoiceConverter.ZONE_ID_UTC));
 
+        //BT-3
         invoiceData.setInvoiceTypeCode(getDocumentTypeCode(invoice));
+        //BT-5
         invoiceData.setInvoiceCurrencyCode(getGlobalCurrencyCode());
 
         // only set if other than above
+        // BT-6
         invoiceData.setVatAccountingCurrencyCode(null);
         // one or other, we use code as default here
+        // BT-7
         invoiceData.setValueAddedTaxPointDate(null);
         /*
          * 3 (Invoice document issue date time)
          * 35 (Delivery date/time, actual)
          * 432 (Paid to date)
          */
+        // BT-8
         invoiceData.setValueAddedTaxPointDateCode("3");
 
         final LocalDateTime dueDate = DataUtils.getInstance().addToDate(invoice.getDocumentDate(), invoice.getDueDays());
+        // BT-9
         invoiceData.setPaymentDueDate(dueDate.toLocalDate());
+        // BT-10
         invoiceData.setBuyerReference(StringUtils.trimToNull(invoice.getCustomerRef()));
 
         /*
@@ -445,29 +514,35 @@ public class EInvoiceConverter {
          */
         final Transaction transaction = ContextInjectionFactory.make(Transaction.class, eclipseContext).of(invoice);
         if (transaction != null) {
+            // BT-13
             invoiceData.setPurchaseOrderReference(transaction.getReference(DocumentType.ORDER));
         }
         // if a useable text is available, use it, else let it be empty (For now just old stuff, later rebuild this!)
         final TemplateProcessor placeholders = ContextInjectionFactory.make(TemplateProcessor.class, eclipseContext);
         final DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, eclipseContext);
-        final DocumentSummary documentSummary = documentSummaryCalculator.calculate(invoice);
+        this.documentSummary = documentSummaryCalculator.calculate(invoice);
         final double percent = invoice.getPayment().getDiscountValue();
 
         final Optional<String> paymentText = Optional.ofNullable(placeholders.createPaymentText(invoice, Optional.ofNullable(documentSummary), percent));
 
         invoiceData.setPaymentTerms(paymentText.orElse(null));
         if (invoice.getVestingPeriodStart() != null) {
+            // BT-73
             invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZONE_ID_UTC));
         }
         if (invoice.getVestingPeriodEnd() != null) {
+            // BT-74
             invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZONE_ID_UTC));
         }
     }
 
     private void setInvoiceSeller(final EInvoice eInvoice, final Invoice invoice) throws InvoiceConverterException {
         final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
+        // BT-34-1
         invoiceSeller.setSellerElectronicAddressSchemeIdentifier("EM"); // always EMail
+        // BT-34
         invoiceSeller.setSellerElectronicAddress(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL));
+        // BT-27
         invoiceSeller.setSellerName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
         final AddressData address = invoiceSeller.getSellerAddress();
         // Nur die Alpha-2 Darstellung darf verwendet werden
@@ -477,18 +552,27 @@ public class EInvoiceConverter {
         address.setCity(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY));
 
         // Contact Data BG-6
+        // BT-43
         invoiceSeller.setSellerContactEmailAddress(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL)));
+        // BT-42
         invoiceSeller.setSellerContactTelephoneNumber(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TEL)));
+        // BT-41
         invoiceSeller.setSellerContactPoint(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER)));
 
+        // BT-31
         invoiceSeller.setSellerVatIdentifier(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR)));
+        // BT-32
         invoiceSeller.setSellerTaxRegistrationIdentifier(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TAXNR));
+        // BT-32-1
         invoiceSeller.setSellerTaxRegistrationIdentifierSchemeIdentifier("FC"); // Hardcoded Tax Number identifier
         // TODO: Handelsregisternummer
+        // BT-30
         invoiceSeller.setSellerLegalRegistrationIdentifier(null);
         // Schema nicht unterstützt von Fakturama (zur Zeit), Sinnvoll wäre 0189 - European Business Identifier (EBID)
+        // BT-30-1
         invoiceSeller.setSellerLegalRegistrationIdentifierSchemeIdentifier(null);
         if (!preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME).equalsIgnoreCase(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER))) {
+            // BT-28
             invoiceSeller.setSellerTradingName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
         }
 

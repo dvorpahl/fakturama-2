@@ -28,6 +28,7 @@ public class AddressDTO {
     	return new AddressDTO()
 			.withAddressId(documentReceiver.getOriginAddressId())
 			.withCompany(documentReceiver.getCompany())
+			.withAddressAddon(documentReceiver.getNameAddon())
 			.withName(documentReceiver.getName())
 			.withFirstName(documentReceiver.getFirstName())
 			.withManualAddress(documentReceiver.getManualAddress())
@@ -47,7 +48,7 @@ public class AddressDTO {
 		AddressDTO tmpDto = from(documentReceiver);
 		if (originAddress != null) {
 			// FIXME aus unbekannten Gründen ist das Addon-Feld in den Name gerutscht :-/
-			tmpDto.setAddressAddon(originAddress.getName());
+			// tmpDto.setAddressAddon(originAddress.getName());
 			tmpDto.setEmail(originAddress.getEmail());
 		}
 		return tmpDto;

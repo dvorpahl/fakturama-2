@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 www.fakturama.org
@@ -9,23 +9,26 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
- 
+
 package com.sebulli.fakturama.office;
 
 import java.util.Optional;
 
+import com.sebulli.fakturama.exception.FakturamaException;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.Invoice;
 
 /**
- * Defines an interface for post processing of the generated PDFs. This is useful e.g. for
- * creating XRechnung (ZUGFeRD) invoices, where the generated PDF from LibreOffice has to 
+ * Defines an interface for post processing of the generated PDFs. This is
+ * useful e.g. for
+ * creating XRechnung (ZUGFeRD) invoices, where the generated PDF from
+ * LibreOffice has to
  * converted to a given format.
  */
 public interface IPdfPostProcessor {
-    
+
     /**
      * Sets a priority on a post processor to be executed. Lower number means
      * executed first (higher priority)
@@ -40,12 +43,14 @@ public interface IPdfPostProcessor {
      * @return <code>true</code>, if the processing can be started
      */
     boolean canProcess();
-    
+
     /**
      * Process the PDF.
      * 
-     * @param inputDocument {@link Document} which is the base for the PDF
+     * @param inputDocument
+     *            {@link Document} which is the base for the PDF
      * @return <code>true</code>, if the operation was successful
+     * @throws FakturamaException
      */
-    boolean processPdf(Optional<Invoice> inputDocument);
+    boolean processPdf(Optional<Invoice> inputDocument) throws FakturamaException;
 }

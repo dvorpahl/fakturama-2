@@ -157,8 +157,10 @@ public class OfficeDocument {
             final DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
             final DocumentSummary documentSummary = documentSummaryCalculator.calculate(this.document);
 
-            /* Get the placeholders of the OpenOffice template.
-             * The scanning of all placeholders to find the item and the vat table
+            /*
+             * Get the placeholders of the OpenOffice template.
+             * The scanning of all placeholders to find the item and the vat
+             * table
              * is also done here.
              */
             final OdfTextDocument textdoc = org.odftoolkit.odfdom.doc.OdfTextDocument.loadDocument(template.toFile());
@@ -361,6 +363,9 @@ public class OfficeDocument {
                 }
             } catch (final InvalidSyntaxException e) {
                 log.error(String.format("PDF post processor couldn't be started. Reason: %s", e.getMessage()));
+                return false;
+            } catch (final FakturamaException e) {
+                log.error("error while processing invoice: {}", e);
                 return false;
             }
         }

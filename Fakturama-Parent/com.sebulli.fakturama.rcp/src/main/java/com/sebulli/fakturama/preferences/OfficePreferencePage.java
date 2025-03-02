@@ -104,14 +104,6 @@ public class OfficePreferencePage extends FieldEditorPreferencePage implements I
         final BooleanFieldEditor editor = new BooleanFieldEditor(Constants.PREFERENCES_OPENOFFICE_SAVE_ODT, msg.preferencesOfficeSaveOdt, paddingComposite);
         editor.fillIntoGrid(paddingComposite, 1);
         addField(editor);
-        //        //T: Preference page "Office" - Label: Export documents as ODT or as PDF / only ODT/PDF or both
-        //        addField(new RadioGroupFieldEditor(Constants.PREFERENCES_OPENOFFICE_ODT_PDF, msg.preferencesOfficeExportasLabel, 3, new String[][] {
-        //                //T: Preference page "Office" - Label: Export documents as ODT or as PDF / only ODT/PDF or both
-        //                { msg.preferencesOfficeOdtpdfOnlyodt, TargetFormat.ODT.getPrefId() },
-        //                //T: Preference page "Office" - Label: Export documents as ODT or as PDF / only ODT/PDF or both
-        //                { msg.preferencesOfficeOdtpdfOnlypdf, TargetFormat.PDF.getPrefId() },
-        //                //T: Preference page "Office" - Label: Export documents as ODT or as PDF / only ODT/PDF or both
-        //                { msg.preferencesOfficeOdtpdfBoth, TargetFormat.ODT.getPrefId() + "+" + TargetFormat.PDF.getPrefId() } }, getFieldEditorParent()));
 
         //T: Preference page "Office" 
         addField(new StringFieldEditor(Constants.PREFERENCES_OPENOFFICE_ODT_PATH_FORMAT, msg.preferencesOfficeFormatandpathOdt, getFieldEditorParent()));
