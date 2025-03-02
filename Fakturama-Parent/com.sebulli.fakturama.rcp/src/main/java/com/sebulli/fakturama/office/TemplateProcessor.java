@@ -508,7 +508,7 @@ public class TemplateProcessor {
         setUseSalesEquationTaxForDocument(documentReceiverDao.isSETEnabled(document));
 
         final PlaceholderNavigation navi = new PlaceholderNavigation().of(textdoc).withDelimiters(true)
-                .withTableIdentifiers(PlaceholderTableType.ITEMS_TABLE, PlaceholderTableType.VATLIST_TABLE, PlaceholderTableType.SALESEQUALIZATIONTAX_TABLE)
+                .withTableIdentifiers(PlaceholderTableType.ITEMS_TABLE, PlaceholderTableType.VATLIST_TABLE, PlaceholderTableType.SALESEQUALIZATIONTAX_TABLE, PlaceholderTableType.DISCOUNT_TABLE)
                 .withImageIdentifiers(Placeholder.INVOICE_SWISSCODE.getKey(), Placeholder.INVOICE_GIROCODE.getKey(), Placeholder.YOURCOMPANY_QRVCARD.getKey())
                 .build();
         final List<PlaceholderNode> placeholderNodes = Collections.unmodifiableList(navi.getPlaceHolders());
