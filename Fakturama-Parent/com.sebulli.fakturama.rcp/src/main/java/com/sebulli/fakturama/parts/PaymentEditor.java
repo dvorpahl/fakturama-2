@@ -338,7 +338,7 @@ public class PaymentEditor extends Editor<Payment> {
         labelUnpaid.setText(msg.editorPaymentUnpaidName);
         //T: Tool Tip Text
         labelUnpaid.setToolTipText(msg.editorPaymentUnpaidTooltip);
-        GridDataFactory.swtDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(labelUnpaid);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelUnpaid);
 
         // Create text field for "unpaid" text message
         textUnpaid = new Text(top, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);

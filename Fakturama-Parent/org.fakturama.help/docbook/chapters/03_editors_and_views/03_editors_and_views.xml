@@ -9,7 +9,7 @@
 				<imagedata fileref="../images/application/application.png" format="PNG" scalefit="1"/>
 			</imageobject>
 			<imageobject role="fo">
-				<imagedata contentdepth="80%" fileref="../images/application/application.png" format="PNG" scalefit="1"/>
+				<imagedata contentdepth="30%" fileref="../images/application/application.png" format="PNG" scalefit="1"/>
 			</imageobject>
 		</mediaobject>
 	</informalfigure>
@@ -58,10 +58,6 @@
 		<para>Hier wird tabellarisch eine Übersicht aller Produkte, Kontaktadressen oder Dokumente angezeigt. Ein Eintrag kann angewählt und im Editorfenster zum Bearbeiten geöffnet werden.</para>
 		<para>Siehe <link linkend="application_overview">Übersichtsfenster</link>
 		</para>
-	</section>
-	<section>
-		<subtitle>(9) Die Statusleiste</subtitle>
-		<para>Die Statusleiste kann den Zustand verschiedener Programmabläufe darstellen. Aktuell hat sie aber keine Funktion.</para>
 	</section>
 	<section><anchor xreflabel="" xml:id="application_menubar"/>
 		<title>Menüleiste</title>
@@ -2285,6 +2281,10 @@
 			<para>Dieser Text wird auf den Dokumenten verwendet.</para>
 		</section>
 		<section>
+			<subtitle>Zahlungsart (E-Rechnung)</subtitle>
+			<para>Dies ist ein Code, der die Zahlungsart beschreibt. Das Feld wird verwendet, um E-Rechnungen korrekt zu erstellen.</para>
+		</section>
+		<section>
 			<subtitle>Skonto</subtitle>
 			<para>Skonto in %, das innerhalb der Frist <emphasis role="bold">Tage Skonto</emphasis> abgezogen werden darf.</para>
 		</section>
@@ -2298,118 +2298,128 @@
 		</section>
 		<section>
 			<subtitle>Text 'bezahlt'</subtitle>
-			<para>Dieser Text wird auf die Rechnung gedruckt, wenn diese als 'bezahlt' markiert wurde.</para>
+			<para>Dieser Text wird auf die Rechnung gedruckt, wenn sie als 'bezahlt' markiert wurde.</para>
 			<para>
 				<emphasis role="italic">Beispiel:</emphasis> Betrag von &lt;PAID.VALUE&gt; am &lt;PAID.DATE&gt; dankend erhalten.</para>
 		</section>
 		<section>
 			<subtitle>Text 'angezahlt'</subtitle>
-			<para>Dieser Text wird auf die Rechnung gedruckt, wenn diese teilweise bezahlt wurde.</para>
+			<para>Dieser Text wird auf die Rechnung gedruckt, wenn sie teilweise bezahlt wurde.</para>
 			<para>
 				<emphasis role="italic">Beispiel:</emphasis> Am &lt;PAID.DATE&gt; wurden &lt;PAID.VALUE&gt; angezahlt.</para>
 		</section>
 		<section>
 			<subtitle>Text 'unbezahlt'</subtitle>
-			<para>Dieser Text wird auf die Rechnung gedruckt, wenn diese als 'unbezahlt' markiert wurde. </para>
+			<para>Dieser Text wird auf die Rechnung gedruckt, wenn sie als 'unbezahlt' markiert wurde. </para>
 			<para>
 				<emphasis role="italic">Beispiel:</emphasis> Zahlbar mit <code>&lt;DUE.DISCOUNT.PERCENT&gt;</code> Skonto innerhalb von <code>&lt;DUE.DISCOUNT.DAYS&gt;</code> Tagen bis spätestens zum 
 				<code>&lt;DUE.DISCOUNT.DATE&gt;</code> (=<code>&lt;DUE.DISCOUNT.VALUE&gt;</code>) oder ohne Abzug (=<code>&lt;DOCUMENT.TOTAL&gt;</code>) innerhalb von <code>&lt;DUE.DAYS&gt;</code> 
 				Tagen (bis spätestens zum <code>&lt;DUE.DATE&gt;</code>).</para>
 			<para>Bei allen Texten ist es möglich, folgende Platzhalter zu verwenden:</para>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;PAID.VALUE&gt;</emphasis> bezahlter Betrag</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;PAID.DATE&gt;</emphasis>  Zahldatum</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DISCOUNT.PERCENT&gt;</emphasis>  gewährtes Skonto in Prozent</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DISCOUNT.DAYS&gt;</emphasis>  Skonto-Tage, innerhalb deren zu zahlen ist</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DISCOUNT.DATE&gt;</emphasis>  Skontofrist, bis zu der der Betrag abzüglich Skonto fällig ist.</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DISCOUNT.VALUE&gt;</emphasis>  Zu zahlender Gesamtbetrag mit gezogenem Skonto</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DAYS&gt;</emphasis>  Netto-Tage, innerhalb deren zu zahlen ist</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DUE.DATE&gt;</emphasis>  Nettofrist, bis zu der der Betrag ohne Abzug fällig ist.</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.BANK.ACCOUNT.HOLDER&gt;</emphasis>  Kontoinhaber des Kundenkontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.BANK.IBAN&gt;</emphasis>  IBAN des Kundenkontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.BANK.IBAN.CENSORED&gt;</emphasis>  verkürzte IBAN des Kunden (zum Beispiel *****123)</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.BANK.BIC&gt;</emphasis>  BIC zur IBAN des Kundenkontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.BANK.NAME&gt;</emphasis>  Kreditinstitut des Kundenkontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.ACCOUNT.HOLDER&gt;</emphasis>  Kontoinhaber des Rechnungsersteller-Kontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.ACCOUNT&gt;</emphasis>  Rechnungsersteller-Konto</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.ACCOUNT.CENSORED&gt;</emphasis>  verkürzte Kontonummer des Rechnungsersteller-Kontos (zum Beispiel *****123)</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.IBAN&gt;</emphasis>  IBAN des Rechnungsersteller-Kontos</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.IBAN.CENSORED&gt;</emphasis>  verkürzte IBAN des Rechnungsersteller-Kontos (zum Beispiel *****123)</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.BIC&gt;</emphasis>  BIC zur IBAN des Rechnungserstellers</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;BANK.NAME&gt;</emphasis>  Kreditinstitut des Rechnungserstellers</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DOCUMENT.TOTAL&gt;</emphasis>  Zu zahlender Gesamtbetrag bei abgelaufener Skontofrist</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;DEBITOR.MANDATREF&gt;</emphasis>  Mandatsreferenz des Kunden (bei SEPA-Lastschrift)</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis role="bold">&lt;YOURCOMPANY.CREDITORID&gt;</emphasis>  eigene Gläubiger-ID (für SEPA-Lastschrift)</para>
-				</listitem>
-			</itemizedlist>
+			
+			<informaltable rowsep="1" colsep="0" tabstyle="striped" frame="none">
+				<tgroup cols='2'>
+					<colspec colname='placeholder' colwidth="1*"/>
+					<colspec colname='description' colwidth="1*"/>
+					<spanspec spanname="full_line" namest="placeholder" nameend="description"/>
+					<tbody>
+			
+						<row>
+							<entry>PAID.VALUE</entry> 
+							<entry>bezahlter Betrag</entry>
+						</row>
+						<row>
+							<entry>PAID.DATE</entry>
+							<entry>Zahldatum</entry>
+						</row>
+						<row>
+							<entry>DUE.DISCOUNT.PERCENT</entry>
+							<entry>gewährtes Skonto in Prozent</entry>
+						</row>
+						<row>
+							<entry>DUE.DISCOUNT.DAYS</entry>
+							<entry>Skonto-Tage, innerhalb deren zu zahlen ist</entry>
+						</row>
+						<row>
+							<entry>DUE.DISCOUNT.DATE</entry>
+							<entry>Skontofrist, bis zu der der Betrag abzüglich Skonto fällig ist.</entry>
+						</row>
+						<row>
+							<entry>DUE.DISCOUNT.VALUE</entry>
+							<entry>Zu zahlender Gesamtbetrag mit gezogenem Skonto</entry>
+						</row>
+						<row>
+							<entry>DUE.DAYS</entry>
+							<entry>Netto-Tage, innerhalb deren zu zahlen ist</entry>
+						</row>
+						<row>
+							<entry>DUE.DATE</entry>
+							<entry>Nettofrist, bis zu der der Betrag ohne Abzug fällig ist.</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.BANK.ACCOUNT.HOLDER</entry>
+							<entry>Kontoinhaber des Kundenkontos</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.BANK.IBAN</entry>
+							<entry>IBAN des Kundenkontos</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.BANK.IBAN.CENSORED</entry>
+							<entry>verkürzte IBAN des Kunden (zum Beispiel *****123)</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.BANK.BIC</entry>
+							<entry>BIC zur IBAN des Kundenkontos</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.BANK.NAME</entry>
+							<entry>Kreditinstitut des Kundenkontos</entry>
+						</row>
+						<row>
+							<entry>BANK.ACCOUNT.HOLDER</entry>
+							<entry>Kontoinhaber des Rechnungsersteller-Kontos</entry>
+						</row>
+						<row>
+							<entry>BANK.ACCOUNT</entry>
+							<entry>Rechnungsersteller-Konto</entry>
+						</row>
+						<row>
+							<entry>BANK.ACCOUNT.CENSORED</entry>
+							<entry>verkürzte Kontonummer des Rechnungsersteller-Kontos (zum Beispiel *****123)</entry>
+						</row>
+						<row>
+							<entry>BANK.IBAN</entry>
+							<entry>IBAN des Rechnungsersteller-Kontos</entry>
+						</row>
+						<row>
+							<entry>BANK.IBAN.CENSORED</entry>
+							<entry>verkürzte IBAN des Rechnungsersteller-Kontos (zum Beispiel *****123)</entry>
+						</row>
+						<row>
+							<entry>BANK.BIC</entry>
+							<entry>BIC zur IBAN des Rechnungserstellers</entry>
+						</row>
+						<row>
+							<entry>BANK.NAME</entry>
+							<entry>Kreditinstitut des Rechnungserstellers</entry>
+						</row>
+						<row>
+							<entry>DOCUMENT.TOTAL</entry>
+							<entry>Zu zahlender Gesamtbetrag bei abgelaufener Skontofrist</entry>
+						</row>
+						<row>
+							<entry>DEBITOR.MANDATREF</entry>
+							<entry>Mandatsreferenz des Kunden (bei SEPA-Lastschrift)</entry>
+						</row>
+						<row>
+							<entry>YOURCOMPANY.CREDITORID</entry>
+							<entry>eigene Gläubiger-ID (für SEPA-Lastschrift)</entry>
+					</row>
+				</tbody>
+			</tgroup>
+		</informaltable>
+
 			<para>
 				Die Platzhalter können über die Schaltfläche neben dem jeweiligen Textfeld ausgewählt werden:
 				<informalfigure>
