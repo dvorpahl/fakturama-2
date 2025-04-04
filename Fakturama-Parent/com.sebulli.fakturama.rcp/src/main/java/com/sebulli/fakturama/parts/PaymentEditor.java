@@ -47,6 +47,7 @@ import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -106,11 +107,8 @@ public class PaymentEditor extends Editor<Payment> {
     private Text textUnpaid;
     private CCombo comboCategory;
 
-    private CCombo comboPaymentCode;
+    private Combo comboPaymentCode;
     private final List<UNTDID4461> usedCodes = Arrays.stream(UNTDID4461.values()).filter(UNTDID4461::getUsed).toList();
-    private final String[] itemsComboCode = usedCodes.stream().map(UNTDID4461::getCode).toList().toArray(new String[] {});
-
-    private final List<String> displayTextsComboCode = usedCodes.stream().map(UNTDID4461::getTranslationKey).toList();
 
     // defines if the payment is newly created
     private boolean newPayment;
@@ -251,7 +249,6 @@ public class PaymentEditor extends Editor<Payment> {
         // Payment name
         final Label labelName = new Label(top, SWT.NONE);
         labelName.setText(msg.commonFieldName);
-        //T: Tool Tip Text
         labelName.setToolTipText(msg.editorPaymentNameTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
@@ -264,7 +261,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelCategory = new Label(top, SWT.NONE);
         //T: Payment Editor - category
         labelCategory.setText(msg.commonFieldAccount);
-        //T: Payment Editor - category Tool Tip Text
         labelCategory.setToolTipText(msg.editorPaymentAccountTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
 
@@ -275,7 +271,6 @@ public class PaymentEditor extends Editor<Payment> {
         // Payment description
         final Label labelDescription = new Label(top, SWT.NONE);
         labelDescription.setText(msg.commonFieldDescription);
-        //T: Tool Tip Text
         labelDescription.setToolTipText(msg.editorVatDescriptionTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDescription);
@@ -285,14 +280,12 @@ public class PaymentEditor extends Editor<Payment> {
 
         final Label labelPaymentCode = new Label(top, SWT.NONE);
         labelPaymentCode.setText(msg.editorPaymentPaymentcode);
-        comboPaymentCode = new CCombo(top, SWT.BORDER);
-        comboPaymentCode.setEditable(false);
+        comboPaymentCode = new Combo(top, SWT.BORDER | SWT.READ_ONLY);
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(comboPaymentCode);
 
         // Payment discount value
         final Label labelDiscountValue = new Label(top, SWT.NONE);
         labelDiscountValue.setText(msg.editorPaymentDiscount);
-        //T: Tool Tip Text
         labelDiscountValue.setToolTipText(msg.editorPaymentDiscountTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDiscountValue);
@@ -305,7 +298,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelDiscountDays = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelDiscountDays.setText(msg.editorPaymentDiscountDays);
-        //T: Tool Tip Text
         labelDiscountDays.setToolTipText(msg.editorPaymentDiscountDaysTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDiscountDays);
@@ -318,7 +310,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelNetDays = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelNetDays.setText(msg.commonFieldNetDays);
-        //T: Tool Tip Text
         labelNetDays.setToolTipText(msg.editorPaymentNetdaysTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelNetDays);
         textNetDays = new FormattedText(top, SWT.BORDER | SWT.SINGLE);
@@ -336,7 +327,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelUnpaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text unpaid
         labelUnpaid.setText(msg.editorPaymentUnpaidName);
-        //T: Tool Tip Text
         labelUnpaid.setToolTipText(msg.editorPaymentUnpaidTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelUnpaid);
 
@@ -365,7 +355,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelDepositPaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text paid
         labelDepositPaid.setText(msg.editorPaymentDepositName);
-        //T: Tool Tip Text
         labelDepositPaid.setToolTipText(msg.editorPaymentDepositTooltip);
         GridDataFactory.fillDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDepositPaid);
 
@@ -394,7 +383,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelPaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text paid
         labelPaid.setText(msg.editorPaymentPaidName);
-        //T: Tool Tip Text
         labelPaid.setToolTipText(msg.editorPaymentPaidTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelPaid);
 
@@ -423,7 +411,6 @@ public class PaymentEditor extends Editor<Payment> {
         final Label labelStd = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelStd.setText(msg.commonLabelDefault);
-        //T: Tool Tip Text
         labelStd.setToolTipText(msg.editorPaymentDefaultTooltip);
 
         // Get the ID of the standard entity from preferences
@@ -438,8 +425,6 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelStd);
         //T: Payment Editor: Button description to make this as standard payment.
         stdComposite = new StdComposite(top, payment, stdPayment, msg.editorPaymentDefaultButtonName, 2);
-
-        //T: Tool Tip Text
         stdComposite.setToolTipText(msg.editorPaymentDefaultButtonHint);
 
         // disable the Standard Button, if this is a new payment
@@ -469,7 +454,7 @@ public class PaymentEditor extends Editor<Payment> {
     }
 
     /**
-     * 
+     * creates the combo box for the payment code
      */
     private void fillAndBindPaymentCodeCombo() {
         final ComboViewer viewer = new ComboViewer(comboPaymentCode);
@@ -502,7 +487,7 @@ public class PaymentEditor extends Editor<Payment> {
     }
 
     /**
-     * creates the combo box for the VAT category
+     * creates the combo box for the payment account
      */
     private void fillAndBindCategoryCombo() {
         // Collect all category strings as a sorted Set

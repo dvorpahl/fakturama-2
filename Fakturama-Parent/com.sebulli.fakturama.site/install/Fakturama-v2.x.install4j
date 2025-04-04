@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="11.0.1" transformSequenceNumber="11">
+<install4j version="11.0.2" transformSequenceNumber="11">
   <directoryPresets config="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8" />
   <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-BETA" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
@@ -34,7 +34,7 @@
         <entry>com.sun.*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.2+8" />
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.14+7" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git" preserveMode="true">
     <filesets>
@@ -143,7 +143,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2024 Fakturama.info</property>
+                <property name="labelText" type="string">(c) 2025 Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -432,7 +432,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2024 Fakturama.org</property>
+                <property name="labelText" type="string">(c) 2025 Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -779,7 +779,7 @@ return console.askYesNo(message, true);
       </exclude>
       <jreBundle usePack200="false" />
     </unixInstaller>
-    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice-writer,libreoffice-calc,libwebkit2gtk-4.0-37 | libwebkit2gtk-4.1-0" require64BitVm="true" arch="x86_64">
+    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
       <excludedLaunchers>
         <launcher id="44" />
       </excludedLaunchers>
@@ -797,7 +797,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice-writer,libreoffice-calc,libwebkit2gtk-4.0-37 | libwebkit2gtk-4.1-0" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -816,7 +816,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" dependencies="libreoffice-writer,libreoffice-calc,libwebkit2gtk-4.0-37 | libwebkit2gtk-4.1-0" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -859,8 +859,13 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <jreBundle usePack200="false" />
     </macosFolder>
   </mediaSets>
-  <buildIds buildAll="false">
+  <buildIds>
+    <mediaSet refId="45" />
     <mediaSet refId="643" />
+    <mediaSet refId="59" />
+    <mediaSet refId="119" />
+    <mediaSet refId="120" />
+    <mediaSet refId="577" />
   </buildIds>
-  <buildOptions disableJreBundling="true" disableNotarization="true" />
+  <buildOptions disableNotarization="true" />
 </install4j>

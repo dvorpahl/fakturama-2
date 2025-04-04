@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Fakturama ZUGFeRD-Exporter
 Bundle-SymbolicName: org.fakturama.exporter.zugferd;singleton:=true
 Bundle-Version: 2.2.0.qualifier
-Import-Package: javax.inject;version="1.0.0"
 Bundle-ClassPath: .
 Bundle-Vendor: Fakturama.org
 Require-Bundle: org.eclipse.core.runtime,

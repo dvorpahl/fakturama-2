@@ -27,12 +27,6 @@ import org.odftoolkit.odfdom.pkg.OdfElement;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
 import org.odftoolkit.odfdom.type.Length;
 import org.odftoolkit.odfdom.type.Length.Unit;
-// import org.odftoolkit.simple.common.TextExtractor;
-// import org.odftoolkit.simple.common.navigation.ImageSelection;
-// import org.odftoolkit.simple.draw.Image;
-// import org.odftoolkit.simple.style.StyleTypeDefinitions.AnchorType;
-// import org.odftoolkit.simple.common.navigation.ImageSelection;
-// import org.odftoolkit.simple.draw.Image;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -369,7 +363,7 @@ public class PlaceholderNode extends Selection {
          * brackets would be left.
          */
         Node parentNode = getNode().getParentNode();
-        //        parentNode.insertBefore(img.getFrame().getDrawFrameElement(), getNode());
+
         // if the placeholder has siblings only delete the placeholder
         if (getNode().getPreviousSibling() != null || getNode().getNextSibling() != null) {
             parentNode.removeChild(getNode());
