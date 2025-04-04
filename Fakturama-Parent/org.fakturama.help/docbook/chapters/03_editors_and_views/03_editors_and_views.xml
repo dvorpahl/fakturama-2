@@ -63,7 +63,7 @@
 		<title>Menüleiste</title>
 		<para>Die Menüleiste ist aus 5 Hauptmenüs aufgebaut.</para>
 
-		<variablelist spacing="compact">
+		<variablelist termlength="18" spacing="compact">
 			<varlistentry>
 				<term>Hauptmenü Datei</term>
 				<listitem>
@@ -108,7 +108,7 @@
 	</section>
 	<section><anchor xreflabel="" xml:id="application_mainmenu_file"/>
 		<title>Hauptmenü Datei</title>
-		<variablelist>
+		<variablelist termlength="18">
 			<varlistentry>
 				<term>Schließen</term>
 				<listitem>
@@ -178,6 +178,7 @@
 				<term>Einstellungen</term>
 				<listitem>
 					<para>Öffnet den Dialog, um verschiedene Einstellungen zu ändern.
+					<tip>Dieser Menüpunkt ist bei MacOS im Systemmenü zu finden.</tip>
 			Siehe auch <link linkend="preferences_main">Einstellungen</link>
 					</para>
 				</listitem>
@@ -236,7 +237,7 @@
 	</section>
 	<section><anchor xreflabel="" xml:id="application_mainmenu_edit"/>
 		<title>Hauptmenü Bearbeiten</title>
-		<variablelist>
+		<variablelist termlength="22">
 			<varlistentry>
 				<term>
 					<inlinemediaobject>
@@ -332,7 +333,7 @@
 	</section>
 	<section><anchor xreflabel="" xml:id="application_mainmenu_data"/>
 		<title>Hauptmenü Daten</title>
-		<variablelist>
+		<variablelist termlength="18">
 			<varlistentry>
 				<term>
 
@@ -514,7 +515,7 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="application_mainmenu_new"/><title>Hauptmenü "Neu erzeugen"</title>
-		<variablelist>
+		<variablelist termlength="18">
 			<varlistentry>
 				<term>
 
@@ -820,7 +821,7 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="application_mainmenu_extras"/><title>Hauptmenü Extras</title>
-		<variablelist>
+		<variablelist termlength="18" spacing="compact">
 			<varlistentry>
 				<term>
 
@@ -844,7 +845,7 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="application_mainmenu_window"/><title>Hauptmenü Fenster</title>
-		<variablelist>
+		<variablelist termlength="15" spacing="compact">
 		<varlistentry>
 				<term>Perspektive zurücksetzen</term>
 			<listitem>Die Position und Größe der Editorfenster, des Übersichtsfensters und der Navigationsleiste werden gespeichert. Mit <emphasis role="bold">Perspektive zurücksetzen</emphasis> wird die ursprüngliche Größe und Position der einzelnen Fenster wieder hergestellt.<note>Sollten die Spalten der Artikel-Eingabetabelle nicht mehr sinnvoll gesetzt sein können Sie in Ihrem Arbeitsverzeichnis die Datei <code>fakturamaviews.properties</code> löschen.</note></listitem>
@@ -871,7 +872,7 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="application_mainmenu_help"/><title>Hauptmenü Hilfe</title>
-		<variablelist>
+		<variablelist termlength="18">
 			<varlistentry>
 				<term>
 
@@ -1681,7 +1682,7 @@
 		<section>
 			<anchor xreflabel="" xml:id="editor_editor_document_address"/><subtitle>Adresse</subtitle>
 			<para>Adresse des Kunden. Bei einem Lieferschein ist dies die Lieferadresse, bei allen anderen Dokumenten die Rechnungsadresse.</para>
-			<variablelist>
+			<variablelist termlength="7">
 				<varlistentry>
 					<term>
 						<inlinemediaobject>
@@ -1779,7 +1780,7 @@
 		<section>
 			<subtitle>Artikel</subtitle>
 			<para>Tabelle mit allen Artikeln dieses Dokumentes. Alle Spalten bis auf den (Gesamt-)Preis lassen sich ändern. Über die Einstellungen lassen sich einzelne Spalten ein- oder ausblenden. Die Artikeltabelle wird mit folgenden Aktionen bearbeitet:</para>
-			<variablelist>
+			<variablelist termlength="7">
 				<varlistentry>
 					<term>
 						<inlinemediaobject>
@@ -2641,7 +2642,8 @@
 					<imagedata contentdepth="155%" fileref="../images/editor/editor_expenditure.png" format="PNG" scalefit="1"/>
 				</imageobject>
 			</mediaobject>
-		</informalfigure><variablelist>
+		</informalfigure>
+		<variablelist termlength="18">
 		<varlistentry>
 			<term>buchen</term>
 			<listitem><para>Alle Belege werden normalerweise beim Export berücksichtigt. Soll ein Beleg nicht gebucht/exportiert werden, ist dieses Häkchen zu entfernen. Der Beleg erscheint dann nur noch beim Export des Kontostandes. Beispiel: 1000€ wird auf Konto A überwiesen.</para></listitem>

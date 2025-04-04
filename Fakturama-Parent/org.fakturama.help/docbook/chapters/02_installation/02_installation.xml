@@ -7,7 +7,7 @@
 		<anchor xreflabel="" xml:id="install_download"/>
 		<title>Download der Software</title>
 		<para>Fakturama steht auf der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> zum Download zur Verfügung. Das Programm ist kostenlos, Open Source und steht unter der Lizenz <link linkend="license_license">EPL v1.0</link>.
-		<warning>Seit Version 2.0.5 werden nur noch 64Bit-Versionen ausgeliefert, da mit der aktuellen Eclipse-Plattform keine 32Bit-Versionen mehr erzeugt werden können.</warning>
+		<note>Seit Version 2.0.5 werden nur noch 64Bit-Versionen ausgeliefert, da mit der aktuellen Eclipse-Plattform keine 32Bit-Versionen mehr erzeugt werden können.</note>
 		</para>
 		<para>Fakturama läuft unter folgenden Betriebssystemen:</para>
 		<itemizedlist>
@@ -15,35 +15,35 @@
 			<listitem>Mac OS X (ab Version 10.10 Yosemite)</listitem>
 			<listitem>Linux (64Bit)</listitem>
 		</itemizedlist>
-		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 17 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und der PDFs ist LibreOffice erforderlich. Für die Erstellung der Rechnungsdokumente im OpenOffice-Format ist kein LibreOffice erforderlich (nur für die PDF-Dokumente).</para>
+		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 17 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und der PDFs ist LibreOffice erforderlich.</para>
 		<itemizedlist>
-			<listitem>Downloadseite LibreOffice <link xl:href="https://www.libreoffice.org/">LibreOffice</link></listitem>
+			<listitem>Downloadseite LibreOffice: <link xl:href="https://www.libreoffice.org/">LibreOffice</link></listitem>
 			<listitem>Downloadseite <trademark>Java</trademark> (optional): <link xl:href="https://adoptium.net/de/temurin/releases/">Adoptium</link></listitem>
 		</itemizedlist>
 		<para>Wird Fakturama zusammen mit einem Webshop betrieben, ist zusätzlich die entsprechende 
-		Webshop-Schnittstelle zu installieren. Diese befinden sich auf der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> bzw. im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link>.
+		Webshop-Schnittstelle zu installieren. Diese können von der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> bzw. vom <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link> heruntergeladen werden.
 		</para>
 	</section>
 	
 	<section><title>Allgemeine Installationshinweise</title>
-        <para>Laden und installieren Sie LibreOffice, falls noch nicht geschehen. Starten Sie 
-        LibreOffice nach einer Installation ein erstes Mal. Es werden einige Daten wie Name und Namenskürzel abgefragt.
-        Sie benötigen das Programm, um Vorlagen bearbeiten zu können bzw. aus Fakturama heraus PDFs erzeugen zu können.</para>
-        <para>Sollten Sie sich für den Einsatz einer MySQL- oder MariaDB entscheiden (z. B. wegen des Mehrbenutzerzugriffes), 
-        müssen Sie diese ebenfalls bereits installiert haben. Für den Betrieb von Fakturama erzeugen Sie bitte eine leere Datenbank und konfigurieren Sie zu dieser Datenbank einen Nutzer, der die Rechte zum Anlegen von Tabellen, zum Selektieren, Ändern und Löschen von Daten hat sowie Tabellen und Indizes ändern darf. Es wird <emphasis role="bold">nicht</emphasis> empfohlen, den <computeroutput>root</computeroutput>-Benutzer für den Zugriff zu verwenden, sondern einen eigenen.</para>
+        <para>Zunächst sollte LibreOffice installiert werden, falls noch nicht geschehen. Anschließend muß LibreOffice ein erstes Mal gestartet werden. Es werden einige Daten wie Name und Namenskürzel abgefragt.
+        Das Programm wird benötigt, um Vorlagen bearbeiten zu können bzw. aus Fakturama heraus PDFs erzeugen zu können.</para>
+        <para>Falls der Einsatz einer MySQL- oder MariaDB geplant ist (z. B. wegen des Mehrbenutzerzugriffes), 
+        muß diese ebenfalls bereits installiert worden sein. Für den Betrieb von Fakturama ist eine leere Datenbank erforderlich, die mit einem Datenbanknutzer angesprochen werden kann. Der Datenbanknutzer muß die Rechte zum Anlegen von Tabellen, zum Selektieren, Ändern und Löschen von Daten haben sowie Tabellen und Indizes ändern dürfen. Es wird <emphasis role="bold">nicht</emphasis> empfohlen, den <computeroutput>root</computeroutput>-Benutzer für den Zugriff zu verwenden, sondern einen eigenen.</para>
 		<tip>Für die Einrichtung des MySQL-Zugriffes per SSL gibt es ein <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/src/master/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">kleines Tutorial</link> (in Englisch). In diesem wird beschrieben, wie eine sichere Verbindung mit der MySQL-Datenbank hergestellt werden kann.</tip>
 		<warning>Leider scheinen sich in den letzten Jahren MariaDB und MySQL auseinanderbewegt zu haben. Es kann also vorkommen, daß eine MariaDB nicht mit der aktuellen Fakturama-Version funktioniert. Dann kann momentan nur MariaDB oder HSQLDB (Standard) verwendet werden.</warning>
-		<tip>Wenn Sie MySQL oder MariaDB verwenden, achten Sie bitte darauf, die Fakturama-Datenbank mit dem Encoding <computeroutput>utf8mb4</computeroutput> und der Collaction <computeroutput>utf8mb4_general_ci</computeroutput> anzulegen.</tip>
-		<para>Sofern Sie bereits eine frühere Version von Fakturama verwenden (bis 1.6.9), geben Sie bitte als Arbeitsverzeichnis ein neues an. Sie können die alten Daten automatisch übernehmen, wenn Sie möchten. Bitte installieren Sie die neue Version nicht in ein altes (1.x) Arbeitsverzeichnis, da dies zu Datenverlust führen kann.</para>
+		<tip>Wenn eine MySQL-Datenbank oder MariaDB verwendet wird, sollte darauf geachtet werden, die Fakturama-Datenbank mit dem Encoding <computeroutput>utf8mb4</computeroutput> und der Collaction <computeroutput>utf8mb4_general_ci</computeroutput> anzulegen.</tip>
+		<para>Sofern bereits eine frühere Version von Fakturama verwendet wurde (bis 1.6.9), muß als Arbeitsverzeichnis ein neues angegeben werden. Die alten Daten können dann bei Bedarf automatisch übernommen werden.</para>
+		
+		<caution>Für die neue Version darf nicht das alte (1.x) Arbeitsverzeichnis angegeben werden werden, da dies zu Datenverlust führen kann!</caution>
 		<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle 
-		Dokumente und Vorlagen abgelegt. Das Arbeitsverzeichnis muss sich in einem Ordner befinden, der ohne Administratorrechte 
+		Dokumente und Vorlagen abgelegt. Das Arbeitsverzeichnis muß sich in einem Ordner befinden, der ohne Administratorrechte 
 		beschrieben werden darf. Beispiel:</para>
 		<programlisting>C:\Projekte\MeineFirma\</programlisting>		
 		<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
 		</para>
 	</section>
-	<section>
-			<anchor xreflabel="" xml:id="install_install_windows"/>
+	<section><anchor xreflabel="" xml:id="install_install_windows"/>
 		<title>Installation unter einem <trademark>Windows</trademark>-Betriebssystem</title>
 		<para>Laden Sie den für Ihr Betriebssystem geeigneten 
 			<inlinemediaobject>
@@ -57,9 +57,17 @@
 		<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf einem Windows-Betriebssystem 
 		sind für die Installation Administratorrechte notwendig.</para>
 	</section>
-	<section>
-			<anchor xreflabel="" xml:id="install_install_linux"/>
+	<section><anchor xreflabel="" xml:id="install_install_linux"/>
 		<title>Installation unter einem <trademark>Linux</trademark>-Betriebssystem</title>
+		<sect2>
+			<warning>Für das korrekte Funktionieren von Fakturama sind folgende Pakete Voraussetzung:
+				<itemizedlist>
+					<listitem><programlisting>openoffice</programlisting></listitem>
+					<listitem><programlisting>libwebkit2gtk</programlisting></listitem>
+				</itemizedlist>
+				Leider werden die Pakete in den unterschiedlichen Distributionen mit unterschiedlichen Versionsnummern behandelt. Deswegen wurden diese Abhängigkeiten nicht in den Installer mit aufgenommen. 
+			</warning>
+		</sect2>
 		<sect2>
 			<subtitle>Für (K)Ubuntu, <trademark class="registered">RedHat</trademark>, SUSE Linux- und <trademark class="registered">Fedora</trademark>-Betriebssysteme:</subtitle>
 			<para>Laden Sie den 
@@ -83,8 +91,8 @@
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
 				</inlinemediaobject> Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf dem System sollte LibreOffice installiert sein. Auf einigen Systemen muss auch die Bibliothek <code>libwebkit2gtk</code> installiert sein (das ist aber im Installer als Abhängigkeit definiert).</para>
-			<para>Alternativ kann auch die gepackte Archivdatei (*.tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
+			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt.</para>
+			<para>Alternativ kann auch die gepackte Archivdatei (mit der Endung tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
 			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle Dokumente und Vorlagen abgelegt. Beispiel:</para>
 			<programlisting>/home/Benutzername/Dokumente/MeineFirma/</programlisting>
 			<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
@@ -224,7 +232,7 @@
 		<para>Fakturama benutzt zum Drucken von Dokumenten wie Rechnungen oder Lieferscheinen Vorlagen, die mit dem Programm LibreOffice erstellt wurden. 
 		Diese müssen auf das eigene Design angepasst und mit den Firmendaten versehen werden. Die Vorlagen befinden sich im Arbeitsverzeichnis im Unterordner Vorlagen (dort jeweils
 		in einem separaten Ordner).</para>
-		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien LibreOffice installiert sein muss. Wenn Sie Ihre Dokumente nur im OpenOffice-Format erzeugen möchten benötigen Sie dieses Programm nicht unbedingt.</para>
+		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien LibreOffice installiert sein muss.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">LibreOffice Vorlagen</link>
 		</para>
 		<para>Für die Aktualisierung des Programms genügt es, den neuen Installer zu starten und dann die Option zum Aktualisieren der bestehenden Installation zu nutzen. Der Installer wurde jetzt so angepaßt, daß die Einstellungsdatei für die Darstellung der Oberfläche (<computeroutput>.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</computeroutput>) gelöscht wird. Allerdings funktioniert das nur für Standard-Installationen, da bei der Installation oder dem Update von Fakturama nicht festgestellt werden kann, welches Einstellungsverzeichnis verwendet wird (das können bei mehreren Mandanten auch mehrere Verzeichnisse sein). In dem Fall müßte die Datei manuell entfernt werden.		

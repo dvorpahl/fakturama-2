@@ -21,13 +21,13 @@
 	</sect2>
 	<sect2>
 		<title>Einstellungen</title>
-		<para>In den Einstellungen des Programms sind die gewünschten Werte einzutragen. Vor allem wichtige Einstellungen wie <emphasis role="bold">Firmendaten</emphasis>, <emphasis role="bold">Verbindungsdaten Webshop</emphasis> oder <emphasis role="bold">Nummernkreise</emphasis> sollten hier hinterlegt werden.</para>
+		<para>In den Einstellungen des Programms sind die gewünschten Werte einzutragen. Vor allem wichtige Einstellungen wie <emphasis role="bold">Firmendaten</emphasis>, <emphasis role="bold">Verbindungsdaten Webshop</emphasis> oder <emphasis role="bold">Nummernkreise</emphasis> sollten hier hinterlegt werden. Dies ist besonders für die Erstellung von E-Rechnungen notwendig. In den Einstellungen ist auch das Programmverzeichnis von LibreOffice einzutragen, um PDF-Dateien korrekt erzeugen zu können.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link>
 		</para>
 	</sect2>
 	<sect2>
 		<title>LibreOffice Vorlagen</title>
-		<para>Alle Dokumentenvorlagen können an die persönlichen Erfordernisse angepasst werden. Eine Standardvorlage befindet Sie im Verzeichnis <emphasis role="bold">Vorlagen</emphasis> des Arbeitsverzeichnisses. Viele weitere Vorlagen können im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=36">Vorlagenportal</link> heruntergeladen werden. In den Einstellungen ist auch das Programmverzeichnis von LibreOffice einzutragen, falls PDF-Dateien erzeugt werden sollen.</para>
+		<para>Alle Dokumentenvorlagen können an die persönlichen Erfordernisse angepasst werden. Im Verzeichnis <emphasis role="bold">Vorlagen</emphasis> des Arbeitsverzeichnisses befinden sich bereits Standardvorlagen für die einzelnen Dokumenttypen. Viele weitere Vorlagen können im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=36">Vorlagenportal</link> heruntergeladen werden.</para>
 		<para>Siehe auch <link linkend="openoffice_templates">LibreOffice-Vorlagen</link>
 		</para>
 	</sect2>
