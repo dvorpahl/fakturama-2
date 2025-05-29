@@ -15,6 +15,9 @@ package org.fakturama.export.einvoice.model;
 
 import java.math.BigDecimal;
 
+/**
+ * BG-22
+ */
 public class InvoiceDocumentTotals {
     /**
      * BT-106 Summe aller Positionen (netto)

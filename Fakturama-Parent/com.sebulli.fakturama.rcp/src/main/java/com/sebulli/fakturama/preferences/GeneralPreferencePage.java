@@ -97,6 +97,10 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     @Optional
     private PreferencesInDatabase preferencesInDatabase;
 
+    @Inject
+    @Optional
+    private IPreferenceStore preferences;
+
     private ComboFieldEditor currencyLocaleCombo;
     private Text example;
     private BooleanFieldEditor cashCheckbox;
@@ -153,17 +157,18 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         addField(currencyLocaleCombo);
 
         WidgetFactory.label(SWT.NONE).text(msg.preferencesGeneralCurrencyExample).create(currencySettings);
+        final String symbol = preferences.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
         example = WidgetFactory.text(SWT.BORDER)
-                .text(calculateExampleCurrencyFormatString(super.getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE),
-                        super.getPreferenceStore().getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR),
-                        super.getPreferenceStore().getBoolean(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING),
-                        CurrencySettingEnum.valueOf(super.getPreferenceStore().getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL))))
+                .text(calculateExampleCurrencyFormatString(preferences.getString(Constants.PREFERENCE_CURRENCY_LOCALE),
+                        preferences.getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR),
+                        preferences.getBoolean(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING),
+                        StringUtils.isBlank(symbol) ? CurrencySettingEnum.NONE : CurrencySettingEnum.valueOf(symbol)))
                 .layoutData(GridDataFactory.fillDefaults().grab(true, false).create()).create(currencySettings);
         example.setEditable(false);
 
         cashCheckbox = new BooleanFieldEditor(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING, msg.preferencesGeneralCurrencyCashrounding, currencySettings);
         cashCheckbox.getDescriptionControl(currencySettings).setToolTipText(msg.preferencesGeneralCurrencyCashroundingTooltip);
-        final String localeString = getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
+        final String localeString = preferences.getString(Constants.PREFERENCE_CURRENCY_LOCALE);
         if (!localeString.endsWith("CH")) {
             cashCheckbox.setEnabled(false, currencySettings);
         }
@@ -247,11 +252,11 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         // Info: DB connection string
         WidgetFactory.label(SWT.NONE).text(msg.preferencesGeneralDatabase).create(getFieldEditorParent());
         final Text dbConnectionInfo = WidgetFactory.text(SWT.BORDER).layoutData(GridDataFactory.fillDefaults().hint(300, SWT.DEFAULT).create())
-                .text(getPreferenceStore().getString(PersistenceUnitProperties.JDBC_URL)).create(getFieldEditorParent());
+                .text(preferences.getString(PersistenceUnitProperties.JDBC_URL)).create(getFieldEditorParent());
         dbConnectionInfo.setEditable(false);
 
         WidgetFactory.button(SWT.PUSH).text(msg.preferencesGeneralResetdialogsettings).onSelect(e -> {
-            getPreferenceStore().setToDefault(Constants.DISPLAY_SUCCESSFUL_PRINTING);
+            preferences.setToDefault(Constants.DISPLAY_SUCCESSFUL_PRINTING);
             MessageDialog.openInformation(getShell(), msg.dialogMessageboxTitleInfo, "Einstellung wurde zurückgesetzt.");
         }).layoutData(GridDataFactory.swtDefaults().indent(SWT.DEFAULT, 5).span(2, SWT.DEFAULT).create()).create(getFieldEditorParent());
     }
@@ -260,7 +265,7 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
     protected void initialize() {
         super.initialize();
 
-        final boolean isOlderThanSelected = getPreferenceStore().getString(Constants.PREFERENCES_BACKUP_STRATEGY)
+        final boolean isOlderThanSelected = preferences.getString(Constants.PREFERENCES_BACKUP_STRATEGY)
                 .equals(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN);
         radioButtonDeleteBackupsOlderThan.setSelection(isOlderThanSelected);
         radioButtonKeepNumberBackups.setSelection(!isOlderThanSelected);
@@ -302,11 +307,11 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
             final String exampleFormat = calculateExampleCurrencyFormatString(newValue, thousandsSeparatorCheckbox.getBooleanValue(),
                     cashCheckbox.getBooleanValue(), currencySetting);
             example.setText(exampleFormat);
-        } else if (event.getSource() instanceof BooleanFieldEditor
-                && (((BooleanFieldEditor) event.getSource()).getPreferenceName().equals(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING)
-                        || ((BooleanFieldEditor) event.getSource()).getPreferenceName().equals(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR))
-                || event.getSource() instanceof RadioGroupFieldEditor
-                        && ((RadioGroupFieldEditor) event.getSource()).getPreferenceName().equals(Constants.PREFERENCES_CURRENCY_USE_SYMBOL)) {
+        } else if (event.getSource() instanceof final BooleanFieldEditor sourceBfe
+                && (sourceBfe.getPreferenceName().equals(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING)
+                        || sourceBfe.getPreferenceName().equals(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR))
+                || event.getSource() instanceof final RadioGroupFieldEditor sourceRgfe
+                        && sourceRgfe.getPreferenceName().equals(Constants.PREFERENCES_CURRENCY_USE_SYMBOL)) {
             boolean useThousandsSeparator = thousandsSeparatorCheckbox.getBooleanValue();
             boolean useCashRounding = cashCheckbox.getBooleanValue();
 
@@ -467,9 +472,9 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         // modify backup options
         // if Opt1 was selected then delete value for Opt2 and vice versa
         if (radioButtonDeleteBackupsOlderThan.getSelection()) {
-            getPreferenceStore().setValue(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN);
+            preferences.setValue(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN);
         } else if (radioButtonKeepNumberBackups.getSelection()) {
-            getPreferenceStore().setValue(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS);
+            preferences.setValue(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS);
         }
 
         final boolean preferencesSuccessfulStored = super.performOk();

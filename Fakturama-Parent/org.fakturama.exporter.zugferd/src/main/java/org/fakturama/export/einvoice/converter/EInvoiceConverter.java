@@ -134,15 +134,31 @@ public class EInvoiceConverter {
 
         try {
             final EInvoice eInvoice = new EInvoice();
+            // BG-2 (post-process), BG-14
             setInvoiceData(eInvoice, invoice);
+            // BG-4, BG-5, BG-6, BG-10, BG-11, BG-12
             setInvoiceSeller(eInvoice, invoice);
+            // BG-1
             setInvoiceNote(eInvoice, invoice);
+            //BG-7, BG-8, BG-9
             setInvoiceBuyer(eInvoice, invoice);
+            // BG-13, BG-15
             setInvoiceDeliveryInformation(eInvoice, invoice);
+            // BG-16, BG-17, BG-18, BG-19
             setImvoicePayments(eInvoice, invoice);
+            // BG-20, BG-21
+            // setDocumentLevelAllowancesCharges(eInvoice, invoice);
+
+            // BG-25, BG-26, BG-27, BG-28, BG-29, BG-30, BG-31, BG-32
             setInvoicePositions(eInvoice, invoice);
+            // BG-22
             setInvoiceTotals(eInvoice, invoice);
+            // BG-23
             setInvoiceVatBreakdowns(eInvoice, invoice);
+            // BG-3
+            // setPreceedingInvoice(eInvoice, invoice);
+            // BG-24
+            // setAdditionalDocuments(eInvoice, invoice);
             return eInvoice;
         } catch (final Exception e) {
             throw new InvoiceConverterException(e);
@@ -150,6 +166,7 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-22
      * 
      * @param eInvoice
      * @param invoice
@@ -162,6 +179,7 @@ public class EInvoiceConverter {
             // BT-110
             documentTotals.setInvoiceTotalVatAmount(moneyToBigDecimal(documentSummary.getTotalVat()));
 
+            documentTotals.setInvoiceTotalAmountWithoutVat(moneyToBigDecimal(documentSummary.getTotalNet()));
         }
 
     }
@@ -171,6 +189,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-23
+     * 
      * VAT Rates
      * S (Standard rate)
      * Z (Zero rated goods)
@@ -210,6 +230,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-25
+     * 
      * @param eInvoice
      * @param invoice
      */
@@ -272,6 +294,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-16, BG-17, BG-18, BG-19
+     * 
      * @param eInvoice
      * @param invoice
      * @throws UnsupportedCodeException
@@ -349,6 +373,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-13
+     * 
      * @param eInvoice
      * @param invoice
      */
@@ -367,6 +393,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-7, BG-8
+     * 
      * @param eInvoice
      * @param invoice
      */
@@ -441,6 +469,8 @@ public class EInvoiceConverter {
     }
 
     /**
+     * BG-1
+     * 
      * @param eInvoice
      * @param invoice
      */
@@ -468,6 +498,13 @@ public class EInvoiceConverter {
         }
     }
 
+    /**
+     * BG-2, BG-14
+     * 
+     * @param eInvoice
+     * @param invoice
+     * @throws InvoiceConverterException
+     */
     private void setInvoiceData(final EInvoice eInvoice, final Invoice invoice) throws InvoiceConverterException {
         final InvoiceData invoiceData = eInvoice.getInvoiceData();
         // BT-1
@@ -536,6 +573,13 @@ public class EInvoiceConverter {
         }
     }
 
+    /**
+     * BG-4, BG-6, BG-10
+     * 
+     * @param eInvoice
+     * @param invoice
+     * @throws InvoiceConverterException
+     */
     private void setInvoiceSeller(final EInvoice eInvoice, final Invoice invoice) throws InvoiceConverterException {
         final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
         // BT-34-1

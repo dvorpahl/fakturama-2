@@ -14,7 +14,8 @@
 package org.fakturama.export.einvoice.model;
 
 /**
- * BG-7: Informationen zum Verkäufer // BG-8: Kontaktdaten des Verkäufers
+ * BG-7: Informationen zum Verkäufer // BG-8: Kontaktdaten des Verkäufers //
+ * BG-9
  */
 public class InvoiceBuyer {
 

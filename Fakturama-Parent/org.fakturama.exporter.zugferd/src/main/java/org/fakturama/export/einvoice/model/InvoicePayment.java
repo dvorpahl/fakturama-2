@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BG-16: Zahlungsdaten // BG-18 Kreditkarteninformationen // BG-19 Lastschrift
+ * BG-16: Zahlungsdaten // BG-17 // BG-18 Kreditkarteninformationen // BG-19
+ * Lastschrift
  */
 public class InvoicePayment {
 

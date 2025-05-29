@@ -17,28 +17,32 @@ package com.sebulli.fakturama.log;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.eclipse.equinox.log.ExtendedLogService;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogLevel;
 // import org.eclipse.e4.core.services.statusreporter.StatusReporter;
 import org.osgi.service.log.LogService;
 
 import ch.qos.logback.classic.spi.CallerData;
-import jakarta.inject.Inject;
 
 /**
  * A wrapper class for the Fakturama logger. This Logger delegates all calls to
  * the {@link LogService}, which then calls the {@link LogbackAdapter} for the
  * "real" logging (done with SLF4J and LogBack).
  */
+@Component
 public class FakturamaLogger implements ILogger {
 
-    @Inject
+    @Reference
     private ExtendedLogService delegate;
 
     //    // TODO prove to use this
     //    @Inject
     //    private Provider<StatusReporter> statusReporter;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.sebulli.fakturama.log.ILogger#debug(java.lang.String)
      */
     @Override
@@ -50,28 +54,28 @@ public class FakturamaLogger implements ILogger {
         if (delegate != null) {
             message = extractMessageWithCaller(message);
             switch (level) {
-            case DEBUG:
-                this.delegate.debug(message, objects);
-                break;
-            case INFO:
-                this.delegate.info(message, objects);
-                break;
-            case WARN:
-                this.delegate.warn(message, objects);
-                break;
-            case ERROR:
-                this.delegate.error(message, objects);
-                break;
+                case DEBUG:
+                    this.delegate.debug(message, objects);
+                    break;
+                case INFO:
+                    this.delegate.info(message, objects);
+                    break;
+                case WARN:
+                    this.delegate.warn(message, objects);
+                    break;
+                case ERROR:
+                    this.delegate.error(message, objects);
+                    break;
 
-            default:
-                // fallback
-                StringBuilder sb = new StringBuilder();
-                for (Object object : objects) {
-                    sb.append(object.toString());
-                    sb.append("; ");
-                }
-                System.out.println(message + " Parameter: " + sb.toString());
-                break;
+                default:
+                    // fallback
+                    final StringBuilder sb = new StringBuilder();
+                    for (final Object object : objects) {
+                        sb.append(object.toString());
+                        sb.append("; ");
+                    }
+                    System.out.println(message + " Parameter: " + sb.toString());
+                    break;
             }
         } else {
             // fallback
@@ -80,7 +84,7 @@ public class FakturamaLogger implements ILogger {
     }
 
     private String extractMessageWithCaller(String message) {
-        StackTraceElement[] caller = CallerData.extract(new Throwable(), this.getClass().getName(), 1, null);
+        final StackTraceElement[] caller = CallerData.extract(new Throwable(), this.getClass().getName(), 1, null);
         if (caller != null && caller.length > 0) {
             message = String.format("%s.%s:%d|%s", ClassUtils.getAbbreviatedName(caller[0].getClassName(), 15), caller[0].getMethodName(),
                     caller[0].getLineNumber(), message);
@@ -88,7 +92,9 @@ public class FakturamaLogger implements ILogger {
         return message;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.sebulli.fakturama.log.ILogger#info(java.lang.String)
      */
     @Override
@@ -97,7 +103,9 @@ public class FakturamaLogger implements ILogger {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.sebulli.fakturama.log.ILogger#warn(java.lang.String)
      */
     @Override
@@ -105,8 +113,11 @@ public class FakturamaLogger implements ILogger {
         log(LogLevel.WARN, message, objects);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.log.ILogger#error(java.lang.String, java.lang.Throwable)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.log.ILogger#error(java.lang.String,
+     * java.lang.Throwable)
      */
     @Override
     public void error(final Throwable exception, final String message) {

@@ -27,6 +27,7 @@
     </properties>
     <modules>
         <module>org.fakturama.target</module>
+        <module>org.fakturama.logging</module>
 
         <module>org.fakturama.e4.ui.dialogs.ext</module>
 

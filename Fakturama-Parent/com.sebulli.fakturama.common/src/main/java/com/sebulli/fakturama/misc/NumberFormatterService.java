@@ -42,13 +42,14 @@ import com.sebulli.fakturama.money.CurrencySettingEnum;
 import com.sebulli.fakturama.money.FakturamaMonetaryRoundingProvider;
 import com.sebulli.fakturama.money.internal.FakturamaFormatProviderSpi;
 import com.sebulli.fakturama.money.internal.FakturamaMonetaryAmountFormat;
-import jakarta.annotation.PostConstruct;
+
 import jakarta.inject.Inject;
 
 /**
  * Formatter service for numbers and currency values.
  *
  */
+
 public class NumberFormatterService implements INumberFormatterService {
 
     @Inject
@@ -64,8 +65,7 @@ public class NumberFormatterService implements INumberFormatterService {
     private boolean useThousandsSeparator = false;
     private Locale currencyLocale = Locale.getDefault();
 
-    @PostConstruct
-    protected void initialize() {
+    void initialize() {
         // without preferences nothing makes sense...
         if (preferenceStore == null) {
             preferenceStore = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
@@ -76,7 +76,7 @@ public class NumberFormatterService implements INumberFormatterService {
         }
 
         useThousandsSeparator = preferenceStore.getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR);
-        String useCurrencySymbol = preferenceStore.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
+        final String useCurrencySymbol = preferenceStore.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
         CurrencySettingEnum currencyCheckboxEnabled;
         if (useCurrencySymbol.isEmpty()) {
             // is no value is found we use symbol as default value
@@ -103,39 +103,49 @@ public class NumberFormatterService implements INumberFormatterService {
         initialize();
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#DoubleToDecimalFormatedValue(java.lang.Double, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.misc.INumberFormatterService#
+     * DoubleToDecimalFormatedValue(java.lang.Double, java.lang.String)
      */
     @Override
     public String DoubleToDecimalFormatedValue(final Double d, final String format) {
-        Double value = (d != null) ? d : Double.valueOf(0.0);
+        final Double value = (d != null) ? d : Double.valueOf(0.0);
 
         // Format as ...
-        DecimalFormat decimalFormat = new DecimalFormat(format);
+        final DecimalFormat decimalFormat = new DecimalFormat(format);
         return decimalFormat.format(value);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#doubleToFormattedPrice(java.lang.Double)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.misc.INumberFormatterService#doubleToFormattedPrice
+     * (java.lang.Double)
      */
     @Override
     public String doubleToFormattedPrice(final Double value) {
         if (value != null) {
-            CurrencyUnit currUnit = getCurrencyUnit(getLocaleUtil().getCurrencyLocale());
-            MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(value), currUnit);
+            final CurrencyUnit currUnit = getCurrencyUnit(getLocaleUtil().getCurrencyLocale());
+            final MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(value), currUnit);
             return formatCurrency(rounded);
         }
         return "";
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#DoubleToFormatedPercent(java.lang.Double)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.misc.INumberFormatterService#
+     * DoubleToFormatedPercent(java.lang.Double)
      */
     @Override
     public String DoubleToFormatedPercent(final Double d) {
         String retval = "";
         if (d != null) {
-            NumberFormat percentageFormat = NumberFormat.getPercentInstance();
+            final NumberFormat percentageFormat = NumberFormat.getPercentInstance();
             final int scale = preferenceStore.getInt(Constants.PREFERENCES_GENERAL_QUANTITY_DECIMALPLACES);
             percentageFormat.setMaximumFractionDigits(scale);
             retval = percentageFormat.format(d);
@@ -143,8 +153,11 @@ public class NumberFormatterService implements INumberFormatterService {
         return retval;
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#doubleToFormattedQuantity(java.lang.Double)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.misc.INumberFormatterService#
+     * doubleToFormattedQuantity(java.lang.Double)
      */
     @Override
     public String doubleToFormattedQuantity(final Double d) {
@@ -152,54 +165,73 @@ public class NumberFormatterService implements INumberFormatterService {
         return doubleToFormattedValue(d, scale);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#doubleToFormattedQuantity(java.lang.Double, int)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.misc.INumberFormatterService#
+     * doubleToFormattedQuantity(java.lang.Double, int)
      */
     @Override
     public String doubleToFormattedQuantity(final Double d, final int scale) {
         return doubleToFormattedValue(d, scale);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#DoubleToFormatedPriceRound(java.lang.Double)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.misc.INumberFormatterService#
+     * DoubleToFormatedPriceRound(java.lang.Double)
      */
     @Override
     public String DoubleToFormatedPriceRound(final Double d) {
         return doubleToFormattedPrice(DataUtils.getInstance().round(d));
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#formattedPriceToDouble(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.misc.INumberFormatterService#formattedPriceToDouble
+     * (java.lang.String)
      */
     @Override
     public Double formattedPriceToDouble(final String value) {
         Double retval = NumberUtils.DOUBLE_ZERO;
         try {
-            Number amount = currencyFormat.parse(value);
+            final Number amount = currencyFormat.parse(value);
             retval = amount.doubleValue();
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             getLog().info(String.format("Can't parse '%s' as money. Please check the format!", value));
         }
         return retval;
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(javax.money.MonetaryAmount)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(javax.
+     * money.MonetaryAmount)
      */
     @Override
     public String formatCurrency(final MonetaryAmount amount) {
         return getMonetaryAmountFormat().format(mro != null ? amount.with(mro) : amount);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(javax.money.MonetaryAmount, ULocale, com.sebulli.fakturama.money.CurrencySettingEnum, boolean, boolean)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(javax.
+     * money.MonetaryAmount, ULocale,
+     * com.sebulli.fakturama.money.CurrencySettingEnum, boolean, boolean)
      */
     @Override
     public String formatCurrency(final MonetaryAmount amount, final Locale locale, final CurrencySettingEnum useCurrencySymbol, final boolean cashRounding,
             final boolean useSeparator) {
-        CurrencyUnit usd = getCurrencyUnit(locale);
-        MonetaryRounding mro = DataUtils.getInstance().getRounding(usd, cashRounding);
-        MonetaryAmountFormat format = MonetaryFormats
+        final CurrencyUnit usd = getCurrencyUnit(locale);
+        final MonetaryRounding mro = DataUtils.getInstance().getRounding(usd, cashRounding);
+        final MonetaryAmountFormat format = MonetaryFormats
                 .getAmountFormat(AmountFormatQueryBuilder.of(locale).set(useCurrencySymbol).setFormatName(FakturamaFormatProviderSpi.DEFAULT_STYLE)
                         .set(FakturamaMonetaryAmountFormat.KEY_SCALE, preferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES))
                         .set(FakturamaMonetaryAmountFormat.KEY_USE_GROUPING, useSeparator).build());
@@ -246,20 +278,20 @@ public class NumberFormatterService implements INumberFormatterService {
         if (useCurrencySymbol.isEmpty()) {
             useCurrencySymbol = CurrencySettingEnum.CODE.name();
         }
-        CurrencySettingEnum currencySymbol = CurrencySettingEnum.valueOf(useCurrencySymbol);
+        final CurrencySettingEnum currencySymbol = CurrencySettingEnum.valueOf(useCurrencySymbol);
         switch (currencySymbol) {
-        case SYMBOL:
-            Currency jdkCurrency = getCurrency(currency.getCurrencyCode());
-            if (Objects.nonNull(jdkCurrency)) {
-                return jdkCurrency.getSymbol(localeUtil.getCurrencyLocale());
-            }
-            retval = currency.getCurrencyCode();
-            break;
-        case CODE:
-            retval = currency.getCurrencyCode();
-            break;
-        default:
-            break;
+            case SYMBOL:
+                final Currency jdkCurrency = getCurrency(currency.getCurrencyCode());
+                if (Objects.nonNull(jdkCurrency)) {
+                    return jdkCurrency.getSymbol(localeUtil.getCurrencyLocale());
+                }
+                retval = currency.getCurrencyCode();
+                break;
+            case CODE:
+                retval = currency.getCurrencyCode();
+                break;
+            default:
+                break;
         }
         return retval;
     }
@@ -267,19 +299,24 @@ public class NumberFormatterService implements INumberFormatterService {
     private Currency getCurrency(final String currencyCode) {
         try {
             return Currency.getInstance(currencyCode);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(double, java.util.ULocale, com.sebulli.fakturama.money.CurrencySettingEnum, boolean, boolean)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.misc.INumberFormatterService#formatCurrency(double,
+     * java.util.ULocale, com.sebulli.fakturama.money.CurrencySettingEnum,
+     * boolean, boolean)
      */
     @Override
     public String formatCurrency(final double myNumber, final Locale locale, final CurrencySettingEnum useCurrencySymbol, final boolean cashRounding,
             final boolean useSeparator) {
-        CurrencyUnit usd = getCurrencyUnit(locale);
-        MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(myNumber), usd);
+        final CurrencyUnit usd = getCurrencyUnit(locale);
+        final MonetaryAmount rounded = RoundedMoney.of(BigDecimal.valueOf(myNumber), usd);
         return formatCurrency(rounded, locale, useCurrencySymbol, cashRounding, useSeparator);
     }
 
@@ -305,7 +342,7 @@ public class NumberFormatterService implements INumberFormatterService {
         // Calculate the floor cent value.
         // for negative values, use the ceil
         if (d != null) {
-            Double floorValue = DataUtils.getInstance().round(d, scale);
+            final Double floorValue = DataUtils.getInstance().round(d, scale);
 
             // Format as "0.00"
             NumberFormat numberFormat = NumberFormat.getNumberInstance();
@@ -315,7 +352,7 @@ public class NumberFormatterService implements INumberFormatterService {
             s = numberFormat.format(floorValue);
 
             // Are there parts of a cent ? Add ".."
-            double epsilon = 2 * Math.pow(10, -1 * (scale + 2));
+            final double epsilon = 2 * Math.pow(10, -1 * (scale + 2));
             if (Math.abs(d - floorValue) > epsilon) {
                 s += "..";
             }
@@ -328,11 +365,14 @@ public class NumberFormatterService implements INumberFormatterService {
      */
     @Override
     public MonetaryAmountFormat getMonetaryAmountFormat() {
+        if (preferenceStore == null) {
+            initialize();
+        }
         String useCurrencySymbol = preferenceStore.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
         if (useCurrencySymbol.isEmpty()) {
             useCurrencySymbol = CurrencySettingEnum.SYMBOL.name();
         }
-        CurrencySettingEnum currencyCheckboxEnabled = CurrencySettingEnum.valueOf(useCurrencySymbol);
+        final CurrencySettingEnum currencyCheckboxEnabled = CurrencySettingEnum.valueOf(useCurrencySymbol);
         return MonetaryFormats.getAmountFormat(AmountFormatQueryBuilder.of(currencyLocale)
                 // scale wird nur verwendet, wenn kein Pattern angegeben ist
                 .set(FakturamaMonetaryAmountFormat.KEY_SCALE, preferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES))

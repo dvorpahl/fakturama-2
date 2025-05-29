@@ -28,6 +28,7 @@ import org.fakturama.export.einvoice.model.AddressData;
 import org.fakturama.export.einvoice.model.EInvoice;
 import org.fakturama.export.einvoice.model.InvoiceBuyer;
 import org.fakturama.export.einvoice.model.InvoiceData;
+import org.fakturama.export.einvoice.model.InvoiceDocumentTotals;
 import org.fakturama.export.einvoice.model.InvoiceLinePeriod;
 import org.fakturama.export.einvoice.model.InvoiceNote;
 import org.fakturama.export.einvoice.model.InvoicePosition;
@@ -213,7 +214,6 @@ public class XRechnung extends AbstractEInvoice {
         final SpecifiedPeriodType billingSpecificPeriod = createBillingSpecificPeriod(eInvoice.getInvoiceData());
         tradeSettlement.setBillingSpecifiedPeriod(billingSpecificPeriod);
 
-        // TODO tradeSettlement.setBillingSpecifiedPeriod(createPeriod(invoice));
         // Abschläge / Zuschläge nur aufführen wenn sie auch tatsächlich angefallen sind! 
         // TODO wieder ein
         //        if (Optional.ofNullable(invoice.getItemsRebate()).orElse(Double.valueOf(0.0)).compareTo(Double.valueOf(0.0)) != 0) {
@@ -224,8 +224,8 @@ public class XRechnung extends AbstractEInvoice {
         //        if (invoice.getShipping() != null && invoice.getShipping().getShippingValue() > 0 || invoice.getShippingValue() > 0) {
         //            tradeSettlement.getSpecifiedTradeAllowanceCharge().add(createTradeAllowance(invoice));
         //        }
-        //        tradeSettlement.getSpecifiedTradePaymentTerms().add(createTradePaymentTerms(invoice, documentSummary));
-        //        tradeSettlement.setSpecifiedTradeSettlementHeaderMonetarySummation(createTradeSettlementMonetarySummation(invoice, documentSummary));
+        tradeSettlement.getSpecifiedTradePaymentTerms().add(createTradePaymentTerms(eInvoice));
+        tradeSettlement.setSpecifiedTradeSettlementHeaderMonetarySummation(createTradeSettlementMonetarySummation(eInvoice));
 
         // Get the VAT summary of the UniDataSet document
 
@@ -573,33 +573,35 @@ public class XRechnung extends AbstractEInvoice {
      * @param documentSummary
      * @return
      */
-    private TradeSettlementHeaderMonetarySummationType createTradeSettlementMonetarySummation(final Document invoice, final DocumentSummary documentSummary) {
-        MonetaryAmount allowanceAmount = documentSummary.getDiscountNet();
-        if (!allowanceAmount.isPositiveOrZero()) {
-            allowanceAmount = allowanceAmount.multiply(-1.0);
-        }
-
-        // TODO wieder rein
+    private TradeSettlementHeaderMonetarySummationType createTradeSettlementMonetarySummation(final EInvoice eInvoice) {
+        final InvoiceDocumentTotals documentTotals = eInvoice.getInvoiceDocumentTotals();
+        final String currency = eInvoice.getInvoiceData().getInvoiceCurrencyCode();
+        //        MonetaryAmount allowanceAmount = documentSummary.getDiscountNet();
+        //        if (!allowanceAmount.isPositiveOrZero()) {
+        //            allowanceAmount = allowanceAmount.multiply(-1.0);
+        //        }
+        //
+        //        // TODO wieder rein
         //        if (!itemAllowances.getItemAllowances().isEmpty()) {
         //            final MonetaryAmount allowance = itemAllowances.getItemAllowances().values().parallelStream()
         //                    .collect(() -> Money.of(BigDecimal.ONE, DataUtils.getInstance().getDefaultCurrencyUnit()), (a, t) -> t.add(a), (a, t) -> t.add(a));
         //            allowanceAmount.add(allowance);
         //        }
-        MonetaryAmount totalAmount = Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit());
-        for (final MonetaryAmount amt : netPricesPerVat.values()) {
-            totalAmount = totalAmount.add(amt);
-        }
-        final MonetaryAmount taxBasisTotalAmount = totalAmount.add(documentSummary.getShippingNet()).subtract(allowanceAmount);
-        final MonetaryAmount grandTotalAmount = taxBasisTotalAmount.add(documentSummary.getTotalVat());
+        //        MonetaryAmount totalAmount = Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit());
+        //        for (final MonetaryAmount amt : netPricesPerVat.values()) {
+        //            totalAmount = totalAmount.add(amt);
+        //        }
+        //        final MonetaryAmount taxBasisTotalAmount = totalAmount.add(documentSummary.getShippingNet()).subtract(allowanceAmount);
+        //        final MonetaryAmount grandTotalAmount = taxBasisTotalAmount.add(documentSummary.getTotalVat());
         final TradeSettlementHeaderMonetarySummationType retval = factory.createTradeSettlementHeaderMonetarySummationType();
-        retval.setLineTotalAmount(createAmount(totalAmount));
-        retval.setChargeTotalAmount(createAmount(documentSummary.getShippingNet()));
-        retval.setAllowanceTotalAmount(createAmount(allowanceAmount));
-        retval.setTaxBasisTotalAmount(createAmount(taxBasisTotalAmount));
-        retval.getTaxTotalAmount().add(createAmount(documentSummary.getTotalVat(), 2, true));
-        retval.setGrandTotalAmount(createAmount(grandTotalAmount));
-        retval.setTotalPrepaidAmount(createAmount(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit())));
-        retval.setDuePayableAmount(createAmount(grandTotalAmount.subtract(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit()))));
+        //        retval.setLineTotalAmount(createAmount(totalAmount));
+        //        retval.setChargeTotalAmount(createAmount(Money.of(documentTotals.getSumOfChargesOnDocumentLevel(), currency)));
+        //        retval.setAllowanceTotalAmount(createAmount(allowanceAmount));
+        //        retval.setTaxBasisTotalAmount(createAmount(taxBasisTotalAmount));
+        //        retval.getTaxTotalAmount().add(createAmount(documentSummary.getTotalVat(), 2, true));
+        //        retval.setGrandTotalAmount(createAmount(grandTotalAmount));
+        //        retval.setTotalPrepaidAmount(createAmount(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit())));
+        //        retval.setDuePayableAmount(createAmount(grandTotalAmount.subtract(Money.of(invoice.getPaidValue(), DataUtils.getInstance().getDefaultCurrencyUnit()))));
         return retval;
     }
 
@@ -642,7 +644,7 @@ public class XRechnung extends AbstractEInvoice {
      * @param documentSummary
      * @return
      */
-    private TradePaymentTermsType createTradePaymentTerms(final EInvoice eInvoice, final DocumentSummary documentSummary) {
+    private TradePaymentTermsType createTradePaymentTerms(final EInvoice eInvoice) {
         final LocalDate dueDate = eInvoice.getInvoiceData().getPaymentDueDate();
         //        final TemplateProcessor placeholders = ContextInjectionFactory.make(TemplateProcessor.class, eclipseContext);
         //        final double percent = invoice.getPayment().getDiscountValue();

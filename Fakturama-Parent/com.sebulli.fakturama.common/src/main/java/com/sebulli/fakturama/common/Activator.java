@@ -33,6 +33,7 @@ import org.slf4j.MarkerFactory;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
 import com.sebulli.fakturama.log.LogbackAdapter;
+import com.sebulli.fakturama.misc.Constants;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -56,7 +57,7 @@ public class Activator implements BundleActivator {
     private static IPreferenceStore preferenceStore;
 
     private LogListener logAdapter;
-    private LinkedList<LogReaderService> logReaders = new LinkedList<>();
+    private final LinkedList<LogReaderService> logReaders = new LinkedList<>();
 
     /**
      * The Bundle Marker: a Marker where the name is the osgi bundle symbolic
@@ -66,7 +67,7 @@ public class Activator implements BundleActivator {
     public static final Marker BUNDLE_MARKER = createBundleMarker();
 
     private static final Marker createBundleMarker() {
-        Marker bundleMarker = MarkerFactory.getMarker(PLUGIN_ID);
+        final Marker bundleMarker = MarkerFactory.getMarker(PLUGIN_ID);
         bundleMarker.add(MarkerFactory.getMarker(IS_BUNDLE_MARKER));
         return bundleMarker;
     }
@@ -75,11 +76,11 @@ public class Activator implements BundleActivator {
      * We use a ServiceListener to dynamically keep track of all the
      * LogReaderService service being registered or unregistered
      */
-    private ServiceListener logServlistener = new ServiceListener() {
+    private final ServiceListener logServlistener = new ServiceListener() {
         @Override
         public void serviceChanged(final ServiceEvent event) {
-            BundleContext bc = event.getServiceReference().getBundle().getBundleContext();
-            LogReaderService lrs = (LogReaderService) bc.getService(event.getServiceReference());
+            final BundleContext bc = event.getServiceReference().getBundle().getBundleContext();
+            final LogReaderService lrs = (LogReaderService) bc.getService(event.getServiceReference());
             if (lrs != null) {
                 if (event.getType() == ServiceEvent.REGISTERED) {
                     logReaders.add(lrs);
@@ -95,25 +96,26 @@ public class Activator implements BundleActivator {
     @Override
     public void start(final BundleContext context) throws Exception {
         Activator.context = context;
-        logAdapter = new LogbackAdapter();
+        final String ws = getPreferenceStore().getString(Constants.GENERAL_WORKSPACE);
+        logAdapter = new LogbackAdapter(ws);
 
         // Get a list of all the registered LogReaderService, and add the listener
-        ServiceTracker<LogService, LogReaderService> logReaderTracker = new ServiceTracker<>(context, LogReaderService.class.getName(), null);
+        final ServiceTracker<LogService, LogReaderService> logReaderTracker = new ServiceTracker<>(context, LogReaderService.class.getName(), null);
         logReaderTracker.open();
-        Object[] readers = logReaderTracker.getServices();
+        final Object[] readers = logReaderTracker.getServices();
         if (readers != null) {
             for (int i = 0; i < readers.length; i++) {
-                LogReaderService lrs = (LogReaderService) readers[i];
+                final LogReaderService lrs = (LogReaderService) readers[i];
                 logReaders.add(lrs);
                 lrs.addLogListener(logAdapter);
             }
         }
 
         // Add the ServiceListener, but with a filter so that we only receive events related to LogReaderService
-        String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
+        final String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
         try {
             context.addServiceListener(logServlistener, filter);
-        } catch (InvalidSyntaxException e) {
+        } catch (final InvalidSyntaxException e) {
             e.printStackTrace();
         }
 
@@ -128,7 +130,7 @@ public class Activator implements BundleActivator {
 
         if (preferenceStore == null) {
             // get Preferences
-            ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
+            final ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
             if (serviceReference == null) {
                 System.err.println("no preference store available, Service Ref is very null");
                 return null;
@@ -160,8 +162,8 @@ public class Activator implements BundleActivator {
 
     @Override
     public void stop(final BundleContext context) throws Exception {
-        for (Iterator<LogReaderService> i = logReaders.iterator(); i.hasNext();) {
-            LogReaderService lrs = i.next();
+        for (final Iterator<LogReaderService> i = logReaders.iterator(); i.hasNext();) {
+            final LogReaderService lrs = i.next();
             lrs.removeLogListener(logAdapter);
             i.remove();
         }

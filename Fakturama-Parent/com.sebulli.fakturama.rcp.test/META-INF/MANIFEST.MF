@@ -11,5 +11,5 @@ Export-Package: com.sebulli.fakturama.office
 Require-Bundle: org.mockito.mockito-core;bundle-version="4.8.1",
  com.sebulli.fakturama.model,
  org.mockito.junit-jupiter;bundle-version="4.8.1",
- org.junit.jupiter.api,
- org.junit.jupiter.engine
+ junit-jupiter-api;bundle-version="5.12.2",
+ junit-jupiter-engine;bundle-version="5.12.2"

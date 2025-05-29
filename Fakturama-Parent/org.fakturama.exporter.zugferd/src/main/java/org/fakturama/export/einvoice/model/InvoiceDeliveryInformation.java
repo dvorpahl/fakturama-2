@@ -16,7 +16,7 @@ package org.fakturama.export.einvoice.model;
 import java.time.LocalDate;
 
 /**
- * BG-13 Lieferinformationen
+ * BG-13 Lieferinformationen, BG-15
  */
 public class InvoiceDeliveryInformation {
 
