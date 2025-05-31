@@ -13,17 +13,31 @@
 
 package com.sebulli.fakturama.log;
 
+import java.util.LinkedList;
+
 // import jakarta.inject.Provider;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.eclipse.equinox.log.ExtendedLogService;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogLevel;
+import org.osgi.service.log.LogReaderService;
 // import org.eclipse.e4.core.services.statusreporter.StatusReporter;
 import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
+
+import com.sebulli.fakturama.common.Activator;
+import com.sebulli.fakturama.misc.Constants;
 
 import ch.qos.logback.classic.spi.CallerData;
+import jakarta.inject.Inject;
 
 /**
  * A wrapper class for the Fakturama logger. This Logger delegates all calls to
@@ -36,9 +50,62 @@ public class FakturamaLogger implements ILogger {
     @Reference
     private ExtendedLogService delegate;
 
+    private LogbackAdapter logAdapter;
+
+    private final LinkedList<LogReaderService> logReaders = new LinkedList<>();
+
+    @Inject
+    private IPreferenceStore preferences;
     //    // TODO prove to use this
     //    @Inject
     //    private Provider<StatusReporter> statusReporter;
+
+    public void postConstruct() {
+        final String folderWs = Activator.getPreferenceStore().getString(Constants.GENERAL_WORKSPACE);
+        logAdapter = new LogbackAdapter(folderWs);
+        final BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+
+        // Get a list of all the registered LogReaderService, and add the listener
+        final ServiceTracker<LogService, LogReaderService> logReaderTracker = new ServiceTracker<>(bundleContext, LogReaderService.class.getName(), null);
+        logReaderTracker.open();
+        final Object[] readers = logReaderTracker.getServices();
+        if (readers != null) {
+            for (int i = 0; i < readers.length; i++) {
+                final LogReaderService lrs = (LogReaderService) readers[i];
+                logReaders.add(lrs);
+                lrs.addLogListener(logAdapter);
+            }
+        }
+
+        // Add the ServiceListener, but with a filter so that we only receive events related to LogReaderService
+        final String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
+        try {
+            bundleContext.addServiceListener(logServlistener, filter);
+        } catch (final InvalidSyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * We use a ServiceListener to dynamically keep track of all the
+     * LogReaderService service being registered or unregistered
+     */
+    private final ServiceListener logServlistener = new ServiceListener() {
+        @Override
+        public void serviceChanged(final ServiceEvent event) {
+            final BundleContext bc = event.getServiceReference().getBundle().getBundleContext();
+            final LogReaderService lrs = (LogReaderService) bc.getService(event.getServiceReference());
+            if (lrs != null) {
+                if (event.getType() == ServiceEvent.REGISTERED) {
+                    logReaders.add(lrs);
+                    lrs.addLogListener(logAdapter);
+                } else if (event.getType() == ServiceEvent.UNREGISTERING) {
+                    lrs.removeLogListener(logAdapter);
+                    logReaders.remove(lrs);
+                }
+            }
+        }
+    };
 
     /*
      * (non-Javadoc)

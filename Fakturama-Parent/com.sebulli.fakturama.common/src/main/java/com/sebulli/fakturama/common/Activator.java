@@ -20,20 +20,13 @@ import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
-import org.osgi.service.log.LogService;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
-import com.sebulli.fakturama.log.LogbackAdapter;
-import com.sebulli.fakturama.misc.Constants;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -72,52 +65,31 @@ public class Activator implements BundleActivator {
         return bundleMarker;
     }
 
-    /**
-     * We use a ServiceListener to dynamically keep track of all the
-     * LogReaderService service being registered or unregistered
-     */
-    private final ServiceListener logServlistener = new ServiceListener() {
-        @Override
-        public void serviceChanged(final ServiceEvent event) {
-            final BundleContext bc = event.getServiceReference().getBundle().getBundleContext();
-            final LogReaderService lrs = (LogReaderService) bc.getService(event.getServiceReference());
-            if (lrs != null) {
-                if (event.getType() == ServiceEvent.REGISTERED) {
-                    logReaders.add(lrs);
-                    lrs.addLogListener(logAdapter);
-                } else if (event.getType() == ServiceEvent.UNREGISTERING) {
-                    lrs.removeLogListener(logAdapter);
-                    logReaders.remove(lrs);
-                }
-            }
-        }
-    };
-
     @Override
     public void start(final BundleContext context) throws Exception {
         Activator.context = context;
-        final String ws = getPreferenceStore().getString(Constants.GENERAL_WORKSPACE);
-        logAdapter = new LogbackAdapter(ws);
-
-        // Get a list of all the registered LogReaderService, and add the listener
-        final ServiceTracker<LogService, LogReaderService> logReaderTracker = new ServiceTracker<>(context, LogReaderService.class.getName(), null);
-        logReaderTracker.open();
-        final Object[] readers = logReaderTracker.getServices();
-        if (readers != null) {
-            for (int i = 0; i < readers.length; i++) {
-                final LogReaderService lrs = (LogReaderService) readers[i];
-                logReaders.add(lrs);
-                lrs.addLogListener(logAdapter);
-            }
-        }
-
-        // Add the ServiceListener, but with a filter so that we only receive events related to LogReaderService
-        final String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
-        try {
-            context.addServiceListener(logServlistener, filter);
-        } catch (final InvalidSyntaxException e) {
-            e.printStackTrace();
-        }
+        //        final String ws = getPreferenceStore().getString(Constants.GENERAL_WORKSPACE);
+        //        logAdapter = new LogbackAdapter(null);
+        //
+        //        // Get a list of all the registered LogReaderService, and add the listener
+        //        final ServiceTracker<LogService, LogReaderService> logReaderTracker = new ServiceTracker<>(context, LogReaderService.class.getName(), null);
+        //        logReaderTracker.open();
+        //        final Object[] readers = logReaderTracker.getServices();
+        //        if (readers != null) {
+        //            for (int i = 0; i < readers.length; i++) {
+        //                final LogReaderService lrs = (LogReaderService) readers[i];
+        //                logReaders.add(lrs);
+        //                lrs.addLogListener(logAdapter);
+        //            }
+        //        }
+        //
+        //        // Add the ServiceListener, but with a filter so that we only receive events related to LogReaderService
+        //        final String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
+        //        try {
+        //            context.addServiceListener(logServlistener, filter);
+        //        } catch (final InvalidSyntaxException e) {
+        //            e.printStackTrace();
+        //        }
 
         // don't close the tracker, else the logger won't work!
         //		logReaderTracker.close();

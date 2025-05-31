@@ -70,9 +70,8 @@ public class LogbackAdapter implements LogListener {
          * or if the application is started the first time
          */
         final Path logFile = getLogfileName(workspaceLocation);
-        if (logFile != null && LoggerFactory.getILoggerFactory() instanceof LoggerContext) {
+        if (logFile != null && LoggerFactory.getILoggerFactory() instanceof final LoggerContext loggerContext) {
             // determine the configuration file location
-            final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
             // if a workspace is set we can adapt the log configuration file location
             // at first check if the configuration is set via a switch
             String defaultLogConfigFileName = System.getProperty(ClassicConstants.CONFIG_FILE_PROPERTY) != null

@@ -104,9 +104,9 @@
     </setAttribute>
     <setAttribute key="selected_target_bundles">
         <setEntry value="angus-activation*2.0.2@default:true"/>
-        <setEntry value="bcpg*1.79.0@default:default"/>
+        <setEntry value="bcpg*1.80.0@default:default"/>
         <setEntry value="bcpkix@default:default"/>
-        <setEntry value="bcprov*1.79.0@default:default"/>
+        <setEntry value="bcprov*1.80.0@default:default"/>
         <setEntry value="bcutil@default:default"/>
         <setEntry value="ca.odell.glazedlists@default:default"/>
         <setEntry value="ch.qos.logback.classic@default:default"/>
@@ -719,7 +719,7 @@
         <setEntry value="org.eclipse.equinox.p2.transport.ecf.nl_tr@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.transport.ecf.nl_uk@default:false"/>
         <setEntry value="org.eclipse.equinox.p2.transport.ecf@default:default"/>
-        <setEntry value="org.eclipse.equinox.preferences@default:default"/>
+        <setEntry value="org.eclipse.equinox.preferences@2:default"/>
         <setEntry value="org.eclipse.equinox.registry@default:default"/>
         <setEntry value="org.eclipse.equinox.security.win32.x86_64@default:false"/>
         <setEntry value="org.eclipse.equinox.security@default:default"/>
@@ -901,7 +901,7 @@
         <setEntry value="org.fakturama.wizards@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
-    <stringAttribute key="timestamp" value="1747164411432"/>
+    <stringAttribute key="timestamp" value="1748730328700"/>
     <booleanAttribute key="tracing" value="false"/>
     <mapAttribute key="tracingOptions">
         <mapEntry key="org.aspectj.osgi.service.caching.j9/debug" value="false"/>
