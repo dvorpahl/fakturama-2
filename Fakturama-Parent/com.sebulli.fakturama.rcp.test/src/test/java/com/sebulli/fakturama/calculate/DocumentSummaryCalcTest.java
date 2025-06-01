@@ -32,6 +32,7 @@ import com.sebulli.fakturama.dto.DocumentSummaryManager;
 import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.PriceBuilder;
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.log.LogbackAdapter;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Document;
@@ -64,6 +65,7 @@ public class DocumentSummaryCalcTest {
 
     @BeforeEach
     public void setUp() throws Exception {
+        FrameworkUtil.getBundle(LogbackAdapter.class).start();
         FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
 
         //        Locale.setDefault(Locale.GERMANY);

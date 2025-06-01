@@ -12,4 +12,7 @@ Require-Bundle: org.mockito.mockito-core;bundle-version="4.8.1",
  com.sebulli.fakturama.model,
  org.mockito.junit-jupiter;bundle-version="4.8.1",
  junit-jupiter-api;bundle-version="5.12.2",
- junit-jupiter-engine;bundle-version="5.12.2"
+ junit-jupiter-engine;bundle-version="5.12.2",
+ junit-jupiter-params;bundle-version="5.12.2",
+ junit-platform-engine;bundle-version="1.12.2",
+ junit-platform-commons;bundle-version="1.12.2"
