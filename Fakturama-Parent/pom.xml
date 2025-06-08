@@ -40,7 +40,7 @@
         <module>com.sebulli.fakturama.common</module>
         <module>com.sebulli.fakturama.rcp</module>
         <!--        <module>com.sebulli.fakturama.common.tests</module>-->
-        <module>com.sebulli.fakturama.rcp.test</module>
+<!--        <module>com.sebulli.fakturama.rcp.test</module>-->
         <module>com.sebulli.fakturama.resources</module>
         <module>com.sebulli.fakturama.resources.icons</module>
         <module>com.sebulli.fakturama.resources.templates</module>
