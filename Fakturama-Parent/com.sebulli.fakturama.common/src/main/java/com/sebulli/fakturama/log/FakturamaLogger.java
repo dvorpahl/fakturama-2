@@ -18,6 +18,7 @@ import java.util.LinkedList;
 // import jakarta.inject.Provider;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.equinox.log.ExtendedLogService;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.BundleContext;
@@ -33,6 +34,7 @@ import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
+import com.opcoach.e4.preferences.ScopedPreferenceStore;
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.misc.Constants;
 
@@ -47,6 +49,8 @@ import jakarta.inject.Inject;
 @Component
 public class FakturamaLogger implements ILogger {
 
+    public static final String PLUGIN_ID_RCP = "com.sebulli.fakturama.rcp";
+
     @Reference
     private ExtendedLogService delegate;
 
@@ -54,14 +58,14 @@ public class FakturamaLogger implements ILogger {
 
     private final LinkedList<LogReaderService> logReaders = new LinkedList<>();
 
-    @Inject
-    private IPreferenceStore preferences;
     //    // TODO prove to use this
     //    @Inject
     //    private Provider<StatusReporter> statusReporter;
 
     public void postConstruct() {
-        final String folderWs = Activator.getPreferenceStore().getString(Constants.GENERAL_WORKSPACE);
+        ScopedPreferenceStore preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, PLUGIN_ID_RCP);
+
+        final String folderWs = preferenceStore.getString(Constants.GENERAL_WORKSPACE);
         logAdapter = new LogbackAdapter(folderWs);
         final BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
 

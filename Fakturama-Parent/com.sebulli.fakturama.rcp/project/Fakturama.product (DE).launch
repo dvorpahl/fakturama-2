@@ -832,7 +832,7 @@
         <setEntry value="org.glassfish.jaxb.core@default:default"/>
         <setEntry value="org.glassfish.jaxb.runtime@default:default"/>
         <setEntry value="org.hsqldb.hsqldb*2.7.4@2:true"/>
-        <setEntry value="org.javamoney.moneta@3:true"/>
+        <setEntry value="org.javamoney.moneta@2:true"/>
         <setEntry value="org.liquibase.core@default:default"/>
         <setEntry value="org.objectweb.asm*9.6.0@default:default"/>
         <setEntry value="org.objectweb.asm.commons*9.6.0@default:default"/>
@@ -867,6 +867,7 @@
         <setEntry value="org.yaml.snakeyaml@default:default"/>
         <setEntry value="slf4j.api*2.0.17@default:default"/>
         <setEntry value="wrapped.com.google.zxing.javase@default:default"/>
+        <setEntry value="wrapped.com.squareup.okhttp3.okhttp@default:default"/>
         <setEntry value="wrapped.io.nayuki.qrcodegen@default:default"/>
         <setEntry value="wrapped.net.codecrete.qrbill.qrbill-generator@default:default"/>
         <setEntry value="wrapped.org.apache.jena.jena-arq@default:default"/>
@@ -901,7 +902,7 @@
         <setEntry value="org.fakturama.wizards@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
-    <stringAttribute key="timestamp" value="1748730328700"/>
+    <stringAttribute key="timestamp" value="1749854270581"/>
     <booleanAttribute key="tracing" value="false"/>
     <mapAttribute key="tracingOptions">
         <mapEntry key="org.aspectj.osgi.service.caching.j9/debug" value="false"/>

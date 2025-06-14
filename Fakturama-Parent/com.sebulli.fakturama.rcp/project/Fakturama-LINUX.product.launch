@@ -521,6 +521,7 @@
         <setEntry value="org.w3c.dom.smil@default:default"/>
         <setEntry value="org.w3c.dom.svg@default:default"/>
         <setEntry value="osgi.annotation@default:default"/>
+        <setEntry value="wrapped.com.squareup.okhttp3.okhttp@default:default"/>
         <setEntry value="wrapped.org.apache.jena.jena-arq@default:default"/>
         <setEntry value="wrapped.org.apache.jena.jena-base@default:default"/>
         <setEntry value="wrapped.org.apache.jena.jena-core@default:default"/>

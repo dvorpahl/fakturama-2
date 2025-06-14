@@ -74,7 +74,7 @@
 
                                 <xsdOption>
                                     <xsd>
-                                        ${project.basedir}/src/main/resources/zugpferd/Factur-X_1.07.2_EXTENDED.xsd</xsd>
+                                        ${project.basedir}/src/main/resources/zugpferd/Factur-X_1.07.3_EXTENDED.xsd</xsd>
                                     <bindingFile>
                                         ${project.basedir}/src/main/resources/zugpferd/invoice.xjb</bindingFile>
                                     <packagename>

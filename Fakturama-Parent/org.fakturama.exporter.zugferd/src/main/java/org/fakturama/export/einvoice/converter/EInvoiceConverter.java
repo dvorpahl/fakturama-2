@@ -134,13 +134,13 @@ public class EInvoiceConverter {
 
         try {
             final EInvoice eInvoice = new EInvoice();
-            // BG-2 (post-process), BG-14
+            // BG-2 (post-process) (Y), BG-14 (Y), Wurzelelemente (Y)
             setInvoiceData(eInvoice, invoice);
             // BG-4, BG-5, BG-6, BG-10, BG-11, BG-12
             setInvoiceSeller(eInvoice, invoice);
-            // BG-1
+            // BG-1 (Y)
             setInvoiceNote(eInvoice, invoice);
-            //BG-7, BG-8, BG-9
+            //BG-7 (Y), BG-8 (Y), BG-9 (N)
             setInvoiceBuyer(eInvoice, invoice);
             // BG-13, BG-15
             setInvoiceDeliveryInformation(eInvoice, invoice);
@@ -155,9 +155,9 @@ public class EInvoiceConverter {
             setInvoiceTotals(eInvoice, invoice);
             // BG-23
             setInvoiceVatBreakdowns(eInvoice, invoice);
-            // BG-3
+            // BG-3 (NA)
             // setPreceedingInvoice(eInvoice, invoice);
-            // BG-24
+            // BG-24 (NA)
             // setAdditionalDocuments(eInvoice, invoice);
             return eInvoice;
         } catch (final Exception e) {
@@ -404,22 +404,29 @@ public class EInvoiceConverter {
 
         final InvoiceBuyer invoiceBuyer = eInvoice.getInvoiceBuyer();
         final AddressData address = invoiceBuyer.getBuyerAddress();
+        // BT-44
         invoiceBuyer.setBuyerName(billingAddress.getName());
+        // BT-49
         invoiceBuyer.setBuyerElectronicAddress(billingAddress.getEmail());
-
+        // BT-49-1: Hardcoded Schema Email (EM, codelist urn:xoev-de:kosit:codeliste:eas_5)
+        invoiceBuyer.setBuyerElectronicAddressSchemeIdentifier("EM");
+        
+        // missing: BT-45 (Buyer trading name), BT-47, BT-47-1 (Handelsregistereintrag)
+        // further missing: BT-51, bt-163 (Adresse 2 und 3), BT-54 (Bundesland)
+        // BG-9: DefinedTradeContact wird derzeit nicht von Fakturama unterstützt
+        
         // attention! Mind the manualAddress!
         if (billingAddress.getManualAddress() == null) {
-            // BT-38, BT-53, BT-67, BT-78
-            address.setPostCode(billingAddress.getZip());
-            // BT-35, BT-50, BT-64, BT-75 
+            // BT-50
             address.setAddressLine1(billingAddress.getStreet());
-
             //      retval.setLineTwo(is empty at the moment)
             //      retval.setLineThree(is empty at the moment);
 
-            // BT-37, BT-52, BT-66, BT-77 
+            // BT-52
             address.setCity(billingAddress.getCity());
-            // BT-40, BT-55, BT-69, BT-80
+            // BT-53
+            address.setPostCode(billingAddress.getZip());
+            // BT-55
             address.setCountryCode(billingAddress.getCountryCode()); // Nur die Alpha-2 Darstellung darf verwendet werden
             //      retval.setCountrySubDivisionName(null)
 
@@ -537,6 +544,7 @@ public class EInvoiceConverter {
         // BT-10
         invoiceData.setBuyerReference(StringUtils.trimToNull(invoice.getCustomerRef()));
 
+        // not here: BT-11, BT-12, BT-14, BT-15, BT-16, BT-17, BT-18, BT-19
         /*
          * not available for now (Fakturama has no support for it)
          * invoiceData.setProjectReference();
@@ -560,6 +568,7 @@ public class EInvoiceConverter {
         this.documentSummary = documentSummaryCalculator.calculate(invoice);
         final double percent = invoice.getPayment().getDiscountValue();
 
+        // BT-20
         final Optional<String> paymentText = Optional.ofNullable(placeholders.createPaymentText(invoice, Optional.ofNullable(documentSummary), percent));
 
         invoiceData.setPaymentTerms(paymentText.orElse(null));

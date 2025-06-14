@@ -6,4 +6,5 @@
    </service>
    <reference bind="bindLocaleService" cardinality="1..1" interface="com.sebulli.fakturama.i18n.ILocaleService" name="ILocaleService" policy="static"/>
    <reference bind="bindLog" cardinality="1..1" interface="com.sebulli.fakturama.log.ILogger" name="ILogger" policy="static"/>
+   <reference cardinality="1..1" interface="org.javamoney.moneta.spi.loader.LoaderService" name="LoaderService" policy="static"/>
 </scr:component>

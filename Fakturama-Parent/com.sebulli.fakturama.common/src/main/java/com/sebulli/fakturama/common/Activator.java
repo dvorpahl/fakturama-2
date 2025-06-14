@@ -16,6 +16,7 @@ package com.sebulli.fakturama.common;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.BundleActivator;
@@ -27,6 +28,8 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
+import com.opcoach.e4.preferences.ScopedPreferenceStore;
+import com.sebulli.fakturama.log.FakturamaLogger;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -102,12 +105,10 @@ public class Activator implements BundleActivator {
 
         if (preferenceStore == null) {
             // get Preferences
-            final ServiceReference<IPreferenceStoreProvider> serviceReference = context.getServiceReference(IPreferenceStoreProvider.class);
-            if (serviceReference == null) {
-                System.err.println("no preference store available, Service Ref is very null");
-                return null;
-            }
-            preferenceStore = context.getService(serviceReference).getPreferenceStore();
+            preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, FakturamaLogger.PLUGIN_ID_RCP);
+
+           
+            
             EclipseContextFactory.getServiceContext(context).set(IPreferenceStore.class, preferenceStore);
         }
 

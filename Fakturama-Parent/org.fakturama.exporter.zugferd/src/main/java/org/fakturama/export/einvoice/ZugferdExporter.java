@@ -132,8 +132,8 @@ public class ZugferdExporter implements IPdfPostProcessor {
      */
     private boolean checkSettings() {
         boolean result = true;
-        if (result && eclipsePrefs
-                .get(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT, preferences.getDefaultString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT))
+        if ( preferences
+                .getString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT)
                 .isEmpty()) {
             result = false;
             MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNopdfpath);

@@ -16,9 +16,11 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Currency;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
@@ -28,15 +30,24 @@ import javax.money.RoundingQueryBuilder;
 import javax.money.format.AmountFormatQueryBuilder;
 import javax.money.format.MonetaryAmountFormat;
 import javax.money.format.MonetaryFormats;
+import javax.money.spi.Bootstrap;
+import javax.money.spi.CurrencyProviderSpi;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.javamoney.moneta.Money;
+import org.javamoney.moneta.OSGIServiceHelper;
 import org.javamoney.moneta.RoundedMoney;
+import org.javamoney.moneta.spi.DefaultConfigProvider;
+import org.javamoney.moneta.spi.MonetaryConfigProvider;
 
+import com.opcoach.e4.preferences.ScopedPreferenceStore;
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.log.FakturamaLogger;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.money.CurrencySettingEnum;
 import com.sebulli.fakturama.money.FakturamaMonetaryRoundingProvider;
@@ -66,15 +77,9 @@ public class NumberFormatterService implements INumberFormatterService {
     private Locale currencyLocale = Locale.getDefault();
 
     void initialize() {
-        // without preferences nothing makes sense...
-        if (preferenceStore == null) {
-            preferenceStore = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
-            if (preferenceStore == null) {
-                log.error("no preference store available, NumberFormatterService can't be initialized!");
-                return;
-            }
-        }
+        preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, FakturamaLogger.PLUGIN_ID_RCP);
 
+   
         useThousandsSeparator = preferenceStore.getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR);
         final String useCurrencySymbol = preferenceStore.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
         CurrencySettingEnum currencyCheckboxEnabled;
@@ -90,6 +95,10 @@ public class NumberFormatterService implements INumberFormatterService {
 
         currencyFormat = NumberFormat.getCurrencyInstance(currencyLocale);
         if (currencyCheckboxEnabled != CurrencySettingEnum.NONE) {
+//            Collection<CurrencyProviderSpi> currencyProviderSpi = Bootstrap.getServices(CurrencyProviderSpi.class);
+//            ServiceLoader<MonetaryConfigProvider> serv = ServiceLoader.load(MonetaryConfigProvider.class, Money.class.getClassLoader());
+            OSGIServiceHelper.registerService(Activator.getContext().getBundle(), MonetaryConfigProvider.class, DefaultConfigProvider.class);
+//            Collection<MonetaryConfigProvider> monetaryConfigProvider = Bootstrap.getServices(MonetaryConfigProvider.class);
             mro = Monetary.getRounding(RoundingQueryBuilder.of().setCurrency(Monetary.getCurrency(currencyLocale))
                     .setProviderName(FakturamaMonetaryRoundingProvider.DEFAULT_ROUNDING_ID)
                     .setScale(preferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES))
