@@ -36,6 +36,7 @@ public class ZFMessages {
 	public String zugferdExportErrorEmptycompanypref;
 
     public String zugferdPreferencesFilelocation;
+    public String zugferdPreferencesEmbedinpdf;
 	public String zugferdPreferencesProfile;
 	public String zugferdPreferencesTitle;
 	public String zugferdPreferencesVersion;

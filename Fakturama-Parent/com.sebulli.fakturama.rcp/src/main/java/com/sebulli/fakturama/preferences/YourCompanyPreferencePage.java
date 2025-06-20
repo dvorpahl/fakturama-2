@@ -113,6 +113,7 @@ public class YourCompanyPreferencePage extends FieldEditorPreferencePage impleme
 
 		addField(new StringFieldEditor(Constants.PREFERENCES_YOURCOMPANY_WEBSITE, msg.exporterDataWebsite, getFieldEditorParent()));
 
+		addField(new StringFieldEditor(Constants.PREFERENCES_YOURCOMPANY_TRADE_REGISTER, msg.pageCompanyTraderegister, getFieldEditorParent()));
 		addField(new StringFieldEditor(Constants.PREFERENCES_YOURCOMPANY_VATNR, msg.pageCompanyVatno, getFieldEditorParent()));
 		addField(new StringFieldEditor(Constants.PREFERENCES_YOURCOMPANY_TAXNR, msg.pageCompanyTaxno, getFieldEditorParent()));
 
@@ -145,6 +146,7 @@ public class YourCompanyPreferencePage extends FieldEditorPreferencePage impleme
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_FAX, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_EMAIL, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_WEBSITE, write);
+		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_TRADE_REGISTER, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_VATNR, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_TAXNR, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_YOURCOMPANY_TAXOFFICE, write);

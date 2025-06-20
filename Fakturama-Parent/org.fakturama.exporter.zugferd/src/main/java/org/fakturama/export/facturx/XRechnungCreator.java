@@ -89,7 +89,8 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
         // 2. create XML file
         final IEinvoice eInvoiceImpl;
         final ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, eclipseContext);
-        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager, msg);
+        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager, msg, localeUtil,
+                measureUnits, zfMsg);
         EInvoice eInvoice;
         try {
             eInvoice = converter.convertInvoice(invoice.orElseThrow());

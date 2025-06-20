@@ -734,6 +734,7 @@ public class Messages {
     public String pageCompanyStreet;
     public String pageCompanyTaxno;
     public String pageCompanyTaxoffice;
+    public String pageCompanyTraderegister;
     public String pageCompanyVatno;
     public String pageContacts;
     public String pageContactsFormat;

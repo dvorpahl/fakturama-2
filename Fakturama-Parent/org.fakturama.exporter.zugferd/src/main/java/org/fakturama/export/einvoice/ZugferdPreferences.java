@@ -21,21 +21,23 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.core.services.nls.Translation;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.BooleanPropertyAction;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.widgets.WidgetFactory;
 import org.eclipse.nebula.widgets.opal.checkboxgroup.CheckBoxGroup;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
@@ -87,7 +89,11 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
 
     private StringFieldEditor xrechnungPathField;
 
+    private BooleanFieldEditor xrechnungEmbedXmlInPdf;
+
     private Composite editorParent;
+
+    private Composite paddingComposite;
 
     /**
      * The Constructor.
@@ -111,8 +117,10 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
     @Override
     protected void createFieldEditors() {
         final CheckBoxGroup group = new CheckBoxGroup(getFieldEditorParent(), SWT.NONE);
+        editorParent = group.getContent();
+
         group.setText(msg.zugferdPreferencesIsActive);
-        group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        group.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).align(SWT.FILL, SWT.FILL).grab(true, false).create());
 
         final BooleanPropertyAction booleanPropertyAction = new BooleanPropertyAction("useZF", getPreferenceStore(), ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
         group.addSelectionListener(new SelectionAdapter() {
@@ -122,17 +130,12 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
                 booleanPropertyAction.run();
             }
         });
-        editorParent = group.getContent();
-
-        //		addField(new BooleanFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_TEST, msg.zugferdPreferencesTestmode, getFieldEditorParent()));
 
         // fill combo box according to selected version!
-        final String zfVersionStr = StringUtils.defaultIfBlank(getPreferenceStore().getString(ZFConstants.PREFERENCES_ZUGFERD_VERSION),
-                getPreferenceStore().getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_VERSION));
-
         final ZugferdVersion zfVersion = ZugferdVersion.V2_1;
         conformanceLevelCombo = new ComboFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, msg.zugferdPreferencesProfile, featureMap.get(zfVersion),
                 editorParent);
+        conformanceLevelCombo.fillIntoGrid(editorParent, 2);
         addField(conformanceLevelCombo);
 
         xrechnungPathField = new StringFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PATH, msg.zugferdPreferencesFilelocation, editorParent) {
@@ -143,8 +146,18 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
                 refreshValidState();
             }
         };
+        xrechnungPathField.fillIntoGrid(editorParent, 2);
+
         xrechnungPathField.setEmptyStringAllowed(false);
         addField(xrechnungPathField);
+
+        paddingComposite = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(1).create())
+                .layoutData(GridDataFactory.swtDefaults().span(1, 2).indent(0, 5).align(SWT.BEGINNING, SWT.BEGINNING).create()).create(editorParent);
+
+        xrechnungEmbedXmlInPdf = new BooleanFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, msg.zugferdPreferencesEmbedinpdf, paddingComposite);
+
+        addField(xrechnungEmbedXmlInPdf);
+
         final boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
         group.setSelection(isZFActive);
         enableXRechnungPathField(isZFActive, getPreferenceStore().getString(ZFConstants.PREFERENCES_ZUGFERD_PROFILE));
@@ -155,7 +168,9 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
 
         if (currentConformanceLevelString == null) {
             final Combo comboBox = getCombo(conformanceLevelCombo);
-            currentConformanceLevelString = comboBox.getItem(comboBox.getSelectionIndex());
+            if (comboBox != null) {
+                currentConformanceLevelString = comboBox.getItem(comboBox.getSelectionIndex());
+            }
         }
 
         try {
@@ -167,6 +182,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         final boolean enabled = isZFActive && ConformanceLevel.XRECHNUNG == currentConformanceLevel;
         xrechnungPathField.setEnabled(enabled, editorParent);
         xrechnungPathField.setEmptyStringAllowed(!enabled);
+        xrechnungEmbedXmlInPdf.setEnabled(enabled, paddingComposite);
         checkState();
     }
 
@@ -210,6 +226,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_TEST, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_PATH, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, write);
+        preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, write);
     }
 
     @Override
@@ -218,6 +235,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_VERSION, ZugferdVersion.V2_1.getVersion());
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_TEST, Boolean.FALSE);
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_PATH, "XML/{yyyy}/{doctype}/{docname}_{address}.xml");
+        node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, Boolean.FALSE);
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, ConformanceLevel.XRECHNUNG.name());
     }
 

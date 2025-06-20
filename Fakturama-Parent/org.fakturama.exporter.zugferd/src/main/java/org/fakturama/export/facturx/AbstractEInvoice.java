@@ -21,9 +21,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.money.MonetaryAmount;
 
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.e4.core.contexts.IEclipseContext;
-import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Shell;
@@ -31,16 +28,11 @@ import org.fakturama.export.einvoice.IEinvoice;
 import org.fakturama.export.einvoice.ZFMessages;
 import org.fakturama.export.facturx.modelgen.ObjectFactory;
 
-import com.sebulli.fakturama.dao.CEFACTCodeDAO;
 import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.i18n.ILocaleService;
-import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
-import com.sebulli.fakturama.misc.IDateFormatterService;
-import com.sebulli.fakturama.misc.INumberFormatterService;
 import com.sebulli.fakturama.model.Contact;
 import com.sebulli.fakturama.model.DocumentReceiver;
-import com.sebulli.fakturama.model.IDocumentAddressManager;
 
 /**
  *
@@ -51,7 +43,7 @@ public abstract class AbstractEInvoice implements IEinvoice {
      *
      */
     public enum ContactType {
-        SELLER, BUYER
+        SELLER, BUYER, DELIVERY
     }
 
     //  enum InvoiceeTradeParty { DERIVED, }
@@ -63,41 +55,17 @@ public abstract class AbstractEInvoice implements IEinvoice {
     @Translation
     protected ZFMessages zfMsg;
 
-    @Inject
-    @Translation
-    protected Messages messages;
-
     @Inject // node: org.fakturama.export.zugferd
     protected IPreferenceStore preferences;
 
     @Inject
-    @org.eclipse.e4.core.di.annotations.Optional
-    @Preference
-    protected IEclipsePreferences eclipsePrefs;
-
-    @Inject
-    protected IEclipseContext eclipseContext;
-
-    @Inject
     ILogger log;
-
-    @Inject
-    protected CEFACTCodeDAO measureUnits;
 
     @Inject
     protected ILocaleService localeUtil;
 
     @Inject
     protected ContactsDAO contactsDAO;
-
-    @Inject
-    protected INumberFormatterService numberFormatterService;
-
-    @Inject
-    protected IDateFormatterService dateFormatterService;
-
-    @Inject
-    protected IDocumentAddressManager addressManager;
 
     @Inject
     @org.eclipse.e4.core.di.annotations.Optional

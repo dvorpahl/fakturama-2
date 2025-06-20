@@ -85,7 +85,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
 
     @Inject
     @Translation
-    protected ZFMessages msg;
+    protected ZFMessages zfMsg;
 
     @Inject
     @org.eclipse.e4.core.di.annotations.Optional
@@ -171,7 +171,8 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 outputStream.close();
 
                 printXMLDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
-                final PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
+                final PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile,
+                        zugferdProfile/* , zugferdXml, invoice.getName() */);
 
                 // embed XML
                 pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo);

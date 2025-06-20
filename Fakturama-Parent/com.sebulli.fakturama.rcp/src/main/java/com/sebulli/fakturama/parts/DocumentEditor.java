@@ -407,7 +407,9 @@ public class DocumentEditor extends Editor<Document> {
 
         // set focus outside of address tab
         addressAndIconComposite.getSelection().getControl().traverse(SWT.TRAVERSE_TAB_NEXT);
-        addressChangeSideEffect.get(addressAndIconComposite.getSelectionIndex()).runIfDirty();
+        if (addressChangeSideEffect != null ) {
+            addressChangeSideEffect.get(addressAndIconComposite.getSelectionIndex()).runIfDirty();
+        }
         
         if (newDocument || document.getId() == 0) {
             // Check if the document number is the next one

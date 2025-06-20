@@ -450,6 +450,7 @@ public class Constants {
     public static final String PREFERENCES_YOURCOMPANY_VATNR = "YOURCOMPANY_COMPANY_VATNR";
     public static final String PREFERENCES_YOURCOMPANY_TAXNR = "YOURCOMPANY_TAXNR";
 
+    public static final String PREFERENCES_YOURCOMPANY_TRADE_REGISTER = "YOURCOMPANY_TRADE_REGISTER";
     /**
      * 
      */
