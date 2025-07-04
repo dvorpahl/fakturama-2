@@ -193,18 +193,30 @@ public class EInvoiceConverter {
      * @param invoice
      */
     private void setDocumentLevelAllowancesCharges(final EInvoice eInvoice, final Invoice invoice) {
-        // TODO Auto-generated method stub
         // FOR BG-20/BG-21
         // Abschläge / Zuschläge nur aufführen wenn sie auch tatsächlich angefallen sind! 
-        // TODO wieder ein
-        //        if (Optional.ofNullable(invoice.getItemsRebate()).orElse(Double.valueOf(0.0)).compareTo(Double.valueOf(0.0)) != 0) {
-        //            tradeSettlement.getSpecifiedTradeAllowanceCharge().add(createTradeAllowance(documentSummary, invoice));
-        //        }
-        //        // Hier kommen auch die Versandkosten mit rein 
-        //        // (die sind nur bei EXTENDED in einem extra Node)
-        //        if (invoice.getShipping() != null && invoice.getShipping().getShippingValue() > 0 || invoice.getShippingValue() > 0) {
-        //            tradeSettlement.getSpecifiedTradeAllowanceCharge().add(createTradeAllowance(invoice));
-        //        }
+
+        if (invoice.getShipping() != null && documentSummary.getShippingNet() != null && !documentSummary.getShippingNet().isZero()) {
+            final String shippingName = invoice.getShipping().getDescription();
+
+            // we have shipping costs
+            final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
+            invoiceChargesAllowances.setAmount(BigDecimal.valueOf(documentSummary.getShippingNet().getNumber().doubleValueExact()));
+            invoiceChargesAllowances.setReason(shippingName);
+            invoiceChargesAllowances.setVatRate(BigDecimal.valueOf(invoice.getShipping().getShippingVat().getTaxValue()));
+            invoiceChargesAllowances.setVatCategoryCode("Z");
+            eInvoice.getInvoiceCharges().add(invoiceChargesAllowances);
+        }
+
+        if (invoice.getItemsRebate() != null && !BigDecimal.valueOf(invoice.getItemsRebate()).equals(BigDecimal.ZERO)) {
+            // we have global rebate
+            final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
+            invoiceChargesAllowances.setAmount(BigDecimal.valueOf(documentSummary.getDiscountNet().getNumber().doubleValueExact()).abs());
+            invoiceChargesAllowances.setReason(zfMsg.zugferdExportLabelRebate);
+            invoiceChargesAllowances.setVatRate(BigDecimal.ZERO);
+            invoiceChargesAllowances.setVatCategoryCode("Z");
+            eInvoice.getInvoiceAllowances().add(invoiceChargesAllowances);
+        }
     }
 
     /**
@@ -220,7 +232,7 @@ public class EInvoiceConverter {
             // BT-106 TODO
             documentTotals.setSumOfInvoiceLineNetAmount(moneyToBigDecimal(documentSummary.getItemsNet()));
             // BT-107 TODO
-            documentTotals.setSumOfAllowancesOnDocumentLevel(null);
+            documentTotals.setSumOfAllowancesOnDocumentLevel(moneyToBigDecimal(documentSummary.getDiscountNet()).abs());
             // BT-108
             documentTotals.setSumOfChargesOnDocumentLevel(moneyToBigDecimal(documentSummary.getShippingNet()));
             // BT-109
@@ -544,8 +556,9 @@ public class EInvoiceConverter {
         String debtorId = billingAddress.getCustomerNumber();
         String schemaId = null;
         String globalId = null;
+        Contact originContact = null;
         if (originContactId != null) {
-            final Contact originContact = contactsDAO.findById(originContactId);
+            originContact = contactsDAO.findById(originContactId);
             schemaId = "0088";
             globalId = originContact.getGln() != null ? originContact.getGln().toString() : "";
 
@@ -561,6 +574,11 @@ public class EInvoiceConverter {
         invoiceBuyer.setBuyerIdentifier(Objects.toString(globalId, debtorId));
         // BT-46-1
         invoiceBuyer.setBuyerIdentifierSchemeIdentifier(globalId != null ? schemaId : null);
+
+        // just a fallback
+        if (StringUtils.trimToNull(invoiceBuyer.getBuyerIdentifier()) == null && originContact != null) {
+            invoiceBuyer.setBuyerIdentifier(originContact.getCustomerNumber());
+        }
     }
 
     private void getAdressDataForInvoiceAddress(final DocumentReceiver invoiceAddress, final AddressData address) {

@@ -153,12 +153,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
          version="0.0.0"/>
 
    <plugin
-         id="com.sebulli.fakturama.resources.icons"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="org.eclipse.help"
          download-size="0"
          install-size="0"
@@ -166,12 +160,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="com.sebulli.fakturama.hsqlconnector"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="com.sebulli.fakturama.resources.templates"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
@@ -252,7 +240,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
          id="ch.qos.logback.classic"
          download-size="0"
          install-size="0"
-         version="1.5.18"/>
+         version="0.0.0"/>
 
    <plugin
          id="ch.qos.logback.core"
@@ -501,5 +489,27 @@ This Agreement is governed by the laws of the State of New York and the intellec
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="org.fakturama.logging"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="com.sebulli.fakturama.resources.icons"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"/>
+
+   <plugin
+         id="com.sebulli.fakturama.resources.templates"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"/>
 
 </feature>

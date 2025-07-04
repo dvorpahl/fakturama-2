@@ -39,7 +39,6 @@
       </win>
    </launcher>
 
-
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
       <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
@@ -152,6 +151,9 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="com.sebulli.fakturama.hsqlconnector"/>
       <plugin id="com.sebulli.fakturama.model"/>
       <plugin id="com.sebulli.fakturama.rcp"/>
+      <plugin id="com.sebulli.fakturama.resources"/>
+      <plugin id="com.sebulli.fakturama.resources.icons" fragment="true"/>
+      <plugin id="com.sebulli.fakturama.resources.templates" fragment="true"/>
       <plugin id="jakarta.activation-api"/>
       <plugin id="jakarta.mail-api"/>
       <plugin id="jakarta.persistence-api"/>
@@ -239,7 +241,18 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.swt"/>
       <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.urischeme"/>
+      <plugin id="org.fakturama.connectors"/>
+      <plugin id="org.fakturama.database.hsql"/>
+      <plugin id="org.fakturama.database.mariadb"/>
+      <plugin id="org.fakturama.database.mysql"/>
+      <plugin id="org.fakturama.e4.ui.dialogs.ext"/>
+      <plugin id="org.fakturama.export"/>
+      <plugin id="org.fakturama.exporter.zugferd"/>
+      <plugin id="org.fakturama.import"/>
       <plugin id="org.fakturama.logging" fragment="true"/>
+      <plugin id="org.fakturama.print.openoffice"/>
+      <plugin id="org.fakturama.qrcode"/>
+      <plugin id="org.fakturama.wizards"/>
       <plugin id="org.javamoney.moneta"/>
       <plugin id="org.odftoolkit.odfdom-java"/>
       <plugin id="org.osgi.service.cm"/>

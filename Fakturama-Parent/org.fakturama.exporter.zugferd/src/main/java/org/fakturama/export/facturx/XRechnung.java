@@ -85,8 +85,6 @@ import org.fakturama.export.facturx.modelgen.TradeSettlementPaymentMeansType;
 import org.fakturama.export.facturx.modelgen.TradeTaxType;
 import org.fakturama.export.facturx.modelgen.UniversalCommunicationType;
 
-import com.sebulli.fakturama.misc.Constants;
-
 import jakarta.xml.bind.JAXBElement;
 
 /**
@@ -171,7 +169,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * 
      * @param eInvoice
      * @return
@@ -214,6 +211,12 @@ public class XRechnung extends AbstractEInvoice {
         return tradeAllowance;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param percentageValue
+     * @return
+     */
     private PercentType createPercentType(final BigDecimal percentageValue) {
 
         final PercentType percentType = factory.createPercentType();
@@ -222,7 +225,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * 
      * @param eInvoice
      * @return List for payment terms
@@ -258,7 +260,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * BG-10 OK
+     * BG-10
      * 
      * @param eInvoice
      * @return
@@ -433,10 +435,10 @@ public class XRechnung extends AbstractEInvoice {
         }
 
         // BT-46
-        if (invoiceBuyer.getBuyerIdentifierSchemeIdentifier() != null) {
+        if (invoiceBuyer.getBuyerIdentifierSchemeIdentifier() != null && StringUtils.trimToNull(invoiceBuyer.getBuyerIdentifier()) != null) {
             buyer.getGlobalID().add(createIdWithSchemeFromString(invoiceBuyer.getBuyerIdentifier(),
                     StringUtils.defaultString(invoiceBuyer.getBuyerIdentifierSchemeIdentifier())));
-        } else {
+        } else if (StringUtils.trimToNull(invoiceBuyer.getBuyerIdentifier()) != null) {
             buyer.getID().add(createIdFromString(invoiceBuyer.getBuyerIdentifier()));
         }
         return buyer;
@@ -444,7 +446,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * BG-4 Seller Trade party in ApplicableHeaderTradeAgreement OK
+     * BG-4 Seller Trade party in ApplicableHeaderTradeAgreement
      * BG-5, BG-6
      * 
      * @param eInvoice
@@ -493,7 +495,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * Details zur Organisation des Verkäufers
      * 
      * @param invoice
@@ -518,13 +519,17 @@ public class XRechnung extends AbstractEInvoice {
      */
     private NoteType createNote(final InvoiceNote invoiceNote) {
         final NoteType note = factory.createNoteType(); // free text on header level
+        // BT-22
         note.setContent(createText(invoiceNote.getInvoiceNote()));
+        // BT-21
         note.setSubjectCode(createCode(invoiceNote.getInvoiceNoteSubjectCode())); // see UNTDID 4451
 
         return note;
     }
 
     /**
+     * Helpermethod
+     * 
      * @return
      */
     private CurrencyCodeType getGlobalCurrencyCode(final String code) {
@@ -534,8 +539,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
-     * 
      * Gruppierung der Informationen zum Geschäftsvorfall
      * 
      * @param item
@@ -558,7 +561,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * 
      * Gruppierung von Angaben zum Produkt bzw. zur erbrachten Leistung. Eine
      * Gruppe von betriebswirtschaftlichen Begriffen, die Informationen über die
@@ -581,7 +583,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * Gruppierung von Angaben zur Abrechnung auf Positionsebene
      * 
      * @param item
@@ -690,7 +691,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
+     * Helpermethod
      * 
      * @param itemPosition
      * @return
@@ -702,6 +703,13 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param value
+     * @param unit
+     * @return
+     */
     private QuantityType createQuantity(final BigDecimal value, final String unit) {
         final QuantityType retval = factory.createQuantityType();
         retval.setValue(value);
@@ -745,68 +753,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * Detailinformationen zum Bruttopreis des Artikels.
-     * 
-     * @param item
-     * @param priceType
-     * @return
-     */
-    private TradePriceType createTradePrice(final InvoicePosition item, final PriceType priceType) {
-
-        TradePriceType retval = null;
-        final int scale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
-        final BigDecimal discount = item.getItemPriceDiscount();
-        switch (priceType) {
-            case GROSS_PRICE:
-                retval = factory.createTradePriceType();
-                // "ITEM.UNIT.NET.DISCOUNTED" oder "ITEM.TOTAL.NET"?
-                // Preis nach Bruttokalkulation *ohne* Umsatzsteuer(!!!) 
-                //                retval.setChargeAmount(createAmount(Money.of(item.getItemGrossPrice(), "EUR"), scale))
-                // Die Anzahl von Artikeleinheiten, für die der Preis gilt (Preisbasismenge ==> 1, 10, 100,...)
-                //.setBasisQuantity(createQuantity(item.getProduct().getBlock1(), qunit))
-                ;
-                if (discount.compareTo(BigDecimal.ZERO) != 0) {
-                    // Rabatt / Zuschlag auf Positionsebene
-                    retval.getAppliedTradeAllowanceCharge().add(createTradeAllowance(item, false));
-                }
-                break;
-            case NET_PRICE:
-
-                retval = factory.createTradePriceType();
-                // Preis nach Bruttokalkulation ohne Umsatzsteuer 
-                //                retval.setChargeAmount(createAmount(Money.of(item.getItemNetPrice(), DataUtils.getInstance().getDefaultCurrencyUnit()), scale))
-                // TODO Preisbasismenge??? (1, 10, 100,...)
-                //          .setBasisQuantity(createQuantity(1d, qunit))
-                ;
-                if (discount.compareTo(BigDecimal.ZERO) != 0) {
-                    // Rabatt / Zuschlag auf Positionsebene
-                    retval.getAppliedTradeAllowanceCharge().add(createTradeAllowance(item, true));
-                }
-                break;
-            case NET_PRICE_DISCOUNTED:
-                // Detailinformationen zum Preis gemäß Nettokalkulation exklusive Umsatzsteuer
-                retval = factory.createTradePriceType();
-                // "ITEM.UNIT.NET.DISCOUNTED"
-                // Preis nach Bruttokalkulation +- Zu-/Abschläge = Preis 
-                // nach Nettokalkulation;
-                // TODO Zeile wieder rein
-                //                retval.setChargeAmount(createAmount(price.getUnitNetDiscounted(), scale))
-                // TODO Preisbasismenge??? (1, 10, 100,...)
-                //                .setBasisQuantity(createQuantity(1d, qunit))
-                ;
-                //          if(discount != 0) {
-                //              // Rabatt / Zuschlag auf Positionsebene
-                //              retval.getAppliedTradeAllowanceCharge().add(createTradeAllowance(item));
-                //          }
-                break;
-
-            default:
-                break;
-        }
-        return retval;
-    }
-
-    /**
      * @param invoicePosition
      * @return
      */
@@ -819,7 +765,6 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * OK
      * Detailinformationen zu Belegsummen.
      * 
      * @param invoice
@@ -865,8 +810,6 @@ public class XRechnung extends AbstractEInvoice {
          * von Zu- und Abschlägen ohne
          * Angabe des Umsatzsteuerbetrages.
          */
-        // TODO wieder rein
-        //        final Price price = new Price(item);
         final TradeSettlementLineMonetarySummationType retval = factory.createTradeSettlementLineMonetarySummationType();
         // BT-131
         retval.setLineTotalAmount(createAmount(invoicePosition.getInvoiceLineNetAmount()));
@@ -894,46 +837,10 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * Detailinformationen zu Zu- und Abschlägen.
+     * Helpermethod
      * 
-     * @param item
-     * @return
-     */
-    private TradeAllowanceChargeType createTradeAllowance(final InvoicePosition invoicePosition, final boolean withReason) {
-        if (invoicePosition.getInvoiceLineAllowances().isEmpty()) {
-            return null;
-        }
-        final TradeAllowanceChargeType tradeAllowanceCharge = factory.createTradeAllowanceChargeType();
-        // TODO wieder rein
-        //        final Price price = new Price(item);
-        //        MonetaryAmount amount = price.getTotalAllowance();
-        //        final boolean isAllowance = amount.isPositiveOrZero();
-        //        if (!isAllowance) {
-        //            amount = amount.multiply(-1);
-        //        }
-        //
-        //        itemAllowances.add(item.getInvoicedItemVatRate(), price.getTotalAllowance());
-
-        //        tradeAllowanceCharge.setChargeIndicator(createIndicator(isAllowance));
-        //            .setCalculationPercent(factory.createPercentType().setValue(BigDecimal.valueOf(item.getItemRebate()))) // [CII-SR-122]
-        //            .setBasisAmount(createAmount(price.getTotalNet(), 2))  // [CII-SR-123]
-
-        // Der gesamte zur Berechnung des Nettopreises vom Bruttopreis subtrahierte Rabatt
-        // (Gilt nur, wenn der Rabatt je Einheit gegeben wird und nicht im Bruttopreis enthalten ist.)
-        //        tradeAllowanceCharge.setActualAmount(createAmount(amount, 2, false))
-        // see UNTDID 5189 and UNTDID 7161
-
-        if (withReason) {
-            tradeAllowanceCharge.setReason(createText(zfMsg.zugferdExportLabelRebate));
-            //            tradeAllowanceCharge.setReasonCode(factory.createAllowanceChargeReasonCodeType().setValue("95"))  // "Discount" [CII-SR-127]
-        }
-        return tradeAllowanceCharge
-        //            .setCategoryTradeTax(createTradeTax(item.getItemVat()))
-        ;
-    }
-
-    /**
-     * @param isCharge
+     * @param isCharge:
+     *            true if charge, false if allowance
      */
     private IndicatorType createIndicator(final boolean isCharge) {
         final IndicatorType indicator = factory.createIndicatorType();
@@ -942,40 +849,12 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * Generate allowance for shipping costs (this is for COMFORT profile only!)
-     * 
-     * @param invoice
-     * @return
-     */
-    private TradeAllowanceChargeType createTradeAllowance(final EInvoice eInvoice) {
-        // TODO wieder rein
-        //        final Double amount = invoice.getShipping() != null ? invoice.getShipping().getShippingValue() : invoice.getShippingValue();
-
-        final TradeAllowanceChargeType retval = factory.createTradeAllowanceChargeType();
-        //        retval.setChargeIndicator(createIndicator(true));
-        //        retval.setActualAmount(createAmount(Money.of(amount, DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-        //        retval.setBasisAmount(createAmount(Money.of(invoice.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit()), 2, false));
-        //        retval.setReason(createText("Shipping costs")); // TODO Versandkosten!!!
-        //        if (invoice.getShipping() != null && invoice.getShipping().getShippingVat().getTaxValue() > 0.0) {
-        //            retval.setCategoryTradeTax(createTradeTax(invoice.getShipping().getShippingVat()));
-        //        } else if (invoice.getAdditionalInfo().getShippingVatValue() != null) {
-        //            final VAT shippingVat = new VAT();
-        //            shippingVat.setTaxValue(invoice.getAdditionalInfo().getShippingVatValue());
-        //            shippingVat.setName(invoice.getAdditionalInfo().getShippingVatDescription());
-        //            retval.setCategoryTradeTax(createTradeTax(shippingVat));
-        //        }
-        return retval;
-    }
-
-    /**
-     * OK
-     * 
      * Detailangaben zu Steuern auf Positionsebene
      * 
      * @param vatDocument
      * @return
      */
-    private TradeTaxType createTradeTax(final InvoicePosition invoicePosition) {// final VAT vatValue) {
+    private TradeTaxType createTradeTax(final InvoicePosition invoicePosition) {
         final TradeTaxType retval = factory.createTradeTaxType();
         // BT-152
         retval.setRateApplicablePercent(createPercentType(invoicePosition.getInvoicedItemVatRate()));
@@ -1031,12 +910,24 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param string
+     * @return
+     */
     private TaxTypeCodeType createTaxTypeCode(final String string) {
         final TaxTypeCodeType retval = factory.createTaxTypeCodeType();
         retval.setValue(string);
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param taxCat
+     * @return
+     */
     private TaxCategoryCodeType createTaxCategoryCode(final String taxCat) {
         final TaxCategoryCodeType retval = factory.createTaxCategoryCodeType();
         retval.setValue(taxCat);
@@ -1074,6 +965,10 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * @param eInvoice
+     * @return
+     */
     private CreditorFinancialAccountType createCreditorAccount(final EInvoice eInvoice) {
         // dont need: ProprietaryID (also BT-84)
         CreditorFinancialAccountType retval = null;
@@ -1089,6 +984,13 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param eInvoice
+     * @param contactType
+     * @return
+     */
     private TaxRegistrationType createVatTaxNumber(final EInvoice eInvoice, final ContactType contactType) {
         TaxRegistrationType retval = factory.createTaxRegistrationType();
         switch (contactType) {
@@ -1107,12 +1009,24 @@ public class XRechnung extends AbstractEInvoice {
         return retval.getID() == null ? null : retval;
     }
 
+    /**
+     * Helperclass
+     * 
+     * @param value
+     * @return
+     */
     private CodeType createCode(final String value) {
         final CodeType codeType = factory.createCodeType();
         codeType.setValue(value);
         return codeType;
     }
 
+    /**
+     * Helperclass
+     * 
+     * @param addressData
+     * @return
+     */
     private TradeAddressType createAddress(final AddressData addressData) {
         final TradeAddressType retval = factory.createTradeAddressType();
         retval.setPostcodeCode(createCode(addressData.getPostCode()));
@@ -1125,6 +1039,12 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param countryStr
+     * @return
+     */
     private CountryIDType createCountry(final String countryStr) {
         // null values aren't allowed!
         final CountryIDType countryTypeId = factory.createCountryIDType();
@@ -1132,6 +1052,13 @@ public class XRechnung extends AbstractEInvoice {
         return countryTypeId;
     }
 
+    /**
+     * Create Contact Person information
+     * 
+     * @param eInvoice
+     * @param contactType
+     * @return
+     */
     private TradeContactType createContact(final EInvoice eInvoice, final ContactType contactType) {
         final TradeContactType contact = factory.createTradeContactType();
         boolean somethingSet = false;
@@ -1166,6 +1093,12 @@ public class XRechnung extends AbstractEInvoice {
         return somethingSet ? contact : null;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param communicationItem
+     * @return
+     */
     private UniversalCommunicationType createCommunicationItem(final String communicationItem) {
         final UniversalCommunicationType universalCommunicationType = factory.createUniversalCommunicationType();
         universalCommunicationType.setCompleteNumber(createText(communicationItem));
@@ -1173,6 +1106,8 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
+     * Helpermethod
+     * 
      * Creates a {@link FormattedDateTimeType} from a given date string
      * ("YYYY-MM-DD").
      * 
@@ -1193,6 +1128,8 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
+     * Helpermethod
+     * 
      * @param invoice
      * @return
      */
@@ -1205,10 +1142,23 @@ public class XRechnung extends AbstractEInvoice {
         return retval;
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param idString
+     * @return
+     */
     private IDType createIdFromString(final String idString) {
         return createIdWithSchemeFromString(idString, null);
     }
 
+    /**
+     * Helpermethod
+     * 
+     * @param idString
+     * @param scheme
+     * @return
+     */
     private IDType createIdWithSchemeFromString(final String idString, final String scheme) {
         final IDType idType = factory.createIDType();
         idType.setValue(idString);
