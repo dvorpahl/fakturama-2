@@ -432,6 +432,7 @@ public class Messages {
     public String editorVatDefaultbuttonTooltip;
     public String editorVatDefaultTooltip;
     public String editorVatDescriptionTooltip;
+    public String editorVatEinvoiceCode;
     public String editorVatHeader;
     public String editorVatNameTooltip;
     public String editorVatTitle;
@@ -525,6 +526,18 @@ public class Messages {
     public String einvoiceUntdid4461V96;
     public String einvoiceUntdid4461V97;
     public String einvoiceUntdid4461Vzzz;
+
+    // Vat Rates
+    public String einvoiceUntdid5305S;
+    public String einvoiceUntdid5305Z;
+    public String einvoiceUntdid5305E;
+    public String einvoiceUntdid5305Ae;
+    public String einvoiceUntdid5305K;
+    public String einvoiceUntdid5305G;
+    public String einvoiceUntdid5305O;
+    public String einvoiceUntdid5305L;
+    public String einvoiceUntdid5305M;
+
     public String exporterDataAccounttype;
     public String exporterDataBic;
     public String exporterDataBuyers;

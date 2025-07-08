@@ -3,11 +3,15 @@ package com.sebulli.fakturama.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.sebulli.fakturama.misc.UNTDID5305;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -160,6 +164,37 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
     private Date validTo = null;
 
     /**
+     * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
+     * The code is equal to eInvoice tax code. <!-- end-model-doc -->
+     * 
+     * @generated
+     */
+    @Basic()
+    @Column(name = "CODE")
+    @Enumerated(EnumType.STRING)
+    private UNTDID5305 code = null;
+
+    public VAT() {
+        // empty constructor
+    }
+
+    private VAT(final VAT otherVat) {
+        this.setTaxValue(otherVat.getTaxValue());
+        this.setCategory(otherVat.getCategory());
+        this.setSalesEqualizationTax(otherVat.getSalesEqualizationTax());
+        this.setDescription(otherVat.getDescription());
+        this.setName(otherVat.getName());
+        this.setDateAdded(otherVat.getDateAdded());
+        this.setModifiedBy(otherVat.getModifiedBy());
+        this.setModified(otherVat.getModified());
+        this.setDeleted(otherVat.getDeleted());
+        this.setValidFrom(otherVat.getValidFrom());
+        this.setValidTo(otherVat.getValidTo());
+        this.setCode(otherVat.getCode());
+
+    }
+
+    /**
      * A semantical compare method. This method compares the actual object
      * attribute by attribute to another object.
      *
@@ -212,20 +247,7 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
 
     @Override
     public VAT clone() {
-        VAT retval = new VAT();
-        retval.setTaxValue(this.getTaxValue());
-        retval.setCategory(this.getCategory());
-        retval.setSalesEqualizationTax(this.getSalesEqualizationTax());
-        retval.setDescription(this.getDescription());
-        retval.setName(this.getName());
-        retval.setDateAdded(this.getDateAdded());
-        retval.setModifiedBy(this.getModifiedBy());
-        retval.setModified(this.getModified());
-
-        retval.setDeleted(this.getDeleted());
-        retval.setValidFrom(this.getValidFrom());
-        retval.setValidTo(this.getValidTo());
-        return retval;
+        return new VAT(this);
     }
 
     /**
@@ -597,6 +619,21 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
     public void setValidTo(final Date newValidTo) {
         firePropertyChange("validTo", this.validTo, newValidTo);
         validTo = newValidTo;
+    }
+
+    /**
+     * @return the code
+     */
+    public UNTDID5305 getCode() {
+        return code;
+    }
+
+    /**
+     * @param code
+     *            the code to set
+     */
+    public void setCode(final UNTDID5305 code) {
+        this.code = code;
     }
 
     /**

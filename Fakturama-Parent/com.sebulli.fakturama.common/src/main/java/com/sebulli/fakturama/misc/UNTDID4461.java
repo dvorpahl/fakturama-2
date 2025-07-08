@@ -121,7 +121,7 @@ public enum UNTDID4461 {
             return null;
         }
 
-        final Optional<UNTDID4461> result = Arrays.stream(UNTDID4461.values()).filter(e -> e.code.equals(testCode)).findFirst();
+        final Optional<UNTDID4461> result = Arrays.stream(UNTDID4461.values()).filter(e -> e.getCode().equals(testCode)).findFirst();
         return result.orElse(null);
     }
 

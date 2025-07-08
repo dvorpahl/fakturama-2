@@ -13,8 +13,12 @@
 
 package com.sebulli.fakturama.parts;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -35,11 +39,13 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.nebula.widgets.formattedtext.PercentFormatter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -51,12 +57,15 @@ import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.CategoryComparator;
 import com.sebulli.fakturama.model.VAT;
 import com.sebulli.fakturama.model.VATCategory;
 import com.sebulli.fakturama.model.VAT_;
 import com.sebulli.fakturama.parts.converter.CategoryConverter;
+import com.sebulli.fakturama.parts.converter.PaymentCodeToUNTDID5305TranslationConverter;
 import com.sebulli.fakturama.parts.converter.StringToCategoryConverter;
+import com.sebulli.fakturama.parts.converter.UNTDID5305TranslationToPaymentCodeConverter;
 import com.sebulli.fakturama.resources.core.Icon;
 
 /**
@@ -69,7 +78,7 @@ public class VatEditor extends Editor<VAT> {
 
     @Inject
     protected VatCategoriesDAO vatCategoriesDAO;
-    
+
     @Inject
     private IPreferenceStore preferences;
 
@@ -82,8 +91,12 @@ public class VatEditor extends Editor<VAT> {
     private Composite top;
     private Text textName;
     private Text textDescription;
-    private FormattedText textValue, textSalesEqTax;
+    private FormattedText textValue;
+    private FormattedText textSalesEqTax;
     private CCombo comboCategory;
+
+    private Combo comboTaxCode;
+
     private VATCategory oldCat;
 
     // defines if the vat is just created
@@ -94,7 +107,7 @@ public class VatEditor extends Editor<VAT> {
      * a PartDescriptor (see createPartControl).
      */
     private MPart part;
-    
+
     @Inject
     private EPartService partService;
 
@@ -108,91 +121,94 @@ public class VatEditor extends Editor<VAT> {
      *            Progress monitor
      */
     @Persist
-    public Boolean doSave(IProgressMonitor monitor) {
+    public Boolean doSave(final IProgressMonitor monitor) {
 
         /*
-         * the following parameters are not saved: 
+         * the following parameters are not saved:
          * - id (constant)
          */
 
         // Always set the editor's data to "undeleted"
         editorVat.setDeleted(Boolean.FALSE);
 
-   		// Set the VAT data
+        // Set the VAT data
         // ... done through databinding...
 
-   		// save the new or updated VAT
+        // save the new or updated VAT
         try {
             // at first, check the category for a new entry
             // (the user could have written a new one into the combo field)
-            String testCat = comboCategory.getText();
+            final String testCat = comboCategory.getText();
             // if there's no category we can skip this step
-            if(StringUtils.isNotBlank(testCat)) {
-                VATCategory parentCategory = vatCategoriesDAO.getCategory(testCat, true);
+            if (StringUtils.isNotBlank(testCat)) {
+                final VATCategory parentCategory = vatCategoriesDAO.getCategory(testCat, true);
 
                 // parentCategory now has the last found Category
                 editorVat.setCategory(parentCategory);
             }
-            
+
             /*
-             * If we DON'T use update, the category is saved again and again and again
-             * because we have CascadeType.PERSIST. If we use update and save the new VatCategory before,
+             * If we DON'T use update, the category is saved again and again and
+             * again
+             * because we have CascadeType.PERSIST. If we use update and save
+             * the new VatCategory before,
              * all went ok. That's the point...
              */
             editorVat = vatDao.update(editorVat);
 
             // check if we can delete the old category (if it's empty and is not a parent category of the current one)
-            if(oldCat != null && oldCat != editorVat.getCategory()
-                    && !isParent(oldCat, editorVat.getCategory())) {
-            	long countOfEntriesInCategory = vatDao.countByCategory(oldCat);
-            	if(countOfEntriesInCategory == 0) {
-            		vatCategoriesDAO.deleteEmptyCategory(oldCat);
-            	}
+            if (oldCat != null && oldCat != editorVat.getCategory() && !isParent(oldCat, editorVat.getCategory())) {
+                final long countOfEntriesInCategory = vatDao.countByCategory(oldCat);
+                if (countOfEntriesInCategory == 0) {
+                    vatCategoriesDAO.deleteEmptyCategory(oldCat);
+                }
             }
 
             oldCat = editorVat.getCategory();
-        }
-        catch (FakturamaStoringException e) {
+        } catch (final FakturamaStoringException e) {
             log.error(e, "can't save the current VAT: " + editorVat.toString());
             return Boolean.FALSE;
         }
 
         if (newVat) {
-			newVat = false;
-			stdComposite.stdButton.setEnabled(true);
-    	}
+            newVat = false;
+            stdComposite.stdButton.setEnabled(true);
+        }
 
-       	// Set the Editor's name to the payment name...
+        // Set the Editor's name to the payment name...
         part.setLabel(editorVat.getName());
-        
+
         // ...and "mark" it with current objectId (though it can be find by 
         // CallEditor if one tries to open it immediately from list view)
         // please note that you have to use transientData Hashmap, else
         // else you get an ugly "java.lang.IllegalArgumentException: A StringToStringMap that was NOT MApplicationElement.persistedState changed"
         // while saving a new VAT or also other editor.
         part.getTransientData().put(CallEditor.PARAM_OBJ_ID, Long.toString(editorVat.getId()));
-        
-		// Refresh the table view of all VATs (this also refreshes the tree of categories)
+
+        // Refresh the table view of all VATs (this also refreshes the tree of categories)
         evtBroker.post(VatEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		
-		// re-bind model
-		bindModel();
-        
+
+        // re-bind model
+        bindModel();
+
         // reset dirty flag
-		getMDirtyablePart().setDirty(false);
-		return Boolean.TRUE;
+        getMDirtyablePart().setDirty(false);
+        return Boolean.TRUE;
     }
 
     /**
      * Checks if the given {@link VATCategory} is parent of the other one.
      * 
-     * @param testParent the parent {@link VATCategory} to test
-     * @param category a valid category
-     * @return <code>true</code>, if <code>testParent</code> is parent of <code>category</code>
+     * @param testParent
+     *            the parent {@link VATCategory} to test
+     * @param category
+     *            a valid category
+     * @return <code>true</code>, if <code>testParent</code> is parent of
+     *         <code>category</code>
      */
-    private boolean isParent(VATCategory testParent, VATCategory category) {
+    private boolean isParent(final VATCategory testParent, final VATCategory category) {
         if (testParent != null && category != null && category.getParent() != null) {
-            if(category.getParent() == testParent) {
+            if (category.getParent() == testParent) {
                 return true;
             } else {
                 return isParent(testParent, (VATCategory) category.getParent());
@@ -213,12 +229,12 @@ public class VatEditor extends Editor<VAT> {
      *            the parent control
      */
     @PostConstruct
-    public void createPartControl(Composite parent) {
+    public void createPartControl(final Composite parent) {
         Long objId = null;
         VAT stdVat = null;
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_VAT.getIconURI());
-        String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+        final String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
         if (StringUtils.isNumeric(tmpObjId)) {
             objId = Long.valueOf(tmpObjId);
             // Set the editor's data set to the editor's input
@@ -233,17 +249,16 @@ public class VatEditor extends Editor<VAT> {
         if (newVat) {
             // Create a new data set
             editorVat = modelFactory.createVAT();
-            String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
-            if(StringUtils.isNotEmpty(category)) {
-                VATCategory newCat = vatCategoriesDAO.findCategoryByName(category);
+            final String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
+            if (StringUtils.isNotEmpty(category)) {
+                final VATCategory newCat = vatCategoriesDAO.findCategoryByName(category);
                 editorVat.setCategory(newCat);
             }
-            
+
             //T: VAT Editor: Part Name of a new VAT Entry
             part.setLabel(msg.editorVatHeader);
             getMDirtyablePart().setDirty(true);
-        }
-        else {
+        } else {
             // Set the Editor's name to the VAT name.
             part.setLabel(editorVat.getName());
         }
@@ -251,18 +266,18 @@ public class VatEditor extends Editor<VAT> {
         // Create the top Composite
         top = new Composite(parent, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(top);
-        
-		// Add context help reference 
+
+        // Add context help reference 
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.VAT_EDITOR);
 
         // Large VAT label
-        Label labelTitle = new Label(top, SWT.NONE);
+        final Label labelTitle = new Label(top, SWT.NONE);
         labelTitle.setText(msg.editorVatTitle);
         GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).span(2, 1).applyTo(labelTitle);
         makeLargeLabel(labelTitle);
 
         // Name of the VAT
-        Label labelName = new Label(top, SWT.NONE);
+        final Label labelName = new Label(top, SWT.NONE);
         labelName.setText(msg.commonFieldName);
         labelName.setToolTipText(msg.editorVatNameTooltip);
 
@@ -272,7 +287,7 @@ public class VatEditor extends Editor<VAT> {
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textName);
 
         // Category of the VAT
-        Label labelCategory = new Label(top, SWT.NONE);
+        final Label labelCategory = new Label(top, SWT.NONE);
         labelCategory.setText(msg.commonFieldCategory);
         labelCategory.setToolTipText(msg.editorVatCategoryTooltip);
 
@@ -282,7 +297,7 @@ public class VatEditor extends Editor<VAT> {
         GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
 
         // The description
-        Label labelDescription = new Label(top, SWT.NONE);
+        final Label labelDescription = new Label(top, SWT.NONE);
         labelDescription.setText(msg.commonFieldDescription);
         labelDescription.setToolTipText(msg.editorVatDescriptionTooltip);
 
@@ -291,32 +306,39 @@ public class VatEditor extends Editor<VAT> {
         textDescription.setToolTipText(labelDescription.getToolTipText());
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textDescription);
 
+        // Tax code for einvoice
+        final Label labelPaymentCode = new Label(top, SWT.NONE);
+        labelPaymentCode.setText(msg.editorVatEinvoiceCode);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelPaymentCode);
+        comboTaxCode = new Combo(top, SWT.BORDER | SWT.READ_ONLY);
+        GridDataFactory.fillDefaults().grab(true, false).span(1, 1).applyTo(comboTaxCode);
+
         // The value
-        Label labelValue = new Label(top, SWT.NONE);
+        final Label labelValue = new Label(top, SWT.NONE);
         labelValue.setText(msg.commonFieldValue);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelValue);
 
         textValue = new FormattedText(top, SWT.BORDER | SWT.SINGLE);
         textValue.setFormatter(new PercentFormatter());
-        GridData data = new GridData();
+        final GridData data = new GridData();
         data.widthHint = 200;
         textValue.getControl().setLayoutData(data);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textValue.getControl());
 
-        if(preferences.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)) {
-	        // sales equalization tax
-	        Label salesEqTaxValue = new Label(top, SWT.NONE);
-	        salesEqTaxValue.setText(msg.dataTaxSalesequalizationtax);
-	        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(salesEqTaxValue);
-	
-	        textSalesEqTax = new FormattedText(top, SWT.BORDER | SWT.SINGLE);
-	        textSalesEqTax.setFormatter(new PercentFormatter());
-	        textSalesEqTax.getControl().setLayoutData(data);
-	        GridDataFactory.fillDefaults().grab(true, false).applyTo(textSalesEqTax.getControl());
+        if (preferences.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)) {
+            // sales equalization tax
+            final Label salesEqTaxValue = new Label(top, SWT.NONE);
+            salesEqTaxValue.setText(msg.dataTaxSalesequalizationtax);
+            GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(salesEqTaxValue);
+
+            textSalesEqTax = new FormattedText(top, SWT.BORDER | SWT.SINGLE);
+            textSalesEqTax.setFormatter(new PercentFormatter());
+            textSalesEqTax.getControl().setLayoutData(data);
+            GridDataFactory.fillDefaults().grab(true, false).applyTo(textSalesEqTax.getControl());
         }
-        
+
         // Create the composite to make this VAT to the standard VAT. 
-        Label labelStdVat = new Label(top, SWT.NONE);
+        final Label labelStdVat = new Label(top, SWT.NONE);
         labelStdVat.setText(msg.commonLabelDefault);
         labelStdVat.setToolTipText(msg.editorVatNameTooltip);
 
@@ -332,16 +354,16 @@ public class VatEditor extends Editor<VAT> {
         if (!newVat) {
             stdComposite.stdButton.setEnabled(true);
         }
-        
-    	oldCat = editorVat.getCategory();        
-        
+
+        oldCat = editorVat.getCategory();
+
         bindModel();
     }
 
-	private VAT getDefaultEntry() {
-		VAT stdVat;
+    private VAT getDefaultEntry() {
+        VAT stdVat;
         long stdID = 1L;
-		// Get the ID of the standard entity from preferences
+        // Get the ID of the standard entity from preferences
         try {
             stdID = defaultValuePrefs.getLong(getDefaultEntryKey());
         } catch (NumberFormatException | NullPointerException e) {
@@ -349,21 +371,23 @@ public class VatEditor extends Editor<VAT> {
         } finally {
             stdVat = vatDao.findById(stdID);
         }
-		return stdVat;
-	}
-    
+        return stdVat;
+    }
+
+    @Override
     protected void bindModel() {
-		part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
-		
+        part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
+
         bindModelValue(editorVat, textName, VAT_.name.getName(), 64);
         fillAndBindCategoryCombo();
+        fillAndBindVatCodeCombo();
         bindModelValue(editorVat, textDescription, VAT_.description.getName(), 250);
         bindModelValue(editorVat, textValue, VAT_.taxValue.getName(), 16);
-        if(textSalesEqTax != null) {
-        	bindModelValue(editorVat, textSalesEqTax, VAT_.salesEqualizationTax.getName(), 16);
+        if (textSalesEqTax != null) {
+            bindModelValue(editorVat, textSalesEqTax, VAT_.salesEqualizationTax.getName(), 16);
         }
-        
-		part.getTransientData().remove(BIND_MODE_INDICATOR);
+
+        part.getTransientData().remove(BIND_MODE_INDICATOR);
 
     }
 
@@ -372,48 +396,89 @@ public class VatEditor extends Editor<VAT> {
      */
     private void fillAndBindCategoryCombo() {
         // Collect all category strings as a sorted Set
-        final TreeSet<VATCategory> categories = new TreeSet<VATCategory>(new CategoryComparator<>());
+        final TreeSet<VATCategory> categories = new TreeSet<>(new CategoryComparator<>());
         categories.addAll(vatCategoriesDAO.findAll());
 
-        ComboViewer viewer = new ComboViewer(comboCategory);
+        final ComboViewer viewer = new ComboViewer(comboCategory);
         viewer.setContentProvider(new ArrayContentProvider() {
             @Override
-            public Object[] getElements(Object inputElement) {
+            public Object[] getElements(final Object inputElement) {
                 return categories.toArray();
             }
         });
-        
+
         /*
          * FIXME don't temporarily store the category!
          * 
-         * Oh no, don't shoot! Let me explain this. If you create 
-         * a new VAT with a new VatCategory, save it. Now, the category disappears, because
-         * it's removed by BeanObserver trigger. You can't stop it (e.g., by removing the
-         * Binding, see above). But if you don't update the combo list, any newly created entry is not
-         * shown in the list. Therefore we store the category temporarily and add it to the editor
-         * after filling the combo box. Ugly, but it works. 
+         * Oh no, don't shoot! Let me explain this. If you create
+         * a new VAT with a new VatCategory, save it. Now, the category
+         * disappears, because
+         * it's removed by BeanObserver trigger. You can't stop it (e.g., by
+         * removing the
+         * Binding, see above). But if you don't update the combo list, any
+         * newly created entry is not
+         * shown in the list. Therefore we store the category temporarily and
+         * add it to the editor
+         * after filling the combo box. Ugly, but it works.
          * 
-         * If anyone has a better idea how to prevent the data binding from removing 
+         * If anyone has a better idea how to prevent the data binding from
+         * removing
          * the category value let me know.
          */
-        VATCategory tmpKat = editorVat.getCategory();
-//        
-//        // Add all categories to the combo
+        final VATCategory tmpKat = editorVat.getCategory();
+        //        
+        //        // Add all categories to the combo
         viewer.setInput(categories);
         viewer.setLabelProvider(new LabelProvider() {
             @Override
-            public String getText(Object element) {
-                return element instanceof VATCategory ? CommonConverter.getCategoryName((VATCategory)element, "") : null;
+            public String getText(final Object element) {
+                return element instanceof VATCategory ? CommonConverter.getCategoryName((VATCategory) element, "") : null;
             }
         });
         // restore old category
         editorVat.setCategory(tmpKat);
 
-        UpdateValueStrategy<VATCategory, String> vatCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<VATCategory>(VATCategory.class));
-        UpdateValueStrategy<String, VATCategory> target2VatcatModel = UpdateValueStrategy.create(new StringToCategoryConverter<VATCategory>(categories, VATCategory.class));
+        final UpdateValueStrategy<VATCategory, String> vatCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<>(VATCategory.class));
+        final UpdateValueStrategy<String, VATCategory> target2VatcatModel = UpdateValueStrategy
+                .create(new StringToCategoryConverter<>(categories, VATCategory.class));
         bindModelValue(editorVat, comboCategory, VAT_.category.getName(), target2VatcatModel, vatCatModel2Target);
     }
-    
+
+    /**
+     * creates the combo box for the payment code
+     */
+    private void fillAndBindVatCodeCombo() {
+        final ComboViewer viewer = new ComboViewer(comboTaxCode);
+        viewer.setContentProvider(ArrayContentProvider.getInstance());
+        final String code = editorVat.getCode().getCode();
+        final LinkedHashMap<String, String> values = Arrays.stream(UNTDID5305.values())
+                .collect(Collectors.toMap(UNTDID5305::getCode, e -> msg.getMessageFromKey(e.getTranslationKey()), (existing, replacement) -> existing, // handle duplicates
+                        LinkedHashMap::new));
+
+        viewer.setInput(values.entrySet());
+        final String current = code == null ? UNTDID5305.DEFAULT_VALUE.getCode() : code;
+        final Entry<String, String> selection = values.entrySet().stream().filter(e -> current.equalsIgnoreCase(e.getKey())).findFirst().orElseThrow();
+        viewer.setSelection(new StructuredSelection(selection));
+
+        viewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(final Object element) {
+                if (element instanceof final Entry<?, ?> entry) {
+                    return (String) entry.getValue();
+                }
+                // Customize this method to return the desired text for each element
+                return super.getText(element);
+            }
+        });
+
+        final UpdateValueStrategy<String, UNTDID5305> target2PaymentCodeModel = UpdateValueStrategy
+                .create(new UNTDID5305TranslationToPaymentCodeConverter(msg));
+        final UpdateValueStrategy<UNTDID5305, String> paymentCodeModel2Target = UpdateValueStrategy
+                .create(new PaymentCodeToUNTDID5305TranslationConverter(msg));
+        bindModelValue(editorVat, comboTaxCode, VAT_.code.getName(), target2PaymentCodeModel, paymentCodeModel2Target);
+
+    }
+
     /**
      * If an entity is deleted via list view we have to close a possibly open
      * editor window. Since this is triggered by a UIEvent we named this method
@@ -421,10 +486,10 @@ public class VatEditor extends Editor<VAT> {
      */
     @Inject
     @Optional
-    public void handleForceClose(@UIEventTopic(VatEditor.EDITOR_ID + "/forceClose") Event event) {
+    public void handleForceClose(@UIEventTopic(VatEditor.EDITOR_ID + "/forceClose") final Event event) {
         //      sync.syncExec(() -> top.setRedraw(false));
         // the event has already all given params in it since we created them as Map
-        String targetDocumentName = (String) event.getProperty(DocumentEditor.DOCUMENT_ID);
+        final String targetDocumentName = (String) event.getProperty(DocumentEditor.DOCUMENT_ID);
         // at first we have to check if the message is for us
         if (!StringUtils.equals(targetDocumentName, editorVat.getName())) {
             // if not, silently ignore this event
@@ -433,49 +498,49 @@ public class VatEditor extends Editor<VAT> {
         partService.hidePart(part, true);
         //  sync.syncExec(() -> top.setRedraw(true));
     }
-    
+
     @Inject
     @Optional
-    public void handleChangeDefaultEntry(@UIEventTopic(VatEditor.EDITOR_ID) Event event) {
-    	String selector = (String) event.getProperty(IEventBroker.DATA);
-		switch (selector) {
-		case "update/defaultvalue":
-			Collection<MPart> parts = partService.getParts();
-			for (MPart mPart : parts) {
-				if(ID.contentEquals(mPart.getElementId()) && mPart.getObject() != null) {
-					 VatEditor vatEditor = (VatEditor)mPart.getObject();
-					 if(vatEditor != this) {
-					    VAT defaultVat = getDefaultEntry();
-					    vatEditor.stdComposite.setStdText(defaultVat);
-					 }
-				}
-			}
-			break;
-		case "forceClose":
-			// tbd.
-			break;
-		default:
-			break;
-		}
+    public void handleChangeDefaultEntry(@UIEventTopic(VatEditor.EDITOR_ID) final Event event) {
+        final String selector = (String) event.getProperty(IEventBroker.DATA);
+        switch (selector) {
+            case "update/defaultvalue":
+                final Collection<MPart> parts = partService.getParts();
+                for (final MPart mPart : parts) {
+                    if (ID.contentEquals(mPart.getElementId()) && mPart.getObject() != null) {
+                        final VatEditor vatEditor = (VatEditor) mPart.getObject();
+                        if (vatEditor != this) {
+                            final VAT defaultVat = getDefaultEntry();
+                            vatEditor.stdComposite.setStdText(defaultVat);
+                        }
+                    }
+                }
+                break;
+            case "forceClose":
+                // tbd.
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
     protected String getDefaultEntryKey() {
         return Constants.DEFAULT_VAT;
     }
-    
+
     @Override
     protected MDirtyable getMDirtyablePart() {
         return part;
     }
-    
+
     @Override
     protected Class<VAT> getModelClass() {
         return VAT.class;
     }
-    
+
     @Override
     protected String getEditorID() {
-    	return EDITOR_ID;
+        return EDITOR_ID;
     }
 }

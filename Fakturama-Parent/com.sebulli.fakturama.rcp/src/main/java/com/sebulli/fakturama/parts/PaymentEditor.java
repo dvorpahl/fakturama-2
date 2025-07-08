@@ -278,6 +278,7 @@ public class PaymentEditor extends Editor<Payment> {
         textDescription.setToolTipText(labelDescription.getToolTipText());
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textDescription);
 
+        // payment code for einvoice
         final Label labelPaymentCode = new Label(top, SWT.NONE);
         labelPaymentCode.setText(msg.editorPaymentPaymentcode);
         comboPaymentCode = new Combo(top, SWT.BORDER | SWT.READ_ONLY);

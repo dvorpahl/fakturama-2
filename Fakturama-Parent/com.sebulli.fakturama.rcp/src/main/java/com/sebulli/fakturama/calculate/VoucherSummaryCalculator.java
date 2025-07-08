@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2015 www.fakturama.org
@@ -9,9 +9,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
- 
+
 package com.sebulli.fakturama.calculate;
 
 import java.util.List;
@@ -31,6 +31,7 @@ import com.sebulli.fakturama.dto.VatSummarySet;
 import com.sebulli.fakturama.dto.VoucherSummary;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.DataUtils;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.ItemAccountType;
 import com.sebulli.fakturama.model.Voucher;
 import com.sebulli.fakturama.model.VoucherItem;
@@ -42,23 +43,25 @@ public class VoucherSummaryCalculator {
 
     @Inject
     private ILogger log;
-    
+
     @Inject
     private IEclipseContext ctx;
-   
-    public VoucherSummary calculate(Voucher voucher) {
-    	MonetaryAmount paidValue = Money.of(Optional.ofNullable(voucher.getPaidValue()).orElse(Double.valueOf(0.0)), DataUtils.getInstance().getDefaultCurrencyUnit());
-    	MonetaryAmount totalValue = Money.of(Optional.ofNullable(voucher.getTotalValue()).orElse(Double.valueOf(0.0)), DataUtils.getInstance().getDefaultCurrencyUnit());
-    	return calculate(voucher.getItems(), paidValue, totalValue, BooleanUtils.toBoolean(voucher.getDiscounted()));
+
+    public VoucherSummary calculate(final Voucher voucher) {
+        final MonetaryAmount paidValue = Money.of(Optional.ofNullable(voucher.getPaidValue()).orElse(Double.valueOf(0.0)),
+                DataUtils.getInstance().getDefaultCurrencyUnit());
+        final MonetaryAmount totalValue = Money.of(Optional.ofNullable(voucher.getTotalValue()).orElse(Double.valueOf(0.0)),
+                DataUtils.getInstance().getDefaultCurrencyUnit());
+        return calculate(voucher.getItems(), paidValue, totalValue, BooleanUtils.toBoolean(voucher.getDiscounted()));
     }
-    
-	/**
-	 * Recalculate the voucher total values
-	 */
-    public VoucherSummary calculate(List<VoucherItem> items, MonetaryAmount paid, MonetaryAmount total, Boolean discounted) {
-    	return calculate(null, items, false, paid, total, discounted);
+
+    /**
+     * Recalculate the voucher total values
+     */
+    public VoucherSummary calculate(final List<VoucherItem> items, final MonetaryAmount paid, final MonetaryAmount total, final Boolean discounted) {
+        return calculate(null, items, false, paid, total, discounted);
     }
-    
+
     /**
      * Calculates the tax, gross and sum of an voucher
      * 
@@ -70,45 +73,43 @@ public class VoucherSummaryCalculator {
      *            If true, the category is also used for the vat summary as a
      *            description
      */
-    public VoucherSummary calculate(VatSummarySet globalVoucherSummarySet, List<VoucherItem> items, boolean useCategory, 
-            MonetaryAmount paid, MonetaryAmount total, Boolean discounted) {
-        VoucherSummary retval = new VoucherSummary(DataUtils.getInstance().getDefaultCurrencyUnit());
-        Double vatPercent;
-        String vatDescription;
+    public VoucherSummary calculate(final VatSummarySet globalVoucherSummarySet, final List<VoucherItem> items, final boolean useCategory,
+            final MonetaryAmount paid, final MonetaryAmount total, final Boolean discounted) {
+        final VoucherSummary retval = new VoucherSummary(DataUtils.getInstance().getDefaultCurrencyUnit());
 
         // PaidFactor is the relation between paid and total value.
         // e.g. if there is a discount of 3%, the total value is 100$
         // and the paid value is 97$, then the paidFactor is 0.97
         Double paidFactor = Double.valueOf(1.0);
-        
+
         // Total value must not be 0, if paid value is != 0
-        if  (total.isZero() && !paid.isZero()) {
+        if (total.isZero() && !paid.isZero()) {
             log.error("Voucher Summary: Total value is 0, but paid value != 0");
         }
-        
-        if (BooleanUtils.isTrue(discounted) && (!total.isZero()))
-            paidFactor = paid.divide(total.getNumber().doubleValue()).getNumber().doubleValue();
 
-        
+        if (BooleanUtils.isTrue(discounted) && (!total.isZero())) {
+            paidFactor = paid.divide(total.getNumber().doubleValue()).getNumber().doubleValue();
+        }
+
         // This Vat summary contains only the VAT entries of this document,
         // whereas the the parameter vatSummaryItems is a global VAT summary
         // and contains entries from this document and from others.
-        VatSummarySet voucherSummaryItems = ContextInjectionFactory.make(VatSummarySet.class, ctx);
+        final VatSummarySet voucherSummaryItems = ContextInjectionFactory.make(VatSummarySet.class, ctx);
 
         // Set the values to 0.0
-//        resetValues();
+        //        resetValues();
 
         // Use all non-deleted items
-        for (VoucherItem item : items) {
-        	 // expenditures have a negative sign, receipts a positive
-        	int itemSign = item.getItemVoucherType().isRECEIPTVOUCHER() ? 1 : -1;
+        for (final VoucherItem item : items) {
+            // expenditures have a negative sign, receipts a positive
+            final int itemSign = item.getItemVoucherType().isRECEIPTVOUCHER() ? 1 : -1;
             // Get the data from each item
-            vatDescription = item.getVat().getDescription();
-            vatPercent = item.getVat().getTaxValue();
-
-            Price price = new Price(item, paidFactor);
+            final String vatDescription = item.getVat().getDescription();
+            final Double vatPercent = item.getVat().getTaxValue();
+            final UNTDID5305 vatCode = item.getVat().getCode();
+            final Price price = new Price(item, paidFactor);
             price.multiply(itemSign);
-            MonetaryAmount itemVat = price.getTotalVat();
+            final MonetaryAmount itemVat = price.getTotalVat();
 
             // Add the total net value of this item to the sum of net items
             retval.setTotalNet(retval.getTotalNet().add(price.getTotalNet()));
@@ -118,15 +119,13 @@ public class VoucherSummaryCalculator {
 
             VatSummaryItem voucherSummaryItem;
             if (useCategory) {
-            	ItemAccountType accountType = null;
-        		accountType = item.getAccountType();
+                ItemAccountType accountType = null;
+                accountType = item.getAccountType();
                 // Add the VAT summary item to the ... 
-                voucherSummaryItem = new VatSummaryItem(vatDescription, vatPercent, price.getTotalNet(), itemVat,
-                        accountType);
-            }
-            else {
+                voucherSummaryItem = new VatSummaryItem(vatDescription, vatPercent, vatCode, price.getTotalNet(), itemVat, accountType);
+            } else {
                 // Add the VAT summary item to the ... 
-                voucherSummaryItem = new VatSummaryItem(vatDescription, vatPercent, price.getTotalNet(), itemVat, "");
+                voucherSummaryItem = new VatSummaryItem(vatDescription, vatPercent, vatCode, price.getTotalNet(), itemVat, "");
             }
 
             // .. VAT summary of the voucher ..
@@ -137,8 +136,9 @@ public class VoucherSummaryCalculator {
         retval.setTotalGross(retval.getTotalNet().add(retval.getTotalVat()));
 
         // Add the entries of the document summary set also to the global one
-        if (globalVoucherSummarySet != null)
-            globalVoucherSummarySet.addVatSummarySet(voucherSummaryItems); 
+        if (globalVoucherSummarySet != null) {
+            globalVoucherSummarySet.addVatSummarySet(voucherSummaryItems);
+        }
 
         return retval;
     }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
@@ -9,10 +9,11 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.dto;
+
 import java.util.Iterator;
 import java.util.TreeSet;
 
@@ -42,83 +43,83 @@ import com.sebulli.fakturama.misc.DataUtils;
  * @author Gerd Bartelt
  */
 public class VatSummarySet extends TreeSet<VatSummaryItem> {
-    
+
     @Inject
     private IEclipseContext ctx;
 
-	private static final long serialVersionUID = 1L;
-    
+    private static final long serialVersionUID = 1L;
+
     private CurrencyUnit currencyCode;
     private MonetaryRounding rounding;
 
     @PostConstruct
     public void init() {
-        DataUtils dataUtils = ContextInjectionFactory.make(DataUtils.class, ctx);
+        final DataUtils dataUtils = ContextInjectionFactory.make(DataUtils.class, ctx);
         currencyCode = dataUtils.getDefaultCurrencyUnit();
-        rounding = dataUtils.getRounding(currencyCode);  
+        rounding = dataUtils.getRounding(currencyCode);
     }
-    
-	/**
-	 * Add a new VatSummaryItem to this tree
-	 * 
-	 * @param vatSummaryItem
-	 *            The new Item
-	 * @return <code>true</code> if it was added as new item
-	 */
-	@Override
-	public boolean add(VatSummaryItem vatSummaryItemTemplate) {
 
-		VatSummaryItem vatSummaryItem = VatSummaryItem.of(vatSummaryItemTemplate);
+    /**
+     * Add a new VatSummaryItem to this tree
+     * 
+     * @param vatSummaryItem
+     *            The new Item
+     * @return <code>true</code> if it was added as new item
+     */
+    @Override
+    public boolean add(final VatSummaryItem vatSummaryItemTemplate) {
 
-		// try to add it
-		boolean added = super.add(vatSummaryItem);
+        final VatSummaryItem vatSummaryItem = VatSummaryItem.of(vatSummaryItemTemplate);
 
-		// If there was already an item with the same value and name ..
-		if (!added) {
+        // try to add it
+        final boolean added = super.add(vatSummaryItem);
 
-			// add the net and vat to the existing one
-			VatSummaryItem existing = super.ceiling(vatSummaryItem);
-			existing.add(vatSummaryItem);
-		}
+        // If there was already an item with the same value and name ..
+        if (!added) {
 
-		return added;
-	}
+            // add the net and vat to the existing one
+            final VatSummaryItem existing = super.ceiling(vatSummaryItem);
+            existing.add(vatSummaryItem);
+        }
 
-	/**
-	 * Returns the index of a VatSummaryItem
-	 * 
-	 * @param vatSummaryItem
-	 *            to Search for
-	 * @return index or -1, if it was not found.
-	 */
-	public int getIndex(VatSummaryItem vatSummaryItem) {
-		int i = -1;
+        return added;
+    }
 
-		// Search all items
-		for (Iterator<VatSummaryItem> iterator = this.iterator(); iterator.hasNext();) {
-			i++;
-			VatSummaryItem item = iterator.next();
+    /**
+     * Returns the index of a VatSummaryItem
+     * 
+     * @param vatSummaryItem
+     *            to Search for
+     * @return index or -1, if it was not found.
+     */
+    public int getIndex(final VatSummaryItem vatSummaryItem) {
+        int i = -1;
 
-			// Returns the item, if it is the same
-			if (item.compareTo(vatSummaryItem) == 0)
-				break;
-		}
-		return i;
-	}
-	
-	public MonetaryAmount getTotalNet() {
-		return this.parallelStream().map(v -> v.getNet()).reduce(Money.zero(currencyCode),
-				MonetaryFunctions::sum).with(rounding);
-	}
+        // Search all items
+        for (final Iterator<VatSummaryItem> iterator = this.iterator(); iterator.hasNext();) {
+            i++;
+            final VatSummaryItem item = iterator.next();
 
-	/**
-	 * Add all items of an other VatSummarySet
-	 * 
-	 * @param otherVatSummarySet
-	 *            The other VatSummarySet
-	 */
-	public void addVatSummarySet(VatSummarySet otherVatSummarySet) {
-		otherVatSummarySet.forEach(vat -> this.add(vat));
-	}
+            // Returns the item, if it is the same
+            if (item.compareTo(vatSummaryItem) == 0) {
+                break;
+            }
+        }
+        return i;
+    }
+
+    public MonetaryAmount getTotalNet() {
+        return this.parallelStream().map(VatSummaryItem::getNet).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
+    }
+
+    /**
+     * Add all items of an other VatSummarySet
+     * 
+     * @param otherVatSummarySet
+     *            The other VatSummarySet
+     */
+    public void addVatSummarySet(final VatSummarySet otherVatSummarySet) {
+        otherVatSummarySet.forEach(this::add);
+    }
 
 }

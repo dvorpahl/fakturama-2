@@ -245,7 +245,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      *            the {@link NatTable} to style
      */
     private void addCustomStyling(final NatTable natTable) {
-        DefaultSelectionStyleConfiguration selectionStyle = createDefaultSelectionStyle();
+        final DefaultSelectionStyleConfiguration selectionStyle = createDefaultSelectionStyle();
 
         // Add all style configurations to NatTable
         natTable.addConfiguration(selectionStyle);
@@ -257,18 +257,26 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      * @param natTable
      */
     public void onStart(final NatTable natTable) {
-        Properties properties = new Properties();
-        String requestedWorkspace = getEclipsePrefs().getDefaultString(Constants.GENERAL_WORKSPACE);
-        Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
+        final Properties properties = new Properties();
+        final String requestedWorkspace = getEclipsePrefs().getDefaultString(Constants.GENERAL_WORKSPACE);
+        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
 
-        try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile);) {
+        try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile, StandardOpenOption.READ);) {
             properties.load(propertiesInputStream);
             log.debug("Loading NatTable state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
-            properties.load(Files.newInputStream(propertiesFile, StandardOpenOption.READ));
             natTable.loadState(getTableId(), properties);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // No file found, oh well, move along
             log.warn(Constants.VIEWTABLE_PREFERENCES_FILE + " not found, skipping load");
+            if (Files.notExists(propertiesFile)) {
+                try {
+                    log.warn("{} not found, skipping load. new file to create: {}", Constants.VIEWTABLE_PREFERENCES_FILE, propertiesFile.toAbsolutePath());
+                    Files.createFile(propertiesFile);
+                } catch (final IOException ioex) {
+                    log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
+                }
+            }
+
         }
     }
 
@@ -279,13 +287,13 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      * @param natTable
      */
     public void onStop(final NatTable natTable) {
-        Properties properties = new Properties();
-        String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
-        Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
+        final Properties properties = new Properties();
+        final String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
+        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
         if (Files.notExists(propertiesFile)) {
             try {
                 Files.createFile(propertiesFile);
-            } catch (IOException ioex) {
+            } catch (final IOException ioex) {
                 log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
             }
         }
@@ -295,7 +303,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
 
             // removing superfluous entries (i.e., count of rows)
             final Iterator<Object> mapIter = properties.keySet().iterator();
-            String[] prefixes = new String[] { getTableId() + "." + GridRegion.BODY + RowReorderLayer.PERSISTENCE_KEY_ROW_INDEX_ORDER,
+            final String[] prefixes = new String[] { getTableId() + "." + GridRegion.BODY + RowReorderLayer.PERSISTENCE_KEY_ROW_INDEX_ORDER,
                     getTableId() + "." + GridRegion.COLUMN_HEADER + SortStatePersistor.PERSISTENCE_KEY_SORTING_STATE, };
             String elem;
             while (mapIter.hasNext()) {
@@ -307,7 +315,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
 
             log.info("Saving NatTable state to " + Constants.VIEWTABLE_PREFERENCES_FILE);
             properties.store(Files.newOutputStream(propertiesFile, StandardOpenOption.CREATE), "NatTable state");
-        } catch (IOException ioex) {
+        } catch (final IOException ioex) {
             log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be written.");
         }
     }
@@ -356,14 +364,14 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      *            current {@link TreeObject}
      */
     public void changeToolbarItem(final TreeObject treeObject) {
-        MToolBar toolbar = getMToolBar();
+        final MToolBar toolbar = getMToolBar();
         if (toolbar != null) {
-            for (MToolBarElement tbElem : toolbar.getChildren()) {
+            for (final MToolBarElement tbElem : toolbar.getChildren()) {
                 if (tbElem.getElementId().contentEquals(getToolbarAddItemCommandId())) {
-                    HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
+                    final HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
                     ParameterizedCommand wbCommand = toolItem.getWbCommand();
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
+                    final Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
                     parameterMap.put(CallEditor.PARAM_CATEGORY, treeObject.getFullPathName(true));
                     parameterMap.put(CallEditor.PARAM_FORCE_NEW, Boolean.TRUE);
                     if (wbCommand != null) {
@@ -411,25 +419,25 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
             @Override
             public void run(final NatTable natTable, final MouseEvent event) {
                 //get the row position for the click in the NatTable
-                int rowPos = natTable.getRowPositionByY(event.y);
+                final int rowPos = natTable.getRowPositionByY(event.y);
                 //transform the NatTable row position to the row position of the body layer stack
-                int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
+                final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
                 // extract the selected Object
-                T selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
+                final T selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
                 //                log.debug("Selected Object: " + selectedObject.getName());
                 // Call the corresponding editor. The editor is set
                 // in the variable "editor", which is used as a parameter
                 // when calling the editor command.
                 // in E4 we create a new Part (or use an existing one with the same ID)
                 // from PartDescriptor
-                Map<String, Object> params = new HashMap<>();
+                final Map<String, Object> params = new HashMap<>();
                 params.put(CallEditor.PARAM_OBJ_ID, Long.toString(selectedObject.getId()));
                 params.put(CallEditor.PARAM_EDITOR_TYPE, getEditorId());
                 //                if(selectedObject instanceof Document) {
                 //                    params.put(CallEditor.PARAM_CATEGORY, ((Document)selectedObject).getBillingType().getName());
                 //                }
                 params.putAll(getAdditionalParameters());
-                ParameterizedCommand parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
+                final ParameterizedCommand parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
                 handlerService.executeHandler(parameterizedCommand);
             }
         });
@@ -485,32 +493,32 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      * @return {@link Composite}
      */
     private Composite createSearchAndTableComposite(final Composite parent) {
-        Composite searchAndTableComposite = new Composite(parent, SWT.NONE);
+        final Composite searchAndTableComposite = new Composite(parent, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns(1).applyTo(searchAndTableComposite);
         GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).applyTo(searchAndTableComposite);
 
         // Create the composite that contains the search field and the toolbar
-        Composite searchAndToolbarComposite = new Composite(searchAndTableComposite, SWT.NONE);
+        final Composite searchAndToolbarComposite = new Composite(searchAndTableComposite, SWT.NONE);
         GridLayoutFactory.fillDefaults().numColumns(3).applyTo(searchAndToolbarComposite);
         GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(searchAndToolbarComposite);
 
         // The toolbar is created via Application model (Application.e4xmi)
 
         filterLabel = new Label(searchAndToolbarComposite, SWT.NONE);
-        FontData[] fD = filterLabel.getFont().getFontData();
+        final FontData[] fD = filterLabel.getFont().getFontData();
         fD[0].setHeight(20);
-        Font font = new Font(null, fD[0]);
+        final Font font = new Font(null, fD[0]);
         filterLabel.setFont(font);
         font.dispose();
         GridDataFactory.fillDefaults().grab(true, false).align(SWT.CENTER, SWT.CENTER).applyTo(filterLabel);
 
         // The search composite
-        Composite searchComposite = new Composite(searchAndToolbarComposite, SWT.NONE);
+        final Composite searchComposite = new Composite(searchAndToolbarComposite, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(searchComposite);
         GridDataFactory.fillDefaults().grab(true, true).align(SWT.END, SWT.CENTER).applyTo(searchComposite);
 
         // Search label an search field
-        Label searchLabel = new Label(searchComposite, SWT.NONE);
+        final Label searchLabel = new Label(searchComposite, SWT.NONE);
         searchLabel.setText(msg.commonLabelSearchfield);
         GridDataFactory.swtDefaults().applyTo(searchLabel);
 
@@ -616,15 +624,17 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      */
     public void removeSelectedEntry() {
         @SuppressWarnings("unchecked")
-        List<T> selection = (List<T>) selectionService.getSelection();
+        final List<T> selection = (List<T>) selectionService.getSelection();
         if (selection == null || selection.isEmpty()) {
             return;
         }
-        int selectedEntries = selection.size();
+        final int selectedEntries = selection.size();
         boolean confirmation = false;
         /*
-         * If you switch between views the selection still remains and the ESelectionService
-         * doesn't clear it's selection. Therefore we have to prove at least the first element 
+         * If you switch between views the selection still remains and the
+         * ESelectionService
+         * doesn't clear it's selection. Therefore we have to prove at least the
+         * first element
          * of the selected list for it's class type.
          */
         if (selectedEntries > 0 && getEntityClass().isInstance(selection.get(0))) {
@@ -638,8 +648,9 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
             for (T objToDelete : selection) {
                 try {
                     /*
-                     * If deletion was not confirmed yet (e.g., if we've only one entry to delete),
-                     * here's the time to ask for it. 
+                     * If deletion was not confirmed yet (e.g., if we've only
+                     * one entry to delete),
+                     * here's the time to ask for it.
                      */
                     if (!confirmation) {
                         confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle,
@@ -657,19 +668,22 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
                         objToDelete = getEntityDAO().update(objToDelete);
 
                         // if an editor with this object is open we have to close it forcibly
-                        Map<String, Object> params = new HashMap<>();
+                        final Map<String, Object> params = new HashMap<>();
                         params.put(Editor.OBJECT_ID, objToDelete.getName());
                         evtBroker.post(getEditorTypeId() + "/forceClose", params);
                     }
-                } catch (FakturamaStoringException e) {
+                } catch (final FakturamaStoringException e) {
                     log.error(e, "can't save the current Entity: " + objToDelete.toString());
                 }
 
                 /*
-                 * TODO as long as the categories aren't fully implemented (multiple categories per entity)
-                 * we use this workaround for deleting the empty categories. If we later on change the structure
-                 * of the entities we have to change this into a comprehensive form (i.e., use interface DescribableEntity
-                 * with category attribute).  
+                 * TODO as long as the categories aren't fully implemented
+                 * (multiple categories per entity)
+                 * we use this workaround for deleting the empty categories. If
+                 * we later on change the structure
+                 * of the entities we have to change this into a comprehensive
+                 * form (i.e., use interface DescribableEntity
+                 * with category attribute).
                  */
                 handleAfterDeletion(objToDelete);
 
@@ -709,7 +723,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         // NOTE: Getting the colors and fonts from the GUIHelper ensures that
         // they are disposed properly (required by SWT)
         // Setup selection styling
-        DefaultSelectionStyleConfiguration selectionStyle = new DefaultSelectionStyleConfiguration();
+        final DefaultSelectionStyleConfiguration selectionStyle = new DefaultSelectionStyleConfiguration();
         //     selectionStyle.selectionFont = GUIHelper.getFont(new FontData("Verdana", 8, SWT.NORMAL));
         selectionStyle.selectionBgColor = GUIHelper.getColor(217, 232, 251);
         selectionStyle.selectionFgColor = GUIHelper.COLOR_BLACK;
@@ -743,7 +757,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
 
     protected String createRootNodeDescriptor(final String filter) {
         String rootNode = "";
-        String[] splittedString = filter.split("/");
+        final String[] splittedString = filter.split("/");
         if (splittedString.length > 1) {
             rootNode = splittedString[1];
         }

@@ -14,23 +14,14 @@
 package com.sebulli.fakturama.webshopimport;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -39,14 +30,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -58,13 +50,17 @@ import javax.money.MonetaryAmount;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.ImageData;
 import org.javamoney.moneta.FastMoney;
 import org.javamoney.moneta.Money;
@@ -256,73 +252,103 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 
             // Send user name, password and a list of unsynchronized orders to
             // the shop
-            final URLConnection connection = connector.createConnection();
-            if (connection != null && connection.getDoOutput()) {
-                final OutputStream outputStream = connection.getOutputStream();
-                final OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                setProgress(20);
-                final StringBuilder postStringSb = new StringBuilder("username=").append(URLEncoder.encode(connector.getUser(), "UTF-8")).append("&password=")
-                        .append(URLEncoder.encode(connector.getPassword(), "UTF-8"));
+            final Map<String, String> queryParams = new HashMap<>();
 
-                String actionString = "";
-                if (connector.isGetProducts()) {
-                    actionString += "_products";
-                }
-                if (connector.isGetOrders()) {
-                    actionString += "_orders";
-                }
-                if (!actionString.isEmpty()) {
-                    actionString = "&action=get" + actionString;
-                }
-
-                postStringSb.append(actionString).append("&setstate=").append(connector.getOrderstosynchronize().toString());
-                if (maxProducts > 0) {
-                    postStringSb.append("&maxproducts=").append(maxProducts.toString());
-                }
-
-                if (onlyModifiedProducts) {
-                    final String lasttime = preferences.getString(PREFERENCE_LASTWEBSHOPIMPORT_DATE);
-                    if (!lasttime.isEmpty()) {
-                        postStringSb.append("&lasttime=").append(lasttime.toString());
-                    }
-                }
-
-                log.debug("POST-String: " + postStringSb.toString());
-                writer.write(postStringSb.toString());
-                writer.flush();
-                writer.close();
+            String actionString = "";
+            if (connector.isGetProducts()) {
+                actionString += "_products";
             }
+            if (connector.isGetOrders()) {
+                actionString += "_orders";
+            }
+            if (!actionString.isEmpty()) {
+                actionString = "get" + actionString;
+            } else {
+                return;
+            }
+
+            setProgress(20);
+
+            queryParams.put("setstate", connector.getOrderstosynchronize().toString());
+            if (maxProducts > 0) {
+                queryParams.put("maxproducts", maxProducts.toString());
+            }
+            if (onlyModifiedProducts) {
+                final String lasttime = preferences.getString(PREFERENCE_LASTWEBSHOPIMPORT_DATE);
+                if (!lasttime.isEmpty()) {
+                    queryParams.put("lasttime", lasttime.toString());
+                }
+            }
+            final HttpPost httpPost = connector.createPostRequest(actionString, queryParams);
+
+            //            final URLConnection connection = connector.createConnection();
+            //            if (connection != null && connection.getDoOutput()) {
+            //                final OutputStream outputStream = connection.getOutputStream();
+            //                final OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+            //                
+            ////                final StringBuilder postStringSb = new StringBuilder("username=").append(URLEncoder.encode(connector.getUser(), "UTF-8")).append("&password=")
+            ////                        .append(URLEncoder.encode(connector.getPassword(), "UTF-8"));
+            ////
+            ////                String actionString = "";
+            ////                if (connector.isGetProducts()) {
+            ////                    actionString += "_products";
+            ////                }
+            ////                if (connector.isGetOrders()) {
+            ////                    actionString += "_orders";
+            ////                }
+            ////                if (!actionString.isEmpty()) {
+            ////                    actionString = "&action=get" + actionString;
+            ////                }
+            //
+            ////                postStringSb.append(actionString).append("&setstate=").append(connector.getOrderstosynchronize().toString());
+            //
+            //
+            //                log.debug("POST-String: " + postStringSb.toString());
+            //                writer.write(postStringSb.toString());
+            //                writer.flush();
+            //                writer.close();
+            //            }
             setProgress(30);
-
-            // Start a connection in an extra thread
-            final InterruptConnection interruptConnection = new InterruptConnection(connection);
-            new Thread(interruptConnection).start();
-            while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
-
-            }
-
-            // If the connection was interrupted and not finished: return
-            if (!interruptConnection.isFinished()) {
-                ((HttpURLConnection) connection).disconnect();
-                if (interruptConnection.isError()) {
-                    //T: Status error message importing data from web shop
-                    setRunResult(msg.importWebshopErrorCantconnect);
-                }
-                return;
-            }
-
-            // If there was an error, return with error message
-            if (interruptConnection.isError()) {
-                ((HttpURLConnection) connection).disconnect();
-                //T: Status message importing data from web shop
+            final Path file = Files.createTempFile("result_", ".xml");
+            try (OutputStream fos = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE); //
+                    CloseableHttpClient client = HttpClients.createDefault(); //
+                    CloseableHttpResponse response = client.execute(httpPost)) {
+                localMonitor.subTask(msg.importWebshopInfoLoading);
+                setProgress(20);
+                IOUtils.copyLarge(response.getEntity().getContent(), fos);
+                fos.flush();
+            } catch (final Exception e) {
                 setRunResult(msg.importWebshopErrorCantread);
-                return;
             }
+            //            // Start a connection in an extra thread
+            //            final InterruptConnection interruptConnection = new InterruptConnection(connection);
+            //            new Thread(interruptConnection).start();
+            //            while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
+            //
+            //            }
+            //
+            //            // If the connection was interrupted and not finished: return
+            //            if (!interruptConnection.isFinished()) {
+            //                ((HttpURLConnection) connection).disconnect();
+            //                if (interruptConnection.isError()) {
+            //                    //T: Status error message importing data from web shop
+            //                    setRunResult(msg.importWebshopErrorCantconnect);
+            //                }
+            //                return;
+            //            }
+            //
+            //            // If there was an error, return with error message
+            //            if (interruptConnection.isError()) {
+            //                ((HttpURLConnection) connection).disconnect();
+            //                //T: Status message importing data from web shop
+            //                setRunResult(msg.importWebshopErrorCantread);
+            //                return;
+            //            }
 
             // 1. We need to create JAXBContext instance
             final JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
 
-            /* if we have larger documents we have to use SAX.         		*/
+            /* if we have larger documents we have to use SAX. */
             // 2. create a new XML parser
             //                SAXParserFactory factory = SAXParserFactory.newInstance();
             //                factory.setNamespaceAware(true);
@@ -360,7 +386,8 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             // an instance of JAXBElement.
             // 4. Get the instance of the required JAXB Root Class from the
             // JAXBElement.
-            webshopexport = (Webshopexport) unmarshaller.unmarshal(interruptConnection.getInputStream());
+
+            webshopexport = (Webshopexport) unmarshaller.unmarshal(file.toFile());
 
             // alternatively (for large responses)
             // prepare a Splitter
@@ -732,9 +759,12 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             itemDescription = new StringBuffer();
             // store additional prices for attributes
             /*
-             * Currently, there's no possibility for storing prices of attributes / optional features.
-             * Therefore we only can put the attribute string as description into a product.
-             * The price and the prefix are ignored, since I don't know where I have to store it.
+             * Currently, there's no possibility for storing prices of
+             * attributes / optional features.
+             * Therefore we only can put the attribute string as description
+             * into a product.
+             * The price and the prefix are ignored, since I don't know where I
+             * have to store it.
              * A model change is required.
              */
             //    			Float attrPrice = NumberUtils.FLOAT_ZERO;
@@ -779,10 +809,16 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             item.setPosNr(itemIndex++);
             /*
              * per default some other values are set from product
-            this(-1, product.getStringValueByKey("name"), product.getIntValueByKey("id"), product.getStringValueByKey("itemnr"), false, "", -1, false, quantity,
-            product.getStringValueByKey("description"), product.getPriceByQuantity(quantity), product.getIntValueByKey("vatid"), discount, 0.0, "", "", false,
-            product.getStringValueByKey("picturename"), false, product.getStringValueByKey("qunit"));
-            
+             * this(-1, product.getStringValueByKey("name"),
+             * product.getIntValueByKey("id"),
+             * product.getStringValueByKey("itemnr"), false, "", -1, false,
+             * quantity,
+             * product.getStringValueByKey("description"),
+             * product.getPriceByQuantity(quantity),
+             * product.getIntValueByKey("vatid"), discount, 0.0, "", "", false,
+             * product.getStringValueByKey("picturename"), false,
+             * product.getStringValueByKey("qunit"));
+             * 
              */
             item.setName(newOrExistingProduct.getName());
             item.setItemNumber(newOrExistingProduct.getItemNumber());
@@ -998,8 +1034,9 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 
         // Create the URL to the product image
         byte[] picture = null;
-        if (!product.getImage().isEmpty()) {
-            picture = downloadImageFromUrl(connector.getShopURL() + productImagePath + product.getImage());
+        final boolean usePicture = preferences.getDefaultBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE);
+        if (usePicture && !product.getImage().isEmpty()) {
+            picture = downloadImageFromUrl(product.getImage());
         }
 
         // Convert the quantity string to a double value
@@ -1055,44 +1092,45 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             return null;
         }
 
-        // always get the image from server, we don't store it in file system anymore
-        // Connect to the web server
-        final HttpClient client = HttpClient.newBuilder() //
-                .followRedirects(Redirect.NORMAL) //
-                .connectTimeout(Duration.ofSeconds(30L)) //
-                .build();
-        final URI uri = URI.create(address);
-        final HttpRequest request = HttpRequest.newBuilder() //
-                .uri(uri) //
-                .build();
-        Path file = null;
-        try {
-            file = Files.createTempFile("wsdl_", "img");
-            final HttpResponse<byte[]> result = client.send(request, BodyHandlers.ofByteArray());
-            if (result.statusCode() < 400 && result.body() != null) {
-                Files.write(file, result.body());
-                // first, check if there is an image, if not, return null
-                final ImageData image = new ImageData(file.toAbsolutePath().toString());
-                if (image != null) {
-                    return result.body();
+        // we should have a complete url here, nothing relative
+        final HttpGet httpGet = connector.createPublicGetRequest(address);
+
+        final File targetFile = new File("downloaded-file");
+        try (CloseableHttpClient client = HttpClients.createDefault(); CloseableHttpResponse response = client.execute(httpGet, responseHandler -> {
+            localMonitor.subTask(msg.importWebshopInfoLoading);
+
+            int status = responseHandler.getCode();
+            if (status < 400) {
+                // Handle binary response
+                InputStream inputStream = responseHandler.getEntity().getContent();
+
+                try (OutputStream outputStream = new FileOutputStream(targetFile)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
+                    }
+                    outputStream.flush();
                 }
 
+            } else {
+                System.err.println("Unexpected picture download response status: " + status);
             }
-        } catch (final MalformedURLException e) {
-            //T: Status message importing data from web shop
-            log.error(e, msg.importWebshopErrorMalformedurl + " " + address);
-        } catch (IOException | SWTException | InterruptedException e) {
-            log.error(e, msg.importWebshopErrorCantopenpicture + " " + address);
+            return null;
+        });) {
+            // check if image conversion can be made
+            new ImageData(targetFile.getAbsolutePath());
+            // if possible (no exception), we return the image
+            return Files.readAllBytes(targetFile.toPath());
+        } catch (final Exception e) {
+            setRunResult(msg.importWebshopErrorCantconnect);
         } finally {
-            if (file != null) {
-                try {
-                    Files.deleteIfExists(file);
-                } catch (final Exception e) {
-                    // ignore
-                }
+            try {
+                Files.deleteIfExists(targetFile.toPath());
+            } catch (final IOException e) {
+                // do nothing
             }
         }
-
         return null;
     }
     //

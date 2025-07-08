@@ -114,8 +114,8 @@ public class EInvoiceConverter {
     private final ZFMessages zfMsg;
 
     private static final int MONEY_SCALE = 2;
-    private final int customMoneyScale = 2;
-    private final int customQuantityScale = 2;
+    private int customMoneyScale = 2;
+    private int customQuantityScale = 2;
 
     public EInvoiceConverter(final IEclipseContext eclipseContext, final IPreferenceStore preferences, final ContactsDAO contactsDAO,
             final ContactUtil contactUtil, final IDocumentAddressManager addressManager, final Messages msg, final ILocaleService localeUtil,
@@ -129,7 +129,15 @@ public class EInvoiceConverter {
         this.localeUtil = localeUtil;
         this.measureUnits = measureUnits;
         this.zfMsg = zfMsg;
-        // TODO: Scales einbauen
+
+        customMoneyScale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
+        if (customMoneyScale < 0) {
+            customMoneyScale = 2;
+        }
+        customQuantityScale = preferences.getInt(Constants.PREFERENCES_GENERAL_QUANTITY_DECIMALPLACES);
+        if (customQuantityScale < 0) {
+            customQuantityScale = 2;
+        }
 
     }
 
@@ -288,7 +296,7 @@ public class EInvoiceConverter {
             final MonetaryAmount basisAmount = Optional.ofNullable(vatSummaryItem.getNet())
                     .orElse(Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit()));
             // BT-118
-            invoiceVatBreakdown.setVatCategoryCode(vatSummaryItem.getVatPercent() == 0 ? "Z" : "S");
+            invoiceVatBreakdown.setVatCategoryCode(vatSummaryItem.getVatCode().getCode());
             // BT-119
             invoiceVatBreakdown.setVatCategoryRate(
                     BigDecimal.valueOf(vatSummaryItem.getVatPercent()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
@@ -331,7 +339,7 @@ public class EInvoiceConverter {
             position.setInvoicedQuantityUnitOfMeasureCode(isoUnit);
 
             // BT-151
-            position.setInvoicedItemVatCategoryCode(invoiceItem.getItemVat().getTaxValue() > 0 ? "S" : "Z"); // see UNTDID 5305
+            position.setInvoicedItemVatCategoryCode(invoiceItem.getItemVat().getCode().getCode()); // see UNTDID 5305
             // BT-152 VAT
             position.setInvoicedItemVatRate(
                     BigDecimal.valueOf(invoiceItem.getItemVat().getTaxValue()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
@@ -366,7 +374,7 @@ public class EInvoiceConverter {
                     invoiceItem.getItemRebate(), BooleanUtils.toBoolean(invoiceItem.getNoVat()), false, null);
 
             // BT-146 (= BT-148 - BT-147)
-            position.setItemNetPrice(moneyToBigDecimal(price.getUnitNet()).setScale(2, RoundingMode.HALF_UP));
+            position.setItemNetPrice(moneyToBigDecimal(price.getUnitNet()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
             // BT-147 (wont be used since we use allowances instead)
             //            position.setItemPriceDiscount(moneyToBigDecimal(price.getUnitNetDiscounted()).setScale(2, RoundingMode.HALF_UP));
             if (invoiceItem.getItemRebate() != null && !BigDecimal.ZERO.equals(invoiceItem.getItemRebate())) {
@@ -386,7 +394,7 @@ public class EInvoiceConverter {
 
             }
             // BT-148
-            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(2, RoundingMode.HALF_UP));
+            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
 
             // BT-131 TODO (no vat, but all charges/allowances)
             position.setInvoiceLineNetAmount(BigDecimal.valueOf(price.getTotalNet().getNumber().doubleValueExact()));

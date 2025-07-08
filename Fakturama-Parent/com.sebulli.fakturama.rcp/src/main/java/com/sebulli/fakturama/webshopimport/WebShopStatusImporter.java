@@ -13,6 +13,11 @@ import java.net.URLEncoder;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -52,7 +57,7 @@ public class WebShopStatusImporter implements IRunnableWithProgress {
             setRunResult("no connection information provided");
             return;
         }
-        String shopURL = connector.getScriptURL();
+        final String shopURL = connector.getScriptURL();
 
         // Check empty URL http://shop.fakturama.info/admin/fakturama2_connector.php
         if (shopURL.isEmpty()) {
@@ -67,69 +72,80 @@ public class WebShopStatusImporter implements IRunnableWithProgress {
         //T: Status message importing data from web shop
         localMonitor.subTask(msg.importWebshopInfoConnected + " " + shopURL);
         setProgress(10);
+        // 1. We need to create JAXBContext instance
 
         try {
             // Send user name, password and a list of unsynchronized orders to
             // the shop
-            URLConnection connection = connector.createConnection();
-            if (connection != null) {
-                ((HttpURLConnection) connection).setRequestMethod("POST");
-                String postString = new StringBuilder("username=").append(URLEncoder.encode(connector.getUser(), "UTF-8")).append("&password=")
-                        .append(URLEncoder.encode(connector.getPassword(), "UTF-8")).append("&action=get_status").toString();
-                //this.webShopImportManager.log.debug("POST-String: " + postString);
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestProperty("Content-Length", String.valueOf(postString.length()));
+            HttpClientBuilder.create();
+            if (!connector.getScriptURL().startsWith("file://")) {
 
-                OutputStream outputStream = connection.getOutputStream();
-                OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                setProgress(20);
+                // create post Request with all necessary information in it
+                final HttpPost httpPost = connector.createPostRequest("get_status");
+                try (CloseableHttpClient client = HttpClients.createDefault(); CloseableHttpResponse response = client.execute(httpPost)) {
+                    localMonitor.subTask(msg.importWebshopInfoLoading);
+                    setProgress(20);
+                    final JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
+                    // 2. Use JAXBContext instance to create the Unmarshaller.
+                    final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
-                writer.write(postString);
-                writer.flush();
-                writer.close();
-
-            }
-
-            setProgress(30);
-            // Start a connection in an extra thread
-            InterruptConnection interruptConnection = new InterruptConnection(connection);
-            new Thread(interruptConnection).start();
-            while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
-                ;
-            }
-
-            // If the connection was interrupted and not finished: return
-            if (!interruptConnection.isFinished()) {
-                ((HttpURLConnection) connection).disconnect();
-                if (interruptConnection.isError()) {
-                    //T: Status error message importing data from web shop
+                    webshopexport = (Webshopexport) unmarshaller.unmarshal(response.getEntity().getContent());
+                } catch (final Exception e) {
                     setRunResult(msg.importWebshopErrorCantconnect);
                 }
-                return;
+            } else {
+                final URLConnection connection = connector.createConnection();
+                if (connection != null) {
+                    ((HttpURLConnection) connection).setRequestMethod("POST");
+                    final String postString = new StringBuilder("username=").append(URLEncoder.encode(connector.getUser(), "UTF-8")).append("&password=")
+                            .append(URLEncoder.encode(connector.getPassword(), "UTF-8")).append("&action=get_status").toString();
+                    //this.webShopImportManager.log.debug("POST-String: " + postString);
+                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    connection.setRequestProperty("Content-Length", String.valueOf(postString.length()));
+
+                    final OutputStream outputStream = connection.getOutputStream();
+                    final OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+                    setProgress(20);
+
+                    writer.write(postString);
+                    writer.flush();
+                    writer.close();
+
+                }
+
+                setProgress(30);
+                // Start a connection in an extra thread
+                final InterruptConnection interruptConnection = new InterruptConnection(connection);
+                new Thread(interruptConnection).start();
+                while (!localMonitor.isCanceled() && !interruptConnection.isFinished() && !interruptConnection.isError()) {
+
+                }
+
+                // If the connection was interrupted and not finished: return
+                if (!interruptConnection.isFinished()) {
+                    ((HttpURLConnection) connection).disconnect();
+                    if (interruptConnection.isError()) {
+                        //T: Status error message importing data from web shop
+                        setRunResult(msg.importWebshopErrorCantconnect);
+                    }
+                    return;
+                }
+
+                // If there was an error, return with error message
+                if (interruptConnection.isError()) {
+                    ((HttpURLConnection) connection).disconnect();
+                    //T: Status message importing data from web shop
+                    setRunResult(msg.importWebshopErrorCantread);
+                    return;
+                }
+                final JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
+                // 2. Use JAXBContext instance to create the Unmarshaller.
+                final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+                localMonitor.subTask(msg.importWebshopInfoLoading);
+                webshopexport = (Webshopexport) unmarshaller.unmarshal(interruptConnection.getInputStream());
+
             }
-
-            // If there was an error, return with error message
-            if (interruptConnection.isError()) {
-                ((HttpURLConnection) connection).disconnect();
-                //T: Status message importing data from web shop
-                setRunResult(msg.importWebshopErrorCantread);
-                return;
-            }
-
-            // 1. We need to create JAXBContext instance
-            JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
-
-            // 2. Use JAXBContext instance to create the Unmarshaller.
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-
-            // 3. Use the Unmarshaller to unmarshal the XML document to get
-            // an instance of JAXBElement.
-
-            //T: Status message importing data from web shop
-            localMonitor.subTask(msg.importWebshopInfoLoading);
-            // 4. Get the instance of the required JAXB Root Class from the
-            // JAXBElement.
-            webshopexport = (Webshopexport) unmarshaller.unmarshal(interruptConnection.getInputStream());
             setProgress(40);
             // parse the XML stream
             if (!localMonitor.isCanceled()) {
@@ -154,16 +170,16 @@ public class WebShopStatusImporter implements IRunnableWithProgress {
             //            }
 
             localMonitor.done();
-        } catch (MarshalException mex) {
+        } catch (final MarshalException mex) {
             //T: Status message importing data from web shop
             setRunResult(msg.importWebshopErrorNodata + "\n" + shopURL + "\n" + mex.getMessage());
-        } catch (UnmarshalException e) {
+        } catch (final UnmarshalException e) {
             setRunResult(msg.importWebshopErrorCantopen + "\n" + shopURL + "\n" + "Message: " + e.getCause() + "\n", e);
 
             if (webshopexport != null) {
                 setRunResult(getRunResult().getErrorMessage() + "\n\n" + webshopexport, e);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             //T: Status message importing data from web shop
             setRunResult(msg.importWebshopErrorCantopen + "\n" + shopURL + "\n" + "Message: " + e.getLocalizedMessage() + "\n", e);
 
