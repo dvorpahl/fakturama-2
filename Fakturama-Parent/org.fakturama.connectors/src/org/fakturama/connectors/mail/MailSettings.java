@@ -57,7 +57,8 @@ public class MailSettings {
      * @return <code>true</code> if all necessary settings are set
      */
     public boolean isValid() {
-        boolean receiversAreValid = areReceiversValid(FIELD_RECEIVERS_TO) && areReceiversValid(FIELD_RECEIVERS_CC) && areReceiversValid(FIELD_RECEIVERS_BCC);
+        final boolean receiversAreValid = areReceiversValid(FIELD_RECEIVERS_TO) && areReceiversValid(FIELD_RECEIVERS_CC)
+                && areReceiversValid(FIELD_RECEIVERS_BCC);
 
         return StringUtils.isNoneEmpty(user, host, password, sender) && !receiversTo.isEmpty() && receiversAreValid;
     }
@@ -65,18 +66,18 @@ public class MailSettings {
     public boolean areReceiversValid(final String fieldIdentifier) {
         List<String> receivers;
         switch (fieldIdentifier) {
-        case FIELD_RECEIVERS_TO:
-            receivers = receiversTo;
-            break;
-        case FIELD_RECEIVERS_CC:
-            receivers = receiversCC;
-            break;
-        case FIELD_RECEIVERS_BCC:
-            receivers = receiversBCC;
-            break;
-        default:
-            receivers = Collections.<String> emptyList();
-            break;
+            case FIELD_RECEIVERS_TO:
+                receivers = receiversTo;
+                break;
+            case FIELD_RECEIVERS_CC:
+                receivers = receiversCC;
+                break;
+            case FIELD_RECEIVERS_BCC:
+                receivers = receiversBCC;
+                break;
+            default:
+                receivers = Collections.<String> emptyList();
+                break;
         }
 
         return receivers.stream().allMatch(e -> StringUtils.isBlank(e) || EmailValidator.getInstance().isValid(e));
@@ -221,6 +222,10 @@ public class MailSettings {
 
     public String getSubject() {
         return subject;
+    }
+
+    public void setSubject(final String subject) {
+        this.subject = subject;
     }
 
     public String getBody() {

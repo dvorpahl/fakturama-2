@@ -21,6 +21,7 @@ public class MailServiceConstants {
     public static final String PREFERENCES_MAIL_USER = "PREFERENCES_MAIL_USER";
     public static final String PREFERENCES_MAIL_HOST = "PREFERENCES_MAIL_HOST";
     public static final String PREFERENCES_MAIL_PASSWORD = "PREFERENCES_MAIL_PASSWORD";
+    public static final String PREFERENCES_MAIL_USESSL = "PREFERENCES_MAIL_USESSL";
     public static final String PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH = "PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH";
     public static final String PREFERENCES_MAIL_TEMPLATE_PATH = "PREFERENCES_MAIL_TEMPLATE_PATH";
     public static final String PREFERENCES_MAIL_ACTIVE = "PREFERENCES_MAIL_ACTIVE";
@@ -35,6 +36,7 @@ public class MailServiceConstants {
     public static final int MAIL_SMTP_DEFAULT_PORT = 587;
     public static final String MAIL_SMTP_PORT = "mail.smtp.port";
     public static final String MAIL_SMTP_STARTTLS_ENABLE = "mail.smtp.starttls.enable";
+    public static final String MAIL_SMTP_SSLTLS_ENABLE = "mail.smtp.ssl.enable";
     public static final String MAIL_SMTP_AUTH = "mail.smtp.auth";
     public static final String MAIL_SMTP_HOST = "mail.smtp.host";
     public static final String PREFERENCES_MAIL_CC_FIX = "PREFERENCES_MAIL_CC_FIX";

@@ -127,14 +127,14 @@ public class MailService implements IPdfPostProcessor {
             return true;
         }
 
-        DocumentReceiver billingAdress = addressManager.getBillingAdress(inputDocument.get());
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(inputDocument.get());
         if (StringUtils.isAllBlank(billingAdress.getEmail())) {
             // ignore silently...
             return true;
         }
 
         // Collect some settings...
-        MailSettings settings = createSettings(inputDocument.get());
+        final MailSettings settings = createSettings(inputDocument.get());
 
         // check settings
         if (!settings.isValid()) {
@@ -155,7 +155,7 @@ public class MailService implements IPdfPostProcessor {
 
     public void loadMailModal(final MailSettings settings) {
         // Ensure UI operations are performed on the UI thread
-        Shell shell = new Shell(Display.getCurrent());
+        final Shell shell = new Shell(Display.getCurrent());
         uiSync.asyncExec(() -> {
             ctx.set(MailSettings.class, settings);
             mailInfoDialog = new MailInfoDialog(shell);
@@ -167,12 +167,12 @@ public class MailService implements IPdfPostProcessor {
 
     private MailSettings createSettings(final Invoice invoice) {
 
-        TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, ctx);
-        DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
-        String rcpBundleName = FrameworkUtil.getBundle(IPdfPostProcessor.class).getSymbolicName();
-        String rcpBundlePrefsNodeName = String.format("/%s/%s", InstanceScope.SCOPE, rcpBundleName);
+        final TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, ctx);
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
+        final String rcpBundleName = FrameworkUtil.getBundle(IPdfPostProcessor.class).getSymbolicName();
+        final String rcpBundlePrefsNodeName = String.format("/%s/%s", InstanceScope.SCOPE, rcpBundleName);
 
-        MailSettings settings = new MailSettings().withSender(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_EMAIL, ""))
+        final MailSettings settings = new MailSettings().withSender(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_EMAIL, ""))
                 .withSenderName(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""))
                 .withUser(prefs.get(MailServiceConstants.PREFERENCES_MAIL_USER, "")).withPassword(prefs.get(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, ""))
                 .withHost(prefs.get(MailServiceConstants.PREFERENCES_MAIL_HOST, "")).withReceiversTo(billingAdress.getEmail())
@@ -182,22 +182,22 @@ public class MailService implements IPdfPostProcessor {
 
         settings.setBody(createBodyFromTemplate(invoice, templateProcessor));
 
-        List<String> additionalDocs = collectAdditionalDocs(invoice);
+        final List<String> additionalDocs = collectAdditionalDocs(invoice);
         settings.addToAdditionalDocs(additionalDocs);
         return settings;
     }
 
     private List<String> collectAdditionalDocs(final Invoice invoice) {
-        List<String> retList = new ArrayList<>();
+        final List<String> retList = new ArrayList<>();
 
         // the PDF is always an attachment
         retList.add(invoice.getPdfPath());
 
         // optional documents found in additional path
-        String additionalFilesPath = prefs.get(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, "");
+        final String additionalFilesPath = prefs.get(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, "");
         if (!additionalFilesPath.isBlank()) {
-            Path templatePath1 = Paths.get(additionalFilesPath);
-            List<String> templates = scanPathForadditionalFiles(templatePath1);
+            final Path templatePath1 = Paths.get(additionalFilesPath);
+            final List<String> templates = scanPathForadditionalFiles(templatePath1);
             retList.addAll(templates);
         }
         return retList;
@@ -217,7 +217,7 @@ public class MailService implements IPdfPostProcessor {
                 additionalFiles = Files.list(additionalFilePath).sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase()))
                         .map(p -> p.toAbsolutePath().toString()).toList();
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error(e, "Error while scanning the additional files directory: " + additionalFilePath.toString());
         }
         return additionalFiles;
@@ -226,46 +226,46 @@ public class MailService implements IPdfPostProcessor {
     private String createMailSubject(final Document invoice, final TemplateProcessor templateProcessor) {
         String prefDescriptor;
         switch (invoice.getBillingType()) {
-        case INVOICE:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE;
-            break;
-        case DELIVERY:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY;
-            break;
-        case OFFER:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_OFFER;
-            break;
-        case DUNNING:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DUNNING;
-            break;
-        case ORDER:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_ORDER;
-            break;
-        case PROFORMA:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_PROFORMA;
-            break;
-        case CREDIT:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_CREDIT;
-            break;
-        default:
-            prefDescriptor = "";
-            break;
+            case INVOICE:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE;
+                break;
+            case DELIVERY:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY;
+                break;
+            case OFFER:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_OFFER;
+                break;
+            case DUNNING:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DUNNING;
+                break;
+            case ORDER:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_ORDER;
+                break;
+            case PROFORMA:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_PROFORMA;
+                break;
+            case CREDIT:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_CREDIT;
+                break;
+            default:
+                prefDescriptor = "";
+                break;
         }
         return templateProcessor.fill(invoice, Optional.empty(), prefs.get(prefDescriptor, "<no subject>"));
     }
 
     private String createBodyFromTemplate(final Document invoice, final TemplateProcessor templateProcessor) {
         String templateString = "";
-        TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, ctx);
-        List<Path> templates = templateFinder.collectTemplates(DocumentTypeUtil.findByBillingType(invoice.getBillingType()),
+        final TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, ctx);
+        final List<Path> templates = templateFinder.collectTemplates(DocumentTypeUtil.findByBillingType(invoice.getBillingType()),
                 TemplateFinder.TXT_TEMPLATE_FILEEXTENSION);
 
         if (templates != null && !templates.isEmpty()) {
-            Path mailTemplatePath = templates.get(0);
+            final Path mailTemplatePath = templates.get(0);
             if (Files.exists(mailTemplatePath)) {
                 try {
                     templateString = Files.readString(mailTemplatePath);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     log.error(e, "mail template can't be processed: " + mailTemplatePath.getFileName());
                 }
             }
@@ -276,13 +276,15 @@ public class MailService implements IPdfPostProcessor {
 
     public void sendMail(final MailSettings settings) {
         // create some properties and get the default Session
-        Properties props = System.getProperties();
+        final Properties props = System.getProperties();
         props.put(MailServiceConstants.MAIL_SMTP_HOST, settings.getHost());
         props.put(MailServiceConstants.MAIL_SMTP_AUTH, "true");
-        props.put(MailServiceConstants.MAIL_SMTP_STARTTLS_ENABLE, "true");
+        final boolean useSSL = prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_USESSL, false);
+        props.put(MailServiceConstants.MAIL_SMTP_STARTTLS_ENABLE, !useSSL);
+        props.put(MailServiceConstants.MAIL_SMTP_SSLTLS_ENABLE, useSSL);
         props.put(MailServiceConstants.MAIL_SMTP_PORT, MailServiceConstants.MAIL_SMTP_DEFAULT_PORT);
-
-        Authenticator authenticator = new Authenticator() {
+        props.put("mail.smtp.ssl.trust", '*');
+        final Authenticator authenticator = new Authenticator() {
             final PasswordAuthentication authentication = new PasswordAuthentication(settings.getUser(), settings.getPassword());
 
             @Override
@@ -291,11 +293,11 @@ public class MailService implements IPdfPostProcessor {
             }
         };
 
-        Session session = Session.getInstance(props, authenticator);
+        final Session session = Session.getInstance(props, authenticator);
         session.setDebug(true);
         boolean gotError = false;
         try {
-            MimeMessage message = createMessage(settings, session);
+            final MimeMessage message = createMessage(settings, session);
 
             SMTPTransport transport = null;
             try {
@@ -306,14 +308,14 @@ public class MailService implements IPdfPostProcessor {
                 log.error(e, "can't send mail");
             }
 
-        } catch (MessagingException mex) {
+        } catch (final MessagingException mex) {
             gotError = true;
             log.error(mex, "can't send mail");
             Exception ex = null;
             if ((ex = mex.getNextException()) != null) {
                 log.error(ex, "can't send mail");
             }
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             gotError = true;
             log.error(ex, "can't send mail");
         } finally {
@@ -334,10 +336,10 @@ public class MailService implements IPdfPostProcessor {
      */
     private MimeMessage createMessage(final MailSettings settings, final Session session) throws UnsupportedEncodingException, MessagingException {
         // create a message
-        MimeMessage message = new MimeMessage(session);
+        final MimeMessage message = new MimeMessage(session);
 
         //set From email field
-        InternetAddress senderAddr = new InternetAddress(settings.getSender());
+        final InternetAddress senderAddr = new InternetAddress(settings.getSender());
         senderAddr.setPersonal(settings.getSenderName());
         message.setFrom(senderAddr);
         message.setSender(senderAddr);
@@ -349,24 +351,24 @@ public class MailService implements IPdfPostProcessor {
 
         // create and fill the first message part
         // PLAIN TEXT
-        MimeMultipart mimeMultipart = new MimeMultipart("mixed");
-        MimeBodyPart mimeBodyPart = new MimeBodyPart();
+        final MimeMultipart mimeMultipart = new MimeMultipart("mixed");
+        final MimeBodyPart mimeBodyPart = new MimeBodyPart();
         mimeBodyPart.setContent(mimeBodyPart, CONTENT_TYPE_ALTERNATIVE);
 
-        MimeBodyPart plainTextPart = new MimeBodyPart();
+        final MimeBodyPart plainTextPart = new MimeBodyPart();
         plainTextPart.setText(settings.getBody(), StandardCharsets.UTF_8.name());
         mimeMultipart.addBodyPart(plainTextPart);
 
-        MimeBodyPart htmlTextPart = new MimeBodyPart();
+        final MimeBodyPart htmlTextPart = new MimeBodyPart();
         htmlTextPart.setContent(settings.getBody(), CONTENT_TYPE_HTML + CONTENT_TYPE_CHARSET_SUFFIX + StandardCharsets.UTF_8.name());
         mimeMultipart.addBodyPart(htmlTextPart);
 
         // add attachments
         settings.getAdditionalDocs().stream().forEach(p -> {
             try {
-                MimeBodyPart mimePart = createMimePart(p);
+                final MimeBodyPart mimePart = createMimePart(p);
                 mimeMultipart.addBodyPart(mimePart);
-            } catch (MessagingException e) {
+            } catch (final MessagingException e) {
                 log.error(e, "can't add mime body");
             }
         });
@@ -382,16 +384,16 @@ public class MailService implements IPdfPostProcessor {
 
     private MimeBodyPart createMimePart(final String file) throws MessagingException {
         try {
-            MimeBodyPart mimeBodyPart = new MimeBodyPart();
+            final MimeBodyPart mimeBodyPart = new MimeBodyPart();
             mimeBodyPart.setDisposition(Part.ATTACHMENT);
-            Path filePath = Path.of(file);
+            final Path filePath = Path.of(file);
             mimeBodyPart.setFileName(MimeUtility.encodeText(filePath.getFileName().toString()));
-            FileDataSource fileDataSource = new FileDataSource(filePath.toFile());
+            final FileDataSource fileDataSource = new FileDataSource(filePath.toFile());
 
-            DataHandler datahandler = new DataHandler(fileDataSource);
+            final DataHandler datahandler = new DataHandler(fileDataSource);
             mimeBodyPart.setDataHandler(datahandler);
             return mimeBodyPart;
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             throw new MessagingException("Failed to set attachment for message", ex);
         }
     }
@@ -406,13 +408,14 @@ public class MailService implements IPdfPostProcessor {
             }
         }
 
-        SMTPTransport transport = getTransport(session);
+        final SMTPTransport transport = getTransport(session);
         transport.connect(settings.getHost(), settings.getPort(), username, password);
         return transport;
     }
 
     protected SMTPTransport getTransport(final Session session) throws NoSuchProviderException {
-        return (SMTPTransport) session.getTransport("smtp");
+        final boolean useSSL = prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_USESSL, false);
+        return (SMTPTransport) session.getTransport(useSSL ? "smtps" : "smtp");
     }
 
 }
