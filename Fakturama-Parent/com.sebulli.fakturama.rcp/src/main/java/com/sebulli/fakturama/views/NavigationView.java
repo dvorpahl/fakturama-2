@@ -24,8 +24,10 @@ import javax.inject.Inject;
 import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
+import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -36,10 +38,12 @@ import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.handlers.CommandIds;
@@ -88,6 +92,8 @@ public class NavigationView {
     private final List<PGroup> groupList = new ArrayList<>();
 
     private Composite composite;
+
+    private final Map<String, CLabel> labelMap = new HashMap<>();
 
     /**
      * This is a callback that will allow us to create the viewer and initialize
@@ -202,6 +208,10 @@ public class NavigationView {
             swtImage = commandIcon.getImage(IconSize.DefaultIconSize);
             JFaceResources.getImageRegistry().put(commandId + "_" + commandIcon.name(), swtImage);
         }
+
+        label.setEnabled(handlerService.canExecute(commandService.createCommand(commandId, parameters)));
+        final Color color = Display.getDefault().getSystemColor(label.getEnabled() ? SWT.COLOR_WIDGET_FOREGROUND : SWT.COLOR_WIDGET_DISABLED_FOREGROUND);
+        label.setForeground(color);
         label.setImage(swtImage);
         label.setToolTipText(msg.getMessageFromKey(commandIconDescriptor + ".tooltip"));
         label.setData(parameters);
@@ -219,6 +229,8 @@ public class NavigationView {
                 }
             }
         });
+
+        labelMap.put(commandId, label);
 
     }
 
@@ -272,4 +284,18 @@ public class NavigationView {
         }
     }
 
+    // Subscribe to enablement update
+    @Inject
+    @Optional
+
+    public void onEnablementUpdate(@UIEventTopic("views/navigationUpdate") final String cmdId) {
+        final CLabel lab = labelMap.get(cmdId);
+        if (lab != null) {
+            final boolean en = handlerService.canExecute(commandService.createCommand(cmdId, (Map<String, Object>) lab.getData()));
+            Display.getDefault().asyncExec(() -> {
+                lab.setEnabled(en);
+                lab.setForeground(Display.getDefault().getSystemColor(en ? SWT.COLOR_WIDGET_FOREGROUND : SWT.COLOR_WIDGET_DISABLED_FOREGROUND));
+            });
+        }
+    }
 }
