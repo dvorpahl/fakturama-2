@@ -226,6 +226,7 @@ public class Messages {
     public String dialogPrintooNotemplate;
     public String dialogPrintooSuccessful;
     public String dialogPrintooPdfsuccessful;
+    public String dialogPrintooPdfwritererror;
     public String dialogPrintooCantprint;
     public String dialogPrintooErrorNoactivepart;
     public String dialogProductPicturePreview;

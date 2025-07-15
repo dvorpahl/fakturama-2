@@ -42,7 +42,7 @@ public interface IPdfPostProcessor {
      * 
      * @return <code>true</code>, if the processing can be started
      */
-    boolean canProcess();
+    boolean canProcess(Optional<Invoice> inputDocument);
 
     /**
      * Process the PDF.

@@ -211,8 +211,9 @@ public class EInvoiceConverter {
             final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
             invoiceChargesAllowances.setAmount(BigDecimal.valueOf(documentSummary.getShippingNet().getNumber().doubleValueExact()));
             invoiceChargesAllowances.setReason(shippingName);
-            invoiceChargesAllowances.setVatRate(BigDecimal.valueOf(invoice.getShipping().getShippingVat().getTaxValue()));
-            invoiceChargesAllowances.setVatCategoryCode("Z");
+            invoiceChargesAllowances.setVatRate(BigDecimal.valueOf(invoice.getShipping().getShippingVat().getTaxValue()).multiply(BigDecimal.valueOf(100L)));
+            invoiceChargesAllowances.setVatCategoryCode(invoice.getShipping().getShippingVat().getCode().getCode());
+            invoiceChargesAllowances.setReason(invoice.getShipping().getShippingVat().getDescription());
             eInvoice.getInvoiceCharges().add(invoiceChargesAllowances);
         }
 
@@ -252,8 +253,12 @@ public class EInvoiceConverter {
             // BT-113 For now its Zero, to be determined later
             documentTotals.setPaidAmount(BigDecimal.ZERO);
             // BT-114 equals to BT-112 - (BT-106 + BT-110)
-            documentTotals.setRoundingAmount(documentTotals.getInvoiceTotalAmountWithVat()
-                    .subtract(documentTotals.getSumOfInvoiceLineNetAmount().add(documentTotals.getInvoiceTotalVatAmount())));
+            // shipping is already includes in totalAmountWithVat
+            documentTotals
+                    .setRoundingAmount(documentTotals
+                            .getInvoiceTotalAmountWithVat().subtract(documentTotals.getSumOfInvoiceLineNetAmount()
+                                    .add(documentTotals.getInvoiceTotalVatAmount()).add(documentTotals.getSumOfChargesOnDocumentLevel()))
+                            .subtract(documentTotals.getSumOfAllowancesOnDocumentLevel()));
 
             // BT-115 TODO
             documentTotals.setAmountDueForPayment(documentTotals.getInvoiceTotalAmountWithVat());
@@ -304,6 +309,7 @@ public class EInvoiceConverter {
             invoiceVatBreakdown.setVatCategoryTaxableAmount(moneyToBigDecimal(basisAmount));
             // BT-117
             invoiceVatBreakdown.setVatCategoryTaxAmount(moneyToBigDecimal(basisAmount.multiply(vatSummaryItem.getVatPercent())));
+            invoiceVatBreakdown.setVatExemptionReasonText(vatSummaryItem.getDescription());
             vatBreakdowns.add(invoiceVatBreakdown);
         }
     }
@@ -375,15 +381,18 @@ public class EInvoiceConverter {
 
             // BT-146 (= BT-148 - BT-147)
             position.setItemNetPrice(moneyToBigDecimal(price.getUnitNet()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
+            // BT-148 (only use net prices, no rounding issues)
+            //            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
             // BT-147 (wont be used since we use allowances instead)
             //            position.setItemPriceDiscount(moneyToBigDecimal(price.getUnitNetDiscounted()).setScale(2, RoundingMode.HALF_UP));
-            if (invoiceItem.getItemRebate() != null && !BigDecimal.ZERO.equals(invoiceItem.getItemRebate())) {
+            if (invoiceItem.getItemRebate() != null && !BigDecimal.ZERO.equals(BigDecimal.valueOf(invoiceItem.getItemRebate()))) {
                 // BG-27
                 final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
                 // BT-138
                 invoiceChargesAllowances.setPercentage(BigDecimal.valueOf(invoiceItem.getItemRebate()).multiply(BigDecimal.valueOf(100L)).abs());
                 // BT-137
-                invoiceChargesAllowances.setBaseAmount(BigDecimal.valueOf(price.getUnitNet().getNumber().doubleValueExact()));
+                invoiceChargesAllowances
+                        .setBaseAmount(BigDecimal.valueOf(price.getUnitNet().multiply(invoiceItem.getQuantity()).getNumber().doubleValueExact()));
                 // BT-126
                 invoiceChargesAllowances.setAmount(BigDecimal.valueOf(price.getTotalAllowance().getNumber().doubleValueExact()).abs());
                 // BT-139
@@ -393,8 +402,6 @@ public class EInvoiceConverter {
                 position.getInvoiceLineAllowances().add(invoiceChargesAllowances);
 
             }
-            // BT-148
-            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
 
             // BT-131 TODO (no vat, but all charges/allowances)
             position.setInvoiceLineNetAmount(BigDecimal.valueOf(price.getTotalNet().getNumber().doubleValueExact()));

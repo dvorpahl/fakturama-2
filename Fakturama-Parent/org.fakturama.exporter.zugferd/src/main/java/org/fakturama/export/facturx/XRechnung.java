@@ -85,6 +85,8 @@ import org.fakturama.export.facturx.modelgen.TradeSettlementPaymentMeansType;
 import org.fakturama.export.facturx.modelgen.TradeTaxType;
 import org.fakturama.export.facturx.modelgen.UniversalCommunicationType;
 
+import com.sebulli.fakturama.misc.UNTDID5305;
+
 import jakarta.xml.bind.JAXBElement;
 
 /**
@@ -736,10 +738,12 @@ public class XRechnung extends AbstractEInvoice {
             retval.setBuyerOrderReferencedDocument(referencedDocument);
         }
         // BT-148
-        final TradePriceType tradePriceTypeGross = factory.createTradePriceType();
-        tradePriceTypeGross.setChargeAmount(createAmount(itemPosition.getItemGrossPrice()));
-
-        retval.setGrossPriceProductTradePrice(tradePriceTypeGross);
+        final AmountType grossAmount = createAmount(itemPosition.getItemGrossPrice());
+        if (grossAmount != null) {
+            final TradePriceType tradePriceTypeGross = factory.createTradePriceType();
+            tradePriceTypeGross.setChargeAmount(grossAmount);
+            retval.setGrossPriceProductTradePrice(tradePriceTypeGross);
+        }
         // BT-146
         final TradePriceType tradePriceTypeNet = factory.createTradePriceType();
         tradePriceTypeNet.setChargeAmount(createAmount(itemPosition.getItemNetPrice()));
@@ -887,6 +891,10 @@ public class XRechnung extends AbstractEInvoice {
         retval.setCategoryCode(createTaxCategoryCode(invoiceVatBreakdown.getVatCategoryCode()));
         // BT-118-0
         retval.setTypeCode(createTaxTypeCode("VAT"));
+        if (StringUtils.containsAny(invoiceVatBreakdown.getVatCategoryCode(), UNTDID5305.E.getCode(), UNTDID5305.Z.getCode())
+                && invoiceVatBreakdown.getVatExemptionReasonText() != null) {
+            retval.setExemptionReason(createText(invoiceVatBreakdown.getVatExemptionReasonText()));
+        }
         return retval;
     }
 

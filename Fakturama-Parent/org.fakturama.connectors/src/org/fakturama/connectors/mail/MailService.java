@@ -117,7 +117,7 @@ public class MailService implements IPdfPostProcessor {
     }
 
     @Override
-    public boolean canProcess() {
+    public boolean canProcess(final Optional<Invoice> inputDocument) {
         return prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE, false);
     }
 

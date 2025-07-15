@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
@@ -29,6 +30,8 @@ import org.osgi.service.component.annotations.Component;
 
 import com.sebulli.fakturama.exception.FakturamaException;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.model.DocumentReceiver;
+import com.sebulli.fakturama.model.IDocumentAddressManager;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.office.IPdfPostProcessor;
 
@@ -63,6 +66,9 @@ public class ZugferdExporter implements IPdfPostProcessor {
     @Inject
     private IEclipseContext eclipseContext;
 
+    @Inject
+    protected IDocumentAddressManager addressManager;
+
     enum FinancialRole {
         DEBTOR, CREDITOR
     }
@@ -73,7 +79,7 @@ public class ZugferdExporter implements IPdfPostProcessor {
     }
 
     @Override
-    public boolean canProcess() {
+    public boolean canProcess(final Optional<Invoice> inputDocument) {
         /*
          * Zunächst muß geprüft werden, ob OO/LO auch PDF/A erzeugt. Dazu muß
          * man in der Datei
@@ -93,7 +99,14 @@ public class ZugferdExporter implements IPdfPostProcessor {
          * Idee: Vor dem Speichern den Wert umsetzen und am Schluß wieder
          * zurücksetzen.
          */
-        return eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, Boolean.FALSE);
+        final boolean result = eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, Boolean.FALSE) && inputDocument.isPresent();
+        final DocumentReceiver billingAddress = addressManager.getBillingAdress(inputDocument.get());
+        final boolean resultEmail = StringUtils.trimToNull(billingAddress.getEmail()) != null;
+        if (result && !resultEmail) {
+            MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNobuyeremail);
+            return false;
+        }
+        return result && resultEmail;
     }
 
     @Override
@@ -132,9 +145,7 @@ public class ZugferdExporter implements IPdfPostProcessor {
      */
     private boolean checkSettings() {
         boolean result = true;
-        if ( preferences
-                .getString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT)
-                .isEmpty()) {
+        if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_PDF_PATH_FORMAT).isEmpty()) {
             result = false;
             MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNopdfpath);
         }

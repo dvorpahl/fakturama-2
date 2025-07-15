@@ -16,6 +16,9 @@ package com.sebulli.fakturama.office;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -172,8 +175,6 @@ public class OfficeDocument {
             // Save the document
             if (saveOODocument(textdoc, template)) {
                 openDocument();
-            } else {
-                throw new FakturamaException("Error storing document with " + template.getFileName());
             }
 
         } catch (final Exception e) {
@@ -243,22 +244,7 @@ public class OfficeDocument {
 
         final Path targetOdtDocumentPath = fileOrganizer.getDocumentPath(pathOptions, TargetFormat.ODT, document);
         final Path origOdtFileName = targetOdtDocumentPath.getFileName();
-        //        if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.ODT.getPrefId())) {
-        //
-        //            // Create the directories, if they don't exist.
-        //            createOutputDirectory(documentPath.getParent());
-        //
-        //            try (OutputStream fs = Files.newOutputStream(documentPath);) {
-        //
-        //                // Save the document
-        //                textdoc.save(fs);
-        //                wasSaved = true;
-        //            } catch (final Exception e) {
-        //                log.error(e, "Error saving the OpenOffice document");
-        //                throw new FakturamaStoringException(
-        //                        "Error saving the OpenOffice document with template " + template.getFileName() + ". Check if target file is opened.", e);
-        //            }
-        //        } else {
+
         // create a temporary document for further processing
         OutputStream fileStream = null;
         Path tmpDocumentPath;
@@ -281,7 +267,6 @@ public class OfficeDocument {
                 }
             }
         }
-        //        }
 
         // create PDF, this is the single point of fail. If this does not work, the file is not marked printed
         generatedPdf = createPdf(tmpDocumentPath, origOdtFileName, TargetFormat.PDF);
@@ -357,7 +342,7 @@ public class OfficeDocument {
                     // enrich post processor service with available Eclipse services
                     final IPdfPostProcessor currentProcessor = Activator.getContext().getService(serviceReference);
                     ContextInjectionFactory.inject(currentProcessor, context);
-                    if (result && currentProcessor.canProcess() && document instanceof final Invoice invoice) {
+                    if (result && document instanceof final Invoice invoice && currentProcessor.canProcess(Optional.ofNullable(invoice))) {
                         result &= currentProcessor.processPdf(Optional.ofNullable(invoice));
                     }
                 }
@@ -432,6 +417,24 @@ public class OfficeDocument {
                 // rename the pdf
                 final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
                 pdfFilename = fileOrganizer.getDocumentPath(pathOptions, targetFormat, document);
+
+                try (RandomAccessFile raf = new RandomAccessFile(pdfFilename.toFile(), "rw");
+                        FileChannel channel = raf.getChannel();
+                        FileLock lock = channel.tryLock()) {
+                    if (lock == null) {
+                        if (!silentMode) {
+                            MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.dialogPrintooPdfwritererror);
+                        }
+                        log.warn("PDF file {} cannot be opened for writing, is it open already?", pdfFilename);
+                        return null;
+                    }
+                } catch (final IOException ex) {
+                    if (!silentMode) {
+                        MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.dialogPrintooPdfwritererror);
+                    }
+                    log.warn("PDF file {} cannot be opened for writing, is it open already?", pdfFilename);
+                    return null;
+                }
 
                 final ProcessBuilder pb = new ProcessBuilder(ooPath.toString(), "--headless", "--convert-to", "pdf:writer_pdf_Export", "--outdir",
                         pdfFilename.getParent().toString(), // this is the PDF path
@@ -601,28 +604,6 @@ public class OfficeDocument {
             }
 
             return Integer.compare(service1.getPriority(), service2.getPriority());
-
         }
-
-        //        @Override
-        //        public int compare(final ServiceReference<? super ServiceReference<IPdfPostProcessor>> o1,
-        //                final ServiceReference<? super ServiceReference<IPdfPostProcessor>> o2) {
-        //            IPdfPostProcessor service1 = Activator.getContext().getService(ref1);
-        //            IPdfPostProcessor service2 = Activator.getContext().getService(ref2);
-        //
-        //            if (service1 == null && service2 == null) {
-        //                return 0;
-        //            }
-        //            if (service1 == null) {
-        //                return -1;
-        //            }
-        //            if (service2 == null) {
-        //                return 1;
-        //            }
-        //
-        //            return Integer.compare(service1.getPriority(), service2.getPriority());
-        //
-        //        }
-
     }
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2016 www.fakturama.org
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
 
 package org.fakturama.export.einvoice;
@@ -24,22 +24,23 @@ import org.eclipse.e4.core.services.nls.Message;
  */
 @Message
 public class ZFMessages {
-	public String zugferdExportCommandTitle;
-	public String zugferdExportErrorWrongpath;
-	public String zugferdExportErrorCancelled;
-	public String zugferdExportInfoSuccessfully;
-	public String zugferdExportWarningChooseinvoice;
-	public String zugferdExportWarningOverwrite;
-	public String zugferdExportLabelRebate;
-	public String zugferdExportErrorNopdfset;
-	public String zugferdExportErrorNopdfpath;
-	public String zugferdExportErrorEmptycompanypref;
+    public String zugferdExportCommandTitle;
+    public String zugferdExportErrorWrongpath;
+    public String zugferdExportErrorCancelled;
+    public String zugferdExportInfoSuccessfully;
+    public String zugferdExportWarningChooseinvoice;
+    public String zugferdExportWarningOverwrite;
+    public String zugferdExportErrorNobuyeremail;
+    public String zugferdExportLabelRebate;
+    public String zugferdExportErrorNopdfset;
+    public String zugferdExportErrorNopdfpath;
+    public String zugferdExportErrorEmptycompanypref;
 
     public String zugferdPreferencesFilelocation;
     public String zugferdPreferencesEmbedinpdf;
-	public String zugferdPreferencesProfile;
-	public String zugferdPreferencesTitle;
-	public String zugferdPreferencesVersion;
-	public String zugferdPreferencesTestmode;
+    public String zugferdPreferencesProfile;
+    public String zugferdPreferencesTitle;
+    public String zugferdPreferencesVersion;
+    public String zugferdPreferencesTestmode;
     public String zugferdPreferencesIsActive;
 }
