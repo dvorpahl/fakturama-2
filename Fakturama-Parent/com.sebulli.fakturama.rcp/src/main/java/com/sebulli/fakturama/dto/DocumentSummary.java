@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.dto;
@@ -34,374 +34,393 @@ import com.sebulli.fakturama.misc.DataUtils;
  * @author Gerd Bartelt
  */
 public class DocumentSummary {
-    
-    /* TODO
-auch mal ansehen (für Summenbildung): 
 
-/functional-example/src/main/java/org/javamoney/examples/console/functional/MonetaryGroupOperations.java
-
-hier klingt vor allem das interessant:
-
-             MonetarySummaryStatistics summary = getCurrencies().stream()
-                           .filter(MonetaryFunctions.isCurrency(DOLLAR))
-                           .collect(MonetaryFunctions.summarizingMonetary(DOLLAR));
-
+    /*
+     * TODO
+     * auch mal ansehen (für Summenbildung):
+     * 
+     * /functional-example/src/main/java/org/javamoney/examples/console/
+     * functional/MonetaryGroupOperations.java
+     * 
+     * hier klingt vor allem das interessant:
+     * 
+     * MonetarySummaryStatistics summary = getCurrencies().stream()
+     * .filter(MonetaryFunctions.isCurrency(DOLLAR))
+     * .collect(MonetaryFunctions.summarizingMonetary(DOLLAR));
+     * 
      */
 
-	/** The prices are not rounded to net or gross */
-	public static final int ROUND_NOTSPECIFIED = 0;
-	/** The prices are rounded, that the net values are full cent values. */
-	public static final int ROUND_NET_VALUES = 1;
-	/** The prices are rounded, that the gross values are full cent values. */
-	public static final int ROUND_GROSS_VALUES = 2;
-	
-	// sum of items
-	private MonetaryAmount itemsNet;
-	private MonetaryAmount itemsNetDiscounted;
-	private MonetaryAmount itemsGross;
-	private MonetaryAmount itemsGrossDiscounted;
+    /** The prices are not rounded to net or gross */
+    public static final int ROUND_NOTSPECIFIED = 0;
+    /** The prices are rounded, that the net values are full cent values. */
+    public static final int ROUND_NET_VALUES = 1;
+    /** The prices are rounded, that the gross values are full cent values. */
+    public static final int ROUND_GROSS_VALUES = 2;
 
-	// total sum
-	private MonetaryAmount totalNet;
-	private MonetaryAmount totalGross;
-	private double   	   totalQuantity;
+    // sum of items
+    private MonetaryAmount itemsNet;
+    private MonetaryAmount itemsNetDiscounted;
+    private MonetaryAmount itemsGross;
+    private MonetaryAmount itemsGrossDiscounted;
 
-	// discount values
-	private MonetaryAmount discountNet;
-	private MonetaryAmount discountGross;
+    // total sum
+    private MonetaryAmount totalNet;
+    private MonetaryAmount totalGross;
+    private double totalQuantity;
 
-	// shipping value
-	private MonetaryAmount shippingNet;
-	private MonetaryAmount shippingVat;
-	private MonetaryAmount shippingGross;
+    // discount values
+    private MonetaryAmount discountNet;
+    private MonetaryAmount discountGross;
 
-	// deposit value
-	private MonetaryAmount deposit;
-	private MonetaryAmount finalPayment;
-	
-	private CurrencyUnit currencyCode;
-	
-	private VatSummarySet vatSummary;
-	private MonetaryRounding rounding;
-	
-	/**
-	 * Default constructor. Resets all value to 0.
-	 */
-	@Inject
-	public DocumentSummary(IEclipseContext ctx) {
-		DataUtils dataUtils = ContextInjectionFactory.make(DataUtils.class, ctx);
-		this.currencyCode = dataUtils.getDefaultCurrencyUnit();
+    // shipping value
+    private MonetaryAmount shippingNet;
+    private MonetaryAmount shippingVat;
+    private MonetaryAmount shippingGross;
 
-		// This VAT summary contains only the VAT entries of this document,
-		// whereas the the parameter vatSummaryItems is a global VAT summary
-		// and contains entries from this document and from others.
-	    this.vatSummary = ContextInjectionFactory.make(VatSummarySet.class, ctx);
+    // deposit value
+    private MonetaryAmount deposit;
+    private MonetaryAmount finalPayment;
+
+    private final CurrencyUnit currencyCode;
+
+    private final VatSummarySet vatSummary;
+    private final VatSummarySet shippingVatSummary;
+    private final MonetaryRounding rounding;
+
+    /**
+     * Default constructor. Resets all value to 0.
+     */
+    @Inject
+    public DocumentSummary(final IEclipseContext ctx) {
+        final DataUtils dataUtils = ContextInjectionFactory.make(DataUtils.class, ctx);
+        this.currencyCode = dataUtils.getDefaultCurrencyUnit();
+
+        // This VAT summary contains only the VAT entries of this document,
+        // whereas the the parameter vatSummaryItems is a global VAT summary
+        // and contains entries from this document and from others.
+        this.vatSummary = ContextInjectionFactory.make(VatSummarySet.class, ctx);
+        this.shippingVatSummary = ContextInjectionFactory.make(VatSummarySet.class, ctx);
         rounding = dataUtils.getRounding();
-		resetValues();
-	}
+        resetValues();
+    }
 
-	/**
-	 * Reset all values to 0
-	 */
-	private void resetValues() {
-		itemsNet = Money.zero(currencyCode);
-		itemsGross = Money.zero(currencyCode);
-		itemsNetDiscounted = Money.zero(currencyCode);
-		itemsGrossDiscounted = Money.zero(currencyCode);
-		totalNet = Money.zero(currencyCode);
-		totalGross = Money.zero(currencyCode);
-		discountNet = Money.zero(currencyCode);
-		discountGross = Money.zero(currencyCode);
-		shippingNet = Money.zero(currencyCode);
-		shippingVat = Money.zero(currencyCode);
-		shippingGross = Money.zero(currencyCode);
-		deposit = Money.zero(currencyCode);
-		finalPayment = Money.zero(currencyCode);
-	}
-	
-	public void addPrice(Price price, Double quantity) {
-		if(price != null && quantity != null) {
-			addQuantity(quantity); 
-			addToItemsNet(price.getTotalNetRounded());
-			addToItemsNetDiscounted(price.getTotalNet());
-			addToItemsGross(price.getTotalGrossRounded());
-			addToItemsGrossDiscounted(price.getUnitGrossDiscounted().multiply(price.getQuantity()));
-		}
-	}
+    /**
+     * Reset all values to 0
+     */
+    private void resetValues() {
+        itemsNet = Money.zero(currencyCode);
+        itemsGross = Money.zero(currencyCode);
+        itemsNetDiscounted = Money.zero(currencyCode);
+        itemsGrossDiscounted = Money.zero(currencyCode);
+        totalNet = Money.zero(currencyCode);
+        totalGross = Money.zero(currencyCode);
+        discountNet = Money.zero(currencyCode);
+        discountGross = Money.zero(currencyCode);
+        shippingNet = Money.zero(currencyCode);
+        shippingVat = Money.zero(currencyCode);
+        shippingGross = Money.zero(currencyCode);
+        deposit = Money.zero(currencyCode);
+        finalPayment = Money.zero(currencyCode);
+    }
 
-	/**
-	 * Getter for shipping value (net)
-	 * 
-	 * @return shipping net as MonetaryAmount
-	 */
-	public MonetaryAmount getShippingNet() {
-		return this.shippingNet;
-	}
+    public void addPrice(final Price price, final Double quantity) {
+        if (price != null && quantity != null) {
+            addQuantity(quantity);
+            addToItemsNet(price.getTotalNetRounded());
+            addToItemsNetDiscounted(price.getTotalNet());
+            addToItemsGross(price.getTotalGrossRounded());
+            addToItemsGrossDiscounted(price.getUnitGrossDiscounted().multiply(price.getQuantity()));
+        }
+    }
 
-	/**
-	 * Getter for shipping Vat value (Vat)
-	 * 
-	 * @return shipping Vat as MonetaryAmount
-	 */
-	public MonetaryAmount getShippingVat() {
-		return this.shippingVat;
-	}
+    /**
+     * Getter for shipping value (net)
+     * 
+     * @return shipping net as MonetaryAmount
+     */
+    public MonetaryAmount getShippingNet() {
+        return this.shippingNet;
+    }
 
-	/**
-	 * Getter for shipping value (gross)
-	 * 
-	 * @return shipping gross as MonetaryAmount
-	 */
-	public MonetaryAmount getShippingGross() {
-		return this.shippingGross;
-	}
+    /**
+     * Getter for shipping Vat value (Vat)
+     * 
+     * @return shipping Vat as MonetaryAmount
+     */
+    public MonetaryAmount getShippingVat() {
+        return this.shippingVat;
+    }
 
-	/**
-	 * Getter for sum of items (net)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getItemsNet() {
-		return this.itemsNet;
-	}
+    /**
+     * Getter for shipping value (gross)
+     * 
+     * @return shipping gross as MonetaryAmount
+     */
+    public MonetaryAmount getShippingGross() {
+        return this.shippingGross;
+    }
 
-	/**
-	 * Getter for sum of items (gross)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getItemsGross() {
-		return this.itemsGross;
-	}
+    /**
+     * Getter for sum of items (net)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getItemsNet() {
+        return this.itemsNet;
+    }
 
-	/**
-	 * Getter for total document sum (net)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getTotalNet() {
-		return this.totalNet;
-	}
+    /**
+     * Getter for sum of items (gross)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getItemsGross() {
+        return this.itemsGross;
+    }
 
-	/**
-	 * Getter for total document sum (vat)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getTotalVat() {
-		return this.vatSummary.parallelStream().map(v -> v.getVat()).reduce(Money.zero(currencyCode),
-				MonetaryFunctions::sum).with(rounding);
-	}
-	
-	public MonetaryAmount getTotalVatRounded() {
-		return this.vatSummary.parallelStream().map(v -> v.getVatRounded()).reduce(Money.zero(currencyCode),
-				MonetaryFunctions::sum).with(rounding);
-	}
-	
-	public MonetaryAmount getTotalVatBase() {
-		return this.vatSummary.parallelStream().map(v -> v.getNet()).reduce(Money.zero(currencyCode),
-				MonetaryFunctions::sum).with(rounding);
-	}
+    /**
+     * Getter for total document sum (net)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getTotalNet() {
+        return this.totalNet;
+    }
 
-	/**
-	 * @return the totalSET
-	 */
-	public final MonetaryAmount getTotalSET() {
-		return this.vatSummary.parallelStream().map(v -> v.getSalesEqTax()).reduce(Money.zero(currencyCode),
-				MonetaryFunctions::sum).with(rounding);
-	}
+    /**
+     * Getter for total document sum (vat)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getTotalVat() {
+        return this.vatSummary.parallelStream().map(VatSummaryItem::getVat).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
+    }
 
-	/**
-	 * Getter for total document sum (gross)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getTotalGross() {
-		return this.totalGross;
-	}
+    public MonetaryAmount getTotalVatRounded() {
+        return this.vatSummary.parallelStream().map(VatSummaryItem::getVatRounded).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
+    }
 
-	/**
-	 * Getter for discount (net)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getDiscountNet() {
-		return this.discountNet;
-	}
+    public MonetaryAmount getTotalVatBase() {
+        return this.vatSummary.parallelStream().map(VatSummaryItem::getNet).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
+    }
 
-	/**
-	 * Getter for discount (gross)
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getDiscountGross() {
-		return this.discountGross;
-	}
+    /**
+     * @return the totalSET
+     */
+    public final MonetaryAmount getTotalSET() {
+        return this.vatSummary.parallelStream().map(VatSummaryItem::getSalesEqTax).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
+    }
 
-	public MonetaryAmount getItemsNetDiscounted() {
+    /**
+     * Getter for total document sum (gross)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getTotalGross() {
+        return this.totalGross;
+    }
+
+    /**
+     * Getter for discount (net)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getDiscountNet() {
+        return this.discountNet;
+    }
+
+    /**
+     * Getter for discount (gross)
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getDiscountGross() {
+        return this.discountGross;
+    }
+
+    public MonetaryAmount getItemsNetDiscounted() {
         return itemsNetDiscounted;
     }
 
-    public void setItemsNetDiscounted(MonetaryAmount itemsNetDiscounted) {
+    public void setItemsNetDiscounted(final MonetaryAmount itemsNetDiscounted) {
         this.itemsNetDiscounted = itemsNetDiscounted;
     }
-    
-    public void addToItemsNetDiscounted(MonetaryAmount itemsNetDiscounted) {
-    	this.itemsNetDiscounted = this.itemsNetDiscounted.add(itemsNetDiscounted);
+
+    public void addToItemsNetDiscounted(final MonetaryAmount itemsNetDiscounted) {
+        this.itemsNetDiscounted = this.itemsNetDiscounted.add(itemsNetDiscounted);
     }
 
     public MonetaryAmount getItemsGrossDiscounted() {
         return itemsGrossDiscounted;
     }
 
-    public void setItemsGrossDiscounted(MonetaryAmount itemsGrossDiscounted) {
+    public void setItemsGrossDiscounted(final MonetaryAmount itemsGrossDiscounted) {
         this.itemsGrossDiscounted = itemsGrossDiscounted;
     }
-    
-    public void addToItemsGrossDiscounted(MonetaryAmount itemsGrossDiscounted) {
-    	this.itemsGrossDiscounted = this.itemsGrossDiscounted.add(itemsGrossDiscounted);
+
+    public void addToItemsGrossDiscounted(final MonetaryAmount itemsGrossDiscounted) {
+        this.itemsGrossDiscounted = this.itemsGrossDiscounted.add(itemsGrossDiscounted);
     }
 
     /**
-	 * Getter for the deposit
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getDeposit() {
-		return this.deposit;
-	}
-	
-	/**
-	 * Getter for the final payment
-	 * 
-	 * @return Sum as MonetaryAmount
-	 */
-	public MonetaryAmount getFinalPayment() {
-		return this.finalPayment;
-	}
+     * Getter for the deposit
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getDeposit() {
+        return this.deposit;
+    }
 
-	/**
-	 * @param itemsNet the itemsNet to set
-	 */
-	public void setItemsNet(MonetaryAmount itemsNet) {
-		this.itemsNet = itemsNet;
-	}
-	
-	public void addToItemsNet(MonetaryAmount itemsNet) {
-		this.itemsNet = this.itemsNet.add(itemsNet);
-	}
+    /**
+     * Getter for the final payment
+     * 
+     * @return Sum as MonetaryAmount
+     */
+    public MonetaryAmount getFinalPayment() {
+        return this.finalPayment;
+    }
 
-	/**
-	 * @param itemsGross the itemsGross to set
-	 */
-	public void setItemsGross(MonetaryAmount itemsGross) {
-		this.itemsGross = itemsGross;
-	}
+    /**
+     * @param itemsNet
+     *            the itemsNet to set
+     */
+    public void setItemsNet(final MonetaryAmount itemsNet) {
+        this.itemsNet = itemsNet;
+    }
 
-	public void addToItemsGross(MonetaryAmount itemsGross) {
-		this.itemsGross = this.itemsGross.add(itemsGross);
-	}
-	
-	/**
-	 * @param totalNet the totalNet to set
-	 */
-	public void setTotalNet(MonetaryAmount totalNet) {
-		this.totalNet = totalNet;
-	}
+    public void addToItemsNet(final MonetaryAmount itemsNet) {
+        this.itemsNet = this.itemsNet.add(itemsNet);
+    }
 
-	public void addToTotalNet(MonetaryAmount totalNet) {
-		this.totalNet = this.totalNet.add(totalNet);
-	}
+    /**
+     * @param itemsGross
+     *            the itemsGross to set
+     */
+    public void setItemsGross(final MonetaryAmount itemsGross) {
+        this.itemsGross = itemsGross;
+    }
 
-	/**
-	 * @param totalGross the totalGross to set
-	 */
-	public void setTotalGross(MonetaryAmount totalGross) {
-		this.totalGross = totalGross;
-	}
-	
-	public void addToTotalGross(MonetaryAmount totalGross) {
-		this.totalGross = this.totalGross.add(totalGross);
-	}
+    public void addToItemsGross(final MonetaryAmount itemsGross) {
+        this.itemsGross = this.itemsGross.add(itemsGross);
+    }
 
-	/**
-	 * @param discountNet the discountNet to set
-	 */
-	public void setDiscountNet(MonetaryAmount discountNet) {
-		this.discountNet = discountNet;
-	}
+    /**
+     * @param totalNet
+     *            the totalNet to set
+     */
+    public void setTotalNet(final MonetaryAmount totalNet) {
+        this.totalNet = totalNet;
+    }
 
-	/**
-	 * @param discountGross the discountGross to set
-	 */
-	public void setDiscountGross(MonetaryAmount discountGross) {
-		this.discountGross = discountGross;
-	}
+    public void addToTotalNet(final MonetaryAmount totalNet) {
+        this.totalNet = this.totalNet.add(totalNet);
+    }
 
-	/**
-	 * @param shippingNet the shippingNet to set
-	 */
-	public void setShippingNet(MonetaryAmount shippingNet) {
-		this.shippingNet = shippingNet;
-	}
+    /**
+     * @param totalGross
+     *            the totalGross to set
+     */
+    public void setTotalGross(final MonetaryAmount totalGross) {
+        this.totalGross = totalGross;
+    }
 
-	/**
-	 * @param shippingVat the shippingVat to set
-	 */
-	public void setShippingVat(MonetaryAmount shippingVat) {
-		this.shippingVat = shippingVat;
-	}
+    public void addToTotalGross(final MonetaryAmount totalGross) {
+        this.totalGross = this.totalGross.add(totalGross);
+    }
 
-	public void addToShippingVat(MonetaryAmount shippingVat) {
-		this.shippingVat = this.shippingVat.add(shippingVat);
-	}
-	
-	/**
-	 * @param shippingGross the shippingGross to set
-	 */
-	public void setShippingGross(MonetaryAmount shippingGross) {
-		this.shippingGross = shippingGross;
-	}
+    /**
+     * @param discountNet
+     *            the discountNet to set
+     */
+    public void setDiscountNet(final MonetaryAmount discountNet) {
+        this.discountNet = discountNet;
+    }
 
-	/**
-	 * @param deposit the deposit to set
-	 */
-	public void setDeposit(MonetaryAmount deposit) {
-		this.deposit = deposit;
-	}
+    /**
+     * @param discountGross
+     *            the discountGross to set
+     */
+    public void setDiscountGross(final MonetaryAmount discountGross) {
+        this.discountGross = discountGross;
+    }
 
-	/**
-	 * @param finalPayment the finalPayment to set
-	 */
-	public void setFinalPayment(MonetaryAmount finalPayment) {
-		this.finalPayment = finalPayment;
-	}
+    /**
+     * @param shippingNet
+     *            the shippingNet to set
+     */
+    public void setShippingNet(final MonetaryAmount shippingNet) {
+        this.shippingNet = shippingNet;
+    }
 
-	/**
-	 * @return the totalQuantity
-	 */
-	public double getTotalQuantity() {
-		return totalQuantity;
-	}
+    /**
+     * @param shippingVat
+     *            the shippingVat to set
+     */
+    public void setShippingVat(final MonetaryAmount shippingVat) {
+        this.shippingVat = shippingVat;
+    }
+
+    public void addToShippingVat(final MonetaryAmount shippingVat) {
+        this.shippingVat = this.shippingVat.add(shippingVat);
+    }
+
+    /**
+     * @param shippingGross
+     *            the shippingGross to set
+     */
+    public void setShippingGross(final MonetaryAmount shippingGross) {
+        this.shippingGross = shippingGross;
+    }
+
+    /**
+     * @param deposit
+     *            the deposit to set
+     */
+    public void setDeposit(final MonetaryAmount deposit) {
+        this.deposit = deposit;
+    }
+
+    /**
+     * @param finalPayment
+     *            the finalPayment to set
+     */
+    public void setFinalPayment(final MonetaryAmount finalPayment) {
+        this.finalPayment = finalPayment;
+    }
+
+    /**
+     * @return the totalQuantity
+     */
+    public double getTotalQuantity() {
+        return totalQuantity;
+    }
 
     public VatSummarySet getVatSummary() {
-		return vatSummary;
-	}
+        return vatSummary;
+    }
 
-	public void addVatSummaryItem(VatSummaryItem vatSummaryItem) {
-		this.vatSummary.add(vatSummaryItem);
-	}
+    public VatSummarySet getShippingVatSummary() {
+        return shippingVatSummary;
+    }
 
-	@Override
-	public String toString() {
-		return ReflectionToStringBuilder.toString(this);
-	}
+    public void addVatSummaryItem(final VatSummaryItem vatSummaryItem) {
+        this.vatSummary.add(vatSummaryItem);
+    }
 
-	public void addQuantity(Double quantity) {
-		this.totalQuantity += quantity;
-	}
+    public void addShippingVatSummaryItem(final VatSummaryItem shippingVatSummaryItem) {
+        this.shippingVatSummary.add(shippingVatSummaryItem);
+    }
 
-	public void addToNetDiscount(MonetaryAmount totalAllowance) {
-		this.discountNet = this.discountNet.add(totalAllowance);
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    public void addQuantity(final Double quantity) {
+        this.totalQuantity += quantity;
+    }
+
+    public void addToNetDiscount(final MonetaryAmount totalAllowance) {
+        this.discountNet = this.discountNet.add(totalAllowance);
+    }
 }

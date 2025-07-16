@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014 Ralf Heydenreich
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *   Ralf Heydenreich - initial API and implementation
+ * Ralf Heydenreich - initial API and implementation
  */
 package org.fakturama.export.einvoice;
 
@@ -32,18 +32,20 @@ public interface IPdfHelper {
      * Makes A PDF/A-3a-compliant document from a PDF/A-1 compliant document (on
      * the metadata level, this will not e.g. convert graphics to JPG-2000)
      * 
-     * @return 
-     * @throws TransformerException 
-     * @throws IOException 
-     * @throws XmpParsingException 
-     * @throws XmpSchemaException 
-     * */
-    PDDocument makeA3Acompliant(String pdfFileName, ConformanceLevel level) throws IOException, TransformerException, XmpParsingException, XmpSchemaException;
+     * @return
+     * @throws TransformerException
+     * @throws IOException
+     * @throws XmpParsingException
+     * @throws XmpSchemaException
+     */
+    PDDocument makeA3Acompliant(String pdfFileName, ConformanceLevel level, final boolean isXRechnung)
+            throws IOException, TransformerException, XmpParsingException, XmpSchemaException;
 
     /**
      * embed the ZUGFeRD XML structure in a file named ZUGFeRD-invoice.xml
-     * @throws IOException 
-     * */
-    PDDocument attachZugferdFile(PDDocument doc, ByteArrayOutputStream baos) throws IOException;
+     * 
+     * @throws IOException
+     */
+    PDDocument attachZugferdFile(PDDocument doc, ByteArrayOutputStream baos, boolean isXRechnung) throws IOException;
 
 }

@@ -141,8 +141,8 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         PDDocument pdfa3 = null;
 
         netPricesPerVat.clear();
-
-        if (zugferdProfile == ConformanceLevel.XRECHNUNG) {
+        final boolean embed = eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, false);
+        if (zugferdProfile == ConformanceLevel.XRECHNUNG && !embed) {
             try {
                 final IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();
                 final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
@@ -171,11 +171,12 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 outputStream.close();
 
                 printXMLDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
+                final boolean isXRechnung = zugferdProfile == ConformanceLevel.XRECHNUNG && embed;
                 final PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile,
-                        zugferdProfile/* , zugferdXml, invoice.getName() */);
+                        zugferdProfile/* , zugferdXml, invoice.getName() */, isXRechnung);
 
-                // embed XML
-                pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo);
+                // embed XML (if xrechnung or zugferd)
+                pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo, isXRechnung);
 
                 if (pdfFile != null) {
                     pdfa3.save(Paths.get(pdfFile + ".pdf").toFile());

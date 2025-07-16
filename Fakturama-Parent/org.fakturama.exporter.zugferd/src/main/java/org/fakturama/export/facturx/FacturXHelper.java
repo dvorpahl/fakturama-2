@@ -73,6 +73,7 @@ public class FacturXHelper implements IPdfHelper {
     private static final Logger log = LoggerFactory.getLogger(FacturXHelper.class);
 
     private static final String FACTURX_FILENAME = "factur-x.xml";
+    private static final String XRECHNUNG_FILENAME = "xrechnung.xml";
     private static final String FACTURX_PREFIX = "fx";
     private static final String FACTURX_URN = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
 
@@ -87,7 +88,7 @@ public class FacturXHelper implements IPdfHelper {
      * @throws XmpSchemaException
      */
     @Override
-    public PDDocument makeA3Acompliant(final String pdfFileName, final ConformanceLevel level)
+    public PDDocument makeA3Acompliant(final String pdfFileName, final ConformanceLevel level, final boolean isXRechnung)
             throws IOException, TransformerException, XmpParsingException, XmpSchemaException {
         final Path pdfFile = Paths.get(pdfFileName);
         if (Files.notExists(pdfFile)) {
@@ -129,7 +130,8 @@ public class FacturXHelper implements IPdfHelper {
 
         /*
          * Mandatory: PDF/A3-a is tagged PDF which has to be expressed using a
-         * MarkInfo dictionary (PDF A/3 Standard sec. 6.7.2.2)*/
+         * MarkInfo dictionary (PDF A/3 Standard sec. 6.7.2.2)
+         */
         final PDMarkInfo markinfo = new PDMarkInfo();
         markinfo.setMarked(true);
         doc.getDocumentCatalog().setMarkInfo(markinfo);
@@ -145,7 +147,8 @@ public class FacturXHelper implements IPdfHelper {
         createExtensionSchema(xmp, tm);
 
         /*
-         * This is what needs to be added to the RDF metadata - basically the name
+         * This is what needs to be added to the RDF metadata - basically the
+         * name
          * of the embedded ZUGFeRD file
          */
         final XMPSchema xmpBasicSchema = tm.getSchemaFactory("http://www.aiim.org/pdfa/ns/extension/").createXMPSchema(xmp, FACTURX_PREFIX);
@@ -159,7 +162,7 @@ public class FacturXHelper implements IPdfHelper {
 
         xmpBasicSchema.setTextPropertyValue("ConformanceLevel", conformanceLevel);
         xmpBasicSchema.setTextPropertyValue("DocumentType", DOCTYPE_INVOICE);
-        xmpBasicSchema.setTextPropertyValue("DocumentFileName", FACTURX_FILENAME); // ZF21: 
+        xmpBasicSchema.setTextPropertyValue("DocumentFileName", isXRechnung ? XRECHNUNG_FILENAME : FACTURX_FILENAME); // ZF21: 
         xmpBasicSchema.setTextPropertyValue("Version", "1.0");
 
         final XmpSerializer serializer = new XmpSerializer();
@@ -184,16 +187,16 @@ public class FacturXHelper implements IPdfHelper {
         extSchema.addNamespace("http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
 
         /*
-        * What we attach is basically this:
-        * pdfaExtension:schemas-node
-        * +--bag
-        *    +--rdf:li
-        *       +--some text node (multiple)
-        *       +--property node
-        *          +--rdf:Seq
-        *             +--rdf:li (multiple) attribute node
-        *                +--some attribute property description text node (multiple)
-        */
+         * What we attach is basically this:
+         * pdfaExtension:schemas-node
+         * +--bag
+         * +--rdf:li
+         * +--some text node (multiple)
+         * +--property node
+         * +--rdf:Seq
+         * +--rdf:li (multiple) attribute node
+         * +--some attribute property description text node (multiple)
+         */
         final ArrayProperty newBag = extSchema.createArrayProperty("schemas", Cardinality.Bag);
         final DefinedStructuredType li = new DefinedStructuredType(xmp, FACTURX_URN, FACTURX_PREFIX, XmpConstants.LIST_NAME);
         li.setAttribute(new Attribute(FACTURX_URN, XmpConstants.PARSE_TYPE, XmpConstants.RESOURCE_NAME));
@@ -252,7 +255,7 @@ public class FacturXHelper implements IPdfHelper {
      * @throws IOException
      */
     @Override
-    public PDDocument attachZugferdFile(final PDDocument doc, final ByteArrayOutputStream baos) throws IOException {
+    public PDDocument attachZugferdFile(final PDDocument doc, final ByteArrayOutputStream baos, final boolean isXRechnung) throws IOException {
 
         if (doc == null) {
             return null;
@@ -260,8 +263,9 @@ public class FacturXHelper implements IPdfHelper {
 
         // first create the file specification, which holds the embedded file
         final PDComplexFileSpecification fs = new PDComplexFileSpecification();
-        fs.setFile(FACTURX_FILENAME);
-        fs.setFileUnicode(FACTURX_FILENAME);
+        final String filename = isXRechnung ? XRECHNUNG_FILENAME : FACTURX_FILENAME;
+        fs.setFile(filename);
+        fs.setFileUnicode(filename);
         fs.setFileDescription("electronical invoice according to ZUGFeRD standard");
 
         final COSDictionary dict = fs.getCOSObject();
@@ -270,7 +274,7 @@ public class FacturXHelper implements IPdfHelper {
         // TODO ZF21: in FR ==> Source
         dict.setName("AFRelationship", "Alternative"); // as defined in ZUGFeRD standard
 
-        dict.setString("UF", FACTURX_FILENAME);
+        dict.setString("UF", filename);
 
         // create a data stream from given byte array
         final byte[] zugferdData = baos.toByteArray();
@@ -290,7 +294,7 @@ public class FacturXHelper implements IPdfHelper {
         final PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
 
         // now add the entry to the embedded file tree and set in the document.
-        efTree.setNames(Collections.singletonMap(FACTURX_FILENAME, fs));
+        efTree.setNames(Collections.singletonMap(filename, fs));
         final PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
         names.setEmbeddedFiles(efTree);
         doc.getDocumentCatalog().setNames(names);

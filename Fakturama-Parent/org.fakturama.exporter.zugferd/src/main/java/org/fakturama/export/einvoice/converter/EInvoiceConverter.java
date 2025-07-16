@@ -66,6 +66,7 @@ import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.misc.DocumentType;
 import com.sebulli.fakturama.misc.UNTDID4461;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.Address;
 import com.sebulli.fakturama.model.CEFACTCode;
 import com.sebulli.fakturama.model.Contact;
@@ -207,14 +208,29 @@ public class EInvoiceConverter {
         if (invoice.getShipping() != null && documentSummary.getShippingNet() != null && !documentSummary.getShippingNet().isZero()) {
             final String shippingName = invoice.getShipping().getDescription();
 
-            // we have shipping costs
-            final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
-            invoiceChargesAllowances.setAmount(BigDecimal.valueOf(documentSummary.getShippingNet().getNumber().doubleValueExact()));
-            invoiceChargesAllowances.setReason(shippingName);
-            invoiceChargesAllowances.setVatRate(BigDecimal.valueOf(invoice.getShipping().getShippingVat().getTaxValue()).multiply(BigDecimal.valueOf(100L)));
-            invoiceChargesAllowances.setVatCategoryCode(invoice.getShipping().getShippingVat().getCode().getCode());
-            invoiceChargesAllowances.setReason(invoice.getShipping().getShippingVat().getDescription());
-            eInvoice.getInvoiceCharges().add(invoiceChargesAllowances);
+            if (invoice.getShipping().getAutoVat().isSHIPPINGVATFIX()) {
+                // we have shipping costs
+                final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
+                invoiceChargesAllowances.setAmount(BigDecimal.valueOf(documentSummary.getShippingNet().getNumber().doubleValueExact()));
+                invoiceChargesAllowances
+                        .setVatRate(BigDecimal.valueOf(invoice.getShipping().getShippingVat().getTaxValue()).multiply(BigDecimal.valueOf(100L)));
+                invoiceChargesAllowances.setVatCategoryCode(invoice.getShipping().getShippingVat().getCode().getCode());
+                if (invoice.getShipping().getShippingVat().getCode() == UNTDID5305.Z || invoice.getShipping().getShippingVat().getCode() == UNTDID5305.E) {
+                    invoiceChargesAllowances.setReason(invoice.getShipping().getShippingVat().getDescription());
+                }
+                eInvoice.getInvoiceCharges().add(invoiceChargesAllowances);
+            } else {
+                for (final VatSummaryItem shippingVatItem : documentSummary.getShippingVatSummary()) {
+
+                    // we have shipping costs
+                    final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
+                    invoiceChargesAllowances.setAmount(BigDecimal.valueOf(shippingVatItem.getNet().getNumber().doubleValueExact()));
+                    invoiceChargesAllowances.setReason(shippingName);
+                    invoiceChargesAllowances.setVatRate(BigDecimal.valueOf(shippingVatItem.getVatPercent()).multiply(BigDecimal.valueOf(100L)));
+                    invoiceChargesAllowances.setVatCategoryCode(shippingVatItem.getVatCode().getCode());
+                    eInvoice.getInvoiceCharges().add(invoiceChargesAllowances);
+                }
+            }
         }
 
         if (invoice.getItemsRebate() != null && !BigDecimal.valueOf(invoice.getItemsRebate()).equals(BigDecimal.ZERO)) {

@@ -275,6 +275,8 @@ public class DocumentSummaryCalculator {
 
                 // Adjust the vat summary item by the shipping part
                 retval.addVatSummaryItem(shippingVatSummaryItem);
+                // add for einvoice
+                retval.addShippingVatSummaryItem(shippingVatSummaryItem);
             }
         }
 
