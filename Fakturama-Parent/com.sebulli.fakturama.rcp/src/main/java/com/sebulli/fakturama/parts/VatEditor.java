@@ -255,6 +255,7 @@ public class VatEditor extends Editor<VAT> {
                 editorVat.setCategory(newCat);
             }
 
+            editorVat.setCode(UNTDID5305.DEFAULT_VALUE);
             //T: VAT Editor: Part Name of a new VAT Entry
             part.setLabel(msg.editorVatHeader);
             getMDirtyablePart().setDirty(true);
