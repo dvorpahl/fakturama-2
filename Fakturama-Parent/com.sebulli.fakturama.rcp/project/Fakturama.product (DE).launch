@@ -32,7 +32,7 @@
     <stringAttribute key="bootstrap" value=""/>
     <stringAttribute key="checked" value="[NONE]"/>
     <booleanAttribute key="clearConfig" value="true"/>
-    <booleanAttribute key="clearws" value="false"/>
+    <booleanAttribute key="clearws" value="true"/>
     <booleanAttribute key="clearwslog" value="false"/>
     <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Fakturama.product (DE)"/>
     <booleanAttribute key="default" value="false"/>
@@ -118,8 +118,8 @@
         <setEntry value="com.opcoach.e4.preferences@default:default"/>
         <setEntry value="com.opencsv@default:default"/>
         <setEntry value="com.sun.istack.commons-runtime*4.2.0@default:default"/>
-        <setEntry value="com.sun.jna*5.15.0@default:default"/>
-        <setEntry value="com.sun.jna.platform*5.15.0@default:default"/>
+        <setEntry value="com.sun.jna.platform@default:default"/>
+        <setEntry value="com.sun.jna@default:default"/>
         <setEntry value="jakarta.activation-api*2.1.3@default:default"/>
         <setEntry value="jakarta.annotation-api*2.1.1@default:default"/>
         <setEntry value="jakarta.el-api*5.0.1@default:default"/>
@@ -836,8 +836,8 @@
         <setEntry value="org.liquibase.core@default:default"/>
         <setEntry value="org.objectweb.asm*9.6.0@default:default"/>
         <setEntry value="org.objectweb.asm.commons*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.tree*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.tree.analysis*9.6.0@default:default"/>
+        <setEntry value="org.objectweb.asm.tree.analysis@default:default"/>
+        <setEntry value="org.objectweb.asm.tree@default:default"/>
         <setEntry value="org.objectweb.asm.util*9.6.0@default:default"/>
         <setEntry value="org.odftoolkit.odfdom-java@default:default"/>
         <setEntry value="org.osgi.service.cm@default:default"/>
