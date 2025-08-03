@@ -401,7 +401,7 @@ public class EInvoiceConverter {
             //            position.setItemGrossPrice(moneyToBigDecimal(price.getUnitGross()).setScale(MONEY_SCALE, RoundingMode.HALF_UP));
             // BT-147 (wont be used since we use allowances instead)
             //            position.setItemPriceDiscount(moneyToBigDecimal(price.getUnitNetDiscounted()).setScale(2, RoundingMode.HALF_UP));
-            if (invoiceItem.getItemRebate() != null && !BigDecimal.ZERO.equals(BigDecimal.valueOf(invoiceItem.getItemRebate()))) {
+            if (invoiceItem.getItemRebate() != null && BigDecimal.ZERO.compareTo(BigDecimal.valueOf(invoiceItem.getItemRebate())) != 0) {
                 // BG-27
                 final InvoiceChargesAllowances invoiceChargesAllowances = new InvoiceChargesAllowances();
                 // BT-138

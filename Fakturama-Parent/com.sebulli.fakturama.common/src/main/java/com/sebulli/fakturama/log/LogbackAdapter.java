@@ -1,10 +1,12 @@
 package com.sebulli.fakturama.log;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,16 +81,18 @@ public class LogbackAdapter implements LogListener {
                     : workspaceLocation;
             defaultLogConfigFileName += "/" + ClassicConstants.AUTOCONFIG_FILE;
 
-            try {
+            final URL logTemplate = FrameworkUtil.getBundle(getClass()).getResource(LOGBACK_TEMPLATE);
+            try (InputStream logTemplateIS = logTemplate.openStream();) {
+                // First always copy template to resource folder as template
+                final Path defaultLogConfigFileTemplate = Paths.get(defaultLogConfigFileName + ".template");
+                Files.copy(logTemplateIS, defaultLogConfigFileTemplate, StandardCopyOption.REPLACE_EXISTING);
+
                 if (StringUtils.isNotBlank(defaultLogConfigFileName)) {
                     final Path defaultLogConfigFile = Paths.get(defaultLogConfigFileName);
                     if (!Files.exists(defaultLogConfigFile)) {
                         // oh, there's no configuration file... 
                         // then we create it from our own template!
-                        final URL logTemplate = FrameworkUtil.getBundle(getClass()).getResource(LOGBACK_TEMPLATE);
-                        if (logTemplate != null) {
-                            Files.copy(logTemplate.openStream(), defaultLogConfigFile);
-                        }
+                        Files.copy(defaultLogConfigFileTemplate, defaultLogConfigFile);
                     }
                     final JoranConfigurator jc = new JoranConfigurator();
                     loggerContext.putProperty(LOG_FILE_NAME_TOKEN, logFile.toString());

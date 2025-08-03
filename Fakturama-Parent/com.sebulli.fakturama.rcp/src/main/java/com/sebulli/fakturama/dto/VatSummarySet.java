@@ -109,6 +109,10 @@ public class VatSummarySet extends TreeSet<VatSummaryItem> {
     }
 
     public MonetaryAmount getTotalNet() {
+        return this.parallelStream().map(VatSummaryItem::getNet).reduce(Money.zero(currencyCode), MonetaryFunctions::sum);
+    }
+
+    public MonetaryAmount getTotalNetRounded() {
         return this.parallelStream().map(VatSummaryItem::getNet).reduce(Money.zero(currencyCode), MonetaryFunctions::sum).with(rounding);
     }
 
