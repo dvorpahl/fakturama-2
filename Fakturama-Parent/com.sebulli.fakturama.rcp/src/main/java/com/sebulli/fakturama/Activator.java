@@ -31,6 +31,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 import com.opcoach.e4.preferences.IPreferenceStoreProvider;
+import com.sebulli.fakturama.preferences.DefaultValuesInitializer;
 import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
 
 // import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -83,6 +84,8 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
 
         // register preference store provider
         bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
+        new DefaultValuesInitializer().initializeDefaultPreferences(); 
+        
         //        generatePersistenceUnits();
     }
 
