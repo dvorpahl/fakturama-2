@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import org.apache.commons.lang3.ClassUtils;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.equinox.log.ExtendedLogService;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -35,11 +34,9 @@ import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.opcoach.e4.preferences.ScopedPreferenceStore;
-import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.misc.Constants;
 
 import ch.qos.logback.classic.spi.CallerData;
-import jakarta.inject.Inject;
 
 /**
  * A wrapper class for the Fakturama logger. This Logger delegates all calls to
