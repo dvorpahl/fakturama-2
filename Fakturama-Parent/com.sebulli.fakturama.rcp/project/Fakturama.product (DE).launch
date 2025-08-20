@@ -902,7 +902,7 @@
         <setEntry value="org.fakturama.wizards@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
-    <stringAttribute key="timestamp" value="1752600043232"/>
+    <stringAttribute key="timestamp" value="1755377047281"/>
     <booleanAttribute key="tracing" value="false"/>
     <mapAttribute key="tracingOptions">
         <mapEntry key="org.aspectj.osgi.service.caching.j9/debug" value="false"/>

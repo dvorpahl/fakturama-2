@@ -195,7 +195,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
     private String runResult = "";
 
     // true, if the product's EAN number is imported as item number
-    private Boolean useEANasItemNr = false;
+    private boolean useEANasItemNr = false;
     private String productImagePath = "";
     private int worked = 0;
 
@@ -207,7 +207,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
     public void init() {
         generalWorkspace = preferences.getString(Constants.GENERAL_WORKSPACE);
         orderSyncManager = ContextInjectionFactory.make(OrderSyncManager.class, context);
-        useEANasItemNr = preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR);
+        useEANasItemNr = preferences.getDefaultBoolean(Constants.PREFERENCES_WEBSHOP_USE_EAN_AS_ITEMNR);
         productUtil = ContextInjectionFactory.make(ProductUtil.class, context);
     }
 

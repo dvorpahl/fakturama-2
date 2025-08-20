@@ -26,6 +26,7 @@ import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.workbench.IWorkbench;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -65,7 +66,9 @@ public class ExpendituresCsvImportWizard extends Wizard implements IImportWizard
         performFinish();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.eclipse.jface.wizard.Wizard#canFinish()
      */
     @Override
@@ -83,12 +86,12 @@ public class ExpendituresCsvImportWizard extends Wizard implements IImportWizard
     public boolean performFinish() {
         // The selected file to import
         String selectedFile = "";
-        FileDialog fileDialog = new FileDialog(shell);
+        final FileDialog fileDialog = new FileDialog(shell);
         //fileDialog.setFilterPath("/");
         fileDialog.setFilterExtensions(new String[] { "*.csv" });
 
         // Start at the user's home
-        Path path = Paths.get(System.getProperty("user.home"));
+        final Path path = Paths.get(System.getProperty("user.home"));
         fileDialog.setFilterPath(path.toString());
 
         //T: CSV Import File Dialog Title
@@ -100,10 +103,10 @@ public class ExpendituresCsvImportWizard extends Wizard implements IImportWizard
         // Import the selected file
         if (selectedFile != null && !selectedFile.isEmpty()) {
 
-            ExpendituresCsvImporter csvImporter = ContextInjectionFactory.make(ExpendituresCsvImporter.class, ctx);
+            final ExpendituresCsvImporter csvImporter = ContextInjectionFactory.make(ExpendituresCsvImporter.class, ctx);
             csvImporter.importCSV(selectedFile, false);
 
-            ImportProgressDialog dialog = ContextInjectionFactory.make(ImportProgressDialog.class, ctx);
+            final ImportProgressDialog dialog = ContextInjectionFactory.make(ImportProgressDialog.class, ctx);
             dialog.setStatusText(csvImporter.getResult());
 
             // Find the expenditure table view
@@ -113,7 +116,7 @@ public class ExpendituresCsvImportWizard extends Wizard implements IImportWizard
             // Find the VAT table view
             // Refresh it
             evtBroker.post("VATEditor", "update");
-            if (dialog.open() == ImportProgressDialog.OK) {
+            if (dialog.open() == Window.OK) {
                 performCancel();
                 return true;
             } else {
