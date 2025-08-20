@@ -155,7 +155,7 @@ public class VatSummaryItem implements Comparable<VatSummaryItem> {
      * @return Vat value as Double
      */
     public MonetaryAmount getVat() {
-        return this.net.with(rounding).multiply(this.vatPercent);
+        return this.net.multiply(this.vatPercent);
     }
 
     public MonetaryAmount getVatRounded() {

@@ -439,8 +439,8 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         node.setDefault(Constants.PREFERENCES_GENERAL_COLLAPSE_EXPANDBAR, IPreferenceStore.FALSE);
         node.setDefault(Constants.PREFERENCES_GENERAL_CLOSE_OTHER_EDITORS, IPreferenceStore.FALSE);
         node.setDefault(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR, IPreferenceStore.TRUE);
-        node.setDefault(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES, Integer.valueOf(2));
-        node.setDefault(Constants.PREFERENCES_GENERAL_QUANTITY_DECIMALPLACES, Integer.valueOf(2));
+        node.setDefault(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES, 2);
+        node.setDefault(Constants.PREFERENCES_GENERAL_QUANTITY_DECIMALPLACES, 2);
         node.setDefault(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING, IPreferenceStore.FALSE);
         node.setDefault(Constants.PREFERENCES_CURRENCY_USE_SYMBOL, CurrencySettingEnum.SYMBOL.name());
 
@@ -455,8 +455,8 @@ public class GeneralPreferencePage extends FieldEditorPreferencePage implements 
         final CurrencySettingEnum currencySetting = CurrencySettingEnum.valueOf(node.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL));
         final String exampleFormat = calculateExampleCurrencyFormatString(currencyLocaleString, true, false, currencySetting);
         node.setDefault(Constants.PREFERENCE_CURRENCY_FORMAT_EXAMPLE, exampleFormat);
-        node.setDefault(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN, Integer.valueOf(0));
-        node.setDefault(Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS, Integer.valueOf(10));
+        node.setDefault(Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN, 0);
+        node.setDefault(Constants.PREFERENCES_GENERAL_KEEP_NUMBER_BACKUPS, 10);
 
         // use constant as strategy identifier
         node.setDefault(Constants.PREFERENCES_BACKUP_STRATEGY, Constants.PREFERENCES_GENERAL_DELETEBACKUPS_OLDER_THAN);
