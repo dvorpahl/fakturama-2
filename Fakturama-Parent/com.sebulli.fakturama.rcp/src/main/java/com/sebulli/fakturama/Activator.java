@@ -85,8 +85,6 @@ public class Activator implements BundleActivator, IBundleGroupProvider {
         // register preference store provider
         bundleContext.registerService(IPreferenceStoreProvider.class, FakturamaPreferenceStoreProvider.getInstance(), null);
         new DefaultValuesInitializer().initializeDefaultPreferences(); 
-        
-        //        generatePersistenceUnits();
     }
 
     private void registerBundleGroupProvider() {
