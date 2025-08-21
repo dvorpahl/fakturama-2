@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.layout.TTLLLayout" />
+        </encoder>
+    </appender>
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/service.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%logger/%class [%level] %mdc %message%n</pattern>
+        </encoder>
+        <!--
+            A RollingPolicy is responsible for performing the rolling over of the active log file.
+            The RollingPolicy is also responsible for providing the active log file, that is the live
+            file where logging output will be directed.
+            "what"
+             - ch.qos.logback.core.rolling.FixedWindowRollingPolicy
+             - ch.qos.logback.core.rolling.TimeBasedRollingPolicy
+             - ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
+
+            A TriggeringPolicy controls the conditions under which roll-over occurs. Such conditions include
+            time of day, file size, an external event, the log request or a combination thereof.
+            "when"
+             - ch.qos.logback.core.rolling.TimeBasedRollingPolicy
+             - ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
+             - ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
+             - ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP
+             - ch.qos.logback.core.rolling.DefaultTimeBasedFileNamingAndTriggeringPolicy
+
+            Both the above policies are required. But if RollingPolicy is both
+            ch.qos.logback.core.rolling.RollingPolicy and ch.qos.logback.core.rolling.TriggeringPolicy,
+            only one is sufficient. These are:
+             - ch.qos.logback.core.rolling.TimeBasedRollingPolicy
+             - ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
+        -->
+        <rollingPolicy class="org.ops4j.pax.logging.logback.extra.AlwaysTriggerPolicy">
+            <fileNamePattern>logs/service.log.%d{yyyy-MM}</fileNamePattern>
+            <maxHistory>5</maxHistory>
+            <totalSizeCap>100KB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="my.logger" level="info" additivity="false">
+        <appender-ref ref="file" />
+    </logger>
+    <root level="debug">
+        <appender-ref ref="console" />
+    </root>
+</configuration>
