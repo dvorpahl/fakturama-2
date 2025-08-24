@@ -738,7 +738,7 @@ public class XRechnung extends AbstractEInvoice {
             retval.setBuyerOrderReferencedDocument(referencedDocument);
         }
         // BT-148
-        final AmountType grossAmount = createAmount(itemPosition.getItemGrossPrice());
+        final AmountType grossAmount = createMoneyAmount(itemPosition.getItemGrossPrice());
         if (grossAmount != null) {
             final TradePriceType tradePriceTypeGross = factory.createTradePriceType();
             tradePriceTypeGross.setChargeAmount(grossAmount);
@@ -746,7 +746,7 @@ public class XRechnung extends AbstractEInvoice {
         }
         // BT-146
         final TradePriceType tradePriceTypeNet = factory.createTradePriceType();
-        tradePriceTypeNet.setChargeAmount(createAmount(itemPosition.getItemNetPrice()));
+        tradePriceTypeNet.setChargeAmount(createMoneyAmount(itemPosition.getItemNetPrice()));
         if (itemPosition.getItemPriceBaseQuantity() != null) {
             // BT-149, 150 we do not set this at the moment
             //            tradePriceTypeNet.setBasisQuantity(createQuantity(itemPosition.getItemPriceBaseQuantity(), itemPosition.getItemPriceBaseQuantityUnitOfMeasure()));
@@ -951,6 +951,26 @@ public class XRechnung extends AbstractEInvoice {
      */
     private AmountType createAmount(final BigDecimal amount) {
         return createAmount(amount, 2, null);
+    }
+    /**
+     * creates an Amount field
+     * 
+     * @param the
+     *            VAT value
+     * @return
+     */
+    private AmountType createQuantityAmount(final BigDecimal amount) {
+    	return createAmount(amount, customQuantityScale, null);
+    }
+    /**
+     * creates an Amount field
+     * 
+     * @param the
+     *            VAT value
+     * @return
+     */
+    private AmountType createMoneyAmount(final BigDecimal amount) {
+    	return createAmount(amount, customMoneyScale, null);
     }
 
     /**

@@ -320,7 +320,7 @@ public class EInvoiceConverter {
             invoiceVatBreakdown.setVatCategoryCode(vatSummaryItem.getVatCode().getCode());
             // BT-119
             invoiceVatBreakdown.setVatCategoryRate(
-                    BigDecimal.valueOf(vatSummaryItem.getVatPercent()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
+                    BigDecimal.valueOf(vatSummaryItem.getVatPercent()).multiply(BigDecimal.valueOf(100), new MathContext(customQuantityScale)).stripTrailingZeros());
             // BT-116
             invoiceVatBreakdown.setVatCategoryTaxableAmount(moneyToBigDecimal(basisAmount));
             // BT-117
@@ -364,7 +364,7 @@ public class EInvoiceConverter {
             position.setInvoicedItemVatCategoryCode(invoiceItem.getItemVat().getCode().getCode()); // see UNTDID 5305
             // BT-152 VAT
             position.setInvoicedItemVatRate(
-                    BigDecimal.valueOf(invoiceItem.getItemVat().getTaxValue()).multiply(BigDecimal.valueOf(100), new MathContext(2)).stripTrailingZeros());
+                    BigDecimal.valueOf(invoiceItem.getItemVat().getTaxValue()).multiply(BigDecimal.valueOf(100), new MathContext(customQuantityScale)).stripTrailingZeros());
             // BT-153
             position.setItemName(StringUtils.trimToNull(invoiceItem.getName()));
             // BT-154

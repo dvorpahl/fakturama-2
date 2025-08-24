@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.inject.Inject;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.e4.core.di.extensions.Preference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.commands.ParameterizedCommand;
@@ -119,7 +121,9 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     public static final String STATE_CELL_LABEL = "StateValue_Cell_LABEL";
     public static final String VAT_CELL_LABEL = "VAT_Cell_LABEL";
 
-    protected IPreferenceStore eclipsePrefs = FakturamaPreferenceStoreProvider.getInstance().getPreferenceStore();
+    @Inject
+    @Preference //(value=InstanceScope.SCOPE)
+    protected IEclipsePreferences eclipsePrefs;
 
     @Inject
     protected ILogger log;
@@ -258,9 +262,9 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      */
     public void onStart(final NatTable natTable) {
         final Properties properties = new Properties();
-        final String requestedWorkspace = getEclipsePrefs().getDefaultString(Constants.GENERAL_WORKSPACE);
-        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
+        final String requestedWorkspace = this.eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
 
+        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
         try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile, StandardOpenOption.READ);) {
             properties.load(propertiesInputStream);
             log.debug("Loading NatTable state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
@@ -288,7 +292,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
      */
     public void onStop(final NatTable natTable) {
         final Properties properties = new Properties();
-        final String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
+        final String requestedWorkspace = this.eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
         final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
         if (Files.notExists(propertiesFile)) {
             try {
@@ -736,20 +740,17 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     /**
      * @return the eclipsePrefs
      */
-    protected IPreferenceStore getEclipsePrefs() {
-        if (eclipsePrefs == null) {
-            eclipsePrefs = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
-        }
-        return eclipsePrefs;
+    protected IEclipsePreferences getEclipsePrefs() {
+         return eclipsePrefs;
     }
-
-    /**
-     * @param eclipsePrefs
-     *            the eclipsePrefs to set
-     */
-    protected void setEclipsePrefs(final IPreferenceStore eclipsePrefs) {
-        this.eclipsePrefs = eclipsePrefs;
-    }
+//
+//    /**
+//     * @param eclipsePrefs
+//     *            the eclipsePrefs to set
+//     */
+//    protected void setEclipsePrefs(final IPreferenceStore eclipsePrefs) {
+//        this.eclipsePrefs = eclipsePrefs;
+//    }
 
     public TextSearchControl getSearchControl() {
         return searchText;

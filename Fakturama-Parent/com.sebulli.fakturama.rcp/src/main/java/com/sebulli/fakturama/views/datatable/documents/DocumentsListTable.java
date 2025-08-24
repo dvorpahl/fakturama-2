@@ -136,9 +136,6 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @Inject
     private IDocumentAddressManager addressManager;
 
-    @Inject
-    @Preference //(value=InstanceScope.SCOPE)
-    private IEclipsePreferences eclipsePrefs;
 
     private EventList<Document> documentListData;
     private EventList<DummyStringCategory> categories;
