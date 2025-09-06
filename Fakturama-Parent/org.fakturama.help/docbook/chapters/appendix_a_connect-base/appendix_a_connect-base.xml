@@ -4,7 +4,7 @@
 			<title>Verbindung mit der Fakturama-Datenbank herstellen</title>
 			<anchor xreflabel="" xml:id="importexport_base_access"/>
 			<warning>
-			Durch diesen Datenbankzugriff könnten versehentlich Echtdaten direkt in der Fakturama-Datenbank verändert oder gelöscht werden. Die Datenbank muss vorher geeignet gesichert werden. Greifen Sie nicht direkt auf die Echtdaten im Arbeitsverzeichnis zu, sondern arbeiten Sie zwingend auf einer Kopie der Datenbank!</warning>
+			Durch diesen Datenbankzugriff könnten versehentlich Echtdaten direkt in der Fakturama-Datenbank verändert oder gelöscht werden. Die Datenbank muß vorher geeignet gesichert werden. Es sollte nicht direkt auf die Echtdaten im Arbeitsverzeichnis zugegriffen, sondern nur mit einer Kopie der Datenbank gearbeitet werden!</warning>
 			<para>Leider funktioniert durch die Einführung der LOBs für die Datenbank der reguläre Weg über eine neue Datenbank-Verbindung nicht mehr. Es gibt allerdings eine Umgehungslösung, die nachfolgend beschrieben wird.</para>
 			<para>Dazu muß man zunächst im LibreOffice Base eine neue Datenbank als "Eingebettete HSQLDB" erstellen. Dies geht mit dem entsprechenden Assistenten. Die neue Datenbank sollte in einem leeren Verzeichnis gespeichert werden, am besten unter dem Namen <filename>Database.odb</filename>. Anschließend kopiert(!) man die Datenbank-Dateien aus dem Fakturama-Arbeitsverzeichnis in das Verzeichnis mit der gerade angelegten Datenbank und ergänzt bei allen Dateien noch ".odb" im Dateiname. Das Ergebnis sollte so aussehen:
 				<informalfigure>

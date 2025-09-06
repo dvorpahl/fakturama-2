@@ -824,7 +824,6 @@
 		<variablelist termlength="18" spacing="compact">
 			<varlistentry>
 				<term>
-
 					<inlinemediaobject>
 						<imageobject role="html">
 							<imagedata fileref="../images/application/reorganize_16.png" format="PNG" scalefit="1"/>
@@ -833,11 +832,25 @@
 							<imagedata contentdepth="40%" width="20pt" fileref="../images/application/reorganize_16.png" format="PNG" scalefit="1"/>
 						</imageobject>
 					</inlinemediaobject>Dokumente neu organisieren</term>
-
 				<listitem>
 					<para>Verschiebt und benennt alle bereits erstellten OpenOffice- und PDF-Dokumente im Unterorder Dokumente so um, wie in den Einstellungen <emphasis role="bold">Office</emphasis> angegeben.</para>
 					<para>Dieser Menüpunkt sollte beim Wechsel von Version 1.x auf Version 2.x verwendet werden. Wichtig ist, daß das Ursprungsverzeichnis existiert und nicht verschoben wurde, da die absoluten Pfade in der Fakturama-Datenbank gespeichert werden.
 					Siehe auch <link linkend="preferences_office_path">OpenOffice.org / LibreOffice Einstellungen</link>
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<inlinemediaobject>
+						<imageobject role="html">
+							<imagedata fileref="../images/application/QRK_export.png" format="PNG" scalefit="1"/>
+						</imageobject>
+						<imageobject role="fo">
+							<imagedata contentdepth="100%" fileref="../images/application/QRK_export.png" format="PNG" scalefit="1"/>
+						</imageobject>
+					</inlinemediaobject> QRK-Export</term>
+				<listitem>
+					<para>Mit diesem Menüpunkt ist eine Anbindung an das Kassenverwaltungs-Programm QRK-Kasse <footnote><para><link>https://www.ckvsoft.at/</link></para></footnote> möglich. Der Menüpunkt ist nur aktiv, wenn in den Einstellungen ein Austauschverzeichnis und im aktuellen Fenster eine Rechnung ausgewählt wurde.
 					</para>
 				</listitem>
 			</varlistentry>
@@ -848,7 +861,7 @@
 		<variablelist termlength="15" spacing="compact">
 		<varlistentry>
 				<term>Perspektive zurücksetzen</term>
-			<listitem>Die Position und Größe der Editorfenster, des Übersichtsfensters und der Navigationsleiste werden gespeichert. Mit <emphasis role="bold">Perspektive zurücksetzen</emphasis> wird die ursprüngliche Größe und Position der einzelnen Fenster wieder hergestellt.<note>Sollten die Spalten der Artikel-Eingabetabelle nicht mehr sinnvoll gesetzt sein können Sie in Ihrem Arbeitsverzeichnis die Datei <code>fakturamaviews.properties</code> löschen.</note></listitem>
+			<listitem>Die Position und Größe der Editorfenster, des Übersichtsfensters und der Navigationsleiste werden gespeichert. Mit <emphasis role="bold">Perspektive zurücksetzen</emphasis> wird die ursprüngliche Größe und Position der einzelnen Fenster wieder hergestellt.<note>Sollten die Spalten der Artikel-Eingabetabelle nicht mehr sinnvoll gesetzt sein, kann man im Arbeitsverzeichnis die Datei <code>fakturamaviews.properties</code> löschen. Damit werden die Einstellungen für die Spaltenbreiten wieder auf den Standard zurückgesetzt.</note></listitem>
 			
 		</varlistentry>
 			<varlistentry>
@@ -975,7 +988,7 @@
 							<imagedata contentdepth="80%" width="40pt" fileref="../images/application/shop_32.png" format="PNG" scalefit="1"/>
 						</imageobject>
 					</inlinemediaobject> Webshop</subtitle>
-			<para>Stellt eine Verbindung mit dem Webshop her. Eingegangene Bestellungen werden abgerufen, neue Produkte werden importiert und Preise aktualisiert. Kontaktadressen werden ebenfalls geladen und zu den Adressdaten hinzugefügt, falls diese noch nicht existieren.</para>
+			<para>Stellt eine Verbindung mit dem Webshop her. Eingegangene Bestellungen werden abgerufen, neue Produkte werden importiert und Preise aktualisiert. Kontaktadressen werden ebenfalls geladen und zu den Adressdaten hinzugefügt, falls diese noch nicht existieren. Des weiteren werden auch Steuersätze ergänzt, falls noch nicht vorhanden.</para>
 			<para>Siehe auch <link linkend="webshop_webshop">Webshop</link>
 			</para>
 		</section>
@@ -989,12 +1002,9 @@
 						<imagedata contentdepth="80%" width="40pt" fileref="../images/application/printoo_32.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</inlinemediaobject> Drucken</subtitle>
-			<para>Erstellt anhand einer Vorlage ein OpenOffice-Dokument. Es erscheint ein Auswahlmenü, wenn mehr als eine Vorlage existiert. Ist das Icon ausgegraut, 
-			so ist kein Drucken möglich oder kein Editor ausgewählt. Zum Auswählen einmal in das Editorfenster klicken.</para>
-			<para>Über den Einstellungsdialog kann man steuern, ob nur OpenOffice-Dokumente oder PDF-Dokumente erstellt werden sollen oder beide Formate.
-			Für die Erzeugung der PDF-Dokumente ist zwingend eine LibreOffice/OpenOffice-Installation erforderlich (das Programm wird im Hintergrund aufgerufen). Die Version
-			spielt allerdings keine Rolle.</para>
-			<para>Siehe auch <link linkend="openoffice_main">OpenOffice.org</link>
+			<para>Erstellt anhand einer Vorlage ein LibreOffice-Dokument. Es erscheint ein Auswahlmenü, wenn mehr als eine Vorlage existiert. Ist das Icon ausgegraut, so ist kein Drucken möglich oder kein Editor ausgewählt. Zum Auswählen einmal in das Editorfenster klicken.</para>
+			<para>Über den Einstellungsdialog kann man steuern, ob nur LibreOffice-Dokumente oder PDF-Dokumente erstellt werden sollen oder beide Formate. Für die Erzeugung der PDF-Dokumente ist zwingend eine LibreOffice-Installation erforderlich (das Programm wird im Hintergrund aufgerufen). Die Version spielt allerdings keine Rolle.</para>
+			<para>Siehe auch <link linkend="openoffice_main">LibreOffice.org</link>
 			</para>
 		</section>
 		<section>
@@ -1007,7 +1017,7 @@
 						<imagedata contentdepth="80%" width="40pt" fileref="../images/application/save_32.png" format="PNG" scalefit="1"/>
 					</imageobject>
 			</inlinemediaobject> Speichern</subtitle>
-			<para>Speichert das Dokument, die Kontaktadresse, das Produkt&#x2026; des aktiven Editors. Ist das Icon ausgegraut, so ist kein Speichern notwendig oder kein Editor ausgewählt. Zum Aktivieren des Buttons einmal in das Editorfenster klicken, falls er nicht aktiv ist. Ein geänderter Editor-Inhalt ist am Sternchen neben dem Tab oben erkennbar.</para>
+			<para>Speichert das Dokument, die Kontaktadresse, das Produkt usw. des aktiven Editors. Ist das Icon ausgegraut, so ist kein Speichern notwendig oder kein Editor ausgewählt. Zum Aktivieren des Buttons einmal in das Editorfenster klicken, falls es nicht aktiv ist. Ein geänderter Editor-Inhalt ist am Sternchen neben dem Tab oben erkennbar.</para>
 		</section>
 		<section>
 			<subtitle> 
@@ -1048,7 +1058,7 @@
 					</imageobject>
 			</inlinemediaobject> Auftrag</subtitle>
 			<para>Erstellt einen neuen Auftrag und öffnet diesen in einem Editorfenster. Mit gedrückter <keycap>STRG</keycap>-Taste (bzw. <keycap>CMD</keycap>-Taste bei MacOS) 
-			wird der aktive Auftrag dupliziert und in einem neuen Editor dargestellt (ggf. muss man dazu zunächst den Fokus direkt auf den 
+			wird der aktive Auftrag dupliziert und in einem neuen Editor dargestellt (ggf. muß man dazu zunächst den Fokus direkt auf den 
 			aktiven Editor setzen). Beim Duplizieren werden die Felder für das Dokumentdatum, das Bestelldatum, das Bezahldatum und das Leistungsdatum zurückgesetzt. Sämtliche Rechnungsbezüge werden ebenfalls entfernt.</para>
 			<para>Siehe auch <link linkend="editor_editor_document">Dokumenteneditor</link>
 			</para>
@@ -1134,7 +1144,7 @@
 					</imageobject> 
 			</inlinemediaobject>Produkt</subtitle>
 			<para>Erstellt ein neues Produkt und öffnet dieses in einem Editorfenster. Mit gedrückter <keycap>STRG</keycap>-Taste (bzw. <keycap>CMD</keycap>-Taste bei MacOS) 
-			wird das aktive Produkt dupliziert und in einem neuen Editor dargestellt (ggf. muss man dazu zunächst den Fokus direkt auf den 
+			wird das aktive Produkt dupliziert und in einem neuen Editor dargestellt (ggf. muß man dazu zunächst den Fokus direkt auf den 
 			aktiven Editor setzen).</para>
 			<para>Siehe auch <link linkend="editor_editor_product">Produkteditor</link>
 			</para>
@@ -1238,9 +1248,7 @@
 				</imageobject>
 			</mediaobject>
 		</informalfigure>
-		<para>Die Einträge der Navigationsleiste sind in Gruppen aufgeteilt. Jede Gruppe lässt sich ein- oder ausklappen. Es ist möglich, das Verhalten 
-		der Navigationsleiste in den <link linkend="preferences_general_navigationbar">Einstellungen</link> so zu ändern, dass beim Aufklappen 
-		einer Gruppe die anderen automatisch eingeklappt werden.</para>
+		<para>Die Einträge der Navigationsleiste sind in Gruppen aufgeteilt. Jede Gruppe läßt sich ein- oder ausklappen. Es ist möglich, das Verhalten der Navigationsleiste in den <link linkend="preferences_general_navigationbar">Einstellungen</link> so zu ändern, daß beim Aufklappen einer Gruppe die anderen automatisch eingeklappt werden.</para>
 		<section>
 			<subtitle>
 				<inlinemediaobject>
@@ -1259,10 +1267,10 @@
 			<subtitle>
 				<inlinemediaobject>
 					<imageobject role="html">
-						<imagedata fileref="../images/application/data_16.png" format="PNG" scalefit="1"/>
+						<imagedata fileref="../images/application/letter_16.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
-						<imagedata contentdepth="40%" width="20pt" fileref="../images/application/data_16.png" format="PNG" scalefit="1"/>
+						<imagedata contentdepth="40%" width="20pt" fileref="../images/application/letter_16.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</inlinemediaobject> Gruppe Daten</subtitle>
 			<para>Befehle zum Anzeigen der verschiedenen Datentabellen.</para>
@@ -1310,7 +1318,7 @@
 						<imagedata contentdepth="50%" width="20pt" fileref="../images/application/shop_16.png" format="PNG" scalefit="1"/>
 					</imageobject>
 			</inlinemediaobject> Webshop</subtitle>
-			<para>Stellt eine Verbindung mit dem Webshop her. Eingegangene Bestellungen werden abgerufen, neue Produkte werden importiert und Preise aktualisiert. Kontaktadressen werden ebenfalls geladen und zu den Adressdaten hinzugefügt, falls diese noch nicht existieren.</para>
+			<para>Stellt eine Verbindung mit dem Webshop her. Eingegangene Bestellungen werden abgerufen, neue Produkte werden importiert und Preise aktualisiert. Kontaktadressen werden ebenfalls geladen und zu den Adressdaten hinzugefügt, falls diese noch nicht existieren. Des weiteren werden auch Steuersätze ergänzt, falls noch nicht vorhanden.</para>
 			<para>Siehe auch <link linkend="webshop_webshop">Webshop</link>
 			</para>
 		</section>
@@ -1644,7 +1652,7 @@
 		</section>
 		<section>
 			<subtitle>Netto oder Brutto</subtitle>
-			<para>Legt fest, ob die Rechnung später mit Netto- oder Bruttopreisen ausgedruckt wird. Abhängig davon werden die Zwischensummen, Rabattbeträge, Versand und MwSt. auf ganze Netto- oder Bruttowerte gerundet. Wird ein Dokument als <emphasis role="bold">netto</emphasis> angelegt, später jedoch trotzdem in ein Dokument mit Bruttopreisen gedruckt, kann es sein, dass sich die Summen um &#x00B1;1 Cent unterscheiden.</para>
+			<para>Legt fest, ob die Rechnung später mit Netto- oder Bruttopreisen ausgedruckt wird. Abhängig davon werden die Zwischensummen, Rabattbeträge, Versand und MwSt. auf ganze Netto- oder Bruttowerte gerundet. Wird ein Dokument als <emphasis role="bold">netto</emphasis> angelegt, später jedoch trotzdem in ein Dokument mit Bruttopreisen gedruckt, kann es sein, daß sich die Summen um &#x00B1;1 Cent unterscheiden.</para>
 		</section>
 		<section>
 			<subtitle>Rechnung</subtitle>
@@ -1761,7 +1769,7 @@
 		</section>
 		<section>
 			<subtitle>MwSt.</subtitle>
-			<para>Die Mehrwertsteuer lässt sich für das komplette Dokument auf 0% setzen.</para>
+			<para>Die Mehrwertsteuer läßt sich für das komplette Dokument auf 0% setzen.</para>
 		</section>
 		<section>
 			<subtitle>Folgedokument erzeugen</subtitle>
@@ -1775,7 +1783,7 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para>Erzeugt aus dem aktuellen Dokument eines neues. Dabei werden die Daten soweit wie möglich aus dem aktuellen Dokument übernommen. Wenn bereits ein Dokument mit derselben Transaktionsnummer existiert gibt Fakturama eine entsprechende Warnung aus.</para>
+			<para>Erzeugt aus dem aktuellen Dokument eines neues. Dabei werden die Daten soweit wie möglich aus dem aktuellen Dokument übernommen. Wenn bereits ein Dokument mit derselben Transaktionsnummer existiert, gibt Fakturama eine entsprechende Warnung aus.</para>
 		</section>
 		<section>
 			<subtitle>Artikel</subtitle>
@@ -1951,11 +1959,11 @@
 		</section>
 		<section>
 			<subtitle>zahlbar in</subtitle>
-			<para>Anzahl der Tage, innerhalb derer die Rechnung bezahlt werden muss. Beim Ändern der Anzahl wird automatisch das Datum angepasst.</para>
+			<para>Anzahl der Tage, innerhalb derer die Rechnung bezahlt werden muss. Beim Ändern der Anzahl wird automatisch das Datum angepaßt.</para>
 		</section>
 		<section>
 			<subtitle>Tagen bis zum</subtitle>
-			<para>Datum, bis zu dem die Rechnung bezahlt werden muss. Beim Ändern des Datums wird automatisch die Anzahl der Tage angepasst.</para>
+			<para>Datum, bis zu dem die Rechnung bezahlt werden muss. Beim Ändern des Datums wird automatisch die Anzahl der Tage angepaßt.</para>
 		</section>
 		<section>
 			<subtitle>am</subtitle>
@@ -2052,12 +2060,12 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			liefert für die Mengenangabe "1" &#x2026; "Karton", für "2" &#x2026; "Kartons", für "100" &#x2026; "Kartons". Die Mengeneinheit wird beim Ändern der Menge im Dokumenten-Editor automatisch angepasst.
+			liefert für die Mengenangabe "1" &#x2026; "Karton", für "2" &#x2026; "Kartons", für "100" &#x2026; "Kartons". Die Mengeneinheit wird beim Ändern der Menge im Dokumenten-Editor automatisch angepaßt.
 			</para>
 		</section>
 		<section>
 			<subtitle>Preis</subtitle>
-			<para>Je nach Einstellung wird der Netto- oder Bruttopreis angezeigt. Beim Editieren des Nettopreises wird automatisch der Bruttopreis angepasst und umgekehrt, jeweils abhängig vom Mehrwertsteuersatz. Die Verwendung von (bis zu fünf) Staffelpreisen ist ebenfalls möglich (kann über die Einstellungen gesteuert werden).</para>
+			<para>Je nach Einstellung wird der Netto- oder Bruttopreis angezeigt. Beim Editieren des Nettopreises wird automatisch der Bruttopreis angepaßt und umgekehrt, jeweils abhängig vom Mehrwertsteuersatz. Die Verwendung von (bis zu fünf) Staffelpreisen ist ebenfalls möglich (kann über die Einstellungen gesteuert werden).</para>
 		</section>
 		<section>
 			<subtitle>Zuschlag</subtitle>
@@ -2065,7 +2073,7 @@
 		</section>
 		<section>
 			<subtitle>Einkaufspreis</subtitle>
-			<para>Der Einkaufspreis des Produktes. Dazu kann auch noch ein Zuschlag (in % oder absolut) erfasst werden (wird derzeit aber noch nicht ausgewertet).</para>
+			<para>Der Einkaufspreis des Produktes. Dazu kann auch noch ein Zuschlag (in % oder absolut) erfaßt werden (wird derzeit aber noch nicht ausgewertet).</para>
 		</section>
 		<section>
 			<subtitle>MwSt.</subtitle>
@@ -2154,16 +2162,16 @@
 		<section>
 			<subtitle>Adresse</subtitle>
 			<para>Der Reiter unterteilt sich in allgemeine Angaben wie Firmenname und/oder Name des Kontaktes. Daneben
-			gibt es einen weiteren Bereich, in dem verschiedene Adressen zu diesem Kontakt erfasst werden können. Diese Adressen
+			gibt es einen weiteren Bereich, in dem verschiedene Adressen zu diesem Kontakt erfaßt werden können. Diese Adressen
 			können über das [+]-Symbol hinzugefügt werden. Mit dem Schließen eines Tabs wird die entsprechende Zusatzadresse
 			gelöscht (auf Nachfrage). Die Hauptadresse kann nicht gelöscht werden.</para>
 			<para>Zu jeder Adresse kann angegeben werden, wofür sie verwendet werden soll (z. B. für Rechnungen oder Lieferscheine, 
-			diese Auswahl wird in den kommenden Versionen von Fakturama vervollständigt). Lässt man
+			diese Auswahl wird in den kommenden Versionen von Fakturama vervollständigt). Läßt man
 			die Auswahl leer, kann die Adresse für beliebige Arten von Dokumenten verwendet werden. Ansonsten werden die Adressen
-			des Kontaktes bei der Adressauswahl über den Dokumentendialog gefiltert.</para>
+			des Kontaktes bei der Adreßauswahl über den Dokumentendialog gefiltert.</para>
 			<tip>In der Länderliste kann man durch Eingabe der Anfangsbuchstaben des gewünschten Landes schnell zum entsprechenden Eintrag springen. 
 			Die Übernahme des Wertes erfolgt dann durch Drücken von ENTER oder Mausklick.</tip>
-			<para>Siehe dazu auch <link linkend="editor_editor_document_address">Adressauswahl im Dokumenteneditor</link>.</para>
+			<para>Siehe dazu auch <link linkend="editor_editor_document_address">Adreßauswahl im Dokumenteneditor</link>.</para>
 		</section>
 		<section>
 			<title>Reiter Bankkonto</title>
@@ -2173,7 +2181,7 @@
 						<imagedata fileref="../images/editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
-						<imagedata contentdepth="200%" fileref="../images/editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
+						<imagedata contentdepth="70%" fileref="../images/editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
@@ -2216,10 +2224,10 @@
 		</section>
 		<section>
 			<subtitle>Netto oder Brutto</subtitle>
-			<para>Normalerweise wird im Dokumenteneditor der Preis als Netto- oder als Bruttopreis angezeigt, abhängig davon, welche Einstellung programmweit vorgenommen wurde. Für bestimmte Kunden lässt sich unabhängig davon eine andere Einstellung festlegen. Der Dokumenteneditor öffnet sich dann mit den hier eingestellten Preisen. Bei der Auswahl des Kunden im Dokumenteneditor kommt auch ein entsprechender Hinweis.</para>
+			<para>Normalerweise wird im Dokumenteneditor der Preis als Netto- oder als Bruttopreis angezeigt, abhängig davon, welche Einstellung programmweit vorgenommen wurde. Für bestimmte Kunden läßt sich unabhängig davon eine andere Einstellung festlegen. Der Dokumenteneditor öffnet sich dann mit den hier eingestellten Preisen. Bei der Auswahl des Kunden im Dokumenteneditor kommt auch ein entsprechender Hinweis.</para>
 		</section>
 		<section><subtitle>Ausgleichsteuer verwenden</subtitle>
-		<para>Diese Einstellung sorgt dafür, dass bei der Berechnung der Bruttopreise eine Ausgleichsteuer berücksichtigt wird (nur für einige Länder relevant).</para>
+		<para>Diese Einstellung sorgt dafür, daß bei der Berechnung der Bruttopreise eine Ausgleichsteuer berücksichtigt wird (nur für einige Länder relevant).</para>
 		</section>
 		<section>
 			<title>Reiter Notiz</title>
@@ -2252,7 +2260,7 @@
 				</imageobject>
 			</mediaobject>
 		</informalfigure>
-		<para>Die Seite mit den zu füllenden Formularfeldern muss nicht unbedingt die Startseite sein. Werden auf einer Webseite des Paketdienstes die erforderlichen Felder gefunden, werden Absender und Empfängerdaten verwendet, um diese Felder zu füllen. Dieser Vorgang wird einmalig durchgeführt. Für neue Adressdaten ist das Editorfenster neu zu öffnen.</para>
+		<para>Die Seite mit den zu füllenden Formularfeldern muß nicht unbedingt die Startseite sein. Werden auf einer Webseite des Paketdienstes die erforderlichen Felder gefunden, werden Absender und Empfängerdaten verwendet, um diese Felder zu füllen. Dieser Vorgang wird einmalig durchgeführt. Für neue Adressdaten ist das Editorfenster neu zu öffnen.</para>
 		<para>Siehe auch <link linkend="parcelservice_main">Paketdienst</link>
 		</para>
 	</section> -->
@@ -2271,7 +2279,7 @@
 		</informalfigure>
 		<section>
 			<subtitle>Name</subtitle>
-			<para>Eindeutiger Name der Zahlungsart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
+			<para>Eindeutiger Name der Zahlungsart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepaßt werden.</para>
 		</section>
 		<section>
 			<subtitle>Konto</subtitle>
@@ -2452,7 +2460,7 @@
 		</section>
 		<section>
 			<subtitle>zum Standard machen</subtitle>
-			<para>Macht die aktuell angezeigte Zahlungsart zur Standardzahlungsart. Die Zahlungsart muss zuvor gespeichert worden sein.</para>
+			<para>Macht die aktuell angezeigte Zahlungsart zur Standardzahlungsart. Die Zahlungsart muß zuvor gespeichert worden sein.</para>
 		</section>
 	</section>
 	<section>
@@ -2470,7 +2478,7 @@
 		</informalfigure>
 		<section>
 			<subtitle>Name</subtitle>
-			<para>Eindeutiger Name der Versandart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
+			<para>Eindeutiger Name der Versandart. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepaßt werden.</para>
 		</section>
 		<section>
 			<subtitle>Kategorie</subtitle>
@@ -2502,7 +2510,7 @@
 		</section>
 		<section>
 			<subtitle>zum Standard machen</subtitle>
-			<para>Macht diese Versandart zur Standardversandart. Die Versandart muss zuvor gespeichert worden sein.</para>
+			<para>Macht diese Versandart zur Standardversandart. Die Versandart muß zuvor gespeichert worden sein.</para>
 		</section>
 	</section>
 	<section>
@@ -2520,7 +2528,7 @@
 		<para>Abhängig von den Einstellungen sind einige Elemente ausgeblendet.</para>
 		<section>
 			<subtitle>Name</subtitle>
-			<para>Eindeutiger Name des Steuersatzes. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepasst werden.</para>
+			<para>Eindeutiger Name des Steuersatzes. Dies ist auch die Kennung, die vom Shopsystem verwendet wird. Der Name sollte dann nicht verändert werden. Stattdessen sollte der Text <emphasis role="bold">Beschreibung</emphasis> angepaßt werden.</para>
 		</section>
 		<section>
 			<subtitle>Kategorie</subtitle>
@@ -2555,6 +2563,10 @@
 			<para>Dieser Text wird auf den Dokumenten verwendet.</para>
 		</section>
 		<section>
+			<subtitle>Steuercode (E-Rechnung)</subtitle>
+			<para>Hier muß der Code für die Steuerart eingetragen werden. Dieses Feld wird nur beim Erstellen einer E-Rechnung ausgewertet.</para>
+		</section>
+		<section>
 			<subtitle>Wert</subtitle>
 			<para>Prozentualer Wert des Steuersatzes.</para>
 		</section>
@@ -2564,12 +2576,12 @@
 		</section>
 		<section>
 			<subtitle>Ausgleichsteuer</subtitle>
-			<para>In verschiedenen Ländern wird zusätzlich zur Umsatzsteuer eine Ausgleichsteuer erhoben. Die Höhe dieser Ausgleichsteuer ist an die Umsatzsteuer gekoppelt. Die Steuer wird jedoch nur berechnet, wenn dies in den Kundendaten beim jeweiligen Kontakt eingestellt wird (siehe <link linkend="editor_editor_contact">Kontakteditor</link>). Außerdem muss die entsprechende Einstellung im Kontakteditor aktiviert werden (siehe <link linkend="preferences_contact">Einstellungen Kontakte</link>).
+			<para>In verschiedenen Ländern wird zusätzlich zur Umsatzsteuer eine Ausgleichsteuer erhoben. Die Höhe dieser Ausgleichsteuer ist an die Umsatzsteuer gekoppelt. Die Steuer wird jedoch nur berechnet, wenn dies in den Kundendaten beim jeweiligen Kontakt eingestellt wird (siehe <link linkend="editor_editor_contact">Kontakteditor</link>). Außerdem muß die entsprechende Einstellung im Kontakteditor aktiviert werden (siehe <link linkend="preferences_contact">Einstellungen Kontakte</link>).
 			</para>
 		</section>
 		<section>
 			<subtitle>zum Standard machen</subtitle>
-			<para>Macht diesen Steuersatz zum Standardsteuersatz. Der Steuersatz muss zuvor gespeichert worden sein.</para>
+			<para>Macht diesen Steuersatz zum Standardsteuersatz. Der Steuersatz muß zuvor gespeichert worden sein.</para>
 		</section>
 	</section>
 	<section>
@@ -2632,7 +2644,7 @@
 	</section -->
 	<section>
 		<anchor xreflabel="" xml:id="editor_editor_voucher"/><title>Editor Einnahmen- oder Ausgabebeleg</title>
-		<para>Alle Einahmen/Ausgaben können in Belegen erfasst und später tabellarisch und sortiert als OpenOffice Calc Tabelle exportiert werden.</para>
+		<para>Alle Einahmen/Ausgaben können in Belegen erfaßt und später tabellarisch und sortiert als LibreOffice-Calc-Tabelle exportiert werden.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -2672,7 +2684,7 @@
 		</varlistentry>
 		<varlistentry>
 			<term>Positionen</term>
-			<listitem><para>Tabelle mit allen Positionen dieses Beleges. Der Mehrwertsteuersatz wird automatisch ausgewählt. Die Zuordnung Kontenart und Mehrwertsteuersatz wird gelernt und in die Liste <emphasis role="bold">Kontennummern</emphasis> eingetragen. <!-- Sie lässt sich nachträglich mit dem <link linkend="editor_editor_list">Editor Listeneintrag</link> ändern --></para></listitem>
+			<listitem><para>Tabelle mit allen Positionen dieses Beleges. Der Mehrwertsteuersatz wird automatisch ausgewählt. Die Zuordnung Kontenart und Mehrwertsteuersatz wird gelernt und in die Liste <emphasis role="bold">Kontennummern</emphasis> eingetragen. <!-- Sie läßt sich nachträglich mit dem <link linkend="editor_editor_list">Editor Listeneintrag</link> ändern --></para></listitem>
 		</varlistentry>
 		<varlistentry>
 			<term>
@@ -2736,7 +2748,7 @@
 		</informalfigure>
 		<section>
 			<anchor xreflabel="boo" xml:id="application_overview1"/><title>Der Kategoriebaum</title>
-			<para>Alle Datensätze können in eine Kategorie eingeordnet werden. Am linken Rand des Übersichtsfensters erscheint ein Baum mit allen verwendeten Kategorien, falls es einen Datensatz (Produkt, Dokument o.ä.) gibt, der in eine Kategorie einsortiert wurde. Wird das Element <emphasis role="bold">alle</emphasis> ausgewählt, werden alle Datensätze angezeigt. Ist ein Kategorieelement angewählt, erscheinen nur diejenigen Datensätze, die in die gleiche Kategorie eingeordnet wurden.</para>
+			<para>Alle Datensätze können in eine Kategorie eingeordnet werden. Am linken Rand des Übersichtsfensters erscheint ein Baum (hierarchische Darstellung) mit allen verwendeten Kategorien, falls es einen Datensatz (Produkt, Dokument o.ä.) gibt, der in eine Kategorie einsortiert wurde. Wird das Element <emphasis role="bold">alle</emphasis> ausgewählt, werden alle Datensätze angezeigt. Ist ein Kategorieelement angewählt, erscheinen nur diejenigen Datensätze, die in die gleiche Kategorie eingeordnet wurden.</para>
 		</section>
 		<section>
 			<subtitle>Der Kategoriebaum für Dokumente</subtitle>
@@ -2768,7 +2780,7 @@
 							<imageobject role="fo">
 								<imagedata contentdepth="40%" width="20pt" fileref="../images/application/document_10.png" format="PNG" scalefit="1"/>
 							</imageobject>
-						</inlinemediaobject>Gleicher Vorgang
+						</inlinemediaobject>Dieser Vorgang
 					</term>
 					<listitem>
 						<para>Wird dieses Element ausgewählt, werden diejenigen Dokumente angezeigt, die dem gleichen Vorgang zugeordnet werden können.</para>
@@ -2783,7 +2795,7 @@
 							<imageobject role="fo">
 								<imagedata contentdepth="40%" width="20pt" fileref="../images/application/contact_10.png" format="PNG" scalefit="1"/>
 							</imageobject>
-						</inlinemediaobject>Gleicher Kontakt
+						</inlinemediaobject>(Name des Kontaktes)
 					</term>
 					<listitem>
 						<para>Wird dieses Element ausgewählt, werden diejenigen Dokumente angezeigt, die dem gleichen Kontakt (Kunde/Lieferant) zugeordnet werden können.</para>
@@ -2836,12 +2848,12 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para>Die Menge der angezeigten Datensätzen lässt sich einschränken. Wird in das Suchfeld eine Zeichenkette eingetragen, so werden nur diejenigen Datensätze angezeigt, die diese beinhalten. Je nach Art des Datensatzes werden unterschiedliche Spalten zur Suche verwendet. Die Spalte <emphasis role="bold">Name</emphasis> wird immer verwendet.</para>
+			<para>Die Menge der angezeigten Datensätzen läßt sich einschränken. Wird in das Suchfeld eine Zeichenkette eingetragen, so werden nur diejenigen Datensätze angezeigt, die diese beinhalten. Je nach Art des Datensatzes werden unterschiedliche Spalten zur Suche verwendet. Die Spalte <emphasis role="bold">Name</emphasis> wird immer verwendet.</para>
 			<para>Ist das Suchfeld leer, werden alle Datensätze angezeigt.</para>
 		</section>
 		<section>
 			<subtitle>Tabelle</subtitle>
-			<para>Die Datensätze sind tabellarisch dargestellt.</para>
+			<para>Die Datensätze werden tabellarisch dargestellt.</para>
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">

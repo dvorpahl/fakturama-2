@@ -2,7 +2,7 @@
 <chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xl="http://www.w3.org/1999/xlink" id="preferences" xml:lang="de">
     <title>Einstellungen</title>
     <anchor xreflabel="" xml:id="preferences_main"/>
-    <para>Viele Einstellungen in Fakturama können geändert werden. Der Dialog lässt sich bei einem Windows- oder Linux-System im Menü <emphasis role="bold">Datei/Einstellungen</emphasis> und bei OS X im Menü <emphasis role="bold">Fakturama/Einstellungen</emphasis> öffnen.</para>
+    <para>Viele Einstellungen in Fakturama können geändert werden. Der Dialog läßt sich bei einem Windows- oder Linux-System im Menü <emphasis role="bold">Datei/Einstellungen</emphasis> und bei OS X im Menü <emphasis role="bold">Fakturama/Benutzervorgaben&#x2026;</emphasis> öffnen.</para>
     <informalfigure>
         <mediaobject>
             <imageobject role="html">
@@ -33,14 +33,14 @@
         </section>
         <section>
             <subtitle>Andere Editoren schließen</subtitle>
-            <para>Ist diese Option angewählt werden beim Öffnen eines neuen Editorfensters automatisch alle anderen Editorfenster geschlossen. Geänderte und noch nicht gespeicherte bleiben weiterhin geöffnet.</para>
+            <para>Ist diese Option angewählt, werden beim Öffnen eines neuen Editorfensters automatisch alle anderen Editorfenster geschlossen. Geänderte und noch nicht gespeicherte Fenster bleiben weiterhin geöffnet.</para>
         </section>
         <section>
 			<anchor xreflabel="" xml:id="preferences_general_currencylanguage"/>
             <subtitle>Währungsland</subtitle>
             <para>Legt fest, in welcher Währung die Geldbeträge erscheinen sollen. Ein Wechsel des Währungslandes ändert nicht den Wert, sondern nur die Währungseinheit.</para>
-            <para>Es ist möglich, nur ein Symbol wie '€' zu verwenden, aber auch einen ISO-Code wie 'EUR' oder gar kein Währungskennzeichen. Im Beispielfeld kann man sehen, wie Beträge mit den ausgewählten Einstellungen angezeigt werden würden. Zu beachten ist, dass sich abhängig vom gewählten Land auch die Darstellung der Betragszahl ändert, da hier die unterschiedlichen länderspezifischen Einstellungen greifen.</para>
-			<para>Wählt man als Währungsland <emphasis role="bold">Schweiz</emphasis> aus, kann man das Feld "Bar-Rundung" anklicken. Dies sorgt dafür, dass alle berechneten Beträge auf volle 0.05 Rappen gerundet werden.</para>
+            <para>Es ist möglich, nur ein Symbol wie "€" zu verwenden, aber auch einen ISO-Code wie "EUR" oder gar kein Währungskennzeichen. Im Beispielfeld kann man sehen, wie Beträge mit den ausgewählten Einstellungen angezeigt werden würden. Zu beachten ist, daß sich abhängig vom gewählten Land auch die Darstellung der Betragszahl ändert, da hier die unterschiedlichen länderspezifischen Einstellungen greifen.</para>
+			<para>Wählt man als Währungsland <emphasis role="bold">Schweiz</emphasis> aus, kann man das Feld "verwende Bar-Rundung" anklicken. Dies sorgt dafür, daß alle berechneten Beträge auf volle 0.05 Rappen gerundet werden.</para>
 		</section>
         <section>
             <subtitle>Zahlen mit Tausenderpunkt darstellen</subtitle>
@@ -84,7 +84,7 @@
         </section>
         <section>
             <subtitle>Kommentar beim Duplizieren von Dokumenten übernehmen</subtitle>
-            <para>Wird ein Dokument dupliziert (wird zum Beispiel aus einer Bestellung eine Rechnung erzeugt), so werden Adresse und Artikel übernommen. Es ist möglich, den Kommentartext ebenfalls zu übernehmen oder beim duplizierten Dokument leer zu lassen.</para>
+            <para>Wird ein Dokument dupliziert (wenn z. B. aus einer Bestellung eine Rechnung erzeugt wird), so werden Adresse und Artikel übernommen. Es ist möglich, den Kommentartext ebenfalls zu übernehmen oder beim duplizierten Dokument leer zu lassen.</para>
             <para>Der Kommentar einer Bestellung ist derjenige, den der Kunde bei seiner Bestellung im Webshop eingegeben hat. Es ist nicht immer sinnvoll, diesen Text auch auf die Rechnung auszugeben. Der Text dort ist oft eine Information an den Kunden.</para>
             <informalfigure>
                 <mediaobject>
@@ -98,12 +98,8 @@
             </informalfigure>
         </section>
         <section>
-            <subtitle>eindeutig gefundene Artikelnummer sofort übernehmen</subtitle>
-			<para>Wird ein Artikel über die Artikelauswahl in das Dokument eingefügt, kann man hier einstellen, daß bei einer eindeutigen Übereinstimmung der Auswahldialog sofort geschlossen und der gefundene Artikel übernommen wird. Dies ist z. B. sinnvoll beim Einsatz eines Produktscanners. In manchen Fällen ist das Verhalten jedoch unerwünscht und kann über diesen Schalter deaktiviert werden.</para>
-        </section>
-        <section>
             <subtitle>Beschreibung aus Produktauswahl-Dialog übernehmen</subtitle>
-            <para>In den Dokumenten kann ein neuer Artikel über den Produktauswahl-Dialog eingefügt werden. Diese Einstellung legt fest, ob die Produktbeschreibung mit übernommen wird. Oftmals ist die Produktbeschreibung ein längerer Text und nicht geeignet für die Artikelliste eines Dokumentes. Ist diese Option nicht ausgewählt bleibt das Feld "Beschreibung" der Artikelliste leer und kann mit zusätzlichen Informationen wie "Farbe: rot" versehen werden.</para>
+            <para>In den Dokumenten kann ein neuer Artikel über den Produktauswahl-Dialog eingefügt werden. Diese Einstellung legt fest, ob die Produktbeschreibung mit übernommen wird. Oftmals ist die Produktbeschreibung ein längerer Text und nicht geeignet für die Artikelliste eines Dokumentes. Ist diese Option nicht ausgewählt, bleibt das Feld "Beschreibung" der Artikelliste leer und kann mit zusätzlichen Informationen wie "Farbe: rot" versehen werden.</para>
             <informalfigure>
                 <mediaobject>
                     <imageobject role="html">
@@ -116,6 +112,10 @@
             </informalfigure>
             <para>Siehe auch <link linkend="editor_editor_document">Dokumenteneditor</link>
             </para>
+        </section>
+        <section>
+            <subtitle>eindeutig gefundene Artikelnummer sofort übernehmen</subtitle>
+			<para>Wird ein Artikel über die Artikelauswahl in das Dokument eingefügt, kann man hier einstellen, daß bei einer eindeutigen Übereinstimmung der Auswahldialog sofort geschlossen und der gefundene Artikel übernommen wird. Dies ist z. B. sinnvoll beim Einsatz eines Produktscanners. In manchen Fällen ist das Verhalten jedoch unerwünscht und kann über diesen Schalter deaktiviert werden.</para>
         </section>
         <section>
             <anchor xreflabel="" xml:id="preferences_document_previewpicture"/>
@@ -168,7 +168,7 @@
         </section>
         <section>
             <subtitle>Leistungszeitraum verwenden</subtitle>
-            <para>Hier kann festgelegt werden, ob im Dokumenteneditor ein Leistungszeitraum verwendet werden soll (in der Artikeltabelle). Dabei kann ausgewählt werden, ob nur ein Startdatum oder sowohl Start- als auch Endedatum angegeben werden können soll.</para>
+            <para>Hier kann festgelegt werden, ob im Dokumenteneditor ein Leistungszeitraum verwendet werden soll (in der Artikeltabelle). Dabei kann ausgewählt werden, ob nur ein Startdatum oder sowohl Start- als auch Endedatum angegeben werden soll.</para>
             <informalfigure>
                 <mediaobject>
                     <imageobject role="html">
@@ -214,7 +214,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis role="bold">auch das Adressfeld</emphasis> Es werden auch die Rechnungen mit gleicher oder sehr ähnlicher Adresse verwendet</para>
+                        <emphasis role="bold">auch das Adreßfeld</emphasis> Es werden auch die Rechnungen mit gleicher oder sehr ähnlicher Adresse verwendet</para>
                 </listitem>
             </itemizedlist>
         </section>
@@ -239,7 +239,7 @@
         <title>Bedarfspositionen</title>
         <section>
             <subtitle>Bedarfspositionen</subtitle>
-            <para>Ist diese Einstellung aktiviert, wird im Dokumenteditor eine zusätzliche Spalte "Opt." für optionale Artikel / Bedarfsposition eingeblendet. Enthält ein Dokument einen solchen Artikel, wird die Spalte auch dann angezeigt, wenn diese Einstellung deaktiviert ist.</para>
+            <para>Ist diese Einstellung aktiviert, wird im Dokumenteditor eine zusätzliche Spalte "Opt." für optionale Artikel / Bedarfspositionen eingeblendet. Enthält ein Dokument einen solchen Artikel, wird die Spalte auch dann angezeigt, wenn diese Einstellung deaktiviert ist.</para>
         </section>
         <section>
             <subtitle>Preis ersetzen</subtitle>
@@ -301,7 +301,7 @@
         <title>Firmendaten</title>
         <section>
             <subtitle>Adresse und zusätzliche Daten Ihrer Firma</subtitle>
-            <para>Die Adresse wird benutzt, um beispielsweise beim Exportieren der Umsätze in einer Tabelle diese mit den Firmendaten zu füllen oder auch zum Ausfüllen der Formulardaten des Paketdienstes. Darüberhinaus wird die E-Mail-Adresse als Absendeadresse für den Mailservice (<link linkend="using_mailservice">Verwendung des Mailservice</link>) verwendet. Bei Verwendung deser Funktion sollte das Feld entsprechend gesetzt sein.</para>
+            <para>Die Adresse wird benutzt, um beispielsweise beim Exportieren der Umsätze in einer Tabelle diese mit den Firmendaten zu füllen oder auch zum Ausfüllen der Formulardaten des Paketdienstes. Darüberhinaus wird die E-Mail-Adresse als Absendeadresse für den Mailservice (siehe <link linkend="using_mailservice">Verwendung des Mailservice</link>) verwendet. Bei Verwendung dieser Funktion sollte das Feld entsprechend gesetzt sein.</para>
             <informalfigure>
                 <mediaobject>
                     <imageobject role="html">
@@ -357,7 +357,8 @@
         <anchor xreflabel="" xml:id="preferences_contact"/>
         <title>Einstellungen Kontakte</title>
         <para>Legt das Erscheinungsbild des Kontakteditors fest. Einige Felder können ausgeblendet werden, um die Übersichtlichkeit zu erhöhen.</para>
-        <section>
+<!--  entfällt, muß aber nochmal geprüft werden, warum
+      <section>
             <subtitle>Lieferadresse benutzen</subtitle>
             <para>Falls die Rechnungsadresse und Lieferadresse bei jedem Vorgang übereinstimmen kann das Feld 'Lieferadresse' ausgeblendet werden.</para>
             <informalfigure>
@@ -370,7 +371,7 @@
                     </imageobject>
                 </mediaobject>
             </informalfigure>
-        </section>
+        </section> -->
         <section>
             <subtitle>Bankkonto benutzen</subtitle>
             <para>Die Seite 'Bankkonto' kann eingeblendet werden, falls die Bankverbindung der Kunden hinterlegt werden soll.</para>
@@ -380,7 +381,7 @@
                         <imagedata fileref="../images/preferences/../editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
                     </imageobject>
                     <imageobject role="fo">
-                        <imagedata contentdepth="220%" fileref="../images/preferences/../editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
+                        <imagedata contentdepth="75%" fileref="../images/preferences/../editor/editor_contact_bank.png" format="PNG" scalefit="1"/>
                     </imageobject>
                 </mediaobject>
             </informalfigure>
@@ -416,6 +417,10 @@
             </para>
         </section>       
 		<section>
+            <subtitle>Anrede benutzen</subtitle>
+            <para>Das Feld für die Anrede eines Kontaktes kann ein- oder ausgeblendet werden.</para>
+		</section>
+		<section>
             <subtitle>Titel benutzen</subtitle>
             <para>Das Feld für den Titel eines Kontaktes kann ein- oder ausgeblendet werden.</para>
 		</section>
@@ -429,11 +434,11 @@
 		</section>
 		<section>
             <subtitle>Länderfeld benutzen</subtitle>
-            <para>Das Feld für das Land eines Kontaktes kann ein- oder ausgeblendet werden. Zusätzlich kann unter dem Punkt <link linkend="preferences_contactformat">Format des Adressfeldes</link> festgelegt werden, welche Länder bei der Ausgabe nicht mit aufgeführt werden sollen.</para>
+            <para>Das Feld für das Land eines Kontaktes kann ein- oder ausgeblendet werden. Zusätzlich kann unter dem Punkt <link linkend="preferences_contactformat">Format des Adreßfeldes</link> festgelegt werden, welche Länder bei der Ausgabe nicht mit aufgeführt werden sollen.</para>
 		</section>
 		<section><subtitle>Ausgleichsteuer verwenden</subtitle>
-		<para>Aktiviert die Verwendung der Ausgleichsteuer. Dazu muss gleichzeitig auch der Tab "Sonstiges" aktiv sein, da die Einstellung im Kontakteditor auf dieser Seite vorgenommen wird.</para>
-		<para>Die Einstellung bewirkt, dass im <link linkend="editor_editor_vat">Editor für die Steuersätze</link> ein weiteres Eingabefeld angezeigt wird, in das man die Ausgleichsteuer eingeben kann. Des weiteren erscheint im <link linkend="editor_editor_contact">Kontakteditor</link> im Tab "Sonstiges" eine neue Checkbox, mit der man die Berechnung der Ausgleichsteuer für diesen Kontakt aktivieren kann. Im <link linkend="editor_editor_document">Dokumenteneditor</link> wird eine zusätzliche Spalte eingeblendet, aus der die prozentuale Höhe der Ausgleichsteuer ersichtlich wird. Sämtliche Preisberechnungen beinhalten in diesem Fall die zusätzliche Steuer, wenn der Rechnungsempfänger entsprechend gekennzeichnet wurde.</para>
+		<para>Aktiviert die Verwendung der Ausgleichsteuer. Dazu muß gleichzeitig auch der Tab "Sonstiges" aktiv sein, da die Einstellung im Kontakteditor auf dieser Seite vorgenommen wird.</para>
+		<para>Die Einstellung bewirkt, daß im <link linkend="editor_editor_vat">Editor für die Steuersätze</link> ein weiteres Eingabefeld angezeigt wird, in das man die Ausgleichsteuer eingeben kann. Des weiteren erscheint im <link linkend="editor_editor_contact">Kontakteditor</link> im Tab "Son-stiges" eine neue Checkbox, mit der man die Berechnung der Ausgleichsteuer für diesen Kontakt aktivieren kann. Im <link linkend="editor_editor_document">Dokumenteneditor</link> wird eine zusätzliche Spalte eingeblendet, aus der die prozentuale Höhe der Ausgleichsteuer ersichtlich wird. Sämtliche Preisberechnungen beinhalten in diesem Fall die zusätzliche Steuer, wenn der Rechnungsempfänger entsprechend gekennzeichnet wurde.</para>
             <informalfigure>
                 <mediaobject>
                     <imageobject role="html">
@@ -450,8 +455,8 @@
     </section>
     <section>
         <anchor xreflabel="" xml:id="preferences_contactformat"/>
-        <title>Format des Adressfeldes</title>
-        <para>Definiert den Text der Grußformel und den Aufbau des Adressfeldes bei allen Dokumenten.</para>
+        <title>Format des Adreßfeldes</title>
+        <para>Definiert den Text der Grußformel und den Aufbau des Adreßfeldes bei allen Dokumenten.</para>
         <para>Folgende Platzhalter können verwendet werden:</para>
         <itemizedlist spacing="compact">
             <listitem>
@@ -461,7 +466,7 @@
                 <para>{gender}  Platzhalter für Anrede</para>
             </listitem>
             <listitem>
-                <para>{nameaddon}  Platzhalter für Adresszusatz</para>
+                <para>{nameaddon}  Platzhalter für Adreßzusatz</para>
             </listitem>
             <listitem>
                 <para>{firstname}  Platzhalter für Vorname</para>
@@ -551,14 +556,19 @@
 		<para>Werden Rechnungen als PDF erstellt (siehe auch <link linkend="preferences_openoffice">Einstellungen Dokumente</link>), kann man sie anschließend mit Fakturama als E-Mail versenden. Dazu müssen in diesem Dialog die Einstellungen vorgenommen werden.</para>
 		<section>
             <subtitle>Mailservice aktivieren</subtitle>
-			<para>Damit schaltet man den Mailservice ein oder aus. Wird der Service aktiviert, so wird nach dem erfolgreichen Erstellen eines PDFs ein Dialog angezeigt, in dem man die zu sendende E-Mail nochmals prüfen kann.</para>
+			<para>Damit schaltet man die Verwendung des Mailservice ein oder aus. Wird der Service aktiviert, so wird nach dem erfolgreichen Erstellen eines PDFs ein Dialog angezeigt, in dem man die zu sendende E-Mail nochmals prüfen kann.</para>
 			<para>Folgende Einstellungen können gesetzt werden:</para>
             <segmentedlist>
                 <segtitle>Host</segtitle><seg>Mailserver, der für den Versand genutzt werden soll</seg>
-                <segtitle>Benutzer</segtitle><seg>Benutzername, mit dem man sich am Mailserver anmelden muss</seg>
+                <segtitle>Benutzer</segtitle><seg>Benutzername, mit dem man sich am Mailserver anmelden muß</seg>
                 <segtitle>Passwort</segtitle><seg>Passwort für die Anmeldung am Mailserver</seg>
+                <segtitle>benutze SSL/TLS zum Verbindungsaufbau</segtitle><seg>Schalter für eine verschlüsselte Verbindung</seg>
                 <segtitle>Pfad für zusätzliche Dokumente</segtitle><seg>Hier kann ein (absoluter) Pfad angegeben werden, in dem weitere Dokumente liegen, die stets an jede E-Mail mit angefügt werden.</seg>
 			</segmentedlist>
+			<section><subtitle>CC</subtitle><para>Angabe von Mailadressen, die bei jeder Mail als CC benachrichtigt werden.</para>
+			</section>
+			<section><subtitle>BCC</subtitle><para>Angabe von Mailadressen, die bei jeder Mail als BCC benachrichtigt werden.</para>
+			</section>
 			<section>
 				<subtitle>Betreffzeile für&#x2026;</subtitle>
 				<para>Hier kann für jede Dokumentart ein eigener Betreff angegeben werden. Dabei können auch Platzhalter eingesetzt werden (siehe <link linkend="openoffice_placeholders_common">Allgemeine Platzhalter</link>).</para>
@@ -572,16 +582,6 @@
         <para>Beim Anlegen eines neuen Kunden, eines Produktes oder eines Dokumentes wird automatisch die Kunden-, Artikel- oder Dokumentennummer hochgezählt.</para>
         <para>Auf dieser Seite wird angezeigt, wie die nächste Nummer lautet, die vergeben wird. Ebenso kann diese geändert werden, falls die Zählreihenfolge nicht mehr stimmt oder geändert werden soll.</para>
 		<warning>Diese Option sollte im Mehrbenutzerbetrieb mit großer Vorsicht verwendet werden, da beispielsweise Rechnungsnummern programmweit eindeutig und fortlaufend sein müssen. Ändern also zwei Nutzer diese Einstellung, wird es Lücken in der Numerierung geben.</warning>
-        <informalfigure>
-            <mediaobject>
-                <imageobject role="html">
-                    <imagedata fileref="../images/preferences/numberrange_documentnr.png" format="PNG" scalefit="1"/>
-                </imageobject>
-                <imageobject role="fo">
-                    <imagedata contentdepth="70%" fileref="../images/preferences/numberrange_documentnr.png" format="PNG" scalefit="1" width="100%"/>
-                </imageobject>
-            </mediaobject>
-        </informalfigure>
         <para>Für folgende Daten werden automatisch Nummern vergeben:</para>
         <itemizedlist spacing="compact">
             <listitem>
@@ -635,7 +635,7 @@
             </mediaobject>
         </informalfigure>
         <sect2>
-            <subtitle>Fortlaufende Nummerierung</subtitle>
+            <subtitle>Fortlaufende Numerierung</subtitle>
             <para>Als Platzhalter für die Nummer dient die Zeichensequenz: {Xnr}</para>
             <para>Das X ist durch die Anzahl der Stellen zu ersetzen. Die Zahl wird mit Nullen aufgefüllt, bis die Anzahl der Stellen erreicht ist.</para>
             <para>Beispiel:</para>
@@ -644,7 +644,7 @@
             <programlisting>RE00200</programlisting>
         </sect2>
         <sect2>
-            <subtitle>Nummerierung mit Datum und fortlaufender Nummerierung</subtitle>
+            <subtitle>Numerierung mit Datum und fortlaufender Numerierung</subtitle>
             <para>Für das Datum sind folgende Platzhalter vorgesehen:</para>
             <itemizedlist>
                 <listitem>
@@ -666,14 +666,14 @@
             <programlisting>RE2021-04-09-00200</programlisting>
         </sect2>
         <sect2>
-            <subtitle>Nummerierung mit Datum und neu beginnender Nummerierung</subtitle>
+            <subtitle>Numerierung mit Datum und neu beginnender Numerierung</subtitle>
             <para>Soll die Dokumentennummer täglich / monatlich / jährlich bei 1 beginnen, so sind die Platzhalter für das Datum in Kleinbuchstaben zu setzen:</para>
             <itemizedlist>
                 <listitem>
-                    <para>{yyyy}  Jahr 4 stellig (2021), Nummerierung beginnt jährlich bei 1.</para>
+                    <para>{yyyy}  Jahr 4 stellig (2021), Numerierung beginnt jährlich bei 1.</para>
                 </listitem>
                 <listitem>
-                    <para>{yy}  Jahr 2 stellig (21), Nummerierung beginnt jährlich bei 1.</para>
+                    <para>{yy}  Jahr 2 stellig (21), Numerierung beginnt jährlich bei 1.</para>
                 </listitem>
                 <listitem>
                     <para>
@@ -684,10 +684,10 @@
                         {q} Quartal (1, 2 usw.)</para>
                 </listitem>
                 <listitem>
-                    <para>{mm}  Monat, Nummerierung beginnt monatlich bei 1.</para>
+                    <para>{mm}  Monat, Numerierung beginnt monatlich bei 1.</para>
                 </listitem>
                 <listitem>
-                    <para>{dd}  Tag, Nummerierung beginnt täglich bei 1.</para>
+                    <para>{dd}  Tag, Numerierung beginnt täglich bei 1.</para>
                 </listitem>
             </itemizedlist>
             <para>Beispiel:</para>
@@ -753,7 +753,7 @@
             <subtitle>Office-Pfad/App</subtitle>
             <para>Je nach Betriebssystem wird hier der Ordner ausgewählt, in dem sich die LibreOffice-Installation oder -App befindet. In Klammern steht der Standard-Pfad, der auf dem jeweiligen Betriebssystem gültig ist. Wurde LibreOffice an einer anderen Stelle installiert, ist diese auszuwählen.</para>
             <para>Standardpfad für Windows-Betriebssysteme</para>
-            <programlisting>C:\Programme\LibreOffice 7</programlisting>
+            <programlisting>C:\Programme\LibreOffice</programlisting>
             <para>Standardpfad für Linux-Betriebssysteme</para>
             <programlisting>/usr/lib/libreoffice</programlisting>
             <para>Standardapp für MacOS-Betriebssysteme</para>
@@ -893,35 +893,6 @@
             </informalfigure>
         </section>
         <section>
-            <anchor xreflabel="" xml:id="preferences_product_netgross"/>
-            <subtitle>Preise als Netto und Brutto eingeben</subtitle>
-            <para>Es ist möglich, den Preis sowohl als Netto- als auch als Bruttowert darstellen zu lassen.</para>
-            <informalfigure>
-                <mediaobject>
-                    <imageobject role="html">
-                        <imagedata fileref="../images/preferences/product_usenetgross.png" format="PNG" scalefit="1"/>
-                    </imageobject>
-                    <imageobject role="fo">
-                        <imagedata contentdepth="70%" fileref="../images/preferences/product_usenetgross.png" format="PNG" scalefit="1" width="100%"/>
-                    </imageobject>
-                </mediaobject>
-            </informalfigure>
-        </section>
-        <section>
-            <subtitle>Staffelpreise benutzen</subtitle>
-            <para>Hier kann angegeben werden, ob und wie viele Preisstaffelungen benutzt werden sollen.</para>
-            <informalfigure>
-                <mediaobject>
-                    <imageobject role="html">
-                        <imagedata fileref="../images/preferences/product_usescaledprices.png" format="PNG" scalefit="1"/>
-                    </imageobject>
-                    <imageobject role="fo">
-                        <imagedata contentdepth="70%" fileref="../images/preferences/product_usescaledprices.png" format="PNG" scalefit="1" width="100%"/>
-                    </imageobject>
-                </mediaobject>
-            </informalfigure>
-        </section>
-        <section>
 			<anchor xreflabel="foo" xml:id="preferences_use_weight_and_vat"/>
             <subtitle>MwSt. auswählbar und Gewicht benutzen</subtitle>
             <para>Falls die Produkte immer mit dem gleichen (Standard-) Steuersatz ausgezeichnet werden, kann das Feld 'Mehrwertsteuer' ausgeblendet werden.</para>
@@ -972,6 +943,35 @@
             </para>
         </section>
     </section>
+        <section>
+            <subtitle>Staffelpreise benutzen</subtitle>
+            <para>Hier kann angegeben werden, ob und wie viele Preisstaffelungen benutzt werden sollen.</para>
+            <informalfigure>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata fileref="../images/preferences/product_usescaledprices.png" format="PNG" scalefit="1"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata contentdepth="70%" fileref="../images/preferences/product_usescaledprices.png" format="PNG" scalefit="1" width="100%"/>
+                    </imageobject>
+                </mediaobject>
+            </informalfigure>
+        </section>
+        <section>
+            <anchor xreflabel="" xml:id="preferences_product_netgross"/>
+            <subtitle>Preise als Netto und Brutto eingeben</subtitle>
+            <para>Es ist möglich, den Preis sowohl als Netto- als auch als Bruttowert darstellen zu lassen.</para>
+            <informalfigure>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata fileref="../images/preferences/product_usenetgross.png" format="PNG" scalefit="1"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata contentdepth="70%" fileref="../images/preferences/product_usenetgross.png" format="PNG" scalefit="1" width="100%"/>
+                    </imageobject>
+                </mediaobject>
+            </informalfigure>
+        </section>
     <section>
         <anchor xreflabel="" xml:id="preferences_browser"/>
         <title>Webbrowser / Startseite</title>
@@ -1002,8 +1002,8 @@
             <para>Siehe <link linkend="editor_editor_browser">Webbrowser</link>
             </para>
         </section>
-		<section><subtitle>Adressleiste anzeigen</subtitle>
-		<para>Mit diesem Schalter kann die Adressleiste im Browserfenster ein- oder ausgeblendet werden.</para>
+		<section><subtitle>Adreßleiste anzeigen</subtitle>
+		<para>Mit diesem Schalter kann die Adreßleiste im Browserfenster ein- oder ausgeblendet werden.</para>
 		</section>
     </section>
     <section>
@@ -1015,8 +1015,8 @@
             <subtitle>Webshop URL</subtitle>
             <para>Vollständige URL des Importskriptes des Webshops. Wird kein Protokoll angegeben, wird http verwendet. Ansonsten kann auch ein <emphasis role="bold">https://</emphasis> vorangestellt werden.</para>
             <para>Beispiel:</para>
-            <programlisting>www.deinshop.de/admin/fakturama_connector.php</programlisting>
-            <para>Die Datei <emphasis role="bold">fakturama_connector.php</emphasis> muss auf dem Webserver zur Verfügung stehen. Siehe dazu Kapitel <link linkend="install_main">Installation</link>.</para>
+            <programlisting>https://shop.fakturama.info/admin/fakturama2_connector_DE.php</programlisting>
+            <para>Die Datei <emphasis role="bold">fakturama2_connector.php</emphasis> muß auf dem Webserver zur Verfügung stehen. Siehe dazu Kapitel <link linkend="install_main">Installation</link>.</para>
         </section>
         <section>
             <subtitle>Benutzername</subtitle>
@@ -1089,10 +1089,10 @@
     </section>
     <section>
        <anchor xreflabel="" xml:id="preferences_webshopauthorization"/>
-       <title>Webshop Autorisierung</title>
+       <title>Webshop-Anmeldung</title>
         <section>
             <subtitle>Webshop ist passwortgeschützt</subtitle>
-            <para>Diese Einstellung soll nur dann aktiviert sein, wenn das Webverzeichnis, in dem das Skript der Webshop Schnittstelle liegt, noch zusätzlich passwortgeschützt ist.</para>
+            <para>Diese Einstellung soll nur dann aktiviert sein, wenn das Verzeichnis, in dem das Skript der Webshop-Schnittstelle liegt, noch zusätzlich passwortgeschützt ist.</para>
         </section>
         <section>
             <subtitle>Benutzername</subtitle>
@@ -1111,7 +1111,7 @@
         <section>
             <subtitle>Icons in der Werkzeugleiste ein/ausblenden</subtitle>
             <para>Alle Icons in der Werkzeugleiste können ein- oder ausgeblendet werden.</para>
-            <para>Die Werkzeugleiste lässt sich so an die eigenen Bedürfnisse anpassen. Selten oder nicht benutze Icons werden ausgeblendet. Das Programm bleibt übersichtlich.</para>
+            <para>Die Werkzeugleiste läßt sich so an die eigenen Bedürfnisse anpassen. Selten oder nicht benutze Icons werden ausgeblendet. Das Programm bleibt übersichtlich.</para>
         </section>
     </section>
 	<section><anchor xreflabel="" xml:id="preferences_zugferd"/>

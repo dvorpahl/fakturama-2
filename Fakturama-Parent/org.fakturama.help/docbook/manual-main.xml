@@ -285,7 +285,7 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 				</qandaentry>
 				<qandaentry>
 					<question>
-						<para>Druckproblem in LibreOffice unter macOS (Drucken dauert extrem lange)</para>
+						<para>Druckproblem in LibreOffice unter MacOS (Drucken dauert extrem lange)</para>
 					</question>
 					<answer>
 						<para>Die Lösung wurde im <link xl:href="https://www.fakturama.info/community/postid/21451/">Forum</link> gepostet.</para>
@@ -294,6 +294,20 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 			</qandadiv>
 			<qandadiv>
 				<title>Fakturama 2 unter Linux</title>
+				<qandaentry>
+					<question><para>Der Start-Dialog ist nur zur Hälfte sichtbar</para></question>
+					<answer>
+						<para>In diesem Fall muß der Displaymanager gewechselt werden:
+							<programlisting>
+							sudo update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/xdm
+							</programlisting>
+							Mit folgendem Befehl kann man ermitteln, welcher Fenstermanager aktuell gesetzt ist:
+							<programlisting> 
+							sudo update-alternatives --display default-displaymanager
+							</programlisting>
+						</para>
+					</answer>
+				</qandaentry>
 				<qandaentry>
 					<question>
 						<para>Der Installer meldet folgenden Fehler:

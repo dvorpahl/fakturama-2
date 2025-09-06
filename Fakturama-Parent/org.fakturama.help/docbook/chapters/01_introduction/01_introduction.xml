@@ -4,7 +4,7 @@
 	<title>Schnelleinstieg</title>
 	<sect2>
 		<title>Installation</title>
-		<para>Die Software kann von der <link xl:href="https://www.fakturama.info/">Projektseite</link> heruntergeladen und installiert werden.</para>
+		<para>Die Software kann von der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> heruntergeladen und installiert werden.</para>
 		<para>Siehe auch <link linkend="install_main">Installation</link>
 		</para>
 	</sect2>
@@ -32,7 +32,7 @@
 		</para>
 	</sect2>
 	<sect2>
-		<title>Abrufen der Webshop Daten</title>
+		<title>Abrufen der Webshop-Daten</title>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -43,7 +43,7 @@
 				</imageobject>
 			</mediaobject>
 		</informalfigure>
-		<para>Daten (Produkte, Adressen und offene Bestellungen) können aus dem Webshop geladen werden.</para>
+		<para>Daten (Produkte, Adressen und offene Bestellungen) können aus dem Webshop geladen werden, sofern ein entsprechender Connector installiert und konfiguriert wurde.</para>
 		<para>Siehe auch <link linkend="application_main">Das Programm</link>
 		</para>
 	</sect2>

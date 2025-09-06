@@ -24,7 +24,7 @@
 		</section>
 		<section>
 			<subtitle>Import: Kunden- oder Lieferantendaten aus CSV-Datei</subtitle>
-			<para>Adressdaten können aus einer CSV-Datei in Fakturama importiert werden. Damit ist eine Datenübernahme aus einem anderen Programm möglich.</para>
+			<para>Adreßdaten können aus einer CSV-Datei in Fakturama importiert werden. Damit ist eine Datenübernahme aus einem anderen Programm möglich.</para>
 			<para>Siehe <link linkend="importexport_import_csv_contacts">Kontakte aus CSV-Datei importieren</link>
 			</para>
 		</section>
@@ -55,56 +55,56 @@
 		</informalfigure></para>
 		<section>
 			<subtitle>Export: Kontostand</subtitle>
-			<para>Exportiert den Kontostand und die Salden innerhalb eines Zeitraums für ein Konto in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert den Kontostand und die Salden innerhalb eines Zeitraums für ein Konto in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_accounts">Export Kontostand</link>
 			</para>
 		</section>
 		<section>
 			<subtitle>Export: Liste Ausgabebelege</subtitle>
-			<para>Exportiert eine Liste mit den Ausgaben (Ausgabebelege) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert eine Liste mit den Ausgaben (Ausgabebelege) in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_expenditure_vouchers">Export Liste Ausgabebelege</link>
 			</para>
 		</section>
 		<section>
 			<subtitle>Export: Liste Einnahmebelege</subtitle>
-			<para>Exportiert eine Liste mit den Einnahmen (Einnahmebelege) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert eine Liste mit den Einnahmen (Einnahmebelege) in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_receipt_vouchers">Export Liste Einnahmebelege</link>
 			</para>
 		</section>
 		<section>
 			<subtitle>Export: Liste Umsätze (bezahlte Rechnungen)</subtitle>
-			<para>Exportiert eine Liste mit den Umsätzen (alle bezahlten Rechnungen) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert eine Liste mit den Umsätzen (alle bezahlten Rechnungen) in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_sales">Export Liste Umsätze</link>
 			</para>
 		</section>
 		<section>
 			<subtitle>Export: Liste unbezahlte Rechnungen</subtitle>
-			<para>Exportiert eine Liste mit allen unbezahlten Rechnungen in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert eine Liste mit allen unbezahlten Rechnungen in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_unpaid_invoices">Export Liste unbezahlte Rechnungen</link>
 			</para>
 		</section>
 		<section>
-			<subtitle>Export: Adressliste</subtitle>
-			<para>Exportiert eine Liste mit allen Kontakten in eine OpenOffice.org / LibreOffice-Tabelle.</para>
-			<para>Siehe <link linkend="importexport_export_contacts">Export Adressliste</link>
+			<subtitle>Export: Adreßliste</subtitle>
+			<para>Exportiert eine Liste mit allen Kontakten in eine LibreOffice-Tabelle.</para>
+			<para>Siehe <link linkend="importexport_export_contacts">Export Adreßliste</link>
 			</para>
 		</section>
 		<section>
-			<subtitle>Export: Adressliste als Visitenkartendatei</subtitle>
-			<para>Exportiert eine Liste mit allen Kontakten in eine VCard Visitenkartendatei. Diese Datei lässt sich von vielen Adressbuchprogrammen wieder einlesen.</para>
-			<para>Siehe <link linkend="importexport_export_vcf_contacts">Export Adressliste als Visitenkartendatei</link>
+			<subtitle>Export: Adreßliste als Visitenkartendatei</subtitle>
+			<para>Exportiert eine Liste mit allen Kontakten in eine VCard Visitenkartendatei. Diese Datei läßt sich von vielen Adreßverwaltungsprogrammen wieder einlesen.</para>
+			<para>Siehe <link linkend="importexport_export_vcf_contacts">Export Adreßliste als Visitenkartendatei</link>
 			</para>
 		</section>
 		<section>
 			<subtitle>Export: Liste Produkte</subtitle>
-			<para>Exportiert eine Liste mit allen Produkten in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+			<para>Exportiert eine Liste mit allen Produkten in eine LibreOffice-Tabelle.</para>
 			<para>Siehe <link linkend="importexport_export_products">Export Liste Produkte</link>
 			</para>
 		</section>
 		<section>
-			<subtitle>Export: Adressliste als CSV-Datei</subtitle>
+			<subtitle>Export: Adreßliste als CSV-Datei</subtitle>
 			<para>Exportiert eine Liste mit allen Kontakten in eine CSV-Datei.</para>
-			<para>Siehe <link linkend="importexport_export_csv_contacts">Export Adressliste als CSV-Datei</link>
+			<para>Siehe <link linkend="importexport_export_csv_contacts">Export Adreßliste als CSV-Datei</link>
 			</para>
 		</section>
 		<section>
@@ -115,7 +115,7 @@
 		</section>
 		<section>
 			<subtitle>Export: Produkte und deren Käufer</subtitle>
-			<para>Erstellt eine Liste mit den meist gekaufen Produkten und einer Liste der Käufer. Die Liste kann nach Menge oder nach Umsatz sortiert werden.</para>
+			<para>Erstellt eine Liste mit den meistgekaufen Produkten und einer Liste der Käufer. Die Liste kann nach Menge oder nach Umsatz sortiert werden.</para>
 			<para>Siehe <link linkend="importexport_export_products_buyers">Export Produkte und deren Käufer</link>
 			</para>
 		</section>
@@ -199,7 +199,7 @@
 			</varlistentry>
 		</variablelist>
 		<para>Mehrere Positionen eines Beleges werden erfasst, indem jede Position in einer eigenen Zeile angelegt wird und die Werte in den Spalten <emphasis role="bold">Category</emphasis>, <emphasis role="bold">Date</emphasis>, <emphasis role="bold">DocumentNr</emphasis>, <emphasis role="bold">Nr</emphasis> und <emphasis role="bold">Name</emphasis> auf den gleichen Wert gesetzt werden. Siehe obiges Beispiel die letzten zwei Zeilen.</para>
-		<para>Der Import beginnt nach dem Klick auf "Fertigstellen". Bereits importierte Belege werden nicht ein zweites Mal importiert.</para>
+		<para>Der Import beginnt nach dem Klick auf "Fertigstellen". Bereits importierte Belege werden nicht importiert.</para>
 		<para>Es wird empfohlen, den Import zuerst mit einer Datei aus nur 2-3 Einträgen zu testen, bevor die ganze Datei importiert wird (zum Beispiel auch ein Beleg mit mehreren Positionen). Bei einem fehlerhaften Import muss ansonsten jeder Beleg einzeln gelöscht werden.</para>
 		<para>Siehe auch <link linkend="importexport_export_expenditure_vouchers">Export Liste Ausgaben</link>
 		</para>
@@ -207,7 +207,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="importexport_import_csv_contacts"/>
 		<title>Kontakte aus CSV-Datei importieren</title>
-		<para>Adressdaten können aus einer CSV-Datei in Fakturama importiert werden. Damit ist eine Datenübernahme aus einem anderen Programm möglich. Die Datei muss im Format UTF-8 vorliegen und durch Semikola getrennt sein. Zeichenketten sind in Hochkommata einzuschließen. Beispiel:</para>
+		<para>Adreßdaten können aus einer CSV-Datei in Fakturama importiert werden. Damit ist eine Datenübernahme aus einem anderen Programm möglich. Die Datei muss im Format UTF-8 vorliegen und durch Semikola getrennt sein. Zeichenketten sind in Hochkommata einzuschließen. Beispiel:</para>
 		<informalexample pgwide="1">
 		<programlisting><?db-font-size 75% ?><xi:include href="../images/importexport/contacts.csv" parse="text" />
 		</programlisting></informalexample>
@@ -469,7 +469,7 @@
 			</mediaobject>
 		</informalfigure>
 		</section>
-		<para>Siehe auch <link linkend="importexport_export_csv_contacts">Export Adressliste als CSV-Datei</link>
+		<para>Siehe auch <link linkend="importexport_export_csv_contacts">Export Adreßliste als CSV-Datei</link>
 		</para>
 	</section>
 	<section>
@@ -640,7 +640,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_accounts"/>
 		<title>Export Kontostand</title>
-		<para>Exportiert den Kontostand in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert den Kontostand in eine LibreOffice-Tabelle.</para>
 		<para>Dieser "Kontoauszug" wird aus den bezahlten Rechnungen, den Einnahmen- und Ausgabebelegen gebildet. Vergleicht man diesen mit dem Kontoauszug der Bank, kann sehr gut überprüft werden, ob alle Belege korrekt eingegeben wurden.</para>
 		<para>Damit mit unterschiedlichen Konten gearbeitet werden kann, müssen diese bei den Zahlungsarten oder den Belegen angegeben werden. Die Daten werden exportiert, wenn die Kategorie der Zahlungsart der Rechnung oder der Rechnungskorrektur mit der ausgewählten übereinstimmt. Dazu werden auch die Einnahme- und Ausgabebelege gesammelt.</para>
 		<para>Beim Export wird der Zeitraum vorgegeben, für den die Kontobewegungen exportiert werden. Ein Export findet für ein Konto statt, das in einer Drop-Down-Liste ausgewählt wird. Diese Liste wird aus den Konten in den Zahlungsarten und Belegen gebildet.</para>
@@ -655,7 +655,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_expenditure_vouchers"/>
 		<title>Export Liste Ausgabebelege</title>
-		<para>Exportiert eine Liste mit den Ausgaben (Ausgabebelege) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert eine Liste mit den Ausgaben (Ausgabebelege) in eine LibreOffice-Tabelle.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -702,7 +702,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_receipt_vouchers"/>
 		<title>Export Liste Einnahmebelege</title>
-		<para>Exportiert eine Liste mit den Einnahmen (Einnahmebelege) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert eine Liste mit den Einnahmen (Einnahmebelege) in eine LibreOffice-Tabelle.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -749,12 +749,12 @@
 	<section> 
 		<anchor xreflabel="" xml:id="importexport_export_receipt_expenditure_vouchers"/>
 		<title>Export Liste Einnahme- und Ausgabebelege</title>
-		<para>Exportiert eine Liste mit den Einnahmen und Ausgaben in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert eine Liste mit den Einnahmen und Ausgaben in eine LibreOffice-Tabelle.</para>
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_sales"/>
 		<title>Export Liste Umsätze</title>
-		<para>Exportiert eine Liste mit den Umsätzen (alle bezahlten Rechnungen) in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert eine Liste mit den Umsätzen (alle bezahlten Rechnungen) in eine LibreOffice-Tabelle.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -790,15 +790,15 @@
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_unpaid_invoices"/>
 		<title>Export unbezahlte Rechnungen</title>
-		<para>Exportiert alle unbezahlten Rechnungen in eine OpenOffice.org / LibreOffice-Tabelle. Hierbei ist zu beachten, dass die Spalten für die Mehrwertsteuer-Sätze und den Nettowert erst gefüllt werden, wenn tatsächlich Umsätze (beispielsweise in Form von Anzahlungen) erzielt wurden. Der Betrag wird jeweils anteilig ermittelt.</para>
+		<para>Exportiert alle unbezahlten Rechnungen in eine LibreOffice-Tabelle. Hierbei ist zu beachten, dass die Spalten für die Mehrwertsteuer-Sätze und den Nettowert erst gefüllt werden, wenn tatsächlich Umsätze (beispielsweise in Form von Anzahlungen) erzielt wurden. Der Betrag wird jeweils anteilig ermittelt.</para>
 		<para>Wurde die Rechnungsadresse manuell eingegeben, so ist eine Ermittlung von Firmenname, Land und USt.-ID nicht möglich.</para>
 		<para>Siehe auch <link linkend="preferences_export">Einstellungen Export</link>
 		</para>
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_contacts"/>
-		<title>Export Adressliste</title>
-		<para>Exportiert eine Liste mit allen Kontakten in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<title>Export Adreßliste</title>
+		<para>Exportiert eine Liste mit allen Kontakten in eine LibreOffice-Tabelle.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -812,9 +812,9 @@
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="importexport_export_vcf_contacts"/>
-		<title>Export Adressliste als Visitenkartendatei</title>
+		<title>Export Adreßliste als Visitenkartendatei</title>
 		<para>Exportiert eine Liste mit allen Kontakten in eine VCard-Visitenkartendatei.</para>
-		<para>Diese Datei lässt sich von vielen Adressbuchprogrammen wieder einlesen.</para>
+		<para>Diese Datei lässt sich von vielen Adreßbuchprogrammen wieder einlesen.</para>
 		<programlisting> 
       BEGIN:VCARD
       VERSION:3.0
@@ -834,7 +834,7 @@
 	</section>
 	<section>
 			<anchor xreflabel="" xml:id="importexport_export_csv_contacts"/>
-		<title>Export Adressliste als CSV-Datei</title>
+		<title>Export Adreßliste als CSV-Datei</title>
 		<para>Exportiert eine Liste mit allen Kontakten in eine CSV-Datei.
 		<informalfigure>
 			<mediaobject>
@@ -850,7 +850,7 @@
 	<section>
 			<anchor xreflabel="" xml:id="importexport_export_products"/>
 		<title>Export Liste Produkte</title>
-		<para>Exportiert eine Liste mit allen Produkten in eine OpenOffice.org / LibreOffice-Tabelle.</para>
+		<para>Exportiert eine Liste mit allen Produkten in eine LibreOffice-Tabelle.</para>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">

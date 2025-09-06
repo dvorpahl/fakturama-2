@@ -6,8 +6,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="install_download"/>
 		<title>Download der Software</title>
-		<para>Fakturama steht auf der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> zum Download zur Verfügung. Das Programm ist kostenlos, Open Source und steht unter der Lizenz <link linkend="license_license">EPL v1.0</link>.
-		<note>Seit Version 2.0.5 werden nur noch 64Bit-Versionen ausgeliefert, da mit der aktuellen Eclipse-Plattform keine 32Bit-Versionen mehr erzeugt werden können.</note>
+		<para>Fakturama steht auf der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> zum Download zur Verfügung.<footnote><para>Seit Version 2.0.5 werden nur noch 64Bit-Versionen ausgeliefert, da mit der aktuellen Eclipse-Plattform keine 32Bit-Versionen mehr erzeugt werden können.</para></footnote> Das Programm ist kostenlos, Open Source und steht unter der Lizenz <link linkend="license_license">EPL v1.0</link>.
 		</para>
 		<para>Fakturama läuft unter folgenden Betriebssystemen:</para>
 		<itemizedlist>
@@ -15,13 +14,13 @@
 			<listitem>Mac OS X (ab Version 10.10 Yosemite)</listitem>
 			<listitem>Linux (64Bit)</listitem>
 		</itemizedlist>
-		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 17 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Zum Erstellen der Druckvorlagen und der PDFs ist LibreOffice erforderlich.</para>
+		<para>Zur Ausführung ist <trademark>Java</trademark> ab Version 17 notwendig. Fakturama bringt mit dem Installer bereits eine eigene Java-Version mit, deswegen muß Java nicht zusätzlich installiert werden. Für Windows gibt es eigene Installer wahlweise mit und ohne Java. Zum Erstellen der Druckvorlagen und der PDFs ist LibreOffice erforderlich.</para>
 		<itemizedlist>
 			<listitem>Downloadseite LibreOffice: <link xl:href="https://www.libreoffice.org/">LibreOffice</link></listitem>
 			<listitem>Downloadseite <trademark>Java</trademark> (optional): <link xl:href="https://adoptium.net/de/temurin/releases/">Adoptium</link></listitem>
 		</itemizedlist>
 		<para>Wird Fakturama zusammen mit einem Webshop betrieben, ist zusätzlich die entsprechende 
-		Webshop-Schnittstelle zu installieren. Diese können von der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> bzw. vom <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link> heruntergeladen werden.
+		Webshop-Schnittstelle zu installieren. Diese kann von der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> bzw. vom <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link> heruntergeladen werden.
 		</para>
 	</section>
 	
@@ -32,8 +31,8 @@
         muß diese ebenfalls bereits installiert worden sein. Für den Betrieb von Fakturama ist eine leere Datenbank erforderlich, die mit einem Datenbanknutzer angesprochen werden kann. Der Datenbanknutzer muß die Rechte zum Anlegen von Tabellen, zum Selektieren, Ändern und Löschen von Daten haben sowie Tabellen und Indizes ändern dürfen. Es wird <emphasis role="bold">nicht</emphasis> empfohlen, den <computeroutput>root</computeroutput>-Benutzer für den Zugriff zu verwenden, sondern einen eigenen.</para>
 		<tip>Für die Einrichtung des MySQL-Zugriffes per SSL gibt es ein <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/src/master/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">kleines Tutorial</link> (in Englisch). In diesem wird beschrieben, wie eine sichere Verbindung mit der MySQL-Datenbank hergestellt werden kann.</tip>
 		<warning>Leider scheinen sich in den letzten Jahren MariaDB und MySQL auseinanderbewegt zu haben. Es kann also vorkommen, daß eine MariaDB nicht mit der aktuellen Fakturama-Version funktioniert. Dann kann momentan nur MariaDB oder HSQLDB (Standard) verwendet werden.</warning>
-		<tip>Wenn eine MySQL-Datenbank oder MariaDB verwendet wird, sollte darauf geachtet werden, die Fakturama-Datenbank mit dem Encoding <computeroutput>utf8mb4</computeroutput> und der Collaction <computeroutput>utf8mb4_general_ci</computeroutput> anzulegen.</tip>
-		<para>Sofern bereits eine frühere Version von Fakturama verwendet wurde (bis 1.6.9), muß als Arbeitsverzeichnis ein neues angegeben werden. Die alten Daten können dann bei Bedarf automatisch übernommen werden.</para>
+		<tip>Wenn eine MySQL-Datenbank oder MariaDB verwendet wird, sollte darauf geachtet werden, die Fakturama-Datenbank mit dem Encoding <computeroutput>utf8mb4</computeroutput> und der Collation <computeroutput>utf8mb4_general_ci</computeroutput> anzulegen.</tip>
+		<para>Sofern bereits eine frühere Version von Fakturama verwendet wurde (bis 1.6.9c), muß als Arbeitsverzeichnis ein neues angegeben werden. Die alten Daten können dann bei Bedarf automatisch übernommen werden.</para>
 		
 		<caution>Für die neue Version darf nicht das alte (1.x) Arbeitsverzeichnis angegeben werden werden, da dies zu Datenverlust führen kann!</caution>
 		<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle 
@@ -45,17 +44,15 @@
 	</section>
 	<section><anchor xreflabel="" xml:id="install_install_windows"/>
 		<title>Installation unter einem <trademark>Windows</trademark>-Betriebssystem</title>
-		<para>Laden Sie den für Ihr Betriebssystem geeigneten 
-			<inlinemediaobject>
+		<para>Für die Windows-Installation werden zwei Installer (MSI) angeboten. Der Installer mit der Endung "with_JRE" enthält bereits eine Java-Laufzeitumgebung, sodaß keine weiteren Komponenten installiert werden müssen. Der Installer ohne Java setzt eine bereits installierte Java-Version (ab Java 17) voraus. 
+		Nach dem Herunterladen des <inlinemediaobject>
 				<imageobject role="html">
 					<imagedata align="left" fileref="../images/install/install_logo.png" format="PNG" scalefit="1"/>
 				</imageobject>
 				<imageobject role="fo">
 					<imagedata width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="1"/>
 				</imageobject>
-			</inlinemediaobject> Fakturama-Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter und entpacken Sie die ZIP-Datei in ein leeres Verzeichnis.</para>
-		<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt. Auf einem Windows-Betriebssystem 
-		sind für die Installation Administratorrechte notwendig.</para>
+			</inlinemediaobject> Fakturama-Installers von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> kann der Installationsprozeß gestartet werden. Auf einem Windows-Betriebssystem sind für die Installation Administratorrechte notwendig.</para>
 	</section>
 	<section><anchor xreflabel="" xml:id="install_install_linux"/>
 		<title>Installation unter einem <trademark>Linux</trademark>-Betriebssystem</title>
@@ -70,7 +67,7 @@
 		</sect2>
 		<sect2>
 			<subtitle>Für (K)Ubuntu, <trademark class="registered">RedHat</trademark>, SUSE Linux- und <trademark class="registered">Fedora</trademark>-Betriebssysteme:</subtitle>
-			<para>Laden Sie den 
+			<para>Nach dem Herunterladen des
 				<inlinemediaobject>
 					<imageobject role="html">
 						<imagedata align="left" fileref="../images/install/install_logo.png" format="PNG" scalefit="1"/>
@@ -78,20 +75,18 @@
 					<imageobject role="fo">
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
-				</inlinemediaobject> Fakturama-Debian-Package-Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt.</para>
+				</inlinemediaobject> Fakturama-Installers von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> kann der Installationsprozeß gestartet werden.</para>
 		</sect2>
 		<sect2>
 			<subtitle>Für sonstige Linux-Systeme</subtitle>
-			<para>Laden Sie den für Linux gebauten <inlinemediaobject>
+			<para>Nach dem Herunterladen des <inlinemediaobject>
 					<imageobject role="html">
 						<imagedata align="left" fileref="../images/install/install_logo.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
 						<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 					</imageobject>
-				</inlinemediaobject> Installer von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter.</para>
-			<para>Starten Sie den Fakturama-Installer. Sie werden durch den Installationsprozess geführt.</para>
+				</inlinemediaobject> Fakturama-Installers von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> kann der Installationsprozeß gestartet werden.</para>
 			<para>Alternativ kann auch die gepackte Archivdatei (mit der Endung tar.gz) heruntergeladen und in einem beliebigen Verzeichnis entpackt werden. Für Arch-Linux gibt es ebenfalls ein separates <link xl:href="https://aur.archlinux.org/packages/fakturama/">Installationspaket</link>.</para>
 			<para>Beim ersten Start von Fakturama wird ein Arbeitsverzeichnis angelegt. In diesem werden die Firmendatenbank sowie alle Dokumente und Vorlagen abgelegt. Beispiel:</para>
 			<programlisting>/home/Benutzername/Dokumente/MeineFirma/</programlisting>
@@ -113,14 +108,14 @@
 	</section>
 	<section><anchor xreflabel="" xml:id="install_install_mac_os_x"/>
 		<title>Installation unter einem MacOS-Betriebssystem</title>
-		<para>Laden Sie den <inlinemediaobject>
+		<para>Nach dem Herunterladen des <inlinemediaobject>
 				<imageobject role="html">
 					<imagedata align="left" fileref="../images/install/install_logo.png" format="PNG" scalefit="1"/>
 				</imageobject>
 				<imageobject role="fo">
 					<imagedata align="left" width="30pt" contentdepth="40%" fileref="../images/install/install_logo.png" format="PNG" scalefit="0"/>
 				</imageobject>
-			</inlinemediaobject> Fakturama-Installer als Disk-Image von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> herunter. Öffnen Sie das Disk-Image und klicken Sie doppelt auf das Installations-Logo: 
+			</inlinemediaobject> Fakturama-Installers (Disk-Image) von der <link xl:href="https://www.fakturama.info/downloads">Fakturama-Projektseite</link> kann der Installationsprozeß gestartet werden. Der Installer befindet sich im Disk-Image und wird mit einem Doppelklick auf das Installations-Logo gestartet:
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
@@ -143,7 +138,7 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			Im nachfolgenden Dialog können Sie die Lizenzbedingungen nachlesen und akzepieren.
+			Im nachfolgenden Dialog kann man die Lizenzbedingungen nachlesen und akzepieren.
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
@@ -187,10 +182,8 @@
 	<section>
 			<anchor xreflabel="" xml:id="install_start"/>
 		<title>Erstes Starten von Fakturama</title>
-		<para>Starten Sie Fakturama.</para>
-		<para>Beim ersten Start der Anwendung werden Sie zunächst aufgefordert, das Arbeitsverzeichnis auszuwählen. Falls noch keines angelegt wurde, kann dies auch über den Dateidialog geschehen.
-		Falls Sie Fakturama von einer Vorversion aktualisieren beachten Sie bitte die Hinweise in diesem <link xl:href="https://www.fakturama.info/migration-der-altdaten">Wiki-Artikel</link>. 
-		Wenn Sie eine Mehrbenutzer-Installation einrichten möchten, können Sie im Installationsdialog die Datenbank auswählen. Die zusätzlichen Eingabefelder werden über das Entfernen des Häkchens "verwende Standardeinstellungen" sichtbar.
+		<para>Beim ersten Start der Anwendung muß zunächst ein Arbeitsverzeichnis ausgewählt werden. Falls noch keines angelegt wurde, kann das auch über den Dateidialog geschehen. Falls Fakturama von einer Vorversion aktualisiert wird, sind bitte die Hinweise in diesem <link xl:href="https://www.fakturama.info/migration-der-altdaten">Wiki-Artikel</link> zu beachten. 
+		Wenn eine Mehrplatz-Installation eingerichtet werden soll, kann man im Installationsdialog eine andere Datenbank auswählen. Die zusätzlichen Eingabefelder werden über das Entfernen des Häkchens "verwende Standardeinstellungen" sichtbar.
 		Falls die Datenbank bereits existiert, warnt das Installationsprogramm entsprechend. Über den Button "Verbindung testen" kann die Datenbankverbindung mit den eingegebenen Zugangsdaten getestet werden.
 			<informalfigure>
 				<mediaobject>
@@ -198,20 +191,17 @@
 						<imagedata fileref="../images/install/first_install.png" format="PNG" scalefit="1"/>
 					</imageobject>
 					<imageobject role="fo">
-						<imagedata contentdepth="50%" fileref="../images/install/first_install.png" format="PNG" scalefit="1"/>
+						<imagedata contentdepth="45%" fileref="../images/install/first_install.png" format="PNG" scalefit="1"/>
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			Sollten Sie keine Datenübernahme wünschen, löschen Sie bitte den Eintrag unter "Arbeitsverzeichnis (alt)". Dann wird die Datenübernahme übersprungen.
+			Soll keine Datenübernahme erfolgen, ist der Eintrag unter "Arbeitsverzeichnis (alt)" zu löschen. Dann wird die Datenübernahme übersprungen.
 		</para>
 		<warning>
-		Installieren Sie auf keinen Fall die neue Version 2.x in das alte Arbeitsverzeichnis einer bestehenden Version 1.x! Sie würden damit die alten Daten beschädigen.</warning>
+		Auf keinen Fall darf die neue Version 2.x in das alte Arbeitsverzeichnis einer bestehenden Version 1.x installiert werden! Damit würden die alten Daten beschädigt.</warning>
 		<para>Beim Start der Anwendung wird im Hintergrund eine HSQL-Datenbank gestartet. Diese läuft standardmäßig auf Port 9001. 
-		Sollte dieser Port bereits belegt sein, werden die nächsthöheren Ports geprüft, bis ein freier Port gefunden wird. 
-		Die konkrete Einstellung kann im Einstellungsdialog (Allgemeines) nachgesehen werden. Sollte Fakturama nicht ordnungsgemäß beendet werden können, 
-		ist dieser Datenbankprozeß ggf. manuell zu entfernen. Sollte es zwingende Gründe geben, die Datenbank auf einem bestimmten Port laufen zu lassen, 
-		kann dies mit dem Schalter <code>hsql.database.port</code> erreicht werden. Ebenso kann der Name der Datenbank vorgegeben werden (mit dem Schalter
-		<code>hsql.database.name</code>). Beide Schalter können in die Datei <code>Fakturama.ini</code> eingetragen werden, jeweils auf einer separaten Zeile mit dem Vorsatz <code>-D</code>, z. B. <programlisting>-Dhsql.database.port=9005</programlisting></para>
+		Sollte dieser Port bereits belegt sein, werden die nächsthöheren Ports geprüft, bis ein freier gefunden wird. 
+		Die konkrete Einstellung kann im Einstellungsdialog (Allgemeines) nachgesehen werden. Sollte Fakturama nicht ordnungsgemäß beendet werden können, ist dieser Datenbankprozeß ggf. manuell zu entfernen. Sollte es zwingende Gründe geben, die Datenbank auf einem bestimmten Port laufen zu lassen, kann dies mit dem Schalter <code>hsql.database.port</code> erreicht werden. Ebenso kann der Name der Datenbank vorgegeben werden (mit dem Schalter <code>hsql.database.name</code>). Beide Schalter können in die Datei <code>Fakturama.ini</code> eingetragen werden, jeweils auf einer separaten Zeile mit dem Vorsatz <code>-D</code>, z. B. <programlisting>-Dhsql.database.port=9005</programlisting></para>
 		<!-- das wurde noch nicht umgesetzt -->
 		<!-- para>Fakturama begrüßt Sie mit einem Intro. Schließen Sie dies über das <emphasis role="bold">X</emphasis> rechts neben dem Text "Willkommen"</para>
 		<informalfigure>
@@ -226,13 +216,10 @@
 		</informalfigure -->
 		<para>Nach der Installation ist ein Demowebshop auf <link xl:href="https://shop.fakturama.info/admin/fakturama2_connector_DE.php">shop.fakturama.info</link> in den Einstellungen vorausgewählt. Startet man den Import von Webshopdaten, 
 		so werden 3 Musterprodukte und 2 Musterkunden angelegt. Diese können später wieder gelöscht werden.</para>
-		<para>Vor dem Arbeiten mit Fakturama sollten noch einige Einstellungen gesetzt werden. Die Werte sind bereits sinnvoll ausgewählt, doch nicht immer passen 
-		diese auf den eigenen Arbeitsablauf.</para>
+		<para>Vor dem Arbeiten mit Fakturama sollten noch einige Einstellungen gesetzt werden. Die Werte sind bereits sinnvoll ausgewählt, doch nicht immer passen diese auf den eigenen Arbeitsablauf.</para>
 		<para>Einige Einstellungen wie Firmendaten oder die Zugangsdaten des Webshops müssen gesetzt werden. Es empfiehlt sich, alle Einstellungen zu prüfen.</para>
-		<para>Fakturama benutzt zum Drucken von Dokumenten wie Rechnungen oder Lieferscheinen Vorlagen, die mit dem Programm LibreOffice erstellt wurden. 
-		Diese müssen auf das eigene Design angepasst und mit den Firmendaten versehen werden. Die Vorlagen befinden sich im Arbeitsverzeichnis im Unterordner Vorlagen (dort jeweils
-		in einem separaten Ordner).</para>
-		<para>Bitte beachten Sie, dass zum Erstellen der PDF-Dateien LibreOffice installiert sein muss.</para>
+		<para>Fakturama benutzt zum Drucken von Dokumenten wie Rechnungen oder Lieferscheinen Vorlagen, die mit dem Programm LibreOffice erstellt wurden. Diese müssen auf das eigene Design angepaßt und mit den Firmendaten versehen werden. Die Vorlagen befinden sich im Arbeitsverzeichnis im Unterordner Vorlagen (dort jeweils in einem separaten Ordner).</para>
+		<para>Es ist zu beachten, daß zum Erstellen der PDF-Dateien LibreOffice installiert sein muß.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link> und <link linkend="openoffice_templates">LibreOffice Vorlagen</link>
 		</para>
 		<para>Für die Aktualisierung des Programms genügt es, den neuen Installer zu starten und dann die Option zum Aktualisieren der bestehenden Installation zu nutzen. Der Installer wurde jetzt so angepaßt, daß die Einstellungsdatei für die Darstellung der Oberfläche (<computeroutput>.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</computeroutput>) gelöscht wird. Allerdings funktioniert das nur für Standard-Installationen, da bei der Installation oder dem Update von Fakturama nicht festgestellt werden kann, welches Einstellungsverzeichnis verwendet wird (das können bei mehreren Mandanten auch mehrere Verzeichnisse sein). In dem Fall müßte die Datei manuell entfernt werden.		
@@ -241,7 +228,7 @@
 	<section>
 		<anchor xreflabel="" xml:id="install_startparameter"/>
 		<subtitle>Zusätzliche Programmparameter beim Programmaufruf</subtitle>
-		<para>Sie können Fakturama mit zusätzlichen Parametern starten, um bestimmte Einstellungen zu überschreiben bzw. neu zu setzen (z. B. Sprache oder Arbeitsverzeichnis). </para>
+		<para>Fakturama kann mit zusätzlichen Parametern gestartet werden, um bestimmte Einstellungen zu überschreiben bzw. neu zu setzen (z. B. Sprache oder Arbeitsverzeichnis). </para>
 		<sect2>
 			<subtitle>Arbeitsverzeichnis / Mandant - Variante A</subtitle>
 			<para>Startet Fakturama mit einem bestimmten Arbeitsverzeichnis. Aufruf:
@@ -262,7 +249,7 @@
 			zu tun hat. Bei dieser Variante wird der Benutzer nach dem ersten Start aufgefordert, ein neues Arbeitsverzeichnis auszuwählen. Außerdem werden hier Einstellungen wie Fensterposition und Größe von Mandant zu Mandant unterschiedlich abgespeichert.</para>
 		</sect2>
 		
-		<important>Bitte beachten Sie die Schreibweise der Schalter. Der Schalter <computeroutput>-data</computeroutput> (mit <emphasis role="italic">einem</emphasis> Gedankenstrich) wird direkt von der Laufzeitumgebung ausgewertet.</important>
+		<important>Die Schreibweise der Schalter ist zu beachten. Der Schalter <computeroutput>-data</computeroutput> (mit <emphasis role="italic">einem</emphasis> Gedankenstrich) wird direkt von der Laufzeitumgebung ausgewertet.</important>
 		
 		<note>Beim ersten Start des Programmes kann es etwas länger dauern, bis alle Initialisierungen vorgenommen wurden und die initialen Daten in die Datenbank geschrieben wurden. Dasselbe gilt auch für das erste Beenden des Programmes, da bestimmte Einstellungen gesichert werden müssen. Die nachfolgenden Programmaufrufe werden dann schneller ausgeführt. Die Zeit ist auch abhängig von der gewählten Datenbank.</note>
 		
@@ -272,7 +259,7 @@
 				<programlisting>-nl <emphasis role="italic">Sprach_LÄNDERCODE</emphasis>
 				</programlisting>
 			Normalerweise benutzt Fakturama die Ländereinstellung des Systems. Dieser Programmparameter sollte nur dann benutzt werden, 
-			wenn die Systemeinstellung nicht geändert werden kann. Beim Aufruf ist zu beachten, dass wirklich der komplette Bezeichner angegeben wird, 
+			wenn die Systemeinstellung nicht geändert werden kann. Beim Aufruf ist zu beachten, daß wirklich der komplette Bezeichner angegeben wird, 
 			da es sonst zu fehlerhaften Darstellungen im Programm kommen kann.</para>
 			<para>Folgende Länder und Sprachen werden unterstützt:</para>
 			<itemizedlist>
