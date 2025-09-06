@@ -14,7 +14,7 @@
    </configIni>
 
    <launcherArgs>
-      <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off -Dslf4j.provider=logback
+      <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Xdock:icon=../Resources/app.icns
       </vmArgsMac>
@@ -39,12 +39,11 @@
       </win>
    </launcher>
 
-
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
       <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
       <solaris include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</solaris>
-      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</windows>
+      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-19</windows>
    </vm>
 
    <license>
@@ -142,18 +141,12 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugins>
       <plugin id="angus-activation"/>
-      <plugin id="ch.qos.logback.classic"/>
-      <plugin id="ch.qos.logback.core"/>
+      <plugin id="ch.qos.logback.classic" version="1.5.18"/>
+      <plugin id="ch.qos.logback.core" version="1.5.18"/>
       <plugin id="com.ibm.icu"/>
       <plugin id="com.ibm.icu.localespi"/>
       <plugin id="com.mysql.cj"/>
       <plugin id="com.opcoach.e4.preferences"/>
-      <plugin id="com.sebulli.fakturama.common"/>
-      <plugin id="com.sebulli.fakturama.hsqlconnector"/>
-      <plugin id="com.sebulli.fakturama.model"/>
-      <plugin id="com.sebulli.fakturama.rcp"/>
-      <plugin id="com.sun.jna"/>
-      <plugin id="com.sun.jna.platform"/>
       <plugin id="jakarta.activation-api"/>
       <plugin id="jakarta.mail-api"/>
       <plugin id="jakarta.persistence-api"/>
@@ -182,9 +175,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.apache.felix.gogo.runtime"/>
       <plugin id="org.apache.felix.gogo.shell"/>
       <plugin id="org.apache.felix.scr"/>
-      <plugin id="org.apache.xerces"/>
-      <plugin id="org.apache.xml.resolver"/>
-      <plugin id="org.apache.xml.serializer"/>
       <plugin id="org.apache.xmlgraphics"/>
       <plugin id="org.eclipse.angus.mail"/>
       <plugin id="org.eclipse.core.commands"/>
@@ -195,18 +185,9 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.databinding.property"/>
       <plugin id="org.eclipse.core.expressions"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.aix.ppc"/>
-      <plugin id="org.eclipse.core.filesystem.hpux.ia64_32"/>
-      <plugin id="org.eclipse.core.filesystem.linux.ppc"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86_64"/>
-      <plugin id="org.eclipse.core.filesystem.macosx"/>
-      <plugin id="org.eclipse.core.filesystem.solaris.sparc"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86"/>
       <plugin id="org.eclipse.core.filesystem.win32.x86_64"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.resources"/>
-      <plugin id="org.eclipse.core.resources.win32.x86"/>
       <plugin id="org.eclipse.core.runtime"/>
       <plugin id="org.eclipse.e4.core.commands"/>
       <plugin id="org.eclipse.e4.core.contexts"/>
@@ -251,25 +232,10 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.osgi.services"/>
       <plugin id="org.eclipse.persistence.moxy"/>
       <plugin id="org.eclipse.swt"/>
-      <plugin id="org.eclipse.swt.carbon.macosx"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc64"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390x"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86_64"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.sparc"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.x86"/>
-      <plugin id="org.eclipse.swt.motif.aix.ppc"/>
-      <plugin id="org.eclipse.swt.motif.hpux.ia64_32"/>
-      <plugin id="org.eclipse.swt.motif.linux.x86"/>
-      <plugin id="org.eclipse.swt.motif.solaris.sparc"/>
-      <plugin id="org.eclipse.swt.photon.qnx.x86"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86"/>
       <plugin id="org.eclipse.swt.win32.win32.x86_64"/>
       <plugin id="org.eclipse.urischeme"/>
+      <plugin id="org.javamoney.moneta"/>
+      <plugin id="org.odftoolkit.odfdom-java"/>
       <plugin id="org.osgi.service.cm"/>
       <plugin id="org.osgi.service.component"/>
       <plugin id="org.osgi.service.device"/>
@@ -288,7 +254,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
       <plugin id="org.yaml.snakeyaml"/>
-      <plugin id="slf4j.api"/>
+      <plugin id="slf4j.api" version="2.0.17"/>
+      <plugin id="wrapped.com.squareup.okhttp3.okhttp"/>
    </plugins>
 
    <features>
@@ -323,13 +290,13 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
       <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature"/>
+      <feature id="org.eclipse.swt.tools.feature" installMode="root"/>
    </features>
 
    <configurations>
       <plugin id="angus-activation" autoStart="true" startLevel="0" />
-      <plugin id="ch.qos.logback.classic" autoStart="true" startLevel="2" />
-      <plugin id="ch.qos.logback.core" autoStart="false" startLevel="2" />
-      <plugin id="com.ibm.icu.localespi" autoStart="true" startLevel="2" />
+      <plugin id="com.ibm.icu.localespi" autoStart="true" startLevel="4" />
+      <plugin id="com.opcoach.e4.preferences" autoStart="true" startLevel="4" />
       <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
       <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
       <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
@@ -337,6 +304,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
+      <plugin id="org.eclipse.equinox.preferences" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.osgi" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.persistence.jpa" autoStart="true" startLevel="2" />
@@ -354,6 +322,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <property name="osgi.splashPath" value="file:plugins/com.sebulli.fakturama.rcp" />
       <property name="osgi.instance.area" value="@user.home/.fakturama2" />
       <property name="eclipse.buildId" value="${unqualifiedVersion}.${buildQualifier}" />
+      <property name="osgi.resolveOptionalImports" value="true" />
    </configurations>
 
    <repositories>

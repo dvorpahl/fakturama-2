@@ -4,8 +4,8 @@
    <extension
          point="com.opcoach.e4.preferences.e4PreferenceStoreProvider">
       <preferenceStoreProvider
-            class="org.fakturama.connectors.mail.MailServicePreferenceStoreProvider"
-            pluginId="org.fakturama.connectors.mail.preferenceStoreProvider">
+            class="bundleclass://org.fakturama.connectors/org.fakturama.connectors.mail.MailServicePreferenceStoreProvider"
+            pluginId="org.fakturama.connectors">
       </preferenceStoreProvider>
    </extension>
    <extension

@@ -124,388 +124,282 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="com.sebulli.fakturama.model"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.rcp"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.resources"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.common"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.logging"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.resources.icons"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.help"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.hsqlconnector"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.sebulli.fakturama.resources.templates"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.export"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.import"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.print.openoffice"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.wizards"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.e4.ui.dialogs.ext"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.exporter.zugferd"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.connectors"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.qrcode"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.apache.xmlbeans.xmlbeans"
-         download-size="0"
-         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.hsqldb.hsqldb"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.commons-text"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.opencsv"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="jakarta.inject.jakarta.inject-api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="ch.qos.logback.classic"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="ch.qos.logback.core"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="slf4j.api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.xerces"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.nebula.widgets.nattable.core"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.nebula.widgets.nattable.extension.e4"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.xml.resolver"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.odftoolkit.odfdom-java"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.help.webapp"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.text.quicksearch"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="net.rootdev.java-rdfa"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="javax.xml"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.apache.jena.jena-core"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.apache.jena.jena-base"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.apache.jena.jena-iri"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.apache.jena.jena-arq"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.commons-compress"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="javax.servlet.jsp-api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="jakarta.servlet-api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.equinox.jsp.jasper"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.equinox.jsp.jasper.registry"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.xml.serializer"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.glassfish.web.javax.servlet.jsp"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.pdfbox"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.pdfbox.xmpbox"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.pdfbox.fontbox"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.apache.pdfbox.io"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.persistence.core"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="jakarta.persistence-api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.persistence.moxy"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.ibm.icu"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.nebula.widgets.formattedtext"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.database.hsql"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.database.mariadb"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.fakturama.database.mysql"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.liquibase.core"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.javamoney.moneta"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="wrapped.org.eclipse.persistence.eclipselink"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="org.eclipse.persistence.jpa"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="com.ibm.icu.localespi"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="jakarta.transaction-api"
-         download-size="0"
-         install-size="0"
          version="0.0.0"/>
 
    <plugin
          id="angus-activation"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="jakarta.activation-api"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fakturama.logging"
+         version="0.0.0"/>
+
+   <plugin
+         id="bcpg"
+         version="0.0.0"/>
+
+   <plugin
+         id="bcpkix"
+         version="0.0.0"/>
+
+   <plugin
+         id="bcprov"
+         version="0.0.0"/>
+
+   <plugin
+         id="bcutil"
+         version="0.0.0"/>
 
 </feature>

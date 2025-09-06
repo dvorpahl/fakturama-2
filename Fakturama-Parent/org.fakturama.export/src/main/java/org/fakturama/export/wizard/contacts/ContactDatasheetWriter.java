@@ -20,7 +20,6 @@ import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.fakturama.export.wizard.OOCalcExporter;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import com.sebulli.fakturama.exporter.IContactExporter;
@@ -35,7 +34,6 @@ import com.sebulli.fakturama.util.ContactUtil;
  * Exports a contact's datasheet.
  *
  */
-@Component()
 public class ContactDatasheetWriter extends OOCalcExporter implements IContactExporter {
 
     @Reference
@@ -48,15 +46,16 @@ public class ContactDatasheetWriter extends OOCalcExporter implements IContactEx
     private IDocumentAddressManager addressManager;
 
     @Override
-    public boolean writeDatasheet(Contact contact) {
+    public boolean writeDatasheet(final Contact contact) {
         if (contact != null) {
 
             // Try to generate a spreadsheet
-            if (!createSpreadSheet())
+            if (!createSpreadSheet()) {
                 return false;
+            }
 
             context = EclipseContextFactory.getServiceContext(FrameworkUtil.getBundle(getClass()).getBundleContext());
-            ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+            final ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
 
             // Counter for the current row in the Calc document
             int row = 0;
@@ -66,12 +65,17 @@ public class ContactDatasheetWriter extends OOCalcExporter implements IContactEx
             // Place the contact information into the table
             setCellText(row, 1, contact.getCustomerNumber());
             /*
-             * Das folgende ist eine Umgehungslösung.Beim Hinzufügen einer Spalte 
-             * werden in den davor liegenden Zeilen diese Spalten ebenfalls mit ergänzt. 
-             * Das funktioniert aber offenbar nicht, wenn diese Aktion erst ziemlich weit
+             * Das folgende ist eine Umgehungslösung.Beim Hinzufügen einer
+             * Spalte
+             * werden in den davor liegenden Zeilen diese Spalten ebenfalls mit
+             * ergänzt.
+             * Das funktioniert aber offenbar nicht, wenn diese Aktion erst
+             * ziemlich weit
              * am Ende der Tabelle gemacht wird. In diesem Fall hatte es dazu
-             * geführt, daß die Felder bei Rabatt und Modified dupliziert  und mit 
-             * ungültigen Werten befüllt wurden. Deswegen wurden hier bereits zu Beginn
+             * geführt, daß die Felder bei Rabatt und Modified dupliziert und
+             * mit
+             * ungültigen Werten befüllt wurden. Deswegen wurden hier bereits zu
+             * Beginn
              * der Tabelle zwei (eigentlich überflüssige) Leerzellen eingefügt.
              */
             setCellText(row, 2, " ");
@@ -92,12 +96,12 @@ public class ContactDatasheetWriter extends OOCalcExporter implements IContactEx
             setCellText(row++, 1, contact.getName());
             setCellTextInBold(row, 0, msg.commonFieldCompany);
             setCellText(row++, 1, contact.getCompany());
-            
-            for (Address address : contact.getAddresses()) {
+
+            for (final Address address : contact.getAddresses()) {
                 setCellTextInBold(row, 0, msg.editorContactFieldContacttype);
-                if(address.getContactTypes() != null && !address.getContactTypes().isEmpty()) {
+                if (address.getContactTypes() != null && !address.getContactTypes().isEmpty()) {
                     int col = 1;
-                    for (ContactType contactType : address.getContactTypes()) {
+                    for (final ContactType contactType : address.getContactTypes()) {
                         setCellText(row++, col++, contactType.getName());
                     }
                 }
@@ -118,7 +122,6 @@ public class ContactDatasheetWriter extends OOCalcExporter implements IContactEx
                 setCellTextInBold(row, 0, msg.exporterDataEmail);
                 setCellText(row++, 1, address.getEmail());
             }
-
 
             if (contact.getBankAccount() != null) {
                 setCellTextInBold(row, 0, msg.commonFieldAccountholder);
@@ -154,14 +157,14 @@ public class ContactDatasheetWriter extends OOCalcExporter implements IContactEx
             setCellTextInBold(row, 0, msg.exporterDataRebate);
             setCellValueAsPercent(row++, 1, contact.getDiscount());
 
-            Calendar cal = Calendar.getInstance();
+            final Calendar cal = Calendar.getInstance();
             if (contact.getBirthday() != null) {
                 setCellTextInBold(row, 0, msg.editorContactFieldBirthdayName);
                 cal.clear();
                 cal.setTime(contact.getBirthday());
                 setCellValueAsDate(row++, 1, cal);
             }
-            
+
             cal.clear();
             cal.setTime(contact.getDateAdded());
             setCellTextInBold(row, 0, "added");

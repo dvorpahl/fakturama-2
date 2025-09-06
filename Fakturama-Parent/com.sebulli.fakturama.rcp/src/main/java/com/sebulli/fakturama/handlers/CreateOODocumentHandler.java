@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -109,7 +110,7 @@ public class CreateOODocumentHandler {
 
     @CanExecute
     public boolean canExecute(final EPartService partService, @Optional @Named(PARAM_SILENTMODE) final String silentMode) {
-        MPart activePart = partService.getActivePart();
+        final MPart activePart = partService.getActivePart();
         return BooleanUtils.toBoolean(silentMode) || activePart != null
                 && (activePart.getElementId().contentEquals(DocumentEditor.ID) || activePart.getElementId().contentEquals(DebitorEditor.ID));
     }
@@ -132,30 +133,30 @@ public class CreateOODocumentHandler {
             @Optional @Named(PARAM_TEMPLATEPATH) final String templatePathString, @Optional @Named(PARAM_SILENTMODE) final String silentModeString)
             throws InvocationTargetException, InterruptedException {
         Path template;
-        TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, context);
-        boolean silentMode = BooleanUtils.toBoolean(silentModeString);
+        final TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, context);
+        final boolean silentMode = BooleanUtils.toBoolean(silentModeString);
         if (silentMode) {
             if (docId == null || templatePathString == null) {
                 log.warn("Silent flag set but no template or document given. Aborting.");
                 return;
             } else {
-                Document doc = documentsDao.findById(Long.parseLong(docId));
+                final Document doc = documentsDao.findById(Long.parseLong(docId));
                 openOODocument(doc, Paths.get(templatePathString), shell, silentMode);
             }
         }
-        MPart activePart = partService.getActivePart();
+        final MPart activePart = partService.getActivePart();
         if (activePart != null) {
             if (StringUtils.equalsIgnoreCase(activePart.getElementId(), DebitorEditor.ID)) {
-                Contact currentContact = ((DebitorEditor) activePart.getObject()).getCurrentContact();
+                final Contact currentContact = ((DebitorEditor) activePart.getObject()).getCurrentContact();
                 context.set(Shell.class, shell);
                 ContextInjectionFactory.inject(exportService, context);
                 exportService.writeDatasheet(currentContact);
             } else if (StringUtils.equalsIgnoreCase(activePart.getElementId(), DocumentEditor.ID)) {
                 // Search in the folder "Templates" and also in the folder with the localized name
-                DocumentEditor documentEditor = (DocumentEditor) activePart.getObject();
+                final DocumentEditor documentEditor = (DocumentEditor) activePart.getObject();
 
                 if (documentEditor != null) {
-                    List<Path> templates = templateFinder.collectTemplates(documentEditor.getDocumentType());
+                    final List<Path> templates = templateFinder.collectTemplates(documentEditor.getDocumentType());
                     final List<DocumentItem> olditemsList = new ArrayList<>();
 
                     // new documents need to be saved first, we don't have an id yet
@@ -170,10 +171,10 @@ public class CreateOODocumentHandler {
 
                     // If more than 1 template is found, show a pup up menu
                     if (templates.size() > 1) {
-                        Menu menu = new Menu(shell, SWT.POP_UP);
+                        final Menu menu = new Menu(shell, SWT.POP_UP);
                         for (int i = 0; i < templates.size(); i++) {
                             template = templates.get(i);
-                            MenuItem item = new MenuItem(menu, SWT.PUSH);
+                            final MenuItem item = new MenuItem(menu, SWT.PUSH);
                             item.setText(StringUtils.substringBeforeLast(template.getFileName().toString(), TemplateFinder.OO_TEMPLATE_FILEEXTENSION));
                             item.setData(template);
                             item.addListener(SWT.Selection, (final Event e) -> {
@@ -189,8 +190,8 @@ public class CreateOODocumentHandler {
                         // corner,
                         // but with a gap, so it should be under the tool bar icon of
                         // this action.
-                        int x = shell.getLocation().x;
-                        int y = shell.getLocation().y;
+                        final int x = shell.getLocation().x;
+                        final int y = shell.getLocation().y;
                         menu.setLocation(x + 80, y + 80);
                         menu.setVisible(true);
 
@@ -264,7 +265,7 @@ public class CreateOODocumentHandler {
             return;
         }
 
-        FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
+        final FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
 
         // create a temporary document
         switch (currentDocument.getBillingType()) {
@@ -296,11 +297,11 @@ public class CreateOODocumentHandler {
         // create a set of DocumentItems (if the same DocumentItem is used we have to
         // summarize them)
         // Note: The key can't be the ID of the  DocumentItem since it couldn't be persisted yet.
-        Map<Integer, DocumentItem> tmpDocItems = new HashMap<>();
-        for (DocumentItem currentDocumentItem : currentDocument.getItems()) {
+        final Map<Integer, DocumentItem> tmpDocItems = new HashMap<>();
+        for (final DocumentItem currentDocumentItem : currentDocument.getItems()) {
             found = false;
             // collect changed items for stock update
-            for (DocumentItem oldItem : olditemsList) {
+            for (final DocumentItem oldItem : olditemsList) {
                 // only items which have a changed quantity compared to the old one (comparing
                 // via itemNumber)
                 // Hint: don't use "Optional" class since a quantity of "0" is different from a
@@ -327,8 +328,8 @@ public class CreateOODocumentHandler {
 
         // at the end collect the deleted items (but only if the document was printed before, because only then the stock was updated).
         if (!Objects.isNull(currentDocument.getPrinted()) && currentDocument.getPrinted()) {
-            for (DocumentItem oldItem : olditemsList) {
-                java.util.Optional<DocumentItem> firstFound = currentDocument.getItems().stream()
+            for (final DocumentItem oldItem : olditemsList) {
+                final java.util.Optional<DocumentItem> firstFound = currentDocument.getItems().stream()
                         .filter(currentDocumentItem -> StringUtils.equalsIgnoreCase(oldItem.getItemNumber(), currentDocumentItem.getItemNumber())).findFirst();
                 if (!firstFound.isPresent()) {
                     oldItem.setOriginQuantity(oldItem.getQuantity());
@@ -338,13 +339,13 @@ public class CreateOODocumentHandler {
             }
         }
 
-        tmpDocument.setItems(tmpDocItems.entrySet().stream().map(item -> item.getValue()).collect(Collectors.toList()));
+        tmpDocument.setItems(tmpDocItems.entrySet().stream().map(Entry::getValue).collect(Collectors.toList()));
 
         // update stock quantity
         // can't be called via HandlerService since the ParameterConverter reads the document from the database :-(
         // Therefore we have to call it manually.
 
-        StockUpdateHandler stockUpdateHandler = ContextInjectionFactory.make(StockUpdateHandler.class, context);
+        final StockUpdateHandler stockUpdateHandler = ContextInjectionFactory.make(StockUpdateHandler.class, context);
         stockUpdateHandler.updateStockQuantity(shell, null, tmpDocument);
     }
 
@@ -379,19 +380,19 @@ public class CreateOODocumentHandler {
     }
 
     private void openOODocument(final Document document, final Path template, final Shell shell, final boolean silentMode) {
-        OfficeDocument od = ContextInjectionFactory.make(OfficeDocument.class, context);
+        final OfficeDocument od = ContextInjectionFactory.make(OfficeDocument.class, context);
         od.setSilentMode(silentMode);
 
         // add silent mode flag (don't put this in context because it couldn't be removed after finishing
         // which leads to unwanted side effects)
 
         try {
-            if (!silentMode && od.testOpenAsExisting(document, template)) {
+            if (!silentMode && od.testOpenAsExisting(document)) {
                 // Show an information dialog if the document was already printed
-                String[] dialogButtonLabels = new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL };
-                MessageDialog md = new MessageDialog(shell, msg.dialogMessageboxTitleInfo, null, msg.dialogPrintooDocumentalreadycreated,
+                final String[] dialogButtonLabels = new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL };
+                final MessageDialog md = new MessageDialog(shell, msg.dialogMessageboxTitleInfo, null, msg.dialogPrintooDocumentalreadycreated,
                         MessageDialog.INFORMATION, dialogButtonLabels, 0);
-                int answer = md.open();
+                final int answer = md.open();
                 // Attention: The return code is the *position* of a button, not the button value itself!
                 if (md.getReturnCode() != 2) {
                     //			        od.setDocument(document);
@@ -410,10 +411,10 @@ public class CreateOODocumentHandler {
                 log.debug("open NEW doc");
                 od.createDocument(template, document, false);
             }
-        } catch (FakturamaStoringException e) {
+        } catch (final FakturamaStoringException e) {
             log.error(e, "Document couldn't be created. Reason: " + e.getDescription());
-            if (e.getException() != null && e.getException() instanceof FakturamaStoringException) {
-                log.warn("Caused by: " + ((FakturamaStoringException) e.getException()).getDescription());
+            if (e.getException() != null && e.getException() instanceof final FakturamaStoringException fse) {
+                log.warn("Caused by: " + fse.getDescription());
             } else {
                 log.error(e.getException());
             }

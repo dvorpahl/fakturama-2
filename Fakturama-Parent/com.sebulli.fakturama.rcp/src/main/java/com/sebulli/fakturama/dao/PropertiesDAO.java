@@ -35,10 +35,10 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
      * @return
      */
     public OldProperties findByOldProperty(final OldProperties oldProperties) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<OldProperties> criteria = cb.createQuery(OldProperties.class);
-        Root<OldProperties> root = criteria.from(OldProperties.class);
-        CriteriaQuery<OldProperties> cq = criteria.where(
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<OldProperties> criteria = cb.createQuery(OldProperties.class);
+        final Root<OldProperties> root = criteria.from(OldProperties.class);
+        final CriteriaQuery<OldProperties> cq = criteria.where(
                 cb.and(cb.equal(root.<String> get("description"), oldProperties.getName()), cb.equal(root.<String> get("name"), oldProperties.getName())));
         return getEntityManager().createQuery(cq).getSingleResult();
     }
@@ -64,9 +64,9 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
      * @return value of that property
      */
     public Optional<String> findPropertyValue(final String name, final boolean force) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
-        Root<UserProperty> root = criteria.from(UserProperty.class);
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
+        final Root<UserProperty> root = criteria.from(UserProperty.class);
         criteria.where(cb.equal(root.get(UserProperty_.name), name)).orderBy(cb.desc(root.get(UserProperty_.dateAdded)));
         TypedQuery<UserProperty> query = null;
         UserProperty result = null;
@@ -74,9 +74,9 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
             query = getEntityManager().createQuery(criteria);
             query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
             result = query.getSingleResult();
-        } catch (NoResultException e) {
+        } catch (final NoResultException e) {
             // ignore, retval is an empty Optional
-        } catch (NonUniqueResultException nuex) {
+        } catch (final NonUniqueResultException nuex) {
             log.warn("non-unique result found for property " + name);
             result = query.getResultList().get(0);
         }
@@ -103,7 +103,7 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
                 prop.setUser(System.getProperty("user.name", "(unknown)"));
                 save(prop);
             }
-        } catch (FakturamaStoringException e) {
+        } catch (final FakturamaStoringException e) {
             getLog().error(e);
         }
     }
@@ -116,16 +116,16 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
      * @return List of valid mappings
      */
     public List<UserProperty> findMappingSpecs(final String qualifier) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
-        Root<UserProperty> root = criteria.from(UserProperty.class);
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
+        final Root<UserProperty> root = criteria.from(UserProperty.class);
         criteria.where(cb.equal(root.get(UserProperty_.qualifier), qualifier));
         List<UserProperty> result = null;
         try {
-            TypedQuery<UserProperty> query = getEntityManager().createQuery(criteria);
+            final TypedQuery<UserProperty> query = getEntityManager().createQuery(criteria);
             query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
             result = query.getResultList();
-        } catch (NoResultException e) {
+        } catch (final NoResultException e) {
             // ignore
         }
         return result;
@@ -133,8 +133,8 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
 
     public boolean delete(UserProperty prop) {
         if (prop != null) {
-            EntityManager entityManager = getEntityManager();
-            EntityTransaction trx = entityManager.getTransaction();
+            final EntityManager entityManager = getEntityManager();
+            final EntityTransaction trx = entityManager.getTransaction();
             trx.begin();
             prop = entityManager.merge(prop);
             getEntityManager().remove(prop);

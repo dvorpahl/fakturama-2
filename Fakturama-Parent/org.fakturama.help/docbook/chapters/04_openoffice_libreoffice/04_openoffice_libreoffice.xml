@@ -2,17 +2,7 @@
 <chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xl="http://www.w3.org/1999/xlink" xml:lang="de"
 id="04_openoffice_libreoffice">
 	<anchor xreflabel="" xml:id="openoffice_main"/>
-	<title>OpenOffice.org / LibreOffice</title>
-	<informalfigure>
-		<mediaobject>
-			<imageobject role="html">
-				<imagedata fileref="../images/openoffice/ooo_logo.png" format="PNG" scalefit="1"/>
-			</imageobject>
-			<imageobject role="fo">
-				<imagedata contentdepth="80%" fileref="../images/openoffice/ooo_logo.png" format="PNG" scalefit="1" />
-			</imageobject>
-		</mediaobject>
-	</informalfigure>
+	<title>LibreOffice</title>
 	<informalfigure>
 		<mediaobject>
 			<imageobject role="html">
@@ -24,31 +14,25 @@ id="04_openoffice_libreoffice">
 		</mediaobject>
 	</informalfigure>
 	<section>
-		<title>Fakturama und OpenOffice.org / LibreOffice</title>
-		<para>Fakturama benutzt OpenOffice.org bzw. LibreOffice Writer, um Dokumente (Rechnungen, Lieferscheine usw.) in PDFs umzuwandeln und Berichte als Calc-Tabelle zu exportieren. Für die Dokumente werden Vorlagen mit Firmenlogo, Adresse usw. angelegt, die dann mit dem eigentlichen Dokumenteninhalt befüllt werden. Die Befüllung der Vorlage geschieht unabhängig von OpenOffice / LibreOffice.</para>
-	<sect2>
-		<title>OpenOffice.org Projektseite</title>
-		<para>OpenOffice.org ist eine freie Bürosoftware. Das Projekt ist Open-Source und steht in zahlreichen Sprachen und für verschiedenen Betriebssysteme zur Verfügung.</para>
-		<para>Link zur deutschsprachigen Seite des OpenOffice.org Projektes: <link xl:href="http://www.openoffice.org/de/">www.openoffice.org</link>
-		</para>
-	</sect2>
+		<title>Fakturama und LibreOffice</title>
+		<para>Fakturama benutzt LibreOffice Writer, um Dokumente (Rechnungen, Lieferscheine usw.) in PDFs umzuwandeln und Berichte als Calc-Tabelle zu exportieren. Für die Dokumente werden Vorlagen mit Firmenlogo, Adresse usw. angelegt, die dann mit dem eigentlichen Dokumenteninhalt befüllt werden. Die Befüllung der Vorlage geschieht unabhängig von LibreOffice.</para>
 	<sect2>
 		<title>LibreOffice Projektseite</title>
 		<para>LibreOffice ist eine freie Bürosoftware. Das Projekt ist Open-Source und steht in zahlreichen Sprachen und für verschiedenen Betriebssysteme zur Verfügung.</para>
 		<para>Link zur deutschsprachigen Seite des LibreOffice Projektes: <link xl:href="http://de.libreoffice.org/">de.libreoffice.org</link>
 		</para>
-		<para>Siehe auch <link linkend="preferences_openoffice">OpenOffice.org / LibreOffice Einstellungen</link>
+		<para>Siehe auch <link linkend="preferences_openoffice">LibreOffice Einstellungen</link>
 		</para>
 	</sect2>
 	</section>
 	<section>
 		<anchor xreflabel="" xml:id="openoffice_templates"/>
-		<title>Erstellen von OpenOffice.org-Vorlagen</title>
+		<title>Erstellen von LibreOffice-Vorlagen</title>
 		<sect2>
 			<title>Ordner für Vorlagen</title>
 			<para>Vorlagen für Dokumente (Rechnungen, Lieferscheine usw.) werden im Arbeitsverzeichnis im Ordner <emphasis role="bold">Vorlagen</emphasis> und dort im entsprechenden Unterordner abgelegt.</para>
 			<para>Beim Drucken eines Dokumentes wird die entsprechende Vorlage verwendet. Existiert mehr als eine Vorlage, so wird ein Auswahlmenü eingeblendet.</para>
-			<para>Vorlagen müssen im OpenOffice.org Vorlagenformat <emphasis role="bold">*.ott</emphasis> vorliegen. Der Dateiname kann ansonsten beliebig gewählt werden, sollte jedoch kurz und aussagekräftig sein, da er bei mehr als einer Vorlage auch im Auswahlmenü erscheint.</para>
+			<para>Vorlagen müssen im OpenOffice-Vorlagenformat <emphasis role="bold">*.ott</emphasis> vorliegen. Der Dateiname kann ansonsten beliebig gewählt werden, sollte jedoch kurz und aussagekräftig sein, da er bei mehr als einer Vorlage auch im Auswahlmenü erscheint.</para>
 			<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
 			</para>
 		</sect2>
@@ -67,19 +51,16 @@ id="04_openoffice_libreoffice">
 			<para>Eine Vorlage kann aus Texten, Grafiken und Tabellen bestehen. Über verschiedene Platzhalter füllt Fakturama die Vorlage mit dem entsprechenden Inhalt.</para>
 			<para>Unterschiedliche Platzhalter sind für unterschiedliche Bereiche vorgesehen:</para>
 			<itemizedlist>
-				<listitem>
-					<para> Allgemeine Platzhalter, die an jede Stelle gesetzt werden dürfen (1).</para>
-				</listitem>
-				<listitem>
-					<para> Platzhalter in der Artikeltabelle (2).</para>
-				</listitem>
-				<listitem>
-					<para> Platzhalter in der Tabelle der Zwischensumme (3).</para>
-				</listitem>
+				<listitem>Allgemeine Platzhalter, die an jede Stelle gesetzt werden dürfen (1).</listitem>
+				<listitem>Platzhalter in der Artikeltabelle (2).</listitem>
+				<listitem>Platzhalter in der Tabelle der Zwischensumme (3).</listitem>
 			</itemizedlist>
+			<tip>
+			Im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php">Vorlagenportal</link> befinden sich bereits viele von anderen Nutzern bereitgestellte Vorlagen, die verwendet werden können.
+			</tip>
 		</section>
 		<section>
-			<title>Platzhalter in OpenOffice/LibreOffice Writer</title>
+			<title>Platzhalter in LibreOffice Writer</title>
 			<informalfigure>
 				<mediaobject>
 					<imageobject role="html">
@@ -90,13 +71,13 @@ id="04_openoffice_libreoffice">
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para>Ein Platzhalter wird in OpenOffice/LibreOffice Writer eingefügt über das Menü <guimenuitem>Einfügen/Feldbefehl/Andere</guimenuitem> oder die Tastenkombination <keycombo>
+			<para>Ein Platzhalter wird in LibreOffice Writer eingefügt über das Menü <guimenuitem>Einfügen/Feldbefehl/Andere</guimenuitem> oder die Tastenkombination <keycombo>
 					<keycap>STRG</keycap><keysym>F2</keysym>        
 				</keycombo>. Im Dialog unter dem Reiter <emphasis role="bold">Funktionen</emphasis> als Feldtyp <emphasis role="bold">Platzhalter</emphasis> auswählen und als <emphasis role="bold">Format</emphasis> den Eintrag <emphasis role="bold">Text</emphasis>. Der Platzhalter wird in Großbuchstaben ohne die <emphasis role="bold">spitzen Klammern</emphasis> im Feld <emphasis role="bold">Platzhalter</emphasis> eingegeben.</para>
 		</section>
 		<section>
 			<title>Abspeichern</title>
-			<para>Die bearbeitete Vorlage muss im entsprechenden Ordner über das Menü <emphasis role="bold">Datei/Speichern unter&#x2026;</emphasis> als <emphasis role="bold">ODF Textdokumentvorlage *.ott abgespeichert werden.</emphasis>
+			<para>Die bearbeitete Vorlage muß im entsprechenden Ordner über das Menü <emphasis role="bold">Datei/Speichern unter&#x2026;</emphasis> als <emphasis role="bold">ODF Textdokumentvorlage *.ott abgespeichert werden.</emphasis>
 			</para>
 			<para>Siehe auch <link linkend="workspace_workspace">Arbeitsverzeichnis</link>
 			</para>
@@ -123,10 +104,11 @@ id="04_openoffice_libreoffice">
 		</para>
 		<para>Nachfolgend eine Auflistung sämtlicher Platzhalter, die in Fakturama verwendet werden können:</para>
 
-
 		<informaltable rowsep="1" colsep="0" tabstyle="striped" frame="none">
 			<tgroup cols='2'>
-
+				<colspec colname='placeholder' colwidth="1*"/>
+				<colspec colname='description' colwidth="2*"/>
+				<spanspec spanname="full_line" namest="placeholder" nameend="description"/>
 				<tbody>
 					<row>
 						<entry>DOCUMENT.DATE</entry>
@@ -137,23 +119,22 @@ id="04_openoffice_libreoffice">
 						<entry>(Rechnungs-)Adresse</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DIFFERENT.ADDRESS</entry>
-						<entry>(Rechnungs-)Adresse.
-       Wird nur dann angezeigt, wenn sich Rechnungs- und Lieferadresse unterscheiden.</entry>
+						<entry>DOCUMENT.DIFFERENT. ADDRESS</entry>
+						<entry>(Rechnungs-)Adresse. Wird nur dann angezeigt, wenn sich Rechnungs- und Lieferadresse unterscheiden.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DELIVERYADDRESS</entry>
+						<entry>DOCUMENT.DELIVERY-ADDRESS</entry>
 						<entry>Lieferadresse</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DIFFERENT.DELI-VERYADDRESS</entry>
+						<entry>DOCUMENT.DIFFERENT. DELIVERYADDRESS</entry>
 						<entry>
 							<para>Lieferadresse</para>
 							<para>Wird nur dann angezeigt, wenn sich Rechnungs- und Lieferadresse unterscheiden.</para>
 						</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.ADDRESSES.EQUAL</entry>
+						<entry>DOCUMENT.ADDRESSES. EQUAL</entry>
 						<entry>
 							<emphasis role="bold">true</emphasis>, wenn Lieferadresse und Rechnungsadresse gleich sind, ansonsten <emphasis role="bold">false</emphasis>
 						</entry>
@@ -209,7 +190,7 @@ id="04_openoffice_libreoffice">
 						<entry>Bestellnummer aus dem Webshop</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.WEBSHOP.DATE</entry>
+						<entry>DOCUMENT.WEBSHOP. DATE</entry>
 						<entry>Bestelldatum aus dem Webshop</entry>
 					</row>
 					<row>
@@ -217,11 +198,11 @@ id="04_openoffice_libreoffice">
 						<entry>Bestelldatum</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.VESTINGPERIOD.START</entry>
+						<entry>DOCUMENT.VESTING-PERIOD.START</entry>
 						<entry>Beginn des Leistungszeitraumes</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.VESTINGPERIOD.END</entry>
+						<entry>DOCUMENT.VESTING-PERIOD.END</entry>
 						<entry>Ende des Leistungszeitraumes</entry>
 					</row>
 					<row>
@@ -233,7 +214,7 @@ id="04_openoffice_libreoffice">
 						<entry>Zwischensumme der Artikel (netto)</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.ITEMS.NET.DISCOUNTED</entry>
+						<entry>DOCUMENT.ITEMS. NET.DISCOUNTED</entry>
 						<entry>rabattierte Zwischensumme der Artikel (netto)</entry>
 					</row>
 					<row>
@@ -265,47 +246,47 @@ id="04_openoffice_libreoffice">
 						<entry>Gesamtsumme incl. Versandkosten, Rabatt (netto)</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.TOTAL.QUANTITY</entry>
+						<entry>DOCUMENT.TOTAL. QUANTITY</entry>
 						<entry>Gesamtmenge der Artikel (dies ist natürlich nur bei vergleichbaren Artikeln sinnvoll)</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.OFFER</entry>
+						<entry>DOCUMENT.REFERENCE. OFFER</entry>
 						<entry>Die Angebote, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.ORDER</entry>
+						<entry>DOCUMENT.REFERENCE. ORDER</entry>
 						<entry>Die Aufträge, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.CONFIRMATION</entry>
+						<entry>DOCUMENT.REFERENCE. CONFIRMATION</entry>
 						<entry>Die Auftragsbestätigungen, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.INVOICE</entry>
+						<entry>DOCUMENT.REFERENCE. INVOICE</entry>
 						<entry>Die Rechnungen, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.INVOICE.DATE</entry>
+						<entry>DOCUMENT.REFERENCE. INVOICE.DATE</entry>
 						<entry>Das Datum der ersten Rechnung, die zum gleichen Vorgang wie dieses Dokument gehört.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.DELIVERY</entry>
+						<entry>DOCUMENT.REFERENCE. DELIVERY</entry>
 						<entry>Die Lieferscheine, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.CREDIT</entry>
+						<entry>DOCUMENT.REFERENCE. CREDIT</entry>
 						<entry>Die Gutschriften, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.DUNNING</entry>
+						<entry>DOCUMENT.REFERENCE. DUNNING</entry>
 						<entry>Die Mahnungen, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.REFERENCE.PROFORMA</entry>
+						<entry>DOCUMENT.REFERENCE. PROFORMA</entry>
 						<entry>Die Proformarechnungen, die zum gleichen Vorgang wie dieses Dokument gehören.</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DUNNING.LEVEL</entry>
+						<entry>DOCUMENT.DUNNING. LEVEL</entry>
 						<entry>Mahnstufe</entry>
 					</row>
 					<row>
@@ -334,7 +315,7 @@ id="04_openoffice_libreoffice">
 						<entry>Bezeichnung der Versandkosten/Versandart</entry>
 					</row>
 					<row>
-						<entry>SHIPPING.VAT.DESCRIPTION</entry>
+						<entry>SHIPPING.VAT. DESCRIPTION</entry>
 						<entry>Bezeichnung der Steuer der Versandkosten/Versandart</entry>
 					</row>
 					<row>
@@ -355,24 +336,25 @@ id="04_openoffice_libreoffice">
 					</row>
 					<row>
 						<entry>PAYMENT.DUE.DAYS</entry>
-						<entry>Tage, innerhalb derer die Rechnung beglichen werden muss</entry>
+						<entry>Tage, innerhalb derer die Rechnung beglichen werden muß</entry>
 					</row>
 					<row>
 						<entry>PAYMENT.DUE.DATE</entry>
-						<entry>Datum, bis zu dem die Rechnung beglichen werden muss</entry>
+						<entry>Datum, bis zu dem die Rechnung beglichen werden muß</entry>
 					</row>
 					<row>
 						<entry>PAYMENT.PAID</entry>
 						<entry>
 							<emphasis role="bold">true</emphasis> oder <emphasis role="bold">false</emphasis> - abhängig davon, ob bezahlt wurde oder nicht</entry>
 					</row>
+					<row><entry spanname="full_line"><para><emphasis>Hinweis: Die folgenden Platzhalter (also alle, die mit 'ADDRESS' beginnen), können auch für Liefer-adreß-Informationen verwendet werden. Dazu muß nur <emphasis role="bold">vor</emphasis> dem 'ADDRESS' noch ein 'DELIVERY.' eingefügt werden. Der Vorname für den Liefer-Empfänger würde dann beispielsweise mit dem Platzhalter 'DELIVERY.ADDRESS.FIRSTNAME' eingefügt.</emphasis></para></entry></row>
 					<row>
 						<entry>ADDRESS</entry>
 						<entry>Adresse des Kontaktes (Rechnungsadresse)</entry>
 					</row>
 					<row>
 						<entry>ADDRESS.ADDRESSADDON</entry>
-						<entry>Adresszusatz des Kunden</entry>
+						<entry>Adreßzusatz des Kunden</entry>
 					</row>
 					<row>
 						<entry>ADDRESS.FIRSTLINE</entry>
@@ -419,15 +401,15 @@ id="04_openoffice_libreoffice">
 						<entry>Alias des Kunden</entry>
 					</row>
 					<row>
-						<entry>ADDRESS.LOCALCONSULTANT</entry>
+						<entry>ADDRESS. LOCALCONSULTANT</entry>
 						<entry>Ansprechpartner des Kunden</entry>
 					</row>
 					<row>
-						<entry>ADDRESS.REGISTERNUMBER</entry>
+						<entry>ADDRESS. REGISTERNUMBER</entry>
 						<entry>Registernummer des Kunden</entry>
 					</row>
 					<row>
-						<entry>ADDRESS.NAMEWITHCOMPANY</entry>
+						<entry>ADDRESS. NAMEWITHCOMPANY</entry>
 						<entry>Vor- und Nachname, ggf. mit Firma (Rechnungsadresse)</entry>
 					</row>
 					<row>
@@ -471,96 +453,9 @@ id="04_openoffice_libreoffice">
 						<entry>3-stelliger Ländercode (Rechnungsadresse)</entry>
 					</row>
 					<row>
-						<entry>DELIVERY.ADDRESS</entry>
-						<entry>Adresse des Kontaktes (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.FIRSTLINE</entry>
-						<entry>1. Zeile der Adresse (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.GENDER</entry>
-						<entry>Anrede (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry><anchor xreflabel="" xml:id="openoffice_placeholders_common_delivery_address_greeting"/>DELIVERY.ADDRESS.GREETING</entry>
-						<entry>
-							<para>Grußformel (Lieferadresse); siehe auch <link linkend="preferences_contactformat_greeting">Format Grußformel</link>
-							</para>
-						</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.TITLE</entry>
-						<entry>Titel (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.FIRSTNAME</entry>
-						<entry>Vorname (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.LASTNAME</entry>
-						<entry>Nachname (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.NAME</entry>
-						<entry>Vor- und Nachname (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.BIRTHDAY</entry>
-						<entry>Geburtsdatum (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.NAMEWITHCOMPANY</entry>
-						<entry>Vor- und Nachname, ggf. mit Firma (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.COMPANY</entry>
-						<entry>Firmenbezeichnung (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.STREET</entry>
-						<entry>Straße incl. Hausnummer (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.STREETNAME</entry>
-						<entry>Straßenname ohne Hausnummer (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.STREETNO</entry>
-						<entry>Hausnummer (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.ZIP</entry>
-						<entry>Postleitzahl (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.CITY</entry>
-						<entry>Stadt (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.COUNTRY</entry>
-						<entry>Land (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.COUNTRY.CODE2</entry>
-						<entry>2-stelliger Ländercode (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>DELIVERY.ADDRESS.COUNTRY.CODE3</entry>
-						<entry>3-stelliger Ländercode (Lieferadresse)</entry>
-					</row>
-					<row>
-						<entry>ADDRESS.BANK.ACCOUNT.HOLDER</entry>
+						<entry>ADDRESS.BANK.ACCOUNT. HOLDER</entry>
 						<entry>Kontoinhaber</entry>
 					</row>
-					<!--row>
-						<entry>ADDRESS.BANK.ACCOUNT</entry>
-						<entry>Kontonummer</entry>
-					</row>
-					<row>
-						<entry>ADDRESS.BANK.CODE</entry>
-						<entry>Bankleitzahl</entry>
-					</row -->
 					<row>
 						<entry>ADDRESS.BANK.NAME</entry>
 						<entry>Name der Bank</entry>
@@ -622,7 +517,7 @@ id="04_openoffice_libreoffice">
 						<entry>E-Mail Adresse</entry>
 					</row>
 					<row>
-						<entry>ADDRESS.SUPPLIER.NUMBER</entry>
+						<entry>ADDRESS.SUPPLIER. NUMBER</entry>
 						<entry>Lieferantennummer</entry>
 					</row>
 					<row>
@@ -643,7 +538,7 @@ id="04_openoffice_libreoffice">
 					</row>
 					<row>
 						<entry>ADDRESS.HASSALESEQTAX</entry>
-						<entry>Kennzeichen, das angibt, ob Ausgleichsteuer gezahlt werden muss</entry>
+						<entry>Kennzeichen, das angibt, ob Ausgleichsteuer gezahlt werden muß</entry>
 					</row>
 					<row>
 						<entry>ADDRESS.WEBSHOPUSER</entry>
@@ -662,8 +557,12 @@ id="04_openoffice_libreoffice">
 						<entry>Die GLN (Globale Lokationsnummer) des Kontaktes.</entry>
 					</row>
 					<row>
-						<entry>ADDRESS.MANDATEREFERENCE</entry>
+						<entry>ADDRESS.MANDATE-REFERENCE</entry>
 						<entry>Die Mandatsreferenz für diesen Kontakt.</entry>
+					</row>
+					<row>
+						<entry>DELIVERY.ADDRESS</entry>
+						<entry>Adresse des Kontaktes (Lieferadresse). Weitere Platzhalter siehe oben unter 'ADRESS'.</entry>
 					</row>
 					<row>
 						<entry>YOURCOMPANY.COMPANY</entry>
@@ -674,11 +573,11 @@ id="04_openoffice_libreoffice">
 						<entry>Name des Firmeninhabers</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.OWNER.FIRSTNAME</entry>
+						<entry>YOURCOMPANY.OWNER. FIRSTNAME</entry>
 						<entry>Vorname des Firmeninhabers</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.OWNER.LASTNAME</entry>
+						<entry>YOURCOMPANY.OWNER. LASTNAME</entry>
 						<entry>Nachname des Firmeninhabers</entry>
 					</row>
 					<row>
@@ -686,7 +585,7 @@ id="04_openoffice_libreoffice">
 						<entry>Eigene Straße incl. Hausnummer</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.STREETNAME</entry>
+						<entry>YOURCOMPANY.STREET-NAME</entry>
 						<entry>Eigener Straßenname ohne Hausnummer</entry>
 					</row>
 					<row>
@@ -718,11 +617,11 @@ id="04_openoffice_libreoffice">
 						<entry>Eigene Rufnummer</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.PHONE.PRE</entry>
+						<entry>YOURCOMPANY.PHONE. PRE</entry>
 						<entry>Eigene Rufnummer Vorwahl</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.PHONE.POST</entry>
+						<entry>YOURCOMPANY.PHONE. POST</entry>
 						<entry>Eigene Rufnummer Durchwahl</entry>
 					</row>
 					<row>
@@ -750,21 +649,13 @@ id="04_openoffice_libreoffice">
 						<entry>Eigene Steuernummer</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.TAXOFFICE</entry>
+						<entry>YOURCOMPANY.TAX-OFFICE</entry>
 						<entry>Finanzamtbezeichnung</entry>
 					</row>
-					<!-- row>
-						<entry>YOURCOMPANY.BANKACCOUNTNR</entry>
-						<entry>Kontonummer</entry>
-					</row -->
 					<row>
 						<entry>YOURCOMPANY.BANK</entry>
 						<entry>Bezeichnung der Bank</entry>
 					</row>
-					<!-- row>
-						<entry>YOURCOMPANY.BANKCODE</entry>
-						<entry>BLZ</entry>
-					</row -->
 					<row>
 						<entry>YOURCOMPANY.IBAN</entry>
 						<entry>IBAN</entry>
@@ -774,7 +665,7 @@ id="04_openoffice_libreoffice">
 						<entry>BIC</entry>
 					</row>
 					<row>
-						<entry>YOURCOMPANY.CREDITORID</entry>
+						<entry>YOURCOMPANY.CREDITOR-ID</entry>
 						<entry>Creditor-ID</entry>
 					</row>
 					<row>
@@ -795,11 +686,11 @@ id="04_openoffice_libreoffice">
 						<entry>Rabatt (brutto)</entry>
 					</row>
 					<row>
-						<entry>ITEMS.DISCOUNT.NETVALUE</entry>
+						<entry>ITEMS.DISCOUNT. NETVALUE</entry>
 						<entry>Nettowert des skontierten Warenwertes.</entry>
 					</row>
 					<row>
-						<entry>ITEMS.DISCOUNT.DISCOUNTPERCENT</entry>
+						<entry>ITEMS.DISCOUNT. DISCOUNTPERCENT</entry>
 						<entry>Skonto in %.</entry>
 					</row>
 					<row>
@@ -815,7 +706,7 @@ id="04_openoffice_libreoffice">
 						<entry>letztmöglicher Skontotag ("bis zum&#x2026; mit x% Skonto")</entry>
 					</row>
 					<row>
-						<entry>ITEMS.DISCOUNT.TARAVALUE</entry>
+						<entry>ITEMS.DISCOUNT. TARAVALUE</entry>
 						<entry>
 							<para>MwSt. abzgl. Skonto; siehe auch <link linkend="openoffice_placeholders_parameter">Platzhalter mit Parametern</link>
 							</para>
@@ -863,7 +754,7 @@ id="04_openoffice_libreoffice">
 					<row>
 						<entry>REPLACE</entry>
 						<entry>
-							<para>Ersetzt den Platzhaltertext durch einen anderen. Es wird eine Liste mit allen möglichen Ersetzungen angegeben. Die Liste muss in geschweifte Klammern eingeschlossen sein. Alle Listenelemente sind durch ein Semikolon getrennt. Jedes Listenelement besteht aus einem Schlüssel und dem zu ersetzenden Text. Beide sind wiederum durch ein Komma getrennt.</para>
+							<para>Ersetzt den Platzhaltertext durch einen anderen. Es wird eine Liste mit allen möglichen Ersetzungen angegeben. Die Liste muß in geschweifte Klammern eingeschlossen sein. Alle Listenelemente sind durch ein Semikolon getrennt. Jedes Listenelement besteht aus einem Schlüssel und dem zu ersetzenden Text. Beide sind wiederum durch ein Komma getrennt.</para>
 							<para>Beispiel: Ein <emphasis role="bold">DE</emphasis> würde durch den Text <emphasis role="bold">Deutschland</emphasis> ersetzt werden, ein <emphasis role="bold">CH</emphasis> durch <emphasis role="bold">Schweiz</emphasis>:</para>
 							<para>
 								<emphasis role="bold">&lt;ADDRESS.COUNTRY.CODE2$REPLACE:{DE,Deutschland;CH,Schweiz}&gt;</emphasis>
@@ -935,6 +826,11 @@ id="04_openoffice_libreoffice">
 							<para>Beispiel:</para>
 							<para>
 								<emphasis role="bold">&lt;ITEM.NR$EXRANGE:3,5&gt;</emphasis> wird zu "12678", falls die komplette Artikelnummer (ITEM.NR) "12345678" lautet.</para>
+						</entry>
+					</row>
+					<row>
+						<entry>MARGIN</entry>
+						<entry><para>Mit diesem Parameter kann man festlegen, wie breit der Rand um einen GiroCode sein soll (der Parameter wirkt aktuell nur dort).</para>
 						</entry>
 					</row>
 				</tbody>
@@ -1024,6 +920,9 @@ id="04_openoffice_libreoffice">
 		</para>
 		<informaltable rowsep="1" colsep="0" tabstyle="striped" frame="none">
 			<tgroup cols='2'>
+				<colspec colwidth='1*'/>
+				<colspec colwidth='2*'/>
+
 				<tbody>
 
 					<row>
@@ -1089,7 +988,7 @@ id="04_openoffice_libreoffice">
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.VESTINGPERIOD.START</entry>
+						<entry>ITEM.VESTINGPERIOD. START</entry>
 						<entry>
 							<para>Beginn des Leistungszeitraumes</para>
 						</entry>
@@ -1125,21 +1024,21 @@ id="04_openoffice_libreoffice">
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.GROSS.DISCOUNT.VALUE</entry>
+						<entry>ITEM.GROSS.DISCOUNT. VALUE</entry>
 						<entry>
 							<para>Rabatt absolut auf den Bruttowert des Artikels</para>
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.NET.DISCOUNT.VALUE</entry>
+						<entry>ITEM.NET.DISCOUNT. VALUE</entry>
 						<entry>
 							<para>Rabatt absolut auf den Nettowert des Artikels</para>
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.SALESEQUALIZATIONTAX.PERCENT</entry>
+						<entry>ITEM.SALESEQUALIZA-TIONTAX.PERCENT</entry>
 						<entry>
-							<para>Ausgleichssteuer auf den Artikel</para>
+							<para>Ausgleichsteuer auf den Artikel</para>
 						</entry>
 					</row>
 					<row>
@@ -1161,19 +1060,19 @@ id="04_openoffice_libreoffice">
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.UNIT.NET.DISCOUNTED</entry>
+						<entry>ITEM.UNIT.NET. DISCOUNTED</entry>
 						<entry>
 							<para>Einzelpreis unter Berücksichtigung eines Rabattes (netto)</para>
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.UNIT.VAT.DISCOUNTED</entry>
+						<entry>ITEM.UNIT.VAT. DISCOUNTED</entry>
 						<entry>
 							<para>Steueranteil unter Berücksichtigung eines Rabattes eines Artikels</para>
 						</entry>
 					</row>
 					<row>
-						<entry>ITEM.UNIT.GROSS.DISCOUNTED</entry>
+						<entry>ITEM.UNIT.GROSS. DISCOUNTED</entry>
 						<entry>
 							<para>Einzelpreis unter Berücksichtigung eines Rabattes (brutto)</para>
 						</entry>
@@ -1188,7 +1087,7 @@ id="04_openoffice_libreoffice">
 					<row>
 						<entry>ITEM.TOTAL.VAT</entry>
 						<entry>
-							<para>Gesamter Steueranteil unter Berücksichtigung eines Rabattes Bei einem optionalen Artikel / Bedarfsposition kann dieser Platzhalter ersetzt werden.</para>
+							<para>Gesamter Steueranteil unter Berücksichtigung eines Rabattes. Bei einem optionalen Artikel / Bedarfsposition kann dieser Platzhalter ersetzt werden.</para>
 						</entry>
 					</row>
 					<row>
@@ -1263,6 +1162,8 @@ id="04_openoffice_libreoffice">
 		</informalfigure>
 		<informaltable rowsep="1" colsep="0" tabstyle="striped" frame="none">
 			<tgroup cols='2'>
+				<colspec colwidth='1*'/>
+				<colspec colwidth='2*'/>
 
 				<tbody>
 
@@ -1306,36 +1207,36 @@ id="04_openoffice_libreoffice">
 						</entry>
 					</row>
 					<row>
-						<entry>SALESEQUALIZATIONTAX.VALUES</entry>
+						<entry>SALESEQUALIZATIONTAX. VALUES</entry>
 						<entry>
 							<para>Liste mit allen Ausgleichsteuern (Werte). Nur aktiv, wenn das auch in den (<link linkend="preferences_contact">Einstellungen</link>) hinterlegt wurde.</para>
-							<para>Dieser Platzhalter hat die Besonderheit, dass für jeden weiteren Steuersatz eine neue Zeile der Tabelle angelegt wird. Nicht verwendete Ausgleichsteuerätze werden nicht mit aufgeführt (keine Nullwerte).</para>
+							<para>Dieser Platzhalter hat die Besonderheit, dass für jeden weiteren Steuersatz eine neue Zeile in der Tabelle angelegt wird. Nicht verwendete Ausgleichsteuerätze werden nicht mit aufgeführt (keine Nullwerte).</para>
 						</entry>
 					</row>
 					<row>
-						<entry>SALESEQUALIZATIONTAX.PERCENT</entry>
+						<entry>SALESEQUALIZATIONTAX. PERCENT</entry>
 						<entry>Liste mit allen im Dokument verwendeten Steuersätzen (Prozent) für die Ausgleichsteuer.</entry>
 					</row>
 					<row>
-						<entry>SALESEQUALIZATIONTAX.VATSUBTOTAL</entry>
+						<entry>SALESEQUALIZATIONTAX. VATSUBTOTAL</entry>
 						<entry>
 							<para>Liste aller zum jeweiligen Ausgleichsteuersatz gehörenden Nettowerte (Zwischensummen).</para>
 						</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DEPOSIT.DEP_TEXT</entry>
+						<entry>DOCUMENT.DEPOSIT. DEP_TEXT</entry>
 						<entry>Text der Teilzahlung, z.B. "Anzahlung:"</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DEPOSIT.FINALPMT_TEXT</entry>
+						<entry>DOCUMENT.DEPOSIT. FINALPMT_TEXT</entry>
 						<entry>Text des Rechnungsbetrags abzüglich Teilzahlung, z.B. "Restbetrag"</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DEPOSIT.DEPOSIT</entry>
+						<entry>DOCUMENT.DEPOSIT. DEPOSIT</entry>
 						<entry>Der Teilzahlungsbetrag</entry>
 					</row>
 					<row>
-						<entry>DOCUMENT.DEPOSIT.FINALPAYMENT</entry>
+						<entry>DOCUMENT.DEPOSIT. FINALPAYMENT</entry>
 						<entry>
 							<para>Der Rechnungsbetrag abzüglich Teilzahlung.</para>
 							<para>
@@ -1354,17 +1255,18 @@ id="04_openoffice_libreoffice">
 				</tgroup>
 			</informaltable>
 			<para>Die Platzhalter für Anzahlung und Teilzahlung müssen in einer (ggf. unsichtbaren) Tabelle platziert werden, da sie sich teilweise gegenseitig ausschließen. Beim Ausfüllen der Vorlage werden dann die nicht zutreffenden Zeilen mit den Platzhaltern gelöscht.</para>
-							<important>Der Text für die Platzhalter <emphasis role="italic">DOCUMENT.DEPOSIT.DEP_TEXT</emphasis> und <emphasis role="italic">DOCUMENT.DEPOSIT.FINALPMT_TEXT</emphasis> kann in den Einstellungen hinterlegt werden: </important>
-							<para>
-								<inlinemediaobject>
-									<imageobject role="html">
-										<imagedata fileref="../images/openoffice/preferences_deposit.png" format="PNG" scalefit="1"/>
-									</imageobject>
-									<imageobject role="fo">
-										<imagedata contentdepth="50%" fileref="../images/openoffice/preferences_deposit.png" format="PNG" scalefit="1" width="50%"/>
-									</imageobject>
-								</inlinemediaobject>
-							</para>
+			<important>Die Texte für die Platzhalter <emphasis role="italic">DOCUMENT.DEPOSIT.DEP_TEXT</emphasis> und <emphasis role="italic">DOCUMENT.DEPOSIT.FINALPMT_TEXT</emphasis> können in den Einstellungen hinterlegt werden: </important>
+			<para>
+				<inlinemediaobject>
+					<imageobject role="html">
+						<imagedata fileref="../images/openoffice/preferences_deposit.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="50%" fileref="../images/openoffice/preferences_deposit.png" format="PNG" scalefit="1" width="50%"/>
+					</imageobject>
+				</inlinemediaobject>
+			</para>
+			<tip>Falls Bereiche beim Ausdruck nicht ausgegeben werden, kann man versuchen, die Tabellen aufzutrennen.</tip>
 		</section>
 		
     	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="zugferd_export.xml"/>

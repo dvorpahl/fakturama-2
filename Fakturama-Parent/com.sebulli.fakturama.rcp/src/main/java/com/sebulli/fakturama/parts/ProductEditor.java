@@ -60,7 +60,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
@@ -215,9 +214,9 @@ public class ProductEditor extends Editor<Product> {
         String testCat = comboCategory.getText();
         // if there's no category we can skip this step
         if (StringUtils.isNotBlank(testCat)) {
-            ProductCategory contactCategory = productCategoriesDAO.getCategory(testCat, true);
+            ProductCategory productCategory = productCategoriesDAO.getCategory(testCat, true);
             // parentCategory now has the last found Category
-            editorProduct.setCategories(contactCategory);
+            editorProduct.setCategories(productCategory);
         }
 
         if (newProduct) {
@@ -247,14 +246,14 @@ public class ProductEditor extends Editor<Product> {
 
         try {
             int i;
-            Double lastScaledPrice = Double.valueOf(0.0);
+            double lastScaledPrice = 0.0;
 
             // fill all remaining prices with last scaled price
             for (i = 0; i < scaledPrices; i++) {
                 // at first look for the highest scaled price...
-                String methodName = String.format("getPrice%d", i + 1);
-                Object obj = MethodUtils.invokeExactMethod(editorProduct, methodName);
-                lastScaledPrice = (Double) obj;
+                 String methodName = String.format("getPrice%d", i + 1);
+                 Object obj = MethodUtils.invokeExactMethod(editorProduct, methodName);
+                 lastScaledPrice = (Double) obj;
             }
 
             // if not all 5 scales are set we set the remaining prices to the last scaled price
@@ -405,43 +404,45 @@ public class ProductEditor extends Editor<Product> {
     /**
      * Reload the product picture
      */
-    private void setPicture() {
+	private void setPicture() {
 
-       
-            Image image = null;
-            // Display the picture, if a product picture is set.
-            if (editorProduct.getPicture() != null) {
+		Image image = null;
+		// Display the picture, if a product picture is set.
+		if (editorProduct.getPicture() != null) {
 
-                // Load the image, based on the picture name, save to image registry
-                labelProductPicture.setMaxImageWidth(250);
-                try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
-                    ImageData imageData = new ImageData(bais);
-                    image = new Image(Display.getCurrent(), imageData);
-                    JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
+			// Load the image, based on the picture name, save to image registry
+			labelProductPicture.setMaxImageWidth(250);
+			image = JFaceResources.getImageRegistry().get("prodimg_" + editorProduct.getItemNumber());
+			if (image == null) {
+				try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
+					ImageData imageData = new ImageData(bais);
+					image = new Image(Display.getCurrent(), imageData);
+					JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
 
-                    labelProductPicture.setDefaultImage(image);
-                } catch (Exception e) {
-                    // catch all exceptions here since we check for errors later
-                    log.error(e, "Icon not found");
+				} catch (Exception e) {
+					// catch all exceptions here since we check for errors later
+					log.error(e, "Icon not found");
 
-                }
-            }
-            // Display an empty background if no picture is set or picture is not found.
-            if ( image == null ) {
-                try {
-                    ImageDescriptor imageDesc = JFaceResources.getImageRegistry().getDescriptor(ProgramImages.NO_PICTURE.name());
-                    if (imageDesc == null) {
-                        image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
-                        JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
-                    } else {
-                        image = imageDesc.createImage(true);
-                    }
-                    labelProductPicture.setDefaultImage(image);
-                } catch (Exception e1) {
-                    log.error(e1, "Icon not found");
-                }
-            }
-    }
+				}
+			}
+		}
+		// Display an empty background if no picture is set or picture is not found.
+		if (image == null) {
+			try {
+				ImageDescriptor imageDesc = JFaceResources.getImageRegistry()
+						.getDescriptor(ProgramImages.NO_PICTURE.name());
+				if (imageDesc == null) {
+					image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
+					JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
+				} else {
+					image = imageDesc.createImage(true);
+				}
+			} catch (Exception e1) {
+				log.error(e1, "Icon not found");
+			}
+		}
+		labelProductPicture.setDefaultImage(image);
+	}
 
     /**
      * Creates the SWT controls for this workbench part
@@ -857,7 +858,8 @@ public class ProductEditor extends Editor<Product> {
         numberFormat.setGroupingUsed(false);
         UpdateValueStrategy<Object, String> numbertoStringStrategy = UpdateValueStrategy.create(NumberToStringConverter.fromLong(numberFormat, false));
         UpdateValueStrategy<Object, Long> stringToNumberStrategy = UpdateValueStrategy.create(StringToNumberConverter.toLong(false));
-        bindModelValue(editorProduct, textGtin, Product_.gtin.getName(), 64, stringToNumberStrategy, numbertoStringStrategy);
+        Binding binding = bindModelValue(editorProduct, textGtin, Product_.gtin.getName(), 64, stringToNumberStrategy, numbertoStringStrategy);
+        ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
 
         bindModelValue(editorProduct, textSupplierItemNumber, Product_.supplierItemNumber.getName(), 64);
         bindModelValue(editorProduct, textDescription, Product_.description.getName(), 0); // no limit
@@ -872,8 +874,8 @@ public class ProductEditor extends Editor<Product> {
                 }
             });
 
-            Binding binding = bindModelValue(editorProduct, textQuantityUnit, Product_.quantityUnit.getName(), 80, strategy, null);
-            ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
+            Binding bindingQtu = bindModelValue(editorProduct, textQuantityUnit, Product_.quantityUnit.getName(), 80, strategy, null);
+            ControlDecorationSupport.create(bindingQtu, SWT.TOP | SWT.LEFT);
         }
         // bind the scaled prices widgets
         for (int i = 0; i < grossText.length; i++) {
@@ -929,14 +931,7 @@ public class ProductEditor extends Editor<Product> {
             if (!structuredSelection.isEmpty()) {
                 // Get the first element ...
                 // Get the selected VAT
-                VAT selectedVat = (VAT) structuredSelection.getFirstElement();
-
-                // Store the old value
-                //                    Double oldVat = editorProduct.getVat().getTaxValue();
-
-                // Get the new value
-                //                    vatId = uds.getId();
-                //                    vat = uds;
+                final VAT selectedVat = (VAT) structuredSelection.getFirstElement();
 
                 // Recalculate all the price values
                 for (int i = 0; i < scaledPrices; i++) {
@@ -944,7 +939,11 @@ public class ProductEditor extends Editor<Product> {
                     // Recalculate the price values if gross is selected,
                     // So the gross value will stay constant.
                     if (!useNet) {
-                        grossText[i].setNetValue(grossText[i].getNetValue().multiply((1 + grossText[i].getVatValue()) / (1 + selectedVat.getTaxValue())));
+                    	final MonetaryAmount newNetValue = DataUtils.getInstance().calculateNetFromGross(
+                    			(Double)grossText[i].getGrossText().getValue(), 
+                    			selectedVat.getTaxValue());
+						grossText[i].setNetValue(newNetValue);
+                    	grossText[i].getNetText().setNetValue(newNetValue);
                     }
 
                     // Update net and gross text widget

@@ -13,67 +13,30 @@
 
 package org.fakturama.migtool;
 
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.io.IOException;
+import java.util.regex.Pattern;
 
-import liquibase.Contexts;
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.resource.ClassLoaderResourceAccessor;
-import liquibase.resource.DirectoryResourceAccessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 
  */
 public class LiquibaseMigration {
 
+    public static final Pattern UNSUPPORTED_BLOB = Pattern.compile(",\\s*(?:\\r\\n?|\\n)\\s*\"valueComputed\":\\s*\"UNSUPPORTED FOR DIFF: BINARY DATA\"\n");
+    public static final String MIGRATION_AUTHOR = "Fakturama Migration Tool";
+
+    private static final Logger log = LogManager.getLogger(LiquibaseMigration.class);
+
     /**
      * @param args
+     * @throws IOException
      * @throws Exception
      */
-    public static void main(final String[] args) throws Exception {
-        String diffPath = "./diffOutput.xml";
-        //        Files.deleteIfExists(Path.of(diffPath));
-        String hsqlConnectionString = "jdbc:hsqldb:file:C:\\Users\\Karsten\\fakturama_development\\fakturama_dirk\\Database/Database";
-        String mariaConnectionString = "jdbc:mariadb://localhost:3306/fakturama";
-
-        Connection con = DriverManager.getConnection(hsqlConnectionString, "sa", "");
-        Connection conMaria = DriverManager.getConnection(mariaConnectionString, "root", "password");
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(con));
-        Database databaseMaria = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conMaria));
-
-        Liquibase liquibaseInit = new Liquibase("changelog/db.changelog-master.xml", new ClassLoaderResourceAccessor(), databaseMaria);
-        liquibaseInit.update(new Contexts());
-
-        //        new CommandScope(GenerateChangelogCommandStep.COMMAND_NAME[0]) //
-        //                .addArgumentValue(GenerateChangelogCommandStep.AUTHOR_ARG, "Fakturama Migration Tool") //
-        //                .addArgumentValue(GenerateChangelogCommandStep.CHANGELOG_FILE_ARG, diffPath) //
-        //                .addArgumentValue(DbUrlConnectionCommandStep.DATABASE_ARG, database) //
-        //                //        .addArgumentValue(ReferenceDbUrlConnectionCommandStep.REFERENCE_DATABASE_ARG, database) //
-        //                .addArgumentValue("diff-types", "data") //
-        //                .addArgumentValue("exclude-objects", "FKT_DOCUMENT,FKT_ADDRESS.FK_CONTACT") //
-        //                .setOutput(System.out) //
-        //                .addArgumentValue(GenerateChangelogCommandStep.OVERWRITE_OUTPUT_FILE_ARG, true) //
-        //                .addArgumentValue(GlobalConfiguration.OUTPUT_FILE_ENCODING.getKey(), "UTF-8") //
-        //                .addArgumentValue("log-level", "SEVERE") //
-        //                .execute();
-        //        new CommandScope(DiffChangelogCommandStep.COMMAND_NAME[0]) //
-        //                .addArgumentValue(DiffChangelogCommandStep.AUTHOR_ARG, "Fakturama Migration Tool") //
-        //                .addArgumentValue(DiffChangelogCommandStep.CHANGELOG_FILE_ARG, diffPath) //
-        //                .addArgumentValue(DbUrlConnectionCommandStep.DATABASE_ARG, databaseMaria) //
-        //                .addArgumentValue(ReferenceDbUrlConnectionCommandStep.REFERENCE_DATABASE_ARG, database) //
-        //                .addArgumentValue("diff-types", "table,data") //
-        //                .setOutput(System.out) //
-        //                .addArgumentValue(GenerateChangelogCommandStep.OVERWRITE_OUTPUT_FILE_ARG, true) //
-        //                .execute();
-
-        Liquibase liquibase = new Liquibase(diffPath, new DirectoryResourceAccessor(Paths.get(".")), databaseMaria);
-        liquibase.update();
-        //        liquibaseInit.close();
-        liquibase.close();
+    public static void main(final String[] args) throws IOException {
+        log.info("Starting migration... ");
+        new MigrationWorker().run();
+        log.info("Finished migration... ");
     }
-
 }

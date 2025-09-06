@@ -18,9 +18,11 @@ import org.javamoney.moneta.spi.MoneyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.osgi.framework.FrameworkUtil;
 
 import com.sebulli.fakturama.Activator;
@@ -30,6 +32,7 @@ import com.sebulli.fakturama.dto.DocumentSummaryManager;
 import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.PriceBuilder;
 import com.sebulli.fakturama.i18n.ILocaleService;
+import com.sebulli.fakturama.log.LogbackAdapter;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Document;
@@ -42,6 +45,7 @@ import com.sebulli.fakturama.model.VAT;
 
 import ch.qos.logback.classic.spi.LogbackServiceProvider;
 
+@ExtendWith(MockitoExtension.class)
 public class DocumentSummaryCalcTest {
 
     private static final double DOUBLE_DELTA = 0.001;
@@ -61,6 +65,7 @@ public class DocumentSummaryCalcTest {
 
     @BeforeEach
     public void setUp() throws Exception {
+        FrameworkUtil.getBundle(LogbackAdapter.class).start();
         FrameworkUtil.getBundle(LogbackServiceProvider.class).start();
 
         //        Locale.setDefault(Locale.GERMANY);
@@ -101,13 +106,13 @@ public class DocumentSummaryCalcTest {
     @Test
     //    @Disabled("some issues with Bitbucket")
     void testOneItemInADocument() {
-        DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(documentItem);
         invoice.setNetGross(DocumentSummary.ROUND_NOTSPECIFIED); // this is the default
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(1.0, summary.getTotalQuantity(), 0.0);
         assertEquals(10.0, summary.getTotalNet().getNumber().doubleValue(), 0);
         assertEquals(11.0, summary.getTotalGross().getNumber().doubleValue(), 0);
@@ -117,7 +122,9 @@ public class DocumentSummaryCalcTest {
         assertEquals(testAmount1EUR.getNumber().doubleValue(), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVat().getNumber().doubleValue());
     }
 
-    /* TODO Tests for different shipping calculation methods, see ShippingVatType
+    /*
+     * TODO Tests for different shipping calculation methods, see
+     * ShippingVatType
      */
 
     /**
@@ -134,20 +141,20 @@ public class DocumentSummaryCalcTest {
     //    @Disabled("some issues with Bitbucket")
     void testFullSizeDocument_001() {
         int id = 1;
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(25.0), Double.valueOf(2.20 / 1.07), Double.valueOf(0.07)));
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(5.0), Double.valueOf(2.50 / 1.07), Double.valueOf(0.07)));
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10 / 1.19), Double.valueOf(0.19)));
         invoice.setNetGross(DocumentSummary.ROUND_GROSS_VALUES);
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(31.0, summary.getTotalQuantity(), 0.0);
         assertEquals(71.48, summary.getTotalNet().getNumber().doubleValue(), 0);
         assertEquals(77.5, summary.getTotalGross().getNumber().doubleValue(), 0);
         assertEquals(6.02, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
 
-        assertEquals(71.48, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(71.48, calc.getVatSummary(invoice).getTotalNetRounded().getNumber().doubleValue(), 0.01);
 
         assertEquals(2, calc.getVatSummary(invoice).size());
         assertEquals(Money.of(MoneyUtils.getBigDecimal(4.42), "EUR").getNumber().doubleValue(),
@@ -170,25 +177,25 @@ public class DocumentSummaryCalcTest {
     @Disabled
     void testFullSizeDocument_002() {
         int id = 1;
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1)));
-        DocumentItem documentItem = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
+        final DocumentItem documentItem = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
         documentItem.setItemRebate(-0.03);
         invoice.addToItems(documentItem);
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.05)));
         invoice.setNetGross(DocumentSummary.ROUND_NOTSPECIFIED); // this is the default
-        Shipping testShipping = createTestShipping();
+        final Shipping testShipping = createTestShipping();
         invoice.setShipping(testShipping);
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value including shipping net value
         assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
         assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), 0.002);
         assertEquals(3.41, summary.getTotalVat().getNumber().doubleValue(), 0.002);
-        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
+        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNetRounded().getNumber().doubleValue(), 0.0);
 
         assertEquals(3, calc.getVatSummary(invoice).size());
         assertEquals(Money.of(MoneyUtils.getBigDecimal(1.97), "EUR"), calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded());
@@ -209,27 +216,27 @@ public class DocumentSummaryCalcTest {
         ContextInjectionFactory.setDefault(ctx);
 
         int id = 1;
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
-        DocumentItem documentItem1 = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.19));
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final DocumentItem documentItem1 = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.19));
         documentItem1.getItemVat().setSalesEqualizationTax(0.052);
         invoice.addToItems(documentItem1);
 
-        DocumentItem documentItem2 = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.07));
+        final DocumentItem documentItem2 = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.07));
         documentItem2.setItemRebate(-0.03);
         invoice.addToItems(documentItem2);
 
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0)));
         invoice.setNetGross(DocumentSummary.ROUND_NOTSPECIFIED); // this is the default
-        Shipping testShipping = createTestShipping();
+        final Shipping testShipping = createTestShipping();
         invoice.setShipping(testShipping);
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value
         assertEquals(34.66, summary.getTotalNet().getNumber().doubleValue(), 0);
-        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.0);
+        assertEquals(34.66, calc.getVatSummary(invoice).getTotalNetRounded().getNumber().doubleValue(), 0.0);
         assertEquals(testAmount0EUR, summary.getDiscountNet());
         assertEquals(38.7, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
         assertEquals(3.52, summary.getTotalVat().getNumber().doubleValue(), DOUBLE_DELTA);
@@ -254,21 +261,21 @@ public class DocumentSummaryCalcTest {
     //    @Disabled("some issues with Bitbucket")
     void testMultipleItemsWithSamePrice() {
         int id = 1;
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
 
         for (int i = 1; i < 11; i++) {
             invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(35.0 / 1.07), Double.valueOf(0.07)));
         }
         invoice.setNetGross(DocumentSummary.ROUND_NET_VALUES);
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(10.0, summary.getTotalQuantity(), 0.0);
         assertEquals(327.1, summary.getTotalNet().getNumber().doubleValue(), 0);
         assertEquals(350.0, summary.getTotalGross().getNumber().doubleValue(), 0);
         assertEquals(22.9, summary.getTotalVatRounded().getNumber().doubleValue(), 0);
 
-        assertEquals(327.1, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(327.1, calc.getVatSummary(invoice).getTotalNetRounded().getNumber().doubleValue(), 0.01);
 
         assertEquals(1, calc.getVatSummary(invoice).size());
         assertEquals(Money.of(MoneyUtils.getBigDecimal(22.9), "EUR").getNumber().doubleValue(),
@@ -279,33 +286,33 @@ public class DocumentSummaryCalcTest {
     //    @Disabled("some issues with Bitbucket")
     void testFullSizeDocumentWithAutoVATShipping() {
         int id = 1;
-        Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1)));
-        DocumentItem documentItem = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
+        final DocumentItem documentItem = createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
         documentItem.setItemRebate(-0.03);
         invoice.addToItems(documentItem);
         invoice.addToItems(createDocumentItem(id++, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.05)));
         invoice.setNetGross(DocumentSummary.ROUND_NET_VALUES);
-        Shipping testShipping = createTestShipping();
+        final Shipping testShipping = createTestShipping();
         testShipping.setShippingValue(5.9);
 
         // change shipping Auto VAT
         testShipping.setAutoVat(ShippingVatType.SHIPPINGVATGROSS);
         invoice.setShipping(testShipping);
 
-        DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
-        DocumentSummary summary = calc.calculate(invoice);
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        final DocumentSummary summary = calc.calculate(invoice);
         assertEquals(3.0, summary.getTotalQuantity(), 0.0);
 
         // net value including shipping net value
-        double totalNet = summary.getTotalNet().getNumber().doubleValue();
+        final double totalNet = summary.getTotalNet().getNumber().doubleValue();
         assertEquals(35.15, totalNet, 0);
         assertEquals(38.07, summary.getTotalGross().getNumber().doubleValue(), DOUBLE_DELTA);
-        double totalVat = summary.getTotalVat().getNumber().doubleValue();
+        final double totalVat = summary.getTotalVat().getNumber().doubleValue();
         assertEquals(2.92, totalVat, DOUBLE_DELTA);
 
         // has to be same as summary.getTotalNet()
-        assertEquals(totalNet, calc.getVatSummary(invoice).getTotalNet().getNumber().doubleValue(), 0.01);
+        assertEquals(totalNet, calc.getVatSummary(invoice).getTotalNetRounded().getNumber().doubleValue(), 0.01);
 
         assertEquals(Money.of(MoneyUtils.getBigDecimal(2.33), "EUR").getNumber().doubleValue(),
                 calc.getVatSummaryItemForTaxValue(0.1).get(0).getVatRounded().getNumber().doubleValue());
@@ -322,7 +329,7 @@ public class DocumentSummaryCalcTest {
      * @return Shipping object
      */
     private Shipping createTestShipping() {
-        Shipping testShipping = FakturamaModelPackage.MODELFACTORY.createShipping();
+        final Shipping testShipping = FakturamaModelPackage.MODELFACTORY.createShipping();
         testShipping.setAutoVat(ShippingVatType.SHIPPINGVATFIX);
         testShipping.setName("A test shipping");
         testShipping.setDescription("A test shipping description");
@@ -333,7 +340,7 @@ public class DocumentSummaryCalcTest {
     }
 
     private VAT createVat(final String vatName, final double taxValue) {
-        VAT vat = FakturamaModelPackage.MODELFACTORY.createVAT();
+        final VAT vat = FakturamaModelPackage.MODELFACTORY.createVAT();
         vat.setName(vatName);
         vat.setTaxValue(taxValue);
         return vat;
@@ -360,17 +367,17 @@ public class DocumentSummaryCalcTest {
      */
     @Test
     void testSimpleDocumentItem() {
-        DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
+        final DocumentItem documentItem = createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.1));
 
-        Price testPrice = new PriceBuilder().withDocumentItem(documentItem).build();
+        final Price testPrice = new PriceBuilder().withDocumentItem(documentItem).build();
         assertEquals(10.0, testPrice.getTotalNet().getNumber().doubleValue(), 0);
         assertEquals(11.0, testPrice.getTotalGross().getNumber().doubleValue(), 0);
         assertEquals(1.0, testPrice.getTotalVat().getNumber().doubleValue(), 0);
     }
 
     private DocumentItem createDocumentItem(final int id, final Double quantity, final Double price, final Double taxValue) {
-        DocumentItem documentItem = FakturamaModelPackage.MODELFACTORY.createDocumentItem();
-        VAT itemVat = FakturamaModelPackage.MODELFACTORY.createVAT();
+        final DocumentItem documentItem = FakturamaModelPackage.MODELFACTORY.createDocumentItem();
+        final VAT itemVat = FakturamaModelPackage.MODELFACTORY.createVAT();
         itemVat.setId(id);
         itemVat.setTaxValue(taxValue);
         itemVat.setName("Test VAT " + NumberFormat.getPercentInstance().format(taxValue));
@@ -385,7 +392,7 @@ public class DocumentSummaryCalcTest {
     @SuppressWarnings("unused")
     private void printPrice(final Price testPrice) {
         if (DEBUG_PRICES) {
-            int longestLabel = 30;
+            final int longestLabel = 30;
             System.out.println("Calculated price:");
             System.out.println(StringUtils.repeat("=", longestLabel + 6));
             System.out.println(StringUtils.rightPad("UnitNet:", longestLabel) + testPrice.getUnitNet());

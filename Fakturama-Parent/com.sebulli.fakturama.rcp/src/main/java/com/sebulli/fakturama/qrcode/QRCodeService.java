@@ -1,5 +1,7 @@
 package com.sebulli.fakturama.qrcode;
 
+import java.util.Map;
+
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.Invoice;
 
@@ -11,7 +13,7 @@ public interface QRCodeService {
 
     byte[] createSwissCodeQR(Invoice document);
 
-    byte[] createGiroCode(Invoice document);
+    byte[] createGiroCode(Invoice document, Map<String, Object> params);
 
     byte[] createVCardQRCode(Document document);
 

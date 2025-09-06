@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 Ralf Heydenreich
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *   Ralf Heydenreich - initial API and implementation
+ * Contributors: Ralf Heydenreich - initial API and implementation
  */
 package org.fakturama.export.facturx;
 
@@ -20,14 +19,21 @@ import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.services.nls.Translation;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.fakturama.export.einvoice.AbstractEInvoiceCreator;
 import org.fakturama.export.einvoice.ConformanceLevel;
 import org.fakturama.export.einvoice.IEinvoice;
 import org.fakturama.export.einvoice.IPdfHelper;
-import org.fakturama.export.zugferd.ZUGFeRD;
-import org.fakturama.export.zugferd.ZugferdHelper;
+import org.fakturama.export.einvoice.converter.EInvoiceConverter;
+import org.fakturama.export.einvoice.converter.InvoiceConverterException;
+import org.fakturama.export.einvoice.model.EInvoice;
 
+import com.sebulli.fakturama.exception.FakturamaException;
+import com.sebulli.fakturama.i18n.Messages;
+import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.model.Invoice;
+import com.sebulli.fakturama.util.ContactUtil;
 
 /**
  * Generator class for XRechnung /Factur-x files.
@@ -56,46 +62,61 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
 
     @Inject
     private IEclipseContext context;
-    
+
     private IPdfHelper pdfHelper;
 
+    @Inject // node: org.fakturama.export.zugferd
+    protected IPreferenceStore preferences;
+
+    @Inject
+    private ILogger log;
+
+    @Inject
+    @Translation
+    protected Messages msg;
+
     @Override
-    public boolean createEInvoice(Optional<Invoice> invoice, ConformanceLevel zugferdProfile) {
+    public boolean createEInvoice(final Optional<Invoice> invoice, final ConformanceLevel zugferdProfile) throws FakturamaException {
+        // return if invoice is not given
+        if (invoice.isEmpty()) {
+            return false;
+        }
+
+        // transform Invoice into standard Model for electronic invoices
+
+        // now use new model to create further xml files
         Serializable invoiceXml;
         // 2. create XML file
-        IEinvoice eInvoice;
-        switch (zugferdProfile) {
-        case FACTURX_BASIC:
-            throw new UnsupportedOperationException("not yet implemented");
-        case FACTURX_COMFORT:
-        case ZUGFERD_V2_COMFORT:
-        case ZUGFERD_V2_EN16931:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
-        case XRECHNUNG:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
-        case ZUGFERD_V1_COMFORT:
-            pdfHelper = new ZugferdHelper();
-            eInvoice = ContextInjectionFactory.make(ZUGFeRD.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
-        default:
-            eInvoice = ContextInjectionFactory.make(XRechnung.class, context);
-            invoiceXml = eInvoice.getInvoiceXml(invoice);
-            break;
+        final IEinvoice eInvoiceImpl;
+        final ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, eclipseContext);
+        final EInvoiceConverter converter = new EInvoiceConverter(eclipseContext, preferences, contactsDAO, contactUtil, addressManager, msg, localeUtil,
+                measureUnits, zfMsg);
+        EInvoice eInvoice;
+        try {
+            eInvoice = converter.convertInvoice(invoice.orElseThrow());
+            // set vars related to profile
+            converter.postProcess(eInvoice, zugferdProfile);
+        } catch (final InvoiceConverterException e) {
+            log.error(e, "Error converting invoice to EInvoice");
+            return false;
         }
-        
+        switch (zugferdProfile) {
+            case ZUGFERD_V2_EN16931, FACTURX_EN16931, XRECHNUNG:
+                eInvoiceImpl = ContextInjectionFactory.make(XRechnung.class, context);
+                invoiceXml = eInvoiceImpl.getInvoiceXml(eInvoice);
+                break;
+            default:
+                // if we have another profile... exit with error
+                return false;
+        }
+
         // 3. merge XML & PDF/A-1 to PDF/A-3
         return createPdf(invoice.get(), () -> invoiceXml, zugferdProfile);
-        //      testOutput(invoice.get());
     }
 
     @Override
     protected IPdfHelper getPdfHelper() {
-        if(pdfHelper == null) {
+        if (pdfHelper == null) {
             pdfHelper = new FacturXHelper();
         }
         return pdfHelper;

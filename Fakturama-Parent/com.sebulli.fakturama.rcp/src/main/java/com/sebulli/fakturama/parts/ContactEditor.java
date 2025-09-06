@@ -1439,9 +1439,7 @@ public abstract class ContactEditor<C extends Contact> extends Editor<C> {
         comboViewerPayment = new ComboViewer(comboPayment);
         comboViewerPayment.setContentProvider(new EntityComboProvider());
         comboViewerPayment.setLabelProvider(new EntityLabelProvider());
-        //        comboViewerPayment.getCombo().setToolTipText(labelPayment.getToolTipText());
         GridDataFactory.fillDefaults().grab(true, false).applyTo(comboPayment);
-        //        GridDataFactory.swtDefaults().hint(200, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(comboViewerPayment.getCombo());
 
         // If a new payment is selected ...
         comboViewerPayment.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -1486,7 +1484,6 @@ public abstract class ContactEditor<C extends Contact> extends Editor<C> {
      *
      * @return the delivery contact
      */
-    //	abstract protected C getDeliveryContact();
 
     /**
      * creates the combo box for the VAT category

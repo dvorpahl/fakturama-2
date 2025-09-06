@@ -163,14 +163,30 @@ public class LocaleUtil implements ILocaleService {
      */
     @Override
     public Optional<Locale> findLocaleByDisplayCountry(final String country) {
-        return Optional.ofNullable(countryLocaleMap.get(country));
+    	ensureInitialized();
+    	Optional<Locale> retval = Optional.ofNullable(countryLocaleMap.get(country));
+    	if(!retval.isPresent()) {
+    		// fallback with English country names
+    		retval = countryLocaleMap.values().stream()
+	                .filter(e -> country.equalsIgnoreCase(e.getDisplayCountry(getDefaultLocale())) 
+	                		|| country.equalsIgnoreCase(e.getDisplayCountry(Locale.ENGLISH)))
+	                .findAny();
+    	}
+		return retval;
     }
 
-    /* (non-Javadoc)
+    private void ensureInitialized() {
+		if(countryLocaleMap.isEmpty() || localeLookUp.isEmpty()) {
+			initLocaleUtil(String.join("_", defaultLocale.getLanguage(), defaultLocale.getCountry()));
+		}
+	}
+
+	/* (non-Javadoc)
     * @see com.sebulli.fakturama.i18n.ILocaleService#findByCode(java.lang.String)
     */
     @Override
     public Optional<Locale> findByCode(final String code) {
+    	ensureInitialized();
         return Optional.ofNullable(localeLookUp.get(StringUtils.upperCase(code)));
     }
 

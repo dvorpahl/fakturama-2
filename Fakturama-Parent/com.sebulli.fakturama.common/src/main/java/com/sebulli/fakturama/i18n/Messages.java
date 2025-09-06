@@ -210,6 +210,7 @@ public class Messages {
     public String dialogCustomerStatisticsPart1;
     public String dialogDeletedatasetMessage;
     public String dialogDeletedatasetTitle;
+    public String dialogDeletedatasetQuestion;
     public String dialogSavechangesQuestion;
 
     public String dialogItemdescriptionHeader;
@@ -225,6 +226,7 @@ public class Messages {
     public String dialogPrintooNotemplate;
     public String dialogPrintooSuccessful;
     public String dialogPrintooPdfsuccessful;
+    public String dialogPrintooPdfwritererror;
     public String dialogPrintooCantprint;
     public String dialogPrintooErrorNoactivepart;
     public String dialogProductPicturePreview;
@@ -392,6 +394,8 @@ public class Messages {
     public String editorPaymentPlaceholderInfo;
     public String editorPaymentUnpaidName;
     public String editorPaymentUnpaidTooltip;
+
+    public String editorPaymentPaymentcode;
     public String editorProductAdddescriptionTooltip;
     public String editorProductButtonChoosepicName;
     public String editorProductCategoryTooltip;
@@ -429,6 +433,7 @@ public class Messages {
     public String editorVatDefaultbuttonTooltip;
     public String editorVatDefaultTooltip;
     public String editorVatDescriptionTooltip;
+    public String editorVatEinvoiceCode;
     public String editorVatHeader;
     public String editorVatNameTooltip;
     public String editorVatTitle;
@@ -438,6 +443,102 @@ public class Messages {
     public String editorVoucherReceiptTitle;
     public String editorVoucherReceiptFieldCustomer;
     public String editorVoucherReceiptFieldVoucher;
+
+    public String einvoiceUntdid4461V1;
+    public String einvoiceUntdid4461V2;
+    public String einvoiceUntdid4461V3;
+    public String einvoiceUntdid4461V4;
+    public String einvoiceUntdid4461V5;
+    public String einvoiceUntdid4461V6;
+    public String einvoiceUntdid4461V7;
+    public String einvoiceUntdid4461V8;
+    public String einvoiceUntdid4461V9;
+    public String einvoiceUntdid4461V10;
+    public String einvoiceUntdid4461V11;
+    public String einvoiceUntdid4461V12;
+    public String einvoiceUntdid4461V13;
+    public String einvoiceUntdid4461V14;
+    public String einvoiceUntdid4461V15;
+    public String einvoiceUntdid4461V16;
+    public String einvoiceUntdid4461V17;
+    public String einvoiceUntdid4461V18;
+    public String einvoiceUntdid4461V19;
+    public String einvoiceUntdid4461V20;
+    public String einvoiceUntdid4461V21;
+    public String einvoiceUntdid4461V22;
+    public String einvoiceUntdid4461V23;
+    public String einvoiceUntdid4461V24;
+    public String einvoiceUntdid4461V25;
+    public String einvoiceUntdid4461V26;
+    public String einvoiceUntdid4461V27;
+    public String einvoiceUntdid4461V28;
+    public String einvoiceUntdid4461V29;
+    public String einvoiceUntdid4461V30;
+    public String einvoiceUntdid4461V31;
+    public String einvoiceUntdid4461V32;
+    public String einvoiceUntdid4461V33;
+    public String einvoiceUntdid4461V34;
+    public String einvoiceUntdid4461V35;
+    public String einvoiceUntdid4461V36;
+    public String einvoiceUntdid4461V37;
+    public String einvoiceUntdid4461V38;
+    public String einvoiceUntdid4461V39;
+    public String einvoiceUntdid4461V40;
+    public String einvoiceUntdid4461V41;
+    public String einvoiceUntdid4461V42;
+    public String einvoiceUntdid4461V43;
+    public String einvoiceUntdid4461V44;
+    public String einvoiceUntdid4461V45;
+    public String einvoiceUntdid4461V46;
+    public String einvoiceUntdid4461V47;
+    public String einvoiceUntdid4461V48;
+    public String einvoiceUntdid4461V49;
+    public String einvoiceUntdid4461V50;
+    public String einvoiceUntdid4461V51;
+    public String einvoiceUntdid4461V52;
+    public String einvoiceUntdid4461V53;
+    public String einvoiceUntdid4461V54;
+    public String einvoiceUntdid4461V55;
+    public String einvoiceUntdid4461V56;
+    public String einvoiceUntdid4461V57;
+    public String einvoiceUntdid4461V58;
+    public String einvoiceUntdid4461V59;
+    public String einvoiceUntdid4461V60;
+    public String einvoiceUntdid4461V61;
+    public String einvoiceUntdid4461V62;
+    public String einvoiceUntdid4461V63;
+    public String einvoiceUntdid4461V64;
+    public String einvoiceUntdid4461V65;
+    public String einvoiceUntdid4461V66;
+    public String einvoiceUntdid4461V67;
+    public String einvoiceUntdid4461V68;
+    public String einvoiceUntdid4461V69;
+    public String einvoiceUntdid4461V70;
+    public String einvoiceUntdid4461V74;
+    public String einvoiceUntdid4461V75;
+    public String einvoiceUntdid4461V76;
+    public String einvoiceUntdid4461V77;
+    public String einvoiceUntdid4461V78;
+    public String einvoiceUntdid4461V91;
+    public String einvoiceUntdid4461V92;
+    public String einvoiceUntdid4461V93;
+    public String einvoiceUntdid4461V94;
+    public String einvoiceUntdid4461V95;
+    public String einvoiceUntdid4461V96;
+    public String einvoiceUntdid4461V97;
+    public String einvoiceUntdid4461Vzzz;
+
+    // Vat Rates
+    public String einvoiceUntdid5305S;
+    public String einvoiceUntdid5305Z;
+    public String einvoiceUntdid5305E;
+    public String einvoiceUntdid5305Ae;
+    public String einvoiceUntdid5305K;
+    public String einvoiceUntdid5305G;
+    public String einvoiceUntdid5305O;
+    public String einvoiceUntdid5305L;
+    public String einvoiceUntdid5305M;
+
     public String exporterDataAccounttype;
     public String exporterDataBic;
     public String exporterDataBuyers;
@@ -647,6 +748,7 @@ public class Messages {
     public String pageCompanyStreet;
     public String pageCompanyTaxno;
     public String pageCompanyTaxoffice;
+    public String pageCompanyTraderegister;
     public String pageCompanyVatno;
     public String pageContacts;
     public String pageContactsFormat;
@@ -777,12 +879,11 @@ public class Messages {
     public String preferencesOfficeExportasLabel;
     public String preferencesOfficeExportasOpenaction;
     public String preferencesOfficeFolder;
+    public String preferencesOfficeGeneral;
+    public String preferencesOfficeSaveOdt;
     public String preferencesOfficeFormatandpathAdditionalpdf;
     public String preferencesOfficeFormatandpathOdt;
     public String preferencesOfficeFormatandpathPdf;
-    public String preferencesOfficeOdtpdfBoth;
-    public String preferencesOfficeOdtpdfOnlyodt;
-    public String preferencesOfficeOdtpdfOnlypdf;
     public String preferencesOfficeStartnewthread;
     public String preferencesOptionalitems;
     public String preferencesOptionalitemsItemlabel;
@@ -970,10 +1071,10 @@ public class Messages {
         // try to make the string representation of this key via reflection
 
         try {
-            Class<?> c = this.getClass();
+            final Class<?> c = this.getClass();
             // make the key java-like :-)
-            StringBuffer sb = new StringBuffer();
-            StringTokenizer st = new StringTokenizer(retval, ".");
+            final StringBuffer sb = new StringBuffer();
+            final StringTokenizer st = new StringTokenizer(retval, ".");
             boolean isFirst = true;
             while (st.hasMoreElements()) {
                 if (isFirst) {
@@ -984,12 +1085,11 @@ public class Messages {
                 sb.append(StringUtils.capitalize(st.nextToken()));
             }
 
-            Field chap = c.getDeclaredField(sb.toString());
+            final Field chap = c.getDeclaredField(sb.toString());
             retval = (String) chap.get(this);
         } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
             retval = "?" + retval + "?";
         }
         return retval;
     }
-
 }

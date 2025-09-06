@@ -16,6 +16,9 @@ package com.sebulli.fakturama.office;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -31,6 +34,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +46,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
@@ -63,6 +66,7 @@ import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
 import com.sebulli.fakturama.dao.DocumentsDAO;
 import com.sebulli.fakturama.dto.DocumentSummary;
+import com.sebulli.fakturama.exception.FakturamaException;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
@@ -104,8 +108,7 @@ public class OfficeDocument {
     @Inject
     UISynchronize sync;
 
-    private DocumentSummary documentSummary;
-    private FileOrganizer fo;
+    private FileOrganizer fileOrganizer;
     private Shell shell;
 
     /**
@@ -113,19 +116,13 @@ public class OfficeDocument {
      */
     private boolean silentMode = false;
 
-    private Path documentPath;
+    //    private Path documentPath;
 
-    private Path generatedPdf;
-
-    /**
-     * Default constructor
-     */
-    public OfficeDocument() {
-    }
+    //    private Path generatedPdf;
 
     @PostConstruct
     public void init(@Named(IServiceConstants.ACTIVE_SHELL) final Shell shell) {
-        fo = ContextInjectionFactory.make(FileOrganizer.class, context);
+        fileOrganizer = ContextInjectionFactory.make(FileOrganizer.class, context);
         this.shell = shell;
     }
 
@@ -140,18 +137,14 @@ public class OfficeDocument {
 
             // Check whether there is already a document then do not 
             // generate one by the data, but open the existing one.
-            if (testOpenAsExisting(document, template) && !forceRecreation) {
+            if (testOpenAsExisting(document) && !forceRecreation) {
                 openExisting = true;
-                Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-                template = fo.getDocumentPath(pathOptions, TargetFormat.ODT, document);
+                final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+                template = fileOrganizer.getDocumentPath(pathOptions, TargetFormat.ODT, document);
             }
 
             // Stop here and do not fill the document's placeholders, if it's an existing document
-            if (openExisting) {
-                documentPath = Paths.get(document.getOdtPath());
-                if (document.getPdfPath() != null) {
-                    generatedPdf = Paths.get(document.getPdfPath());
-                }
+            if (openExisting && document.getPdfPath() != null) {
                 openDocument();
                 return;
             }
@@ -164,24 +157,27 @@ public class OfficeDocument {
             //            vatSummarySetManager.add(this.document, Double.valueOf(1.0));
 
             // Recalculate the sum of the document before exporting
-            DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
-            documentSummary = documentSummaryCalculator.calculate(this.document);
+            final DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
+            final DocumentSummary documentSummary = documentSummaryCalculator.calculate(this.document);
 
-            /* Get the placeholders of the OpenOffice template.
-             * The scanning of all placeholders to find the item and the vat table
+            /*
+             * Get the placeholders of the OpenOffice template.
+             * The scanning of all placeholders to find the item and the vat
+             * table
              * is also done here.
              */
-            OdfTextDocument textdoc = org.odftoolkit.odfdom.doc.OdfTextDocument.loadDocument(template.toFile());
+            final OdfTextDocument textdoc = org.odftoolkit.odfdom.doc.OdfTextDocument.loadDocument(template.toFile());
             textdoc.changeMode(OdfTextDocument.OdfMediaType.TEXT);
 
-            TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, context);
+            final TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, context);
             templateProcessor.processTemplate(textdoc, document, documentSummary);
 
             // Save the document
             if (saveOODocument(textdoc, template)) {
                 openDocument();
             }
-        } catch (Exception e) {
+
+        } catch (final Exception e) {
             log.error(e, "Error starting OpenOffice with " + template.getFileName());
             throw new FakturamaStoringException("Error starting OpenOffice with " + template.getFileName(), e);
         }
@@ -192,12 +188,12 @@ public class OfficeDocument {
      * or both of them).
      */
     private void openDocument() {
-        List<String> messages = new ArrayList<>();
+        final List<String> messages = new ArrayList<>();
         if (!silentMode) {
-            if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.ODT.getPrefId())) {
-                if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_START_IN_NEW_THREAD) && documentPath != null) {
+            if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_SAVE_ODT)) {
+                if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_START_IN_NEW_THREAD) && document.getOdtPath() != null) {
                     sync.asyncExec(() -> {
-                        if (!Program.launch(documentPath.toString())) {
+                        if (!Program.launch(document.getOdtPath())) {
                             MessageDialog.openError(shell, msg.dialogMessageboxTitleError,
                                     "Document was created but can't find a viewer for OpenOffice document.");
                         }
@@ -207,19 +203,17 @@ public class OfficeDocument {
                 }
             }
 
-            if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.PDF.getPrefId())) {
-                if (generatedPdf != null) {
-                    if (preferences.getBoolean(Constants.PREFERENCES_OPENPDF)) {
-                        sync.asyncExec(() -> {
-                            String pdfProgramCall = OSDependent.getPDFProgramCall(generatedPdf.toString());
-                            Program programForPdf = Program.findProgram(".pdf");
-                            if (programForPdf == null || !programForPdf.execute(pdfProgramCall)) {
-                                MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
-                            }
-                        });
-                    } else {
-                        messages.add(msg.dialogPrintooPdfsuccessful);
-                    }
+            if (document.getPdfPath() != null) {
+                if (preferences.getBoolean(Constants.PREFERENCES_OPENPDF)) {
+                    sync.asyncExec(() -> {
+                        final String pdfProgramCall = OSDependent.getPDFProgramCall(document.getPdfPath());
+                        final Program programForPdf = Program.findProgram(".pdf");
+                        if (programForPdf == null || !programForPdf.execute(pdfProgramCall)) {
+                            MessageDialog.openError(shell, msg.dialogMessageboxTitleError, "Document was created but can't find a viewer for PDF.");
+                        }
+                    });
+                } else {
+                    messages.add(msg.dialogPrintooPdfsuccessful);
                 }
             }
 
@@ -235,134 +229,132 @@ public class OfficeDocument {
      * 
      * @param textdoc
      *            The document
+     * @throws FakturamaException
      */
-    private boolean saveOODocument(final OdfTextDocument textdoc, final Path template) throws FakturamaStoringException {
-        generatedPdf = null;
-        Set<PathOption> pathOptions = new HashSet<>(Arrays.asList(PathOption.values()));
+    private boolean saveOODocument(final OdfTextDocument textdoc, final Path template) throws FakturamaStoringException, FakturamaException {
+        Path generatedPdf = null;
+        final Set<PathOption> pathOptions = new HashSet<>(Arrays.asList(PathOption.values()));
 
-        boolean wasSaved = false;
+        final boolean wasSaved = false;
         textdoc.getOfficeMetadata().setCreator(msg.applicationName);
         textdoc.getOfficeMetadata().setTitle(String.format("%s - %s",
                 msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(document.getBillingType()).getSingularKey()), document.getName()));
         textdoc.getOfficeMetadata().setCreator(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
         textdoc.getOfficeMetadata().setCreationDate(Calendar.getInstance());
 
-        documentPath = fo.getDocumentPath(pathOptions, TargetFormat.ODT, document);
-        Path origFileName = documentPath.getFileName();
-        if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.ODT.getPrefId())) {
+        final Path targetOdtDocumentPath = fileOrganizer.getDocumentPath(pathOptions, TargetFormat.ODT, document);
+        final Path origOdtFileName = targetOdtDocumentPath.getFileName();
 
-            // Create the directories, if they don't exist.
-            createOutputDirectory(documentPath.getParent());
-
-            try (OutputStream fs = Files.newOutputStream(documentPath);) {
-
-                // Save the document
-                textdoc.save(fs);
-                wasSaved = true;
-            } catch (Exception e) {
-                log.error(e, "Error saving the OpenOffice document");
-                throw new FakturamaStoringException(
-                        "Error saving the OpenOffice document with template " + template.getFileName() + ". Check if target file is opened.", e);
-            }
-        } else {
-            // create a temporary document because the user doesn't want an ODT
-            OutputStream fs = null;
-            try {
-                documentPath = Files.createTempFile(null, null);
-                documentPath.toFile().deleteOnExit();
-                fs = Files.newOutputStream(documentPath);
-                // Save the document
-                textdoc.save(fs);
-            } catch (Exception e) {
-                log.error(e, "Error saving the OpenOffice document");
-                throw new FakturamaStoringException(
-                        "Error saving the temporary OpenOffice document with template " + template.getFileName() + ". Check if target file is opened.", e);
-            } finally {
-                if (fs != null) {
-                    try {
-                        fs.close();
-                    } catch (IOException e) {
-                        log.error(e, "Error closing temporary OpenOffice file");
-                    }
+        // create a temporary document for further processing
+        OutputStream fileStream = null;
+        Path tmpDocumentPath;
+        try {
+            tmpDocumentPath = Files.createTempFile(null, null);
+            tmpDocumentPath.toFile().deleteOnExit();
+            fileStream = Files.newOutputStream(tmpDocumentPath);
+            // Save the document
+            textdoc.save(fileStream);
+        } catch (final Exception e) {
+            log.error(e, "Error saving the OpenOffice document");
+            throw new FakturamaStoringException(
+                    "Error saving the temporary OpenOffice document with template " + template.getFileName() + ". Check if target file is opened.", e);
+        } finally {
+            if (fileStream != null) {
+                try {
+                    fileStream.close();
+                } catch (final IOException e) {
+                    log.error(e, "Error closing temporary OpenOffice file");
                 }
             }
         }
 
-        if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.PDF.getPrefId())) {
-            generatedPdf = createPdf(documentPath, origFileName, TargetFormat.PDF);
+        // create PDF, this is the single point of fail. If this does not work, the file is not marked printed
+        generatedPdf = createPdf(tmpDocumentPath, origOdtFileName, TargetFormat.PDF);
 
-            // open the pdf if needed
-            if (generatedPdf != null) {
-                wasSaved = true;
+        // if generation was not successful, cancel here
+        if (generatedPdf == null) {
+            return false;
+        }
+
+        // copy tempfile to ODT Output
+        if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_SAVE_ODT)) {
+            try {
+                createOutputDirectory(targetOdtDocumentPath.getParent());
+                Files.copy(tmpDocumentPath, targetOdtDocumentPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (final Exception e) {
+                log.error(e);
+                return false;
             }
         }
 
         // copy the PDF to the additional directory
-        if (generatedPdf != null && !preferences.getString(Constants.PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT).isEmpty()) {
-            documentPath = fo.getDocumentPath(pathOptions, TargetFormat.ADDITIONAL_PDF, document);
+        if (!preferences.getString(Constants.PREFERENCES_ADDITIONAL_OPENOFFICE_PDF_PATH_FORMAT).isEmpty()) {
+            final Path additionalDocumentPath = fileOrganizer.getDocumentPath(pathOptions, TargetFormat.ADDITIONAL_PDF, document);
             try {
-                if (Files.notExists(documentPath.getParent())) {
-                    Files.createDirectories(documentPath.getParent());
-                }
-                Files.copy(generatedPdf, documentPath, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
+                Files.createDirectories(additionalDocumentPath.getParent());
+                Files.copy(generatedPdf, additionalDocumentPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (final IOException e) {
                 log.error(e);
             }
         }
 
-        // Mark the document as printed, if it was saved as ODT or PDF
-        if (wasSaved) {
-            // Mark the document as "printed"
-            document.setPrinted(Boolean.TRUE);
-            document.setPrintTemplate(template.toString());
+        // Mark the document as printed, if it was saved as ODT and/or PDF
+        // Mark the document as "printed"
+        document.setPrinted(Boolean.TRUE);
+        document.setPrintTemplate(template.toString());
 
-            if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.ODT.getPrefId()) && Files.exists(documentPath)) {
-                document.setOdtPath(documentPath.toString());
-            }
-
-            // Update the document entry "pdfpath"
-            if (generatedPdf != null && Files.exists(generatedPdf)) {
-                document.setPdfPath(generatedPdf.toString());
-            }
-
-            document = documentsDAO.save(document);
-
-            // run PDF post processors, if any
-            postProcess();
-
-            // Refresh the table view of all documents
-            evtBroker.post(DocumentEditor.EDITOR_ID, "update");
+        if (preferences.getBoolean(Constants.PREFERENCES_OPENOFFICE_SAVE_ODT)) {
+            document.setOdtPath(targetOdtDocumentPath.toString());
         }
 
-        return wasSaved;
+        // Update the document entry "pdfpath"
+        document.setPdfPath(generatedPdf.toString());
+        document = documentsDAO.save(document);
+
+        // run PDF post processors, if any, return true if success, false if an error happened
+        final boolean result = postProcess();
+        if (!result) {
+            throw new FakturamaException("Error while post processing invoice");
+        }
+        // Refresh the table view of all documents
+        evtBroker.post(DocumentEditor.EDITOR_ID, "update");
+
+        // if all was ok until here, document was saved successful
+        return true;
+
     }
 
-    private void postProcess() {
+    private boolean postProcess() {
         boolean result = true;
         if (document.getPdfPath() != null && Files.exists(Paths.get(document.getPdfPath()))) {
             try {
-                Collection<ServiceReference<IPdfPostProcessor>> serviceReferences = Activator.getContext().getServiceReferences(IPdfPostProcessor.class, null);
+                final Collection<ServiceReference<IPdfPostProcessor>> serviceReferences = Activator.getContext().getServiceReferences(IPdfPostProcessor.class,
+                        null);
                 if (serviceReferences.isEmpty()) {
                     log.info("no post processors found");
                 }
 
                 context.set(Shell.class, shell);
-                for (ServiceReference<IPdfPostProcessor> serviceReference : serviceReferences) {
+                final List<ServiceReference<IPdfPostProcessor>> sortedList = serviceReferences.stream().sorted(new ServiceRefComparator()).toList();
+
+                for (final ServiceReference<IPdfPostProcessor> serviceReference : sortedList) {
+
                     // enrich post processor service with available Eclipse services
-                    IPdfPostProcessor currentProcessor = Activator.getContext().getService(serviceReference);
+                    final IPdfPostProcessor currentProcessor = Activator.getContext().getService(serviceReference);
                     ContextInjectionFactory.inject(currentProcessor, context);
-                    if (currentProcessor.canProcess() && document instanceof Invoice) {
-                        result = result && currentProcessor.processPdf(Optional.ofNullable((Invoice) document));
+                    if (result && document instanceof final Invoice invoice && currentProcessor.canProcess(Optional.ofNullable(invoice))) {
+                        result &= currentProcessor.processPdf(Optional.ofNullable(invoice));
                     }
                 }
-
-                if (!result) {
-                    generatedPdf = null; // so that a message is displayed that something was wrong
-                }
-            } catch (InvalidSyntaxException e) {
+            } catch (final InvalidSyntaxException e) {
                 log.error(String.format("PDF post processor couldn't be started. Reason: %s", e.getMessage()));
+                return false;
+            } catch (final FakturamaException e) {
+                log.error("error while processing invoice: {}", e);
+                return false;
             }
         }
+        return result; // so that a message is displayed that something was wrong
     }
 
     private void cleanup() throws IOException {
@@ -378,7 +370,7 @@ public class OfficeDocument {
                 if (pathMatcher.matches(path)) {
                     try {
                         Files.deleteIfExists(path);
-                    } catch (FileSystemException e) {
+                    } catch (final FileSystemException e) {
                         log.warn(String.format("temporary file couldn't be deleted! %s", e.getMessage()));
                     }
                 }
@@ -417,26 +409,44 @@ public class OfficeDocument {
         try {
 
             // Save the document
-            OfficeStarter ooStarter = ContextInjectionFactory.make(OfficeStarter.class, context);
-            Path ooPath = ooStarter.getCheckedOOPath(silentMode);
+            final OfficeStarter ooStarter = ContextInjectionFactory.make(OfficeStarter.class, context);
+            final Path ooPath = ooStarter.getCheckedOOPath(silentMode);
             if (ooPath != null) {
 
                 // now, if the file name templates are different, we have to
                 // rename the pdf
-                Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-                pdfFilename = fo.getDocumentPath(pathOptions, targetFormat, document);
+                final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+                pdfFilename = fileOrganizer.getDocumentPath(pathOptions, targetFormat, document);
 
-                ProcessBuilder pb = new ProcessBuilder(ooPath.toString(), "--headless", "--convert-to", "pdf:writer_pdf_Export", "--outdir",
+                try (RandomAccessFile raf = new RandomAccessFile(pdfFilename.toFile(), "rw");
+                        FileChannel channel = raf.getChannel();
+                        FileLock lock = channel.tryLock()) {
+                    if (lock == null) {
+                        if (!silentMode) {
+                            MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.dialogPrintooPdfwritererror);
+                        }
+                        log.warn("PDF file {} cannot be opened for writing, is it open already?", pdfFilename);
+                        return null;
+                    }
+                } catch (final IOException ex) {
+                    if (!silentMode) {
+                        MessageDialog.openError(shell, msg.dialogMessageboxTitleError, msg.dialogPrintooPdfwritererror);
+                    }
+                    log.warn("PDF file {} cannot be opened for writing, is it open already?", pdfFilename);
+                    return null;
+                }
+
+                final ProcessBuilder pb = new ProcessBuilder(ooPath.toString(), "--headless", "--convert-to", "pdf:writer_pdf_Export", "--outdir",
                         pdfFilename.getParent().toString(), // this is the PDF path
                         documentPath.toAbsolutePath().toString());
 
-                Process p = pb.start();
+                final Process p = pb.start();
                 p.waitFor();
 
                 // if we convert a temporary document the suffix is changing to ".PDF", therefore
                 // we have to change the document name here
                 // create a temporary filename as it would be created by PDF writer process
-                Path tmpPdf = Paths.get(pdfFilename.getParent().toString(),
+                final Path tmpPdf = Paths.get(pdfFilename.getParent().toString(),
                         documentPath.getFileName().toString().replaceAll("\\.ODT$|\\.odt$|.tmp$", TargetFormat.PDF.getExtension()));
 
                 if (/* !Files.exists(pdfFilename) && */Files.exists(tmpPdf)) {
@@ -445,14 +455,14 @@ public class OfficeDocument {
             } else {
                 showError();
             }
-        } catch (FileSystemException e) {
+        } catch (final FileSystemException e) {
             pdfFilename = null;
             throw new FakturamaStoringException("kann PDF nicht schreiben. Ist die Datei evtl. geöffnet?", e);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             pdfFilename = null;
             showError();
             log.error(e, "Error moving the PDF document");
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             // from ProcessBuilder
             log.error(e, "InterruptedException");
         }
@@ -470,7 +480,7 @@ public class OfficeDocument {
         if (Files.notExists(directory)) {
             try {
                 Files.createDirectories(directory);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error(e, "could not create output directory: " + directory.toString());
             }
         }
@@ -484,8 +494,8 @@ public class OfficeDocument {
      * @return the path that was created
      */
     private Path createOutputDirectory(final TargetFormat targetFormat) {
-        Set<PathOption> pathOptions = Collections.emptySet();
-        Path directory = fo.getDocumentPath(pathOptions, targetFormat, document);
+        final Set<PathOption> pathOptions = Collections.emptySet();
+        final Path directory = fileOrganizer.getDocumentPath(pathOptions, targetFormat, document);
         createOutputDirectory(directory);
         return directory;
     }
@@ -494,18 +504,12 @@ public class OfficeDocument {
      * Check whether there is already a document then do not generate one by the
      * data, but open the existing one.
      */
-    public boolean testOpenAsExisting(final Document document, final Path template) {
-        Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-        Path oODocumentFile = fo.getDocumentPath(pathOptions, TargetFormat.ODT, document);
+    public boolean testOpenAsExisting(final Document document) {
+        final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+        final Path oODocumentFile = fileOrganizer.getDocumentPath(pathOptions, TargetFormat.PDF, document);
 
-        boolean ignorePdf = true;
-        if (preferences.getString(Constants.PREFERENCES_OPENOFFICE_ODT_PDF).contains(TargetFormat.PDF.getPrefId()) && document.getPdfPath() == null) {
-            // if PDF should be created but the path in the document object is null then it has to be re-created.
-            ignorePdf = false;
-        }
-
-        return (Files.exists(oODocumentFile) && BooleanUtils.isTrue(document.getPrinted()) && filesAreEqual(document.getPrintTemplate(), template)
-                && ignorePdf);
+        return (Files.exists(oODocumentFile) && document.getPrinted());//
+        //                && filesAreEqual(document.getPrintTemplate(), template));
     }
 
     /**
@@ -582,4 +586,24 @@ public class OfficeDocument {
         this.silentMode = silentMode;
     }
 
+    class ServiceRefComparator implements Comparator<ServiceReference<IPdfPostProcessor>> {
+
+        @Override
+        public int compare(final ServiceReference<IPdfPostProcessor> ref1, final ServiceReference<IPdfPostProcessor> ref2) {
+            final IPdfPostProcessor service1 = Activator.getContext().getService(ref1);
+            final IPdfPostProcessor service2 = Activator.getContext().getService(ref2);
+
+            if (service1 == null && service2 == null) {
+                return 0;
+            }
+            if (service1 == null) {
+                return -1;
+            }
+            if (service2 == null) {
+                return 1;
+            }
+
+            return Integer.compare(service1.getPriority(), service2.getPriority());
+        }
+    }
 }

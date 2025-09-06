@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.dto;
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.javamoney.moneta.Money;
 
 import com.sebulli.fakturama.misc.DataUtils;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.ItemAccountType;
 
 /**
@@ -33,231 +34,245 @@ import com.sebulli.fakturama.model.ItemAccountType;
  * @author Gerd Bartelt
  */
 public class VatSummaryItem implements Comparable<VatSummaryItem> {
-	
-	// Absolute Net and Vat value
-	// This can be the sum of more than one item
-	private MonetaryAmount net;
-	
-	// sales equalization tax (could be zero)
-	private MonetaryAmount salesEqTax;
-	private Double salesEqTaxPercent;
 
-	// Vat Name and Percent Value. These values identify the VatSummaryItem
-	private String vatName;
-	private String description;
-	private Double vatPercent;
-	
-	private ItemAccountType accountType;
-	
+    // Absolute Net and Vat value
+    // This can be the sum of more than one item
+    private MonetaryAmount net;
+
+    // sales equalization tax (could be zero)
+    private MonetaryAmount salesEqTax;
+    private Double salesEqTaxPercent;
+
+    // Vat Name and Percent Value. These values identify the VatSummaryItem
+    private final String vatName;
+    private final String description;
+    private final Double vatPercent;
+
+    private final UNTDID5305 vatCode;
+
+    private ItemAccountType accountType;
+
     CurrencyUnit currencyUnit = DataUtils.getInstance().getDefaultCurrencyUnit();
-    MonetaryRounding rounding = DataUtils.getInstance().getRounding(currencyUnit);  
-
-	/**
-	 * Constructor Creates a VatSummaryItem from a net and vat value and the vat
-	 * name.
-	 * 
-	 * @param vatName
-	 *            Vat name
-	 * @param vatPercent
-	 *            Vat value in percent
-	 * @param net
-	 *            Absolute Net value
-	 * @param vat
-	 *            Absolute Vat value
-	 */
-	public VatSummaryItem(String vatName, Double vatPercent, MonetaryAmount net, MonetaryAmount vat) {
-		this(vatName, vatPercent, net, vat, "");
-	}
-
-	/**
-	 * Constructor Creates a VatSummaryItem from a net and vat value and the vat
-	 * name with an additional description
-	 * 
-	 * @param vatName
-	 *            Vat name
-	 * @param vatPercent
-	 *            Vat value in percent
-	 * @param net
-	 *            Absolute Net value
-	 * @param vat
-	 *            Absolute Vat value
-	 * @param description
-	 *            Additional description
-	 */
-	public VatSummaryItem(String vatName, Double vatPercent, MonetaryAmount net, MonetaryAmount vat, String description) {
-		this.vatName = vatName;
-		this.vatPercent = vatPercent;
-		this.net = net;
-		this.salesEqTax = Money.zero(net.getCurrency());
-		this.description = description;
-	}
-
-	public VatSummaryItem(String vatName, Double vatPercent, MonetaryAmount totalNet, MonetaryAmount itemVat, ItemAccountType accountType) {
-		this(vatName, vatPercent, totalNet, itemVat, accountType != null ? accountType.getName() : "");
-		this.accountType = accountType;
-   }
+    MonetaryRounding rounding = DataUtils.getInstance().getRounding(currencyUnit);
 
     /**
-	 * Creates a {@link VatSummaryItem} from an existing {@link VatSummaryItem}.
-	 * 
-	 * @param vatSummaryItem
-	 */
-	public static VatSummaryItem of(VatSummaryItem vatSummaryItem) {
-	    VatSummaryItem vatSummaryItemCopy = new VatSummaryItem(vatSummaryItem.getVatName(), vatSummaryItem.getVatPercent(), vatSummaryItem.getNet(), vatSummaryItem.getVat(), vatSummaryItem.getDescription());
-	    if(vatSummaryItem.getSalesEqTaxPercent() != null) {
-	    	vatSummaryItemCopy.setSalesEqTax(vatSummaryItem.getSalesEqTax());
-	    	vatSummaryItemCopy.setSalesEqTaxPercent(vatSummaryItem.getSalesEqTaxPercent());
-	    }
-		return vatSummaryItemCopy;
-	}
+     * Constructor Creates a VatSummaryItem from a net and vat value and the vat
+     * name.
+     * 
+     * @param vatName
+     *            Vat name
+     * @param vatPercent
+     *            Vat value in percent
+     * @param net
+     *            Absolute Net value
+     * @param vat
+     *            Absolute Vat value
+     */
+    public VatSummaryItem(final String vatName, final Double vatPercent, final UNTDID5305 vatCode, final MonetaryAmount net, final MonetaryAmount vat) {
+        this(vatName, vatPercent, vatCode, net, vat, "");
+    }
 
-	/**
-	 * Add the net and vat value from an other VatSummaryItem.
-	 * 
-	 * @param other
-	 *            The other VatSummaryItem
-	 */
-	public void add(VatSummaryItem other) {
-	    this.net = this.net.add(other.net);
-	    this.salesEqTax = this.salesEqTax != null && other.salesEqTax != null ? this.salesEqTax.add(other.salesEqTax) : Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit());
-	}
+    /**
+     * Constructor Creates a VatSummaryItem from a net and vat value and the vat
+     * name with an additional description
+     * 
+     * @param vatName
+     *            Vat name
+     * @param vatPercent
+     *            Vat value in percent
+     * @param net
+     *            Absolute Net value
+     * @param vat
+     *            Absolute Vat value
+     * @param description
+     *            Additional description
+     */
+    public VatSummaryItem(final String vatName, final Double vatPercent, final UNTDID5305 vatCode, final MonetaryAmount net, final MonetaryAmount vat,
+            final String description) {
+        this.vatName = vatName;
+        this.vatPercent = vatPercent;
+        this.vatCode = vatCode;
+        this.net = net;
+        this.salesEqTax = Money.zero(net.getCurrency());
+        this.description = description;
+    }
 
-	/**
-	 * Sets the absolute net value
-	 * 
-	 * @param Net
-	 *            value
-	 */
-	public void setNet(MonetaryAmount value) {
-		this.net = value;
-	}
+    public VatSummaryItem(final String vatName, final Double vatPercent, final UNTDID5305 vatCode, final MonetaryAmount totalNet, final MonetaryAmount itemVat,
+            final ItemAccountType accountType) {
+        this(vatName, vatPercent, vatCode, totalNet, itemVat, accountType != null ? accountType.getName() : "");
+        this.accountType = accountType;
+    }
 
-	/**
-	 * Get the absolute net value
-	 * 
-	 * @return Net value as Double
-	 */
-	public MonetaryAmount getNet() {
-		return net;
-	}
+    /**
+     * Creates a {@link VatSummaryItem} from an existing {@link VatSummaryItem}.
+     * 
+     * @param vatSummaryItem
+     */
+    public static VatSummaryItem of(final VatSummaryItem vatSummaryItem) {
+        final VatSummaryItem vatSummaryItemCopy = new VatSummaryItem(vatSummaryItem.getVatName(), vatSummaryItem.getVatPercent(), vatSummaryItem.getVatCode(),
+                vatSummaryItem.getNet(), vatSummaryItem.getVat(), vatSummaryItem.getDescription());
+        if (vatSummaryItem.getSalesEqTaxPercent() != null) {
+            vatSummaryItemCopy.setSalesEqTax(vatSummaryItem.getSalesEqTax());
+            vatSummaryItemCopy.setSalesEqTaxPercent(vatSummaryItem.getSalesEqTaxPercent());
+        }
+        return vatSummaryItemCopy;
+    }
 
-	/**
-	 * Get the absolute vat value
-	 * 
-	 * @return Vat value as Double
-	 */
-	public MonetaryAmount getVat() {
-		return this.net.with(rounding).multiply(this.vatPercent);
-	}
+    /**
+     * Add the net and vat value from an other VatSummaryItem.
+     * 
+     * @param other
+     *            The other VatSummaryItem
+     */
+    public void add(final VatSummaryItem other) {
+        this.net = this.net.add(other.net);
+        this.salesEqTax = this.salesEqTax != null && other.salesEqTax != null ? this.salesEqTax.add(other.salesEqTax)
+                : Money.zero(DataUtils.getInstance().getDefaultCurrencyUnit());
+    }
 
-	public MonetaryAmount getVatRounded() {
-		return this.net.multiply(this.vatPercent).with(rounding);
-	}
-	
-	/**
-	 * Get the name of the vat
-	 * 
-	 * @return Vat name as string
-	 */
-	public String getVatName() {
-		return vatName;
-	}
+    /**
+     * Sets the absolute net value
+     * 
+     * @param Net
+     *            value
+     */
+    public void setNet(final MonetaryAmount value) {
+        this.net = value;
+    }
 
-	/**
-	 * Get the description
-	 * 
-	 * @return Vat name as string
-	 */
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * Get the absolute net value
+     * 
+     * @return Net value as Double
+     */
+    public MonetaryAmount getNet() {
+        return net;
+    }
 
-	/**
-	 * Percent value of this VatSummaryItem
-	 * 
-	 * @return Vat in percent
-	 */
-	public Double getVatPercent() {
-		return vatPercent;
-	}
+    /**
+     * Get the absolute vat value
+     * 
+     * @return Vat value as Double
+     */
+    public MonetaryAmount getVat() {
+        return this.net.multiply(this.vatPercent);
+    }
 
-	/**
-	 * @return the accountType
-	 */
-	public final ItemAccountType getAccountType() {
-		return accountType;
-	}
+    public MonetaryAmount getVatRounded() {
+        return this.net.multiply(this.vatPercent).with(rounding);
+    }
 
-	/**
-	 * @return the salesEqTax
-	 */
-	public final MonetaryAmount getSalesEqTax() {
-		return salesEqTax;
-	}
+    /**
+     * Get the name of the vat
+     * 
+     * @return Vat name as string
+     */
+    public String getVatName() {
+        return vatName;
+    }
 
-	/**
-	 * @param salesEqTax the salesEqTax to set
-	 */
-	public final void setSalesEqTax(MonetaryAmount salesEqTax) {
-		this.salesEqTax = salesEqTax;
-	}
+    /**
+     * Get the description
+     * 
+     * @return Vat name as string
+     */
+    public String getDescription() {
+        return description;
+    }
 
-	/**
-	 * @return the salesEqTaxPercent
-	 */
-	public final Double getSalesEqTaxPercent() {
-		return salesEqTaxPercent;
-	}
+    /**
+     * Percent value of this VatSummaryItem
+     * 
+     * @return Vat in percent
+     */
+    public Double getVatPercent() {
+        return vatPercent;
+    }
 
-	/**
-	 * @param salesEqTaxPercent the salesEqTaxPercent to set
-	 */
-	public final void setSalesEqTaxPercent(Double salesEqTaxPercent) {
-		this.salesEqTaxPercent = salesEqTaxPercent;
-		
-		// recalculate Sales Equalization Tax
-		if(this.net != null && salesEqTaxPercent != null) {
-			this.salesEqTax = this.net.with(rounding).multiply(this.salesEqTaxPercent);
-		}
-	}
+    /**
+     * @return the vatCode
+     */
+    public UNTDID5305 getVatCode() {
+        return vatCode;
+    }
 
-	/**
-	 * Compares this VatSummaryItem with an other Compares vat percent value and
-	 * vat name.
-	 * 
-	 * @param o
-	 *            The other VatSummaryItem
-	 * @return result of the comparison
-	 */
-	@Override
-	public int compareTo(VatSummaryItem other) {
-//		VatSummaryItem other = (VatSummaryItem) o;
+    /**
+     * @return the accountType
+     */
+    public final ItemAccountType getAccountType() {
+        return accountType;
+    }
 
-		// First compare the vat value in percent
-		if (this.vatPercent < other.vatPercent) {
-			return -1;
-		}
-		if (this.vatPercent > other.vatPercent) {
-			return 1;
-		}
+    /**
+     * @return the salesEqTax
+     */
+    public final MonetaryAmount getSalesEqTax() {
+        return salesEqTax;
+    }
 
-		// Then the vat name
-		int i = StringUtils.defaultString(this.vatName, "").compareTo(StringUtils.defaultString(other.vatName, ""));
-		if (i != 0) {
-			return i;
-		}
+    /**
+     * @param salesEqTax
+     *            the salesEqTax to set
+     */
+    public final void setSalesEqTax(final MonetaryAmount salesEqTax) {
+        this.salesEqTax = salesEqTax;
+    }
 
-		// Then the description
-		return this.description.compareToIgnoreCase(other.description);
-	}
-	
+    /**
+     * @return the salesEqTaxPercent
+     */
+    public final Double getSalesEqTaxPercent() {
+        return salesEqTaxPercent;
+    }
+
+    /**
+     * @param salesEqTaxPercent
+     *            the salesEqTaxPercent to set
+     */
+    public final void setSalesEqTaxPercent(final Double salesEqTaxPercent) {
+        this.salesEqTaxPercent = salesEqTaxPercent;
+
+        // recalculate Sales Equalization Tax
+        if (this.net != null && salesEqTaxPercent != null) {
+            this.salesEqTax = this.net.with(rounding).multiply(this.salesEqTaxPercent);
+        }
+    }
+
+    /**
+     * Compares this VatSummaryItem with an other Compares vat percent value and
+     * vat name.
+     * 
+     * @param o
+     *            The other VatSummaryItem
+     * @return result of the comparison
+     */
+    @Override
+    public int compareTo(final VatSummaryItem other) {
+        //		VatSummaryItem other = (VatSummaryItem) o;
+
+        // First compare the vat value in percent
+        if (this.vatPercent < other.vatPercent) {
+            return -1;
+        }
+        if (this.vatPercent > other.vatPercent) {
+            return 1;
+        }
+
+        // Then the vat name
+        final int i = StringUtils.defaultString(this.vatName, "").compareTo(StringUtils.defaultString(other.vatName, ""));
+        if (i != 0) {
+            return i;
+        }
+
+        // Then the description
+        return this.description.compareToIgnoreCase(other.description);
+    }
+
     @Override
     public String toString() {
-        return new StringBuilder("[Amount (net): ").append(net)
-        		.append("; VAT: ").append(getVatRounded()).append(" (").append(NumberFormat.getPercentInstance().format(vatPercent)).append(") - ")
-        		.append(StringUtils.defaultIfBlank(vatName, "(no name)"))
-        		.append("; SET: ").append(salesEqTaxPercent != null ? salesEqTaxPercent : "0").append("%").append(salesEqTax != null ? " (" + salesEqTax + ")" : "")
-        		.append(']').toString();
+        return new StringBuilder("[Amount (net): ").append(net).append("; VAT: ").append(getVatRounded()).append(" (")
+                .append(NumberFormat.getPercentInstance().format(vatPercent)).append(") - ").append(StringUtils.defaultIfBlank(vatName, "(no name)"))
+                .append("; SET: ").append(salesEqTaxPercent != null ? salesEqTaxPercent : "0").append("%")
+                .append(salesEqTax != null ? " (" + salesEqTax + ")" : "").append(']').toString();
     }
 }
-

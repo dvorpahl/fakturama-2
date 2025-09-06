@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014 www.fakturama.org
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
 
 package com.sebulli.fakturama.handlers;
@@ -45,37 +45,37 @@ import com.sebulli.fakturama.log.ILogger;
 public class ResetPerspectiveHandler {
     @Inject
     private ILogger log;
-    
-	private static final String MAIN_WINDOW_ID = "com.sebulli.fakturama.application";
 
-	@Execute
-	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell shell, EModelService modelService,
-			MApplication app, EPartService partService) {
+    private static final String MAIN_WINDOW_ID = "com.sebulli.fakturama.application";
 
-		MWindow window = (MWindow) modelService.find(MAIN_WINDOW_ID, app);
+    @Execute
+    public void execute(@Named(IServiceConstants.ACTIVE_SHELL) final Shell shell, final EModelService modelService, final MApplication app,
+            final EPartService partService) {
 
-		final MPerspective perspective = modelService.getActivePerspective(window);
+        final MWindow window = (MWindow) modelService.find(MAIN_WINDOW_ID, app);
 
-		final MUIElement snippet = modelService.cloneSnippet(app, perspective.getElementId(), window);
-		snippet.setToBeRendered(true);
-		if (snippet != null) {
-			MElementContainer<MUIElement> parent = perspective.getParent();
-			perspective.setToBeRendered(false);
+        final MPerspective perspective = modelService.getActivePerspective(window);
 
-			List<MWindow> existingDetachedWindows = new ArrayList<MWindow>();
-			existingDetachedWindows.addAll(perspective.getWindows());
+        final MUIElement snippet = modelService.cloneSnippet(app, perspective.getElementId(), window);
+        if (snippet != null) {
+            snippet.setToBeRendered(true);
+            final MElementContainer<MUIElement> parent = perspective.getParent();
+            perspective.setToBeRendered(false);
 
-			MPerspective dummyPerspective = (MPerspective) snippet;
-			while (dummyPerspective.getWindows().size() > 0) {
-				MWindow detachedWindow = dummyPerspective.getWindows().remove(0);
-				perspective.getWindows().add(detachedWindow);
-			}
+            final List<MWindow> existingDetachedWindows = new ArrayList<>();
+            existingDetachedWindows.addAll(perspective.getWindows());
 
-			parent.getChildren().remove(perspective);
+            final MPerspective dummyPerspective = (MPerspective) snippet;
+            while (!dummyPerspective.getWindows().isEmpty()) {
+                final MWindow detachedWindow = dummyPerspective.getWindows().remove(0);
+                perspective.getWindows().add(detachedWindow);
+            }
 
-			parent.getChildren().add(snippet);
-			log.debug(parent.getChildren().get(0).getElementId());
-			partService.switchPerspective((MPerspective) snippet);
-		}
-	}
+            parent.getChildren().remove(perspective);
+
+            parent.getChildren().add(snippet);
+            log.debug(parent.getChildren().get(0).getElementId());
+            partService.switchPerspective((MPerspective) snippet);
+        }
+    }
 }

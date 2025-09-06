@@ -1,0 +1,6 @@
+files:
+  - source: /**/l10n/*.properties
+    ignore:
+      - /**/l10n/*_%two_letters_code%.properties
+      - /**/l10n/*_%locale_with_underscore%.properties
+    translation: /**/l10n/%file_name%_%locale_with_underscore%.properties

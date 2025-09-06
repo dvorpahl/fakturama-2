@@ -10,9 +10,9 @@ Automatic-Module-Name: com.sebulli.fakturama.rcp.test
 Export-Package: com.sebulli.fakturama.office
 Require-Bundle: org.mockito.mockito-core;bundle-version="4.8.1",
  com.sebulli.fakturama.model,
- junit-jupiter-api;bundle-version="5.9.3",
- org.junit.vintage.engine;bundle-version="5.9.1",
- junit-jupiter-engine;bundle-version="5.9.3",
- junit-jupiter-params;bundle-version="5.9.3",
- junit-vintage-engine;bundle-version="5.9.3",
- org.mockito.junit-jupiter;bundle-version="4.8.1"
+ org.mockito.junit-jupiter;bundle-version="4.8.1",
+ junit-jupiter-api;bundle-version="5.12.2",
+ junit-jupiter-engine;bundle-version="5.12.2",
+ junit-jupiter-params;bundle-version="5.12.2",
+ junit-platform-engine;bundle-version="1.12.2",
+ junit-platform-commons;bundle-version="1.12.2"

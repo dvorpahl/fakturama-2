@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -84,14 +85,11 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
 
     @Inject
     @Translation
-    protected ZFMessages msg;
-
-    @Inject // node: org.fakturama.export.zugferd
-    protected IPreferenceStore preferences;
+    protected ZFMessages zfMsg;
 
     @Inject
     @org.eclipse.e4.core.di.annotations.Optional
-    @Preference
+    @Preference(nodePath = "org.fakturama.exporter.zugferd")
     protected IEclipsePreferences eclipsePrefs;
 
     @Inject
@@ -125,7 +123,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
     /** The Constant DEFAULT_PRICE_SCALE. */
     protected static final int DEFAULT_AMOUNT_SCALE = 4;
 
-    protected static SimpleDateFormat sdfDest = new SimpleDateFormat("yyyyMMdd");
+    protected final SimpleDateFormat sdfDest = new SimpleDateFormat("yyyyMMdd");
     protected Map<String, MonetaryAmount> netPricesPerVat = new HashMap<>();
 
     /**
@@ -134,48 +132,54 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
      * das XML-File in den vorgegebenen Ordner geschrieben.
      * 
      * @param invoice
-     * @param root
+     * @param invoiceXmlJaxb
      * @param zugferdProfile
      */
-    protected boolean createPdf(final Invoice invoice, final Supplier<? extends Serializable> root, final ConformanceLevel zugferdProfile) {
+    protected boolean createPdf(final Invoice invoice, final Supplier<? extends Serializable> invoiceXmlJaxb, final ConformanceLevel zugferdProfile) {
         boolean retval = true;
-        String pdfFile = invoice.getPdfPath();
+        final String pdfFile = invoice.getPdfPath();
         PDDocument pdfa3 = null;
 
         netPricesPerVat.clear();
-
-        if (zugferdProfile == ConformanceLevel.XRECHNUNG) {
-            FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
-            Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
-            Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
-                    eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, preferences.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)), invoice);
-            // only to be on the safe side...
+        final boolean embed = eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, false);
+        if (zugferdProfile == ConformanceLevel.XRECHNUNG && !embed) {
             try {
+                final IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();
+                final FileOrganizer fo = ContextInjectionFactory.make(FileOrganizer.class, eclipseContext);
+                final Set<PathOption> pathOptions = Stream.of(PathOption.values()).collect(Collectors.toSet());
+                final Path path = fo.getDocumentPath(pathOptions, TargetFormat.XML,
+                        eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PATH, defaultValuesNode.getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_PATH)),
+                        invoice);
+                // only to be on the safe side...
                 Files.deleteIfExists(path);
-            } catch (IOException exception) {
+                createXmlFile(invoiceXmlJaxb, path);
+
+            } catch (final Exception exception) {
                 log.error(exception, "can't delete old XRechnung document: " + exception.getMessage());
             }
-            createXmlFile(root, path);
         } else {
+            // this is Zugferd only
             try (ByteArrayOutputStream buffo = new ByteArrayOutputStream()) {
                 // create XML from structure              
-                JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory
-                        .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
-                Path file = Files.createTempFile("fakxml", "xml");
-                OutputStream outputStream = Files.newOutputStream(file);
+                final JAXBContext context = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext("org.fakturama.export.facturx.modelgen",
+                        this.getClass().getClassLoader(), null);
+                final Path file = Files.createTempFile("fakxml", "xml");
+                final OutputStream outputStream = Files.newOutputStream(file);
 
-                context.createMarshaller().marshal(root.get(), outputStream);
+                context.createMarshaller().marshal(invoiceXmlJaxb.get(), outputStream);
                 outputStream.flush();
                 outputStream.close();
 
-                printDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
-                PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile, zugferdProfile/*, zugferdXml, invoice.getName()*/);
+                printXMLDocument(new StreamSource(file.toFile()), new StreamResult(buffo));
+                final boolean isXRechnung = zugferdProfile == ConformanceLevel.XRECHNUNG && embed;
+                final PDDocument retvalPDFA3 = getPdfHelper().makeA3Acompliant(pdfFile,
+                        zugferdProfile/* , zugferdXml, invoice.getName() */, isXRechnung);
 
-                // embed XML
-                pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo);
+                // embed XML (if xrechnung or zugferd)
+                pdfa3 = getPdfHelper().attachZugferdFile(retvalPDFA3, buffo, isXRechnung);
 
                 if (pdfFile != null) {
-                    pdfa3.save(Paths.get(pdfFile).toFile());
+                    pdfa3.save(Paths.get(pdfFile + ".pdf").toFile());
                 } else { // dialog cancelled
                     retval = false;
                 }
@@ -186,10 +190,16 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
                 if (pdfa3 != null) {
                     try {
                         pdfa3.close();
-                    } catch (IOException ioex) {
+                    } catch (final IOException ioex) {
                         log.error(ioex, "error closing ZUGFeRD PDF document: " + ioex.getMessage());
                     }
                 }
+            }
+
+            try {
+                Files.move(Paths.get(pdfFile + ".pdf"), Paths.get(pdfFile), StandardCopyOption.REPLACE_EXISTING);
+            } catch (final IOException e) {
+                log.error("Error editing document", e);
             }
         }
         return retval;
@@ -197,9 +207,9 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
 
     protected abstract IPdfHelper getPdfHelper();
 
-    private void printDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
+    private void printXMLDocument(final StreamSource streamSource, final StreamResult streamResult) throws IOException, TransformerException {
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.setOutputProperty(OutputKeys.METHOD, "xml");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -220,14 +230,14 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         createOutputDirectory(path.getParent());
 
         try (BufferedWriter newBufferedWriter = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE);) {
-            Path file = Files.createTempFile("fakxml", "xml");
-            OutputStream outputStream = Files.newOutputStream(file);
-            JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory
+            final Path file = Files.createTempFile("fakxml", "xml");
+            final OutputStream outputStream = Files.newOutputStream(file);
+            final JAXBContext testContext = org.eclipse.persistence.jaxb.JAXBContextFactory
                     .createContext("org.fakturama.export.facturx.modelgen:org.fakturama.export.zugferd.modelgen", this.getClass().getClassLoader(), null);
             testContext.createMarshaller().marshal(root.get(), outputStream);
             outputStream.flush();
             outputStream.close();
-            printDocument(new StreamSource(file.toFile()), new StreamResult(newBufferedWriter));
+            printXMLDocument(new StreamSource(file.toFile()), new StreamResult(newBufferedWriter));
         } catch (JAXBException | IOException | TransformerException e) {
             log.error(e);
         }
@@ -237,7 +247,7 @@ public abstract class AbstractEInvoiceCreator implements IEinvoiceCreator {
         if (Files.notExists(directory)) {
             try {
                 Files.createDirectories(directory);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error(e, "can't create output directory: " + directory.toString());
             }
         }

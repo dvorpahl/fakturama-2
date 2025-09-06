@@ -1,10 +1,10 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,7 +12,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -59,7 +58,8 @@ public abstract class Contact extends ModelObject implements IEntity, Serializab
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, fetch = FetchType.LAZY)
+	@ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST,
+			CascadeType.REFRESH }/* , fetch = FetchType.LAZY */)
     @JoinColumns({ @JoinColumn(name = "FK_CATEGORY") })
     private ContactCategory categories = null;
 

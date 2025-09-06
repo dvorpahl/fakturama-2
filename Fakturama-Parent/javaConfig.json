@@ -1,0 +1,6 @@
+{
+    "projects": [
+        "./com.sebulli.fakturama.rcp"
+    ],
+    "targetPlatform": "./org.fakturama.target/org.fakturama.target.target"
+} 

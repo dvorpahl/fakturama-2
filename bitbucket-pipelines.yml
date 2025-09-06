@@ -8,6 +8,8 @@
 image: maven:3.9-eclipse-temurin-17
 
 pipelines:
+  caches:
+    - maven
   default:
     - parallel:
       - step:

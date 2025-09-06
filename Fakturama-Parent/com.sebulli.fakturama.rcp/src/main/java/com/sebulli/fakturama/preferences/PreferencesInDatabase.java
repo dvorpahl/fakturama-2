@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.preferences;
@@ -28,7 +28,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.sebulli.fakturama.dao.PropertiesDAO;
 
-
 /**
  * Write or read preference settings to or from the data base
  * 
@@ -39,64 +38,66 @@ public class PreferencesInDatabase {
 
     @Inject
     private IPreferenceStore preferences;
-    
+
     @Inject
     @Preference
     private IEclipsePreferences pref;
-    
+
     @Inject
     private PropertiesDAO propertiesDAO;
-    
+
     @Inject
     private IEclipseContext context;
 
-	/**
-	 * Load one preference from the data base
-	 * 
-	 * @param key
-	 *            The key of the preference value
-	 */
-	private void loadPreferenceValue(String key) {
-	    Optional<String> property = propertiesDAO.findPropertyValue(key);
-	    if(property.isPresent()) {
-	        preferences.setValue(key, property.get());
-	        pref.put(key, property.get());
-	    }
-	}
+    /**
+     * Load one preference from the data base
+     * 
+     * @param key
+     *            The key of the preference value
+     */
+    private void loadPreferenceValue(final String key) {
+        final Optional<String> property = propertiesDAO.findPropertyValue(key);
+        if (property.isPresent()) {
+            preferences.setValue(key, property.get());
+            pref.put(key, property.get());
+        }
+    }
 
-	/**
-	 * Save one preference to the data base
-	 * 
-	 * @param key
-	 *            The key of the preference value
-	 */
-	private void savePreferenceValue(String key) {
-		String s = preferences.getString(key);
-		if (s != null && propertiesDAO != null)
-		    propertiesDAO.setProperty(key, s);
-	}
+    /**
+     * Save one preference to the data base
+     * 
+     * @param key
+     *            The key of the preference value
+     */
+    private void savePreferenceValue(final String key) {
+        final String s = preferences.getString(key);
+        if (s != null && propertiesDAO != null) {
+            propertiesDAO.setProperty(key, s);
+        }
+    }
 
-	/**
-	 * Write to or read from the data base
-	 * 
-	 * @param key
-	 *            The key to read or to write
-	 * @param write
-	 *            True, if the value should be written
-	 */
-	public void syncWithPreferencesFromDatabase(String key, boolean write) {
-		if (write)
-			savePreferenceValue(key);
-		else
-			loadPreferenceValue(key);
-	}
+    /**
+     * Write to or read from the data base
+     * 
+     * @param key
+     *            The key to read or to write
+     * @param write
+     *            True, if the value should be written
+     */
+    public void syncWithPreferencesFromDatabase(final String key, final boolean write) {
+        if (write) {
+            savePreferenceValue(key);
+        } else {
+            loadPreferenceValue(key);
+        }
+    }
 
-	/**
-	 * Load or save all preference values from database of the following
-	 * preference pages.
-	 */
-	public void loadOrSavePreferencesFromOrInDatabase(boolean save) {
-        List<Class<? extends IInitializablePreference>> classesToInit = new ArrayList<>();
+    /**
+     * Load or save all preference values from database of the following
+     * preference pages.
+     */
+    public void loadOrSavePreferencesFromOrInDatabase(final boolean save) {
+        final List<Class<? extends IInitializablePreference>> classesToInit = new ArrayList<>();
         classesToInit.add(ContactFormatPreferencePage.class);
         classesToInit.add(DocumentPreferencePage.class);
         classesToInit.add(NumberRangeFormatPreferencePage.class);
@@ -112,29 +113,29 @@ public class PreferencesInDatabase {
         classesToInit.add(ExportPreferencePage.class);
         classesToInit.add(WebShopAuthorizationPreferencePage.class);
         classesToInit.add(BrowserPreferencePage.class);
-        
+
         context.set(LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE, save);
         // Initialize every single preference page
-        for (Class<? extends IInitializablePreference> clazz : classesToInit) {
-            IInitializablePreference p = ContextInjectionFactory.make(clazz, context);
+        for (final Class<? extends IInitializablePreference> clazz : classesToInit) {
+            final IInitializablePreference p = ContextInjectionFactory.make(clazz, context);
             ContextInjectionFactory.invoke(p, Synchronize.class, context);
         }
-	}
+    }
 
-	/**
-	 * Load all preference values from database of the following preference
-	 * pages.
-	 */
-	public void loadPreferencesFromDatabase() {
-		loadOrSavePreferencesFromOrInDatabase(false);
-	}
+    /**
+     * Load all preference values from database of the following preference
+     * pages.
+     */
+    public void loadPreferencesFromDatabase() {
+        loadOrSavePreferencesFromOrInDatabase(false);
+    }
 
-	/**
-	 * Write all preference values to database of the following preference
-	 * pages.
-	 */
-	public void savePreferencesInDatabase() {
-		loadOrSavePreferencesFromOrInDatabase(true);
-	}
+    /**
+     * Write all preference values to database of the following preference
+     * pages.
+     */
+    public void savePreferencesInDatabase() {
+        loadOrSavePreferencesFromOrInDatabase(true);
+    }
 
 }

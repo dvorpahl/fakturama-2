@@ -3,10 +3,12 @@ package org.fakturama.qrcode;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -46,18 +48,23 @@ public class QRCodeServiceImpl implements QRCodeService {
     }
 
     @Override
-    public byte[] createGiroCode(Invoice document) {
+    public byte[] createGiroCode(Invoice document, Map<String, Object> params) {
         BankAccount companyBankaccount = new BankAccount();
         companyBankaccount.setBic(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_BIC));
         companyBankaccount.setIban(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_IBAN));
         GiroCodeGenerator giroCodeGenerator = ContextInjectionFactory.make(GiroCodeGenerator.class, context);
-        return giroCodeGenerator.createGiroCode(document, companyBankaccount);
+        return giroCodeGenerator.createGiroCode(document, companyBankaccount, params);
     }
     
     @Override
     public byte[] createVCardQRCode(Document document) {
         VCard vcard = new VCard(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_OWNER));
-        vcard.setAddress(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET));
+		String address = String.join(";", ";",
+				preferences.getString(Constants.PREFERENCES_YOURCOMPANY_STREET),
+        		preferences.getString(Constants.PREFERENCES_YOURCOMPANY_CITY), 
+        		";"+preferences.getString(Constants.PREFERENCES_YOURCOMPANY_ZIP), 
+        		preferences.getString(Constants.PREFERENCES_YOURCOMPANY_COUNTRY));
+        vcard.setAddress(address);
         vcard.setCompany(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
         vcard.setEmail(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_EMAIL));
         vcard.setName(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME));
@@ -67,22 +74,26 @@ public class QRCodeServiceImpl implements QRCodeService {
         return qrCodeFile.toByteArray();
     }
     
-    @Override
-    public byte[] createEANCode(String productNumber) {
-            EAN13Writer barcodeWriter = new EAN13Writer();
+	@Override
+	public byte[] createEANCode(String productNumber) {
+		byte[] imageBytes = null;
+		if(StringUtils.isAllBlank(productNumber)) {
+			return imageBytes;
+		}
+		
+		EAN13Writer barcodeWriter = new EAN13Writer();
 
-            byte[] imageBytes = null;
-            try {
-                BitMatrix bitMatrix = barcodeWriter.encode(productNumber, BarcodeFormat.EAN_13, 300, 50);
-                BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-                
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(bufferedImage, "jpg", baos);
-                imageBytes = baos.toByteArray();    
-                
-            } catch (IllegalArgumentException | IOException e) {
-                log.error(e, "wrong EAN code for product '"+productNumber+"'");
-            }
-            return imageBytes;
-    }
+		try {
+			BitMatrix bitMatrix = barcodeWriter.encode(productNumber, BarcodeFormat.EAN_13, 300, 50);
+			BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(bufferedImage, "jpg", baos);
+			imageBytes = baos.toByteArray();
+
+		} catch (IllegalArgumentException | IOException e) {
+			log.error(e, "wrong EAN code for product '" + productNumber + "'");
+		}
+		return imageBytes;
+	}
 }

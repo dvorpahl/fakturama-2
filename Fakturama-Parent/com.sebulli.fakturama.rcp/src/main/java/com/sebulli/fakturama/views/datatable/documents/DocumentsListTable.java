@@ -136,9 +136,6 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @Inject
     private IDocumentAddressManager addressManager;
 
-    @Inject
-    @Preference //(value=InstanceScope.SCOPE)
-    private IEclipsePreferences eclipsePrefs;
 
     private EventList<Document> documentListData;
     private EventList<DummyStringCategory> categories;
@@ -161,7 +158,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     //    private EHelpService helpService;
 
     //create a new ConfigRegistry which will be needed for GlazedLists handling
-    private ConfigRegistry configRegistry = new ConfigRegistry();
+    private final ConfigRegistry configRegistry = new ConfigRegistry();
     protected FilterList<Document> treeFilteredIssues;
 
     private ContactUtil contactUtil;
@@ -186,7 +183,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
         // if another click handler is set we use it
         // Listen to double clicks
-        Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
+        final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
         if (commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
             hookDoubleClickCommand(natTable, getGridLayer(), (String) commandId);
         } else {
@@ -212,8 +209,8 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             nattable.getUiBindingRegistry().registerFirstSingleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
                 @Override
                 public void run(final NatTable natTable, final MouseEvent event) {
-                    int rowPos = natTable.getRowPositionByY(event.y);
-                    int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
+                    final int rowPos = natTable.getRowPositionByY(event.y);
+                    final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
                     selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
                     // see comment below
                     //                    selectionService.setSelection(selectionService);
@@ -230,27 +227,27 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             @Override
             public void run(final NatTable natTable, final MouseEvent event) {
                 //get the row position for the click in the NatTable
-                int rowPos = natTable.getRowPositionByY(event.y);
+                final int rowPos = natTable.getRowPositionByY(event.y);
                 //transform the NatTable row position to the row position of the body layer stack
-                int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
+                final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
                 selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
                 // Call the corresponding editor. The editor is set
                 // in the variable "editor", which is used as a parameter
                 // when calling the editor command.
                 // in E4 we create a new Part (or use an existing one with the same ID)
                 // from PartDescriptor
-                Map<String, Object> params = new HashMap<>();
+                final Map<String, Object> params = new HashMap<>();
                 ParameterizedCommand parameterizedCommand;
                 if (commandId != null) {
                     // If we don't give a target document number the event will be caught by *all*
                     // open editors which listens to this event. This is (obviously :-) ) not
                     // the intended behavior...
-                    Map<String, Object> eventParams = new HashMap<>();
+                    final Map<String, Object> eventParams = new HashMap<>();
                     // the transientData HashMap contains the target document number
                     // (was set in MouseEvent handler)
                     eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
                     // TODO how about multiple selections?
-                    List<Document> resultList = Arrays.asList(getSelectedObjects());
+                    final List<Document> resultList = Arrays.asList(getSelectedObjects());
                     eventParams.put(SELECTED_DELIVERY_ID, resultList);
                     //                    // alternatively use the Selection Service
                     // ==> no! Because this SelectionService has another context than 
@@ -279,12 +276,15 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         hookDoubleClickCommand(nattable, gridLayer, null);
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getAdditionalParameters()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#
+     * getAdditionalParameters()
      */
     @Override
     protected Map<String, Object> getAdditionalParameters() {
-        Map<String, Object> params = new HashMap<>();
+        final Map<String, Object> params = new HashMap<>();
         params.put(CallEditor.PARAM_CATEGORY, selectedObject.getBillingType().getName());
         return params;
     }
@@ -307,21 +307,20 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         natTable.addConfiguration(new SingleClickSortConfiguration());
 
         /*
-         * add feedback behavior to nattable (i.e., if a cell is selected, inform the
-         * TreeTable about it) 
+         * add feedback behavior to nattable (i.e., if a cell is selected,
+         * inform the
+         * TreeTable about it)
          */
         natTable.addLayerListener(new ILayerListener() {
             // Default selection behavior selects cells by default.
             @Override
             public void handleLayerEvent(final ILayerEvent event) {
-                if (event instanceof CellSelectionEvent) {
-                    CellSelectionEvent cellEvent = (CellSelectionEvent) event;
-
+                if (event instanceof final CellSelectionEvent cellEvent) {
                     //transform the NatTable row position to the row position of the body layer stack
-                    int bodyRowPos = LayerUtil.convertRowPosition(natTable, cellEvent.getRowPosition(), gridLayer.getBodyDataLayer());
+                    final int bodyRowPos = LayerUtil.convertRowPosition(natTable, cellEvent.getRowPosition(), gridLayer.getBodyDataLayer());
                     if (bodyRowPos > -1) {
                         // extract the selected Object
-                        Document selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
+                        final Document selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
 
                         // Set the transaction and the contact filter
                         if (selectedObject != null && topicTreeViewer != null) {
@@ -329,7 +328,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                                 topicTreeViewer.setTransaction(selectedObject.getTransactionId());
                             } else {
                                 // reset transaction id
-                                topicTreeViewer.setTransaction(Long.valueOf(-1));
+                                topicTreeViewer.setTransaction(-1l);
                             }
                             topicTreeViewer.setContactFromDocument(selectedObject);
                             changePopupEntries(null);
@@ -341,11 +340,12 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
         gridLayer.getSelectionLayer().getSelectionModel().setMultipleSelectionAllowed(true);
 
-        E4SelectionListener<Document> esl = new E4SelectionListener<>(selectionService, gridLayer.getSelectionLayer(), gridLayer.getBodyDataProvider());
+        final E4SelectionListener<Document> esl = new E4SelectionListener<>(selectionService, gridLayer.getSelectionLayer(), gridLayer.getBodyDataProvider());
         gridLayer.getSelectionLayer().addLayerListener(esl);
 
         /*
-         * Set the background color for this table. Could only set here, because otherwise 
+         * Set the background color for this table. Could only set here, because
+         * otherwise
          * it would be overwritten with default configurations.
          */
         natTable.setBackground(GUIHelper.COLOR_WHITE);
@@ -359,7 +359,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
                     @Override
                     public void run(final NatTable natTable, final MouseEvent event) {
-                        int rowPosition = natTable.getRowPositionByY(event.y);
+                        final int rowPosition = natTable.getRowPositionByY(event.y);
                         if (!gridLayer.getSelectionLayer().isRowPositionSelected(rowPosition)) {
                             selectRowAction.run(natTable, event);
                             changePopupEntries(null);
@@ -382,25 +382,25 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
             @Override
             public Object getDataValue(final Document rowObject, final int columnIndex) {
-                DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
+                final DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
                 switch (descriptor) {
-                case ICON:
-                case STATE:
-                case PRINTED:
-                    return specialCellValueProvider.getDataValue(rowObject, descriptor);
-                case DATE:
-                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
-                case DOCUMENT:
-                    return columnPropertyAccessor.getDataValue(rowObject, columnIndex - 1);
-                case NAME:
-                    return columnPropertyAccessor.getDataValue(rowObject, 1);
-                case CUSTREF:
-                    return columnPropertyAccessor.getDataValue(rowObject, 4);
-                case TOTAL:
-                    // alternative: return rowObject.getFirstName();
-                    return columnPropertyAccessor.getDataValue(rowObject, 3);
-                default:
-                    break;
+                    case ICON:
+                    case STATE:
+                    case PRINTED:
+                        return specialCellValueProvider.getDataValue(rowObject, descriptor);
+                    case DATE:
+                        return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
+                    case DOCUMENT:
+                        return columnPropertyAccessor.getDataValue(rowObject, columnIndex - 1);
+                    case NAME:
+                        return columnPropertyAccessor.getDataValue(rowObject, 1);
+                    case CUSTREF:
+                        return columnPropertyAccessor.getDataValue(rowObject, 4);
+                    case TOTAL:
+                        // alternative: return rowObject.getFirstName();
+                        return columnPropertyAccessor.getDataValue(rowObject, 3);
+                    default:
+                        break;
                 }
                 return null;
             }
@@ -417,7 +417,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
             @Override
             public String getColumnProperty(final int columnIndex) {
-                DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
+                final DocumentListDescriptor descriptor = DocumentListDescriptor.getDescriptorFromColumn(columnIndex);
                 return msg.getMessageFromKey(descriptor.getMessageKey());
             }
 
@@ -448,7 +448,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         //    	objectDuplicator.einTest(documentListData.get(0));
 
         // get the visible properties to show in list view
-        String[] propertyNames = documentsDAO.getVisibleProperties();
+        final String[] propertyNames = documentsDAO.getVisibleProperties();
         // Add derived 'default' column
         final IColumnPropertyAccessor<Document> derivedColumnPropertyAccessor = createColumnPropertyAccessor(propertyNames);
 
@@ -457,13 +457,13 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         //        IDataProvider columnHeaderDataProvider = new ListViewColumnHeaderDataProvider<Document>(propertyNames, derivedColumnPropertyAccessor); 
 
         /*
-        // Mark the columns that are used by the search function.
-        searchColumns = new String[4];
-        searchColumns[0] = "name";
-        searchColumns[1] = "date";
-        searchColumns[2] = "addressfirstline";
-        searchColumns[3] = "total";
-        */
+         * // Mark the columns that are used by the search function.
+         * searchColumns = new String[4];
+         * searchColumns[0] = "name";
+         * searchColumns[1] = "date";
+         * searchColumns[2] = "addressfirstline";
+         * searchColumns[3] = "total";
+         */
         final MatcherEditor<Document> textMatcherEditor = new TextWidgetMatcherEditor<>(searchText.getTextControl(),
                 GlazedLists.textFilterator(Document.class, Document_.name.getName(), Document_.addressFirstLine.getName(), Document_.customerRef.getName()));
 
@@ -476,7 +476,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
         //build the grid layer
         gridLayer = new EntityGridListLayer<>(treeFilteredIssues, propertyNames, derivedColumnPropertyAccessor, configRegistry);
-        DataLayer tableDataLayer = gridLayer.getBodyDataLayer();
+        final DataLayer tableDataLayer = gridLayer.getBodyDataLayer();
         tableDataLayer.setColumnPercentageSizing(true);
         //        Arrays.stream(DocumentListDescriptor.values()).forEach(
         //                descriptor -> tableDataLayer.setColumnWidthPercentageByPosition(descriptor.getPosition(), descriptor.getDefaultWidth()));
@@ -485,16 +485,19 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
         // Create a label accumulator - adds custom labels to all cells which we
         // wish to render differently. In this case render as an image.
-        ColumnOverrideLabelAccumulator columnLabelAccumulator = new ColumnOverrideLabelAccumulator(gridLayer.getBodyLayerStack());
+        final ColumnOverrideLabelAccumulator columnLabelAccumulator = new ColumnOverrideLabelAccumulator(gridLayer.getBodyLayerStack());
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.ICON.getPosition(), ICON_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.STATE.getPosition(), STATE_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.PRINTED.getPosition(), ICON_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.TOTAL.getPosition(), MONEYVALUE_CELL_LABEL);
         columnLabelAccumulator.registerColumnOverrides(DocumentListDescriptor.DATE.getPosition(), DATE_CELL_LABEL);
 
-        final NatTable natTable = new NatTable(searchAndTableComposite/*, 
-                                                                      SWT.NO_REDRAW_RESIZE | SWT.DOUBLE_BUFFERED | SWT.BORDER*/, gridLayer.getGridLayer(),
-                false);
+        final NatTable natTable = new NatTable(
+                searchAndTableComposite/*
+                                        * ,
+                                        * SWT.NO_REDRAW_RESIZE |
+                                        * SWT.DOUBLE_BUFFERED | SWT.BORDER
+                                        */, gridLayer.getGridLayer(), false);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
 
@@ -515,7 +518,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @SuppressWarnings("unchecked")
     @Override
     protected TopicTreeViewer<DummyStringCategory> createCategoryTreeViewer(final Composite top) {
-        Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
+        final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_DELIVERIES_CLICKHANDLER);
         if (commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
             topicTreeViewer = null;
         } else {
@@ -533,15 +536,15 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 topicTreeViewer.disableSorting();
                 topicTreeViewer.setInput(categories);
 
-                Function<DummyStringCategory, String> categorySummarizer = cat -> {
-                    java.util.Optional<Double> sum = documentsDAO.sumAllDocumentsWithinCategory(cat);
+                final Function<DummyStringCategory, String> categorySummarizer = cat -> {
+                    final java.util.Optional<Double> sum = documentsDAO.sumAllDocumentsWithinCategory(cat);
                     return sum.isPresent() ? numberFormatterService.doubleToFormattedPrice(sum.get()) : "--";
                 };
 
-                TreeCategoryLabelProvider treeTableLabelProvider = new TreeCategoryLabelProvider(categorySummarizer);
+                final TreeCategoryLabelProvider treeTableLabelProvider = new TreeCategoryLabelProvider(categorySummarizer);
                 ContextInjectionFactory.inject(treeTableLabelProvider, context);
                 topicTreeViewer.setLabelProvider(treeTableLabelProvider);
-            } catch (PersistenceException e) {
+            } catch (final PersistenceException e) {
                 // if no database is created an exception occurs at this point
                 log.warn("Category tree couldn't be created, perhaps because of initially startup?");
             }
@@ -595,7 +598,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     if (treeObjectType == TreeObjectType.TRANSACTIONS_ROOTNODE) {
                         filterLabel.setText(msg.topictreeLabelThistransaction);
                         // bind myFirstLabel via method reference
-                        registry.register(filterLabel::setText, (msg) -> msg.topictreeLabelThistransaction);
+                        registry.register(filterLabel::setText, () -> msg.topictreeLabelThistransaction);
                     } else {
                         filterLabel.setText(StringUtils.removeStart(filter, "/"));
                     }
@@ -614,13 +617,13 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
     @Override
     public void changeToolbarItem(final TreeObject treeObject) {
-        MToolBar toolbar = listTablePart.getToolbar();
-        for (MToolBarElement tbElem : toolbar.getChildren()) {
+        final MToolBar toolbar = listTablePart.getToolbar();
+        for (final MToolBarElement tbElem : toolbar.getChildren()) {
             if (tbElem.getElementId().contentEquals(getToolbarAddItemCommandId())) {
-                HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
+                final HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
                 ParameterizedCommand wbCommand = toolItem.getWbCommand();
                 @SuppressWarnings("unchecked")
-                Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
+                final Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
                 if (treeObject.getDocType() != null) {
                     toolItem.setTooltip(msg.commandNewTooltip + " " + msg.getMessageFromKey(treeObject.getDocType().getSingularKey()));
                     parameterMap.put(CallEditor.PARAM_CATEGORY, treeObject.getDocType().name());
@@ -650,7 +653,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
      * @param part
      */
     protected void changePopupEntries(final DocumentType documentType) {
-        BillingType selectedObjectType = (getSelectedObject() != null) ? getSelectedObject().getBillingType() : BillingType.NONE;
+        final BillingType selectedObjectType = (getSelectedObject() != null) ? getSelectedObject().getBillingType() : BillingType.NONE;
 
         // for controlling of the visibility of popup commands
         // according to the supplementary information (tag name) the visibility is set for the
@@ -662,7 +665,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                 .forEach(popupMenu -> popupMenu.getChildren().stream().filter(entry -> entry.getTags().contains("deliveryActive"))
                         .forEach(foundEntry -> foundEntry.setVisible(documentType == DocumentType.DELIVERY || selectedObjectType == BillingType.DELIVERY)));
 
-        boolean canBePaid = java.util.Optional.ofNullable(documentType).orElse(DocumentType.NONE).canBePaid()
+        final boolean canBePaid = java.util.Optional.ofNullable(documentType).orElse(DocumentType.NONE).canBePaid()
                 || DocumentType.findByKey(selectedObjectType.getValue()).canBePaid();
         listTablePart.getMenus().stream().filter(menu -> menu.getElementId().contentEquals(POPUP_ID)).forEach(popupMenu -> popupMenu.getChildren().stream()
                 .filter(entry -> entry.getTags().contains("canBePaidActive")).forEach(foundEntry -> foundEntry.setVisible(canBePaid)));
@@ -671,7 +674,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @Override
     public void setContactFilter(final long filter) {
         // Set the label with the filter string
-        DocumentReceiver contact = contactsDAO.findById(filter);
+        final DocumentReceiver contact = contactsDAO.findById(filter);
         if (contact != null) {
             setCategoryFilter(contactUtil.getNameWithCompany(contact), TreeObjectType.CONTACTS_ROOTNODE);
             //          filterLabel.setText(contactUtil.getNameWithCompany(contact));
@@ -707,8 +710,11 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         return ID;
     }
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getEditorId()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.views.datatable.AbstractViewDataTable#getEditorId()
      */
     @Override
     protected String getEditorId() {
@@ -724,13 +730,13 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
         @Override
         public void configureRegistry(final IConfigRegistry configRegistry) {
-            Style styleLeftAligned = new Style();
+            final Style styleLeftAligned = new Style();
             styleLeftAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
-            Style styleRightAligned = new Style();
+            final Style styleRightAligned = new Style();
             styleRightAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.RIGHT);
-            Style styleCentered = new Style();
+            final Style styleCentered = new Style();
             styleCentered.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.CENTER);
-            CellPainterWrapper painter = new PaddingDecorator(new TextPainter(), 0, 7, 0, 7);
+            final CellPainterWrapper painter = new PaddingDecorator(new TextPainter(), 0, 7, 0, 7);
 
             // default style for most of the cells
             configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, // attribute to apply
@@ -753,7 +759,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     DisplayMode.NORMAL, MONEYVALUE_CELL_LABEL);
 
             configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, styleRightAligned, DisplayMode.NORMAL, DATE_CELL_LABEL);
-            SimpleDateFormat dateFormat = (SimpleDateFormat) SimpleDateFormat.getDateInstance(DateFormat.MEDIUM, localeUtil.getDefaultLocale());
+            final SimpleDateFormat dateFormat = (SimpleDateFormat) SimpleDateFormat.getDateInstance(DateFormat.MEDIUM, localeUtil.getDefaultLocale());
             configRegistry.registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultDateDisplayConverter(dateFormat.toPattern()),
                     DisplayMode.NORMAL, DATE_CELL_LABEL);
         }
@@ -761,8 +767,8 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
     @Override
     public Document[] getSelectedObjects() {
-        List<Document> selectedObjects = new ArrayList<>();
-        int[] fullySelectedRowPositions = gridLayer.getSelectionLayer().getFullySelectedRowPositions();
+        final List<Document> selectedObjects = new ArrayList<>();
+        final int[] fullySelectedRowPositions = gridLayer.getSelectionLayer().getFullySelectedRowPositions();
         if (fullySelectedRowPositions.length > 0 && fullySelectedRowPositions[0] > -1) {
             for (int i = 0; i < fullySelectedRowPositions.length; i++) {
                 selectedObjects.add(gridLayer.getBodyDataProvider().getRowObject(fullySelectedRowPositions[i]));
@@ -770,14 +776,14 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         } else {
             log.debug("no rows selected!");
         }
-        Document[] retArr = selectedObjects.toArray(new Document[selectedObjects.size()]);
+        final Document[] retArr = selectedObjects.toArray(new Document[selectedObjects.size()]);
         selectionService.setSelection(selectedObjects);
         return retArr;
     }
 
     @Override
     public Document getSelectedObject() {
-        Document[] selectedObjects = getSelectedObjects();
+        final Document[] selectedObjects = getSelectedObjects();
         return selectedObjects != null && selectedObjects.length > 0 ? selectedObjects[0] : null;
     }
 
@@ -802,38 +808,41 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         public Object canonicalToDisplayValue(final ILayerCell cell, final IConfigRegistry configRegistry, final Object canonicalValue) {
             String retval = "";
             if (canonicalValue != null) {
-                Icon value = (Icon) canonicalValue;
+                final Icon value = (Icon) canonicalValue;
                 switch (value) {
-                case COMMAND_ORDER_PENDING:
-                    retval = msg.documentOrderStateOpen;
-                    break;
-                case COMMAND_ORDER_SHIPPED:
-                    retval = msg.documentOrderStateShipped;
-                    break;
-                case COMMAND_ORDER_PROCESSING:
-                    retval = msg.documentOrderStateInprogress;
-                    break;
-                case COMMAND_CHECKED:
-                    retval = msg.documentOrderStatePaid;
-                    //                    retval = msg.documentOrderStateClosed;
-                    break;
-                case COMMAND_ERROR:
-                    /* only for dunnings: We have to show the count of current dunning.
-                     * Therefore we have to extract the currently displayed value and 
-                     * look at the dunning level.
-                     */
-                    Document rowObject = gridLayer.getBodyDataProvider().getRowObject(cell.getRowIndex());
-                    if (rowObject.getBillingType() == BillingType.DUNNING) {
-                        int dunningLevel = ((Dunning) rowObject).getDunningLevel();
-                        //T: Marking of a dunning in the document table.
-                        //T: Format: "Dunning No. xx"
-                        retval = MessageFormat.format(msg.documentDunningStatemarkerName, dunningLevel);
-                    } else {
-                        retval = msg.documentOrderStateUnpaid;
-                    }
-                    break;
-                default:
-                    break;
+                    case COMMAND_ORDER_PENDING:
+                        retval = msg.documentOrderStateOpen;
+                        break;
+                    case COMMAND_ORDER_SHIPPED:
+                        retval = msg.documentOrderStateShipped;
+                        break;
+                    case COMMAND_ORDER_PROCESSING:
+                        retval = msg.documentOrderStateInprogress;
+                        break;
+                    case COMMAND_CHECKED:
+                        retval = msg.documentOrderStatePaid;
+                        //                    retval = msg.documentOrderStateClosed;
+                        break;
+                    case COMMAND_ERROR:
+                        /*
+                         * only for dunnings: We have to show the count of
+                         * current dunning.
+                         * Therefore we have to extract the currently displayed
+                         * value and
+                         * look at the dunning level.
+                         */
+                        final Document rowObject = gridLayer.getBodyDataProvider().getRowObject(cell.getRowIndex());
+                        if (rowObject.getBillingType() == BillingType.DUNNING) {
+                            final int dunningLevel = ((Dunning) rowObject).getDunningLevel();
+                            //T: Marking of a dunning in the document table.
+                            //T: Format: "Dunning No. xx"
+                            retval = MessageFormat.format(msg.documentDunningStatemarkerName, dunningLevel);
+                        } else {
+                            retval = msg.documentOrderStateUnpaid;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             return retval;
@@ -855,7 +864,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             });
         }
 
-        StockUpdateHandler stockUpdateHandler = ContextInjectionFactory.make(StockUpdateHandler.class, context);
+        final StockUpdateHandler stockUpdateHandler = ContextInjectionFactory.make(StockUpdateHandler.class, context);
         stockUpdateHandler.updateStockQuantity(top.getShell(), null, tmpDocument);
         return tmpDocument;
     }

@@ -1,15 +1,16 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -105,7 +106,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      */
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
     @JoinColumns({ @JoinColumn(name = "FK_PRODUCT") })
-    private List<ProductOptions> attributes = new ArrayList<ProductOptions>();
+    private List<ProductOptions> attributes = new ArrayList<>();
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
@@ -113,7 +114,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * 
      * @generated
      */
-    @Basic()
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "PICTURE")
     @Lob()
     private byte[] picture = null;
@@ -274,7 +275,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      */
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
     @JoinColumns({ @JoinColumn(name = "FK_PRODUCT") })
-    private List<ProductBlockPrice> blockPrices = new ArrayList<ProductBlockPrice>();
+    private List<ProductBlockPrice> blockPrices = new ArrayList<>();
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
@@ -415,7 +416,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the other object to compare
      * @generated
      */
-    public boolean isSameAs(Product other) {
+    public boolean isSameAs(final Product other) {
         boolean retval = true;
         if (other != null) {
             if (block1 != null && other.getBlock1() != null) {
@@ -436,7 +437,10 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
             if (getCategories() != null) {
                 retval &= getCategories().isSameAs(other.getCategories());
             }
-            /* reference to a Set (attributes) or a volatile member cannot be compared... */
+            /*
+             * reference to a Set (attributes) or a volatile member cannot be
+             * compared...
+             */
             if (picture != null) {
                 retval &= picture.equals(other.getPicture());
             }
@@ -488,7 +492,10 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
             if (allowance != null && other.getAllowance() != null) {
                 retval &= allowance.compareTo(other.getAllowance()) == 0;
             }
-            /* reference to a Set (blockPrices) or a volatile member cannot be compared... */
+            /*
+             * reference to a Set (blockPrices) or a volatile member cannot be
+             * compared...
+             */
             if (cdf01 != null && other.getCdf01() != null) {
                 retval &= cdf01.compareTo(other.getCdf01()) == 0;
             }
@@ -534,7 +541,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
 
     @Override
     public Product clone() {
-        Product retval = new Product();
+        final Product retval = new Product();
         retval.setBlock1(this.getBlock1());
         retval.setBlock2(this.getBlock2());
         retval.setBlock3(this.getBlock3());
@@ -603,7 +610,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setBlock1(Integer newBlock1) {
+    public void setBlock1(final Integer newBlock1) {
         firePropertyChange("block1", this.block1, newBlock1);
         block1 = newBlock1;
     }
@@ -631,7 +638,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setBlock2(Integer newBlock2) {
+    public void setBlock2(final Integer newBlock2) {
         firePropertyChange("block2", this.block2, newBlock2);
         block2 = newBlock2;
     }
@@ -659,7 +666,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setBlock3(Integer newBlock3) {
+    public void setBlock3(final Integer newBlock3) {
         firePropertyChange("block3", this.block3, newBlock3);
         block3 = newBlock3;
     }
@@ -687,7 +694,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setBlock4(Integer newBlock4) {
+    public void setBlock4(final Integer newBlock4) {
         firePropertyChange("block4", this.block4, newBlock4);
         block4 = newBlock4;
     }
@@ -715,7 +722,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setBlock5(Integer newBlock5) {
+    public void setBlock5(final Integer newBlock5) {
         firePropertyChange("block5", this.block5, newBlock5);
         block5 = newBlock5;
     }
@@ -728,6 +735,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>categories</b></em>' feature
      * @generated
      */
+    @Override
     public ProductCategory getCategories() {
 
         return categories;
@@ -743,7 +751,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            categories}' feature.
      * @generated
      */
-    public void setCategories(ProductCategory newCategories) {
+    public void setCategories(final ProductCategory newCategories) {
         firePropertyChange("categories", this.categories, newCategories);
         categories = newCategories;
     }
@@ -775,7 +783,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            attributes}' feature.
      * @generated
      */
-    public void setAttributes(List<ProductOptions> newAttributes) {
+    public void setAttributes(final List<ProductOptions> newAttributes) {
         firePropertyChange("attributes", this.attributes, newAttributes);
         attributes = newAttributes;
     }
@@ -805,7 +813,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPicture(byte[] newPicture) {
+    public void setPicture(final byte[] newPicture) {
         firePropertyChange("picture", this.picture, newPicture);
         picture = newPicture;
     }
@@ -833,7 +841,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            itemNumber}' feature.
      * @generated
      */
-    public void setItemNumber(String newItemNumber) {
+    public void setItemNumber(final String newItemNumber) {
         firePropertyChange("itemNumber", this.itemNumber, newItemNumber);
         itemNumber = newItemNumber;
     }
@@ -864,7 +872,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            supplierItemNumber}' feature.
      * @generated
      */
-    public void setSupplierItemNumber(String newSupplierItemNumber) {
+    public void setSupplierItemNumber(final String newSupplierItemNumber) {
         firePropertyChange("supplierItemNumber", this.supplierItemNumber, newSupplierItemNumber);
         supplierItemNumber = newSupplierItemNumber;
     }
@@ -892,7 +900,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPrice1(Double newPrice1) {
+    public void setPrice1(final Double newPrice1) {
         firePropertyChange("price1", this.price1, newPrice1);
         price1 = newPrice1;
     }
@@ -920,7 +928,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPrice2(Double newPrice2) {
+    public void setPrice2(final Double newPrice2) {
         firePropertyChange("price2", this.price2, newPrice2);
         price2 = newPrice2;
     }
@@ -948,7 +956,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPrice3(Double newPrice3) {
+    public void setPrice3(final Double newPrice3) {
         firePropertyChange("price3", this.price3, newPrice3);
         price3 = newPrice3;
     }
@@ -976,7 +984,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPrice4(Double newPrice4) {
+    public void setPrice4(final Double newPrice4) {
         firePropertyChange("price4", this.price4, newPrice4);
         price4 = newPrice4;
     }
@@ -1004,7 +1012,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPrice5(Double newPrice5) {
+    public void setPrice5(final Double newPrice5) {
         firePropertyChange("price5", this.price5, newPrice5);
         price5 = newPrice5;
     }
@@ -1032,7 +1040,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setQuantity(Double newQuantity) {
+    public void setQuantity(final Double newQuantity) {
         firePropertyChange("quantity", this.quantity, newQuantity);
         quantity = newQuantity;
     }
@@ -1061,7 +1069,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            quantityUnit}' feature.
      * @generated
      */
-    public void setQuantityUnit(String newQuantityUnit) {
+    public void setQuantityUnit(final String newQuantityUnit) {
         firePropertyChange("quantityUnit", this.quantityUnit, newQuantityUnit);
         quantityUnit = newQuantityUnit;
     }
@@ -1089,7 +1097,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            sellingUnit}' feature.
      * @generated
      */
-    public void setSellingUnit(Integer newSellingUnit) {
+    public void setSellingUnit(final Integer newSellingUnit) {
         firePropertyChange("sellingUnit", this.sellingUnit, newSellingUnit);
         sellingUnit = newSellingUnit;
     }
@@ -1116,7 +1124,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Product#getVat() vat}' feature.
      * @generated
      */
-    public void setVat(VAT newVat) {
+    public void setVat(final VAT newVat) {
         firePropertyChange("vat", this.vat, newVat);
         vat = newVat;
     }
@@ -1144,7 +1152,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            webshopId}' feature.
      * @generated
      */
-    public void setWebshopId(Long newWebshopId) {
+    public void setWebshopId(final Long newWebshopId) {
         firePropertyChange("webshopId", this.webshopId, newWebshopId);
         webshopId = newWebshopId;
     }
@@ -1172,7 +1180,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setWeight(Double newWeight) {
+    public void setWeight(final Double newWeight) {
         firePropertyChange("weight", this.weight, newWeight);
         weight = newWeight;
     }
@@ -1203,7 +1211,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Product#getGtin() gtin}' feature.
      * @generated
      */
-    public void setGtin(Long newGtin) {
+    public void setGtin(final Long newGtin) {
         firePropertyChange("gtin", this.gtin, newGtin);
         gtin = newGtin;
     }
@@ -1235,7 +1243,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            costPrice}' feature.
      * @generated
      */
-    public void setCostPrice(Double newCostPrice) {
+    public void setCostPrice(final Double newCostPrice) {
         firePropertyChange("costPrice", this.costPrice, newCostPrice);
         costPrice = newCostPrice;
     }
@@ -1263,7 +1271,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            allowance}' feature.
      * @generated
      */
-    public void setAllowance(String newAllowance) {
+    public void setAllowance(final String newAllowance) {
         firePropertyChange("allowance", this.allowance, newAllowance);
         allowance = newAllowance;
     }
@@ -1291,7 +1299,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            blockPrices}' feature.
      * @generated
      */
-    public void setBlockPrices(List<ProductBlockPrice> newBlockPrices) {
+    public void setBlockPrices(final List<ProductBlockPrice> newBlockPrices) {
         firePropertyChange("blockPrices", this.blockPrices, newBlockPrices);
         blockPrices = newBlockPrices;
     }
@@ -1323,7 +1331,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setCdf01(String newCdf01) {
+    public void setCdf01(final String newCdf01) {
         firePropertyChange("cdf01", this.cdf01, newCdf01);
         cdf01 = newCdf01;
     }
@@ -1351,7 +1359,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setCdf02(String newCdf02) {
+    public void setCdf02(final String newCdf02) {
         firePropertyChange("cdf02", this.cdf02, newCdf02);
         cdf02 = newCdf02;
     }
@@ -1379,7 +1387,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setCdf03(String newCdf03) {
+    public void setCdf03(final String newCdf03) {
         firePropertyChange("cdf03", this.cdf03, newCdf03);
         cdf03 = newCdf03;
     }
@@ -1406,7 +1414,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Product#getNote() note}' feature.
      * @generated
      */
-    public void setNote(String newNote) {
+    public void setNote(final String newNote) {
         firePropertyChange("note", this.note, newNote);
         note = newNote;
     }
@@ -1419,6 +1427,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>description</b></em>' feature
      * @generated
      */
+    @Override
     public String getDescription() {
 
         return description;
@@ -1434,7 +1443,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            description}' feature.
      * @generated
      */
-    public void setDescription(String newDescription) {
+    @Override
+    public void setDescription(final String newDescription) {
         firePropertyChange("description", this.description, newDescription);
         description = newDescription;
     }
@@ -1448,6 +1458,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>name</b></em>' feature
      * @generated
      */
+    @Override
     public String getName() {
 
         return name;
@@ -1463,7 +1474,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Product#getName() name}' feature.
      * @generated
      */
-    public void setName(String newName) {
+    @Override
+    public void setName(final String newName) {
         firePropertyChange("name", this.name, newName);
         name = newName;
     }
@@ -1477,6 +1489,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>dateAdded</b></em>' feature
      * @generated
      */
+    @Override
     public Date getDateAdded() {
 
         return dateAdded;
@@ -1493,7 +1506,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            dateAdded}' feature.
      * @generated
      */
-    public void setDateAdded(Date newDateAdded) {
+    @Override
+    public void setDateAdded(final Date newDateAdded) {
         firePropertyChange("dateAdded", this.dateAdded, newDateAdded);
         dateAdded = newDateAdded;
     }
@@ -1506,6 +1520,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>modifiedBy</b></em>' feature
      * @generated
      */
+    @Override
     public String getModifiedBy() {
 
         return modifiedBy;
@@ -1521,7 +1536,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            modifiedBy}' feature.
      * @generated
      */
-    public void setModifiedBy(String newModifiedBy) {
+    @Override
+    public void setModifiedBy(final String newModifiedBy) {
         firePropertyChange("modifiedBy", this.modifiedBy, newModifiedBy);
         modifiedBy = newModifiedBy;
     }
@@ -1534,6 +1550,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>modified</b></em>' feature
      * @generated
      */
+    @Override
     public Date getModified() {
 
         return modified;
@@ -1549,7 +1566,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setModified(Date newModified) {
+    @Override
+    public void setModified(final Date newModified) {
         firePropertyChange("modified", this.modified, newModified);
         modified = newModified;
     }
@@ -1562,6 +1580,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>id</b></em>' feature
      * @generated
      */
+    @Override
     public long getId() {
 
         return id;
@@ -1576,7 +1595,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Product#getId() id}' feature.
      * @generated
      */
-    public void setId(long newId) {
+    @Override
+    public void setId(final long newId) {
         firePropertyChange("id", this.id, newId);
         id = newId;
     }
@@ -1590,6 +1610,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>deleted</b></em>' feature
      * @generated
      */
+    @Override
     public Boolean getDeleted() {
 
         return deleted;
@@ -1606,7 +1627,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setDeleted(Boolean newDeleted) {
+    @Override
+    public void setDeleted(final Boolean newDeleted) {
         firePropertyChange("deleted", this.deleted, newDeleted);
         deleted = newDeleted;
     }
@@ -1621,6 +1643,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>validFrom</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidFrom() {
 
         return validFrom;
@@ -1638,7 +1661,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            validFrom}' feature.
      * @generated
      */
-    public void setValidFrom(Date newValidFrom) {
+    @Override
+    public void setValidFrom(final Date newValidFrom) {
         firePropertyChange("validFrom", this.validFrom, newValidFrom);
         validFrom = newValidFrom;
     }
@@ -1653,6 +1677,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>validTo</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidTo() {
 
         return validTo;
@@ -1670,7 +1695,8 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setValidTo(Date newValidTo) {
+    @Override
+    public void setValidTo(final Date newValidTo) {
         firePropertyChange("validTo", this.validTo, newValidTo);
         validTo = newValidTo;
     }

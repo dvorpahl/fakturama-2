@@ -164,6 +164,7 @@ public class WebShopStatusSettingsDialog extends TitleAreaDialog {
         Color gray = display.getSystemColor(SWT.COLOR_GRAY);
         Color blue = display.getSystemColor(SWT.COLOR_BLUE);
         TreeMapperUIConfigProvider uiConfig = new TreeMapperUIConfigProvider(gray, 1, blue, 3);
+        uiConfig.setDndEnabled(true);
         mappings = new ArrayList<>();
         ISemanticTreeMapperSupport<WebshopOrderStateMapping, WebshopOrderState, OrderState> semanticSupport = new ISemanticTreeMapperSupport<>() {
             @Override

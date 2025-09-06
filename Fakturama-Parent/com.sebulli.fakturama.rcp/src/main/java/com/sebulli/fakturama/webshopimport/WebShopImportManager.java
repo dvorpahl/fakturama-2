@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.webshopimport;
@@ -50,7 +50,7 @@ import com.sebulli.fakturama.handlers.WebShopCallHandler;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.Constants;
-//import com.sebulli.fakturama.model.CustomDocument;
+// import com.sebulli.fakturama.model.CustomDocument;
 import com.sebulli.fakturama.model.Document;
 import com.sebulli.fakturama.model.VAT;
 import com.sebulli.fakturama.parts.ContactEditor;
@@ -64,22 +64,23 @@ import com.sebulli.fakturama.views.datatable.documents.DocumentsListTable;
 
 /**
  * Web shop import manager. This class provides the functionality to connect to
- * the web shop and import the data, which is transmitted as a XML File. This 
+ * the web shop and import the data, which is transmitted as a XML File. This
  * file is created by a connector, which is individual for each shop system.
- * Look at Fakturama download page for further information. 
- * The WebshopImporter (which is started by this {@link WebShopImportManager}) creates the 
- * missing products, {@link VAT}s and {@link Document}s (orders in this case). 
+ * Look at Fakturama download page for further information.
+ * The WebshopImporter (which is started by this {@link WebShopImportManager})
+ * creates the
+ * missing products, {@link VAT}s and {@link Document}s (orders in this case).
  * 
  */
 public class WebShopImportManager {
-	
+
     @Inject
     @Translation
-	private Messages msg;
-    
+    private Messages msg;
+
     @Inject
     private EModelService modelService;
-    
+
     @Inject
     private MApplication application;
 
@@ -87,8 +88,8 @@ public class WebShopImportManager {
      * contains the result from Web shop connector execution
      */
     private Object data;
-    
-    @Inject 
+
+    @Inject
     private ILogger log;
 
     /**
@@ -97,255 +98,262 @@ public class WebShopImportManager {
     @Inject
     protected IEventBroker evtBroker;
 
-    @Inject @Optional
-	private IPreferenceStore preferences;
+    @Inject
+    @Optional
+    private IPreferenceStore preferences;
 
-    @Inject 
+    @Inject
     private IEclipseContext context;
 
-    @Inject 
+    @Inject
     private VatsDAO vatsDAO;
-    
-    @Inject 
+
+    @Inject
     private DocumentsDAO documentsDAO;
-    
-    @Inject 
+
+    @Inject
     private ProductsDAO productsDAO;
-    
-    @Inject 
+
+    @Inject
     private ContactsDAO contactsDAO;
-    
-    @Inject 
+
+    @Inject
     private ShippingCategoriesDAO shippingCategoriesDAO;
-    
-    @Inject 
+
+    @Inject
     private ShippingsDAO shippingsDAO;
-    
-    @Inject 
+
+    @Inject
     private PaymentsDAO paymentsDAO;
-    
-    @Inject 
+
+    @Inject
     private ProductCategoriesDAO productCategoriesDAO;
-    
-	@Inject
-	private WebshopDAO webshopStateMappingDAO;
 
-	// The result of this import process
-	private String runResult = "";
+    @Inject
+    private WebshopDAO webshopStateMappingDAO;
 
-	private WebShopConnector conn;
+    // The result of this import process
+    private String runResult = "";
 
-	@CanExecute
-	public boolean canExecute() {
-	    // cancel if the webshop is disabled.
+    @CanExecute
+    public boolean canExecute() {
+        // cancel if the webshop is disabled.
         return getPreferences().getBoolean(Constants.PREFERENCES_WEBSHOP_ENABLED);
-	}
-	
-/* TODO use it!
-		XMLParserActivator
-*/
+    }
 
-	
-	/* (non-Javadoc)
-	 * @see com.sebulli.fakturama.webshopimport.IWebshopConnection#execute(org.eclipse.swt.widgets.Shell, java.lang.String)
-	 */
-	@Execute
-	public ExecutionResult execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell parent,
-	        @Optional @Named(WebShopCallHandler.PARAM_IS_GET_PRODUCTS) Boolean prepareGetProductsAndOrders,
-	        @Named(WebShopCallHandler.PARAM_ACTION) String action) {
-	    ExecutionResult executionResult = null;
-	    
-		String shopURL = preferences.getString(Constants.PREFERENCES_WEBSHOP_URL);
-		
-        conn = new WebShopConnector()
-        		.withScriptURL(StringUtils.prependIfMissingIgnoreCase(shopURL, "http://", "https://", "file://"))
-        		.withUseAuthorization(preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_ENABLED))
-        		.withAuthorizationUser(preferences.getString(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_USER))
-        		.withAuthorizationPassword(preferences.getString(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_PASSWORD))
-        		.withUser(preferences.getString(Constants.PREFERENCES_WEBSHOP_USER))
-        		.withPassword(preferences.getString(Constants.PREFERENCES_WEBSHOP_PASSWORD));
-	    
-	    if(BooleanUtils.toBoolean(prepareGetProductsAndOrders)) {
-	    	conn.prepareGetProductsAndOrders();
-	    } else {
-	    	conn.prepareChangeState();
-	    }
-	    
+    /*
+     * TODO use it!
+     * XMLParserActivator
+     */
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sebulli.fakturama.webshopimport.IWebshopConnection#execute(org.
+     * eclipse.swt.widgets.Shell, java.lang.String)
+     */
+    @Execute
+    public ExecutionResult execute(@Named(IServiceConstants.ACTIVE_SHELL) final Shell parent,
+            @Optional @Named(WebShopCallHandler.PARAM_IS_GET_PRODUCTS) final Boolean prepareGetProductsAndOrders,
+            @Optional @Named(WebShopCallHandler.PARAM_ACTION) final String action) {
+        ExecutionResult executionResult = null;
+
+        final String shopURL = preferences.getString(Constants.PREFERENCES_WEBSHOP_URL);
+        final WebShopConnector conn = new WebShopConnector().withScriptURL(StringUtils.prependIfMissingIgnoreCase(shopURL, "http://", "https://", "file://"))
+                .withUseAuthorization(preferences.getBoolean(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_ENABLED))
+                .withAuthorizationUser(preferences.getString(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_USER))
+                .withAuthorizationPassword(preferences.getString(Constants.PREFERENCES_WEBSHOP_AUTHORIZATION_PASSWORD))
+                .withUser(preferences.getString(Constants.PREFERENCES_WEBSHOP_USER))
+                .withPassword(preferences.getString(Constants.PREFERENCES_WEBSHOP_PASSWORD));
+
+        if (BooleanUtils.toBoolean(prepareGetProductsAndOrders)) {
+            conn.prepareGetProductsAndOrders();
+        } else {
+            conn.prepareChangeState();
+        }
+
         try {
-            ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(parent);
-            WebShopDataImporter importOperation = ContextInjectionFactory.make(WebShopDataImporter.class, context);
+            final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(parent);
+            final WebShopDataImporter importOperation = ContextInjectionFactory.make(WebShopDataImporter.class, context);
             importOperation.setConnector(conn);
             progressMonitorDialog.run(true, true, importOperation);
             this.runResult = importOperation.getRunResult();
             executionResult = new ExecutionResult(getRunResult(), getRunResult().isEmpty() ? 0 : 1);
+        } catch (final InvocationTargetException e) {
+            getLog().error(e, "Error running web shop import manager.");
+            executionResult = new ExecutionResult("Error running web shop import manager.", 1);
+        } catch (final InterruptedException e) {
+            getLog().error(e, "Web shop import manager was interrupted.");
+            executionResult = new ExecutionResult("Web shop import manager was interrupted.", 2);
         }
-          catch (InvocationTargetException e) {
-              getLog().error(e, "Error running web shop import manager.");
-              executionResult = new ExecutionResult("Error running web shop import manager.", 1);
-          }
-          catch (InterruptedException e) {
-              getLog().error(e, "Web shop import manager was interrupted.");
-              executionResult = new ExecutionResult("Web shop import manager was interrupted.", 2);
-          }
 
-		// If there is no error - interpret the data.
-		if (executionResult.getErrorCode() != Constants.RC_OK) {
-			// If there is an error - display it in a message box
-			String errorMessage = StringUtils.abbreviate(executionResult.getErrorMessage(), 400);
-			MessageDialog.openError(parent, getMsg().importWebshopActionError, errorMessage);
-			log.error(errorMessage);
+        // If there is no error - interpret the data.
+        if (executionResult.getErrorCode() != Constants.RC_OK) {
+            // If there is an error - display it in a message box
+            final String errorMessage = StringUtils.abbreviate(executionResult.getErrorMessage(), 400);
+            MessageDialog.openError(parent, getMsg().importWebshopActionError, errorMessage);
+            log.error(errorMessage);
         } else {
-        	MessageDialog.openInformation(parent, getMsg().importWebshopActionLabel, getMsg().importWebshopInfoSuccess);
-		}
+            MessageDialog.openInformation(parent, getMsg().importWebshopActionLabel, getMsg().importWebshopInfoSuccess);
+        }
 
-		// Refresh the views -> fire some update events
-		// => the messages are handled by list views! 
-		evtBroker.post(ProductEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		evtBroker.post(DocumentEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		evtBroker.post(ContactEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		evtBroker.post(PaymentEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		evtBroker.post(ShippingEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-		evtBroker.post(VatEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        // Refresh the views -> fire some update events
+        // => the messages are handled by list views! 
+        evtBroker.post(ProductEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        evtBroker.post(DocumentEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        evtBroker.post(ContactEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        evtBroker.post(PaymentEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        evtBroker.post(ShippingEditor.EDITOR_ID, Editor.UPDATE_EVENT);
+        evtBroker.post(VatEditor.EDITOR_ID, Editor.UPDATE_EVENT);
 
-		// After the web shop import, open the document view
-		// and set the focus to the new imported orders.
-		MUIElement view = modelService.find(DocumentsListTable.ID, application);
-		modelService.bringToTop(view);
-//		ViewDocumentTable viewDocumentTable = (ViewDocumentTable) view;
-//		viewDocumentTable.getTopicTreeViewer().selectItemByName(DocumentType.ORDER.getPluralString() + "/" + DataSetDocument.getStringNOTSHIPPED());
+        // After the web shop import, open the document view
+        // and set the focus to the new imported orders.
+        final MUIElement view = modelService.find(DocumentsListTable.ID, application);
+        modelService.bringToTop(view);
+        //		ViewDocumentTable viewDocumentTable = (ViewDocumentTable) view;
+        //		viewDocumentTable.getTopicTreeViewer().selectItemByName(DocumentType.ORDER.getPluralString() + "/" + DataSetDocument.getStringNOTSHIPPED());
         return executionResult;
-	}
+    }
 
-	/**
-	 * Remove the HTML tags from the result
-	 * 
-	 * @return The formated run result string
-	 */
-	public String getRunResult() {
-		return runResult.replaceAll("\\<.*?\\>", "");
-	}
+    /**
+     * Remove the HTML tags from the result
+     * 
+     * @return The formated run result string
+     */
+    public String getRunResult() {
+        return runResult.replaceAll("\\<.*?\\>", "");
+    }
 
-	/* (non-Javadoc)
-	 * @see com.sebulli.fakturama.webshopimport.IWebshopConnection#setRunResult(java.lang.String)
-	 */
-	public void setRunResult(String runResult) {
-		this.runResult = runResult;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sebulli.fakturama.webshopimport.IWebshopConnection#setRunResult(java.
+     * lang.String)
+     */
+    public void setRunResult(final String runResult) {
+        this.runResult = runResult;
+    }
 
-	/**
-	 * @return the preferences
-	 */
-	public IPreferenceStore getPreferences() {
-		return preferences;
-	}
+    /**
+     * @return the preferences
+     */
+    public IPreferenceStore getPreferences() {
+        return preferences;
+    }
 
-	/**
-	 * @param preferences the preferences to set
-	 */
-	public void setPreferences(IPreferenceStore preferences) {
-		this.preferences = preferences;
-	}
+    /**
+     * @param preferences
+     *            the preferences to set
+     */
+    public void setPreferences(final IPreferenceStore preferences) {
+        this.preferences = preferences;
+    }
 
-	/**
-	 * @return the msg
-	 */
-	public Messages getMsg() {
-		return msg;
-	}
+    /**
+     * @return the msg
+     */
+    public Messages getMsg() {
+        return msg;
+    }
 
-	/**
-	 * @param msg the msg to set
-	 */
-	public void setMsg(Messages msg) {
-		this.msg = msg;
-	}
+    /**
+     * @param msg
+     *            the msg to set
+     */
+    public void setMsg(final Messages msg) {
+        this.msg = msg;
+    }
 
-	/**
-	 * @return the log
-	 */
-	public ILogger getLog() {
-		return log;
-	}
+    /**
+     * @return the log
+     */
+    public ILogger getLog() {
+        return log;
+    }
 
-	/**
-	 * @return the context
-	 */
-	public final IEclipseContext getContext() {
-		return context;
-	}
+    /**
+     * @return the context
+     */
+    public final IEclipseContext getContext() {
+        return context;
+    }
 
-	/**
-	 * @return the vatsDAO
-	 */
-	public final VatsDAO getVatsDAO() {
-		return vatsDAO;
-	}
+    /**
+     * @return the vatsDAO
+     */
+    public final VatsDAO getVatsDAO() {
+        return vatsDAO;
+    }
 
-	/**
-	 * @return the documentsDAO
-	 */
-	public final DocumentsDAO getDocumentsDAO() {
-		return documentsDAO;
-	}
+    /**
+     * @return the documentsDAO
+     */
+    public final DocumentsDAO getDocumentsDAO() {
+        return documentsDAO;
+    }
 
-	/**
-	 * @return the productsDAO
-	 */
-	public final ProductsDAO getProductsDAO() {
-		return productsDAO;
-	}
+    /**
+     * @return the productsDAO
+     */
+    public final ProductsDAO getProductsDAO() {
+        return productsDAO;
+    }
 
-	/**
-	 * @return the contactsDAO
-	 */
-	public final ContactsDAO getContactsDAO() {
-		return contactsDAO;
-	}
+    /**
+     * @return the contactsDAO
+     */
+    public final ContactsDAO getContactsDAO() {
+        return contactsDAO;
+    }
 
-	/**
-	 * @return the shippingCategoriesDAO
-	 */
-	public final ShippingCategoriesDAO getShippingCategoriesDAO() {
-		return shippingCategoriesDAO;
-	}
+    /**
+     * @return the shippingCategoriesDAO
+     */
+    public final ShippingCategoriesDAO getShippingCategoriesDAO() {
+        return shippingCategoriesDAO;
+    }
 
-	/**
-	 * @return the shippingsDAO
-	 */
-	public final ShippingsDAO getShippingsDAO() {
-		return shippingsDAO;
-	}
+    /**
+     * @return the shippingsDAO
+     */
+    public final ShippingsDAO getShippingsDAO() {
+        return shippingsDAO;
+    }
 
-	/**
-	 * @return the paymentsDAO
-	 */
-	public final PaymentsDAO getPaymentsDAO() {
-		return paymentsDAO;
-	}
+    /**
+     * @return the paymentsDAO
+     */
+    public final PaymentsDAO getPaymentsDAO() {
+        return paymentsDAO;
+    }
 
-	/**
-	 * @return the productCategoriesDAO
-	 */
-	public final ProductCategoriesDAO getProductCategoriesDAO() {
-		return productCategoriesDAO;
-	}
-	/**
-	 * @return the webshopStateMappingDAO
-	 */
-	public final WebshopDAO getWebshopDAO() {
-		return webshopStateMappingDAO;
-	}
+    /**
+     * @return the productCategoriesDAO
+     */
+    public final ProductCategoriesDAO getProductCategoriesDAO() {
+        return productCategoriesDAO;
+    }
 
-	/**
-	 * @return the data
-	 */
-	public final Object getData() {
-		return data;
-	}
-	/**
-	 * @param data the data to set
-	 */
-	public final void setData(Object data) {
-		this.data = data;
-	}
+    /**
+     * @return the webshopStateMappingDAO
+     */
+    public final WebshopDAO getWebshopDAO() {
+        return webshopStateMappingDAO;
+    }
+
+    /**
+     * @return the data
+     */
+    public final Object getData() {
+        return data;
+    }
+
+    /**
+     * @param data
+     *            the data to set
+     */
+    public final void setData(final Object data) {
+        this.data = data;
+    }
 }

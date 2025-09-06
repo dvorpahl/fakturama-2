@@ -18,7 +18,11 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -34,6 +38,7 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.nebula.widgets.formattedtext.IntegerFormatter;
 import org.eclipse.nebula.widgets.formattedtext.PercentFormatter;
@@ -42,6 +47,7 @@ import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -54,13 +60,16 @@ import com.sebulli.fakturama.dao.VoucherCategoriesDAO;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.UNTDID4461;
 import com.sebulli.fakturama.model.CategoryComparator;
 import com.sebulli.fakturama.model.FakturamaModelPackage;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Payment_;
 import com.sebulli.fakturama.model.VoucherCategory;
 import com.sebulli.fakturama.parts.converter.CategoryConverter;
+import com.sebulli.fakturama.parts.converter.PaymentCodeToUNTDID4461TranslationConverter;
 import com.sebulli.fakturama.parts.converter.StringToCategoryConverter;
+import com.sebulli.fakturama.parts.converter.UNTDID4461TranslationToPaymentCodeConverter;
 import com.sebulli.fakturama.resources.core.Icon;
 
 /**
@@ -98,6 +107,9 @@ public class PaymentEditor extends Editor<Payment> {
     private Text textUnpaid;
     private CCombo comboCategory;
 
+    private Combo comboPaymentCode;
+    private final List<UNTDID4461> usedCodes = Arrays.stream(UNTDID4461.values()).filter(UNTDID4461::getUsed).toList();
+
     // defines if the payment is newly created
     private boolean newPayment;
     private MPart part;
@@ -125,20 +137,20 @@ public class PaymentEditor extends Editor<Payment> {
         try {
             // at first, check the category for a new entry
             // (the user could have written a new one into the combo field)
-            String testCat = comboCategory.getText();
+            final String testCat = comboCategory.getText();
             // if there's no category we can skip this step
             if (StringUtils.isNotBlank(testCat)) {
-                VoucherCategory parentCategory = accountDAO.getOrCreateCategory(testCat, true);
+                final VoucherCategory parentCategory = accountDAO.getOrCreateCategory(testCat, true);
                 // parentCategory now has the last found Category
                 payment.setCategory(parentCategory);
             }
 
             // we have to truncate the shipping value (because of calculations between gross and net)
-            MathContext mc = new MathContext(16, RoundingMode.HALF_UP);
-            BigDecimal val = BigDecimal.valueOf(payment.getDiscountValue()).round(mc).setScale(5, RoundingMode.HALF_UP);
+            final MathContext mc = new MathContext(16, RoundingMode.HALF_UP);
+            final BigDecimal val = BigDecimal.valueOf(payment.getDiscountValue()).round(mc).setScale(5, RoundingMode.HALF_UP);
             payment.setDiscountValue(val.doubleValue());
             payment = paymentsDAO.update(payment);
-        } catch (FakturamaStoringException e) {
+        } catch (final FakturamaStoringException e) {
             log.error(e, "can't save the current Payment: " + payment.toString());
             return Boolean.FALSE;
         }
@@ -147,9 +159,9 @@ public class PaymentEditor extends Editor<Payment> {
         // to the data base
         if (newPayment) {
             newPayment = false;
-            String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
+            final String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
             if (StringUtils.isNotEmpty(category)) {
-                VoucherCategory newCat = accountDAO.findCategoryByName(category);
+                final VoucherCategory newCat = accountDAO.findCategoryByName(category);
                 payment.setCategory(newCat);
             }
             stdComposite.stdButton.setEnabled(true);
@@ -188,7 +200,7 @@ public class PaymentEditor extends Editor<Payment> {
         long stdID = 1L;
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_PAYMENT.getIconURI());
-        String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+        final String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
         if (StringUtils.isNumeric(tmpObjId)) {
             objId = Long.valueOf(tmpObjId);
             // Set the editor's data set to the editor's input
@@ -205,9 +217,9 @@ public class PaymentEditor extends Editor<Payment> {
             // Create a new data set
             payment = FakturamaModelPackage.MODELFACTORY.createPayment();
             //			payment.setCode(Constants.TAX_DEFAULT_CODE);
-            String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
+            final String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
             if (StringUtils.isNotEmpty(category)) {
-                VoucherCategory newCat = accountDAO.findCategoryByName(category);
+                final VoucherCategory newCat = accountDAO.findCategoryByName(category);
                 payment.setCategory(newCat);
             }
 
@@ -228,16 +240,15 @@ public class PaymentEditor extends Editor<Payment> {
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.PAYMENT_EDITOR);
 
         // Large payment label
-        Label labelTitle = new Label(top, SWT.NONE);
+        final Label labelTitle = new Label(top, SWT.NONE);
         //T: Payment Editor: Title
         labelTitle.setText(msg.editorContactFieldPaymentName);
         GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).span(3, 1).applyTo(labelTitle);
         makeLargeLabel(labelTitle);
 
         // Payment name
-        Label labelName = new Label(top, SWT.NONE);
+        final Label labelName = new Label(top, SWT.NONE);
         labelName.setText(msg.commonFieldName);
-        //T: Tool Tip Text
         labelName.setToolTipText(msg.editorPaymentNameTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
@@ -247,10 +258,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textName);
 
         // Payment category
-        Label labelCategory = new Label(top, SWT.NONE);
+        final Label labelCategory = new Label(top, SWT.NONE);
         //T: Payment Editor - category
         labelCategory.setText(msg.commonFieldAccount);
-        //T: Payment Editor - category Tool Tip Text
         labelCategory.setToolTipText(msg.editorPaymentAccountTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
 
@@ -259,9 +269,8 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(comboCategory);
 
         // Payment description
-        Label labelDescription = new Label(top, SWT.NONE);
+        final Label labelDescription = new Label(top, SWT.NONE);
         labelDescription.setText(msg.commonFieldDescription);
-        //T: Tool Tip Text
         labelDescription.setToolTipText(msg.editorVatDescriptionTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDescription);
@@ -269,10 +278,15 @@ public class PaymentEditor extends Editor<Payment> {
         textDescription.setToolTipText(labelDescription.getToolTipText());
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textDescription);
 
+        // payment code for einvoice
+        final Label labelPaymentCode = new Label(top, SWT.NONE);
+        labelPaymentCode.setText(msg.editorPaymentPaymentcode);
+        comboPaymentCode = new Combo(top, SWT.BORDER | SWT.READ_ONLY);
+        GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(comboPaymentCode);
+
         // Payment discount value
-        Label labelDiscountValue = new Label(top, SWT.NONE);
+        final Label labelDiscountValue = new Label(top, SWT.NONE);
         labelDiscountValue.setText(msg.editorPaymentDiscount);
-        //T: Tool Tip Text
         labelDiscountValue.setToolTipText(msg.editorPaymentDiscountTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDiscountValue);
@@ -282,10 +296,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textDiscountValue.getControl());
 
         // Payment days to pay the discount
-        Label labelDiscountDays = new Label(top, SWT.NONE);
+        final Label labelDiscountDays = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelDiscountDays.setText(msg.editorPaymentDiscountDays);
-        //T: Tool Tip Text
         labelDiscountDays.setToolTipText(msg.editorPaymentDiscountDaysTooltip);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDiscountDays);
@@ -295,10 +308,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textDiscountDays.getControl());
 
         // Payment days to pay the net value
-        Label labelNetDays = new Label(top, SWT.NONE);
+        final Label labelNetDays = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelNetDays.setText(msg.commonFieldNetDays);
-        //T: Tool Tip Text
         labelNetDays.setToolTipText(msg.editorPaymentNetdaysTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelNetDays);
         textNetDays = new FormattedText(top, SWT.BORDER | SWT.SINGLE);
@@ -307,34 +319,33 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(textNetDays.getControl());
 
         //T: Label in the payment editor
-        String[] possiblePlaceholders = new String[] { "BANK.ACCOUNT.HOLDER", "BANK.BIC", "BANK.IBAN", "BANK.IBAN.CENSORED", "BANK.NAME",
-                "DEBITOR.BANK.ACCOUNT.HOLDER", "DEBITOR.BANK.BIC", "DEBITOR.BANK.IBAN", "DEBITOR.BANK.IBAN.CENSORED", "DEBITOR.BANK.NAME", "DEBITOR.MANDATREF",
-                "DOCUMENT.TOTAL", "DUE.DATE", "DUE.DAYS", "DUE.DISCOUNT.DATE", "DUE.DISCOUNT.DAYS", "DUE.DISCOUNT.PERCENT", "DUE.DISCOUNT.VALUE", "PAID.DATE",
-                "PAID.VALUE", "YOURCOMPANY.CREDITORID" };
+        final String[] possiblePlaceholders = new String[] { "BANK.BIC", "BANK.IBAN", "BANK.IBAN.CENSORED", "BANK.NAME", "DEBITOR.BANK.ACCOUNT.HOLDER",
+                "DEBITOR.BANK.BIC", "DEBITOR.BANK.IBAN", "DEBITOR.BANK.IBAN.CENSORED", "DEBITOR.BANK.NAME", "DEBITOR.MANDATREF", "DOCUMENT.TOTAL", "DUE.DATE",
+                "DUE.DAYS", "DUE.DISCOUNT.DATE", "DUE.DISCOUNT.DAYS", "DUE.DISCOUNT.PERCENT", "DUE.DISCOUNT.VALUE", "PAID.DATE", "PAID.VALUE",
+                "YOURCOMPANY.CREDITORID" };
 
         // Label for the "unpaid" text message
-        Label labelUnpaid = new Label(top, SWT.NONE);
+        final Label labelUnpaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text unpaid
         labelUnpaid.setText(msg.editorPaymentUnpaidName);
-        //T: Tool Tip Text
         labelUnpaid.setToolTipText(msg.editorPaymentUnpaidTooltip);
-        GridDataFactory.swtDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(labelUnpaid);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelUnpaid);
 
         // Create text field for "unpaid" text message
         textUnpaid = new Text(top, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
         textUnpaid.setToolTipText(labelUnpaid.getToolTipText());
         GridDataFactory.fillDefaults().hint(SWT.DEFAULT, 200).grab(true, true).applyTo(textUnpaid);
 
-        Button placeholderUnpaidBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
+        final Button placeholderUnpaidBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
         placeholderUnpaidBtn.setToolTipText(msg.editorPaymentPlaceholderInfo);
         placeholderUnpaidBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent e) {
-                Menu popupMenu = new Menu(placeholderUnpaidBtn);
+                final Menu popupMenu = new Menu(placeholderUnpaidBtn);
 
                 Arrays.stream(possiblePlaceholders).forEach(entry -> addPlaceholderPopupItem(popupMenu, textUnpaid, entry));
 
-                java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
+                final java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
                 popupMenu.setLocation(location.x - 100, location.y);
                 popupMenu.setVisible(true);
             }
@@ -342,10 +353,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().hint(35, SWT.DEFAULT).align(SWT.BEGINNING, SWT.TOP).applyTo(placeholderUnpaidBtn);
 
         // Label for the "depositpaid" text message
-        Label labelDepositPaid = new Label(top, SWT.NONE);
+        final Label labelDepositPaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text paid
         labelDepositPaid.setText(msg.editorPaymentDepositName);
-        //T: Tool Tip Text
         labelDepositPaid.setToolTipText(msg.editorPaymentDepositTooltip);
         GridDataFactory.fillDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDepositPaid);
 
@@ -354,16 +364,16 @@ public class PaymentEditor extends Editor<Payment> {
         textDepositPaid.setToolTipText(labelDepositPaid.getToolTipText());
         GridDataFactory.fillDefaults().hint(SWT.DEFAULT, 200).grab(true, true).applyTo(textDepositPaid);
 
-        Button placeholderDepositBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
+        final Button placeholderDepositBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
         placeholderDepositBtn.setToolTipText(msg.editorPaymentPlaceholderInfo);
         placeholderDepositBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent e) {
-                Menu popupMenu = new Menu(placeholderDepositBtn);
+                final Menu popupMenu = new Menu(placeholderDepositBtn);
 
                 Arrays.stream(possiblePlaceholders).forEach(entry -> addPlaceholderPopupItem(popupMenu, textDepositPaid, entry));
 
-                java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
+                final java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
                 popupMenu.setLocation(location.x - 100, location.y);
                 popupMenu.setVisible(true);
             }
@@ -371,10 +381,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().hint(35, SWT.DEFAULT).align(SWT.BEGINNING, SWT.TOP).applyTo(placeholderDepositBtn);
 
         // Label for the "paid" text message
-        Label labelPaid = new Label(top, SWT.NONE);
+        final Label labelPaid = new Label(top, SWT.NONE);
         //T: Payment Editor: Label for the text paid
         labelPaid.setText(msg.editorPaymentPaidName);
-        //T: Tool Tip Text
         labelPaid.setToolTipText(msg.editorPaymentPaidTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelPaid);
 
@@ -383,16 +392,16 @@ public class PaymentEditor extends Editor<Payment> {
         textPaid.setToolTipText(labelPaid.getToolTipText());
         GridDataFactory.fillDefaults().hint(SWT.DEFAULT, 200).grab(true, true).applyTo(textPaid);
 
-        Button placeholderPaidBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
+        final Button placeholderPaidBtn = new Button(top, SWT.BORDER | SWT.ARROW | SWT.DOWN);
         placeholderPaidBtn.setToolTipText(msg.editorPaymentPlaceholderInfo);
         placeholderPaidBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent e) {
-                Menu popupMenu = new Menu(placeholderPaidBtn);
+                final Menu popupMenu = new Menu(placeholderPaidBtn);
 
                 Arrays.stream(possiblePlaceholders).forEach(entry -> addPlaceholderPopupItem(popupMenu, textPaid, entry));
 
-                java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
+                final java.awt.Point location = MouseInfo.getPointerInfo().getLocation();
                 popupMenu.setLocation(location.x - 100, location.y);
                 popupMenu.setVisible(true);
             }
@@ -400,10 +409,9 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.fillDefaults().hint(35, SWT.DEFAULT).align(SWT.BEGINNING, SWT.TOP).applyTo(placeholderPaidBtn);
 
         // Create the composite to make this payment to the standard payment. 
-        Label labelStd = new Label(top, SWT.NONE);
+        final Label labelStd = new Label(top, SWT.NONE);
         //T: Label in the payment editor
         labelStd.setText(msg.commonLabelDefault);
-        //T: Tool Tip Text
         labelStd.setToolTipText(msg.editorPaymentDefaultTooltip);
 
         // Get the ID of the standard entity from preferences
@@ -418,8 +426,6 @@ public class PaymentEditor extends Editor<Payment> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelStd);
         //T: Payment Editor: Button description to make this as standard payment.
         stdComposite = new StdComposite(top, payment, stdPayment, msg.editorPaymentDefaultButtonName, 2);
-
-        //T: Tool Tip Text
         stdComposite.setToolTipText(msg.editorPaymentDefaultButtonHint);
 
         // disable the Standard Button, if this is a new payment
@@ -436,6 +442,7 @@ public class PaymentEditor extends Editor<Payment> {
 
         bindModelValue(payment, textName, Payment_.name.getName(), 255);
         fillAndBindCategoryCombo();
+        fillAndBindPaymentCodeCombo();
         bindModelValue(payment, textDescription, Payment_.description.getName(), 255);
         bindModelValue(payment, textDiscountValue, Payment_.discountValue.getName(), 12);
         bindModelValue(payment, textDiscountDays, Payment_.discountDays.getName(), 8);
@@ -448,14 +455,47 @@ public class PaymentEditor extends Editor<Payment> {
     }
 
     /**
-     * creates the combo box for the VAT category
+     * creates the combo box for the payment code
+     */
+    private void fillAndBindPaymentCodeCombo() {
+        final ComboViewer viewer = new ComboViewer(comboPaymentCode);
+        viewer.setContentProvider(ArrayContentProvider.getInstance());
+        final String code = payment.getCode();
+        final LinkedHashMap<String, String> values = usedCodes.stream()
+                .collect(Collectors.toMap(UNTDID4461::getCode, e -> msg.getMessageFromKey(e.getTranslationKey()), (existing, replacement) -> existing, // handle duplicates
+                        LinkedHashMap::new));
+
+        viewer.setInput(values.entrySet());
+        final String current = code == null ? UNTDID4461.DEFAULT_VALUE.getCode() : code;
+        final Entry<String, String> selection = values.entrySet().stream().filter(e -> current.equalsIgnoreCase(e.getKey())).findFirst().orElseThrow();
+        viewer.setSelection(new StructuredSelection(selection));
+
+        viewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(final Object element) {
+                if (element instanceof final Entry<?, ?> entry) {
+                    return (String) entry.getValue();
+                }
+                // Customize this method to return the desired text for each element
+                return super.getText(element);
+            }
+        });
+
+        final UpdateValueStrategy<String, String> target2PaymentCodeModel = UpdateValueStrategy.create(new UNTDID4461TranslationToPaymentCodeConverter(msg));
+        final UpdateValueStrategy<String, String> paymentCodeModel2Target = UpdateValueStrategy.create(new PaymentCodeToUNTDID4461TranslationConverter(msg));
+        bindModelValue(payment, comboPaymentCode, Payment_.code.getName(), target2PaymentCodeModel, paymentCodeModel2Target);
+
+    }
+
+    /**
+     * creates the combo box for the payment account
      */
     private void fillAndBindCategoryCombo() {
         // Collect all category strings as a sorted Set
         final TreeSet<VoucherCategory> categories = new TreeSet<>(new CategoryComparator<>());
         categories.addAll(accountDAO.findAll());
 
-        ComboViewer viewer = new ComboViewer(comboCategory);
+        final ComboViewer viewer = new ComboViewer(comboCategory);
         viewer.setContentProvider(new ArrayContentProvider() {
             @Override
             public Object[] getElements(final Object inputElement) {
@@ -463,7 +503,7 @@ public class PaymentEditor extends Editor<Payment> {
             }
         });
 
-        VoucherCategory tmpCategory = payment.getCategory();
+        final VoucherCategory tmpCategory = payment.getCategory();
         // Add all categories to the combo
         viewer.setInput(categories);
         viewer.setLabelProvider(new LabelProvider() {
@@ -474,9 +514,8 @@ public class PaymentEditor extends Editor<Payment> {
         });
         payment.setCategory(tmpCategory);
 
-        UpdateValueStrategy<VoucherCategory, String> paymentCatModel2Target = UpdateValueStrategy
-                .create(new CategoryConverter<>(VoucherCategory.class));
-        UpdateValueStrategy<String, VoucherCategory> target2PaymentCatModel = UpdateValueStrategy
+        final UpdateValueStrategy<VoucherCategory, String> paymentCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<>(VoucherCategory.class));
+        final UpdateValueStrategy<String, VoucherCategory> target2PaymentCatModel = UpdateValueStrategy
                 .create(new StringToCategoryConverter<>(categories, VoucherCategory.class));
         bindModelValue(payment, comboCategory, Payment_.category.getName(), target2PaymentCatModel, paymentCatModel2Target);
     }
@@ -509,7 +548,7 @@ public class PaymentEditor extends Editor<Payment> {
      * @param placeholderText
      */
     private void addPlaceholderPopupItem(final Menu popupMenu, final Text textPaid, final String placeholderText) {
-        MenuItem newItem = new MenuItem(popupMenu, SWT.NONE);
+        final MenuItem newItem = new MenuItem(popupMenu, SWT.NONE);
         newItem.setText(placeholderText);
         newItem.addSelectionListener(new PlaceholderItemSelection(textPaid, placeholderText));
     }
@@ -519,8 +558,8 @@ public class PaymentEditor extends Editor<Payment> {
      * 
      */
     private static class PlaceholderItemSelection extends SelectionAdapter {
-        private Text targetWidget;
-        private String placeholderString;
+        private final Text targetWidget;
+        private final String placeholderString;
 
         /**
          * @param targetWidget
@@ -535,11 +574,11 @@ public class PaymentEditor extends Editor<Payment> {
         public void widgetSelected(final SelectionEvent e) {
             // Insert the selected text in the message text (selected widget is set in the
             // calling method)
-            int begin = targetWidget.getSelection().x;
-            int end = targetWidget.getSelection().y;
-            String s = targetWidget.getText();
-            String s1 = s.substring(0, begin);
-            String s2 = placeholderString;
+            final int begin = targetWidget.getSelection().x;
+            final int end = targetWidget.getSelection().y;
+            final String s = targetWidget.getText();
+            final String s1 = s.substring(0, begin);
+            final String s2 = placeholderString;
 
             targetWidget.setText(String.format("%s <%s> %s", s1, s2, s.substring(end, s.length())));
             targetWidget.setSelection(s1.length() + s2.length());

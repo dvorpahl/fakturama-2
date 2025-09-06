@@ -745,57 +745,57 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         Integer columnIndex = Integer.valueOf(0);
         final BidiMap<Integer, DocumentItemListDescriptor> propertyNamesList = new DualHashBidiMap<>();
 
-        if (containsOptionalItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_OPTIONALITEMS_USE) && (documentType == DocumentType.OFFER)) {
+        if (containsOptionalItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_OPTIONALITEMS_USE, false) && (documentType == DocumentType.OFFER)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.OPTIONAL);
         }
 
         propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.QUANTITY);
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_QUNIT)) {
+        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_QUNIT, false)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.QUNIT);
         }
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_WEIGHT)) {
+        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_WEIGHT, false)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.WEIGHT);
         }
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_ITEMNR)) {
+        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_ITEMNR, false)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.ITEMNUMBER);
         }
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE)) {
+        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE, false)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.PICTURE);
         }
 
-        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 0) {
+        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD, 0) > 0) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATESTART);
         }
 
-        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 1) {
+        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD, 0) > 1) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATEEND);
         }
 
         propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.NAME);
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_DESCRIPTION)) {
+        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_DESCRIPTION, false)) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.DESCRIPTION);
         }
 
         if (documentType.hasPrice()
-                || document.getBillingType().isDELIVERY() && getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_DELIVERY_NOTE_ITEMS_WITH_PRICE)) {
+                || document.getBillingType().isDELIVERY() && getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_DELIVERY_NOTE_ITEMS_WITH_PRICE, false)) {
 
-            if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_VAT)) {
+            if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_VAT, true)) {
                 propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VAT);
             }
 
-            if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX) && useSET) {
+            if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX, false) && useSET) {
                 propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.SALESEQUALIZATIONTAX);
             }
 
             // "$ItemGrossPrice" (if useGross = true) or "price" (if useGross = false)
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.UNITPRICE);
 
-            if (containsDiscountedItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM)) {
+            if (containsDiscountedItems || getEclipsePrefs().getBoolean(Constants.PREFERENCES_DOCUMENT_USE_DISCOUNT_EACH_ITEM, false)) {
                 propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.DISCOUNT);
             }
 
@@ -914,7 +914,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         }
 
         // set vesting period if this field is empty
-        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD) > 0) {
+        if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD,0) > 0) {
             getDocumentItemsListData().stream()
                     .filter(item -> item.getDocumentItem().getVestingPeriodStart() == null || item.getDocumentItem().getVestingPeriodEnd() == null)
                     .forEach(item -> {

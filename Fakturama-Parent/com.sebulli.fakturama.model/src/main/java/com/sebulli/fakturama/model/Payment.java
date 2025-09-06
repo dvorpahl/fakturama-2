@@ -1,8 +1,10 @@
 package com.sebulli.fakturama.model;
 
 import java.io.Serializable;
-import java.lang.Boolean;
 import java.util.Date;
+
+import com.sebulli.fakturama.misc.UNTDID4461;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -211,7 +213,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            the other object to compare
      * @generated
      */
-    public boolean isSameAs(Payment other) {
+    public boolean isSameAs(final Payment other) {
         boolean retval = true;
         if (other != null) {
             if (discountDays != null && other.getDiscountDays() != null) {
@@ -271,7 +273,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
 
     @Override
     public Payment clone() {
-        Payment retval = new Payment();
+        final Payment retval = new Payment();
         retval.setDiscountDays(this.getDiscountDays());
         retval.setDiscountValue(this.getDiscountValue());
         retval.setNetDays(this.getNetDays());
@@ -316,7 +318,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            discountDays}' feature.
      * @generated
      */
-    public void setDiscountDays(Integer newDiscountDays) {
+    public void setDiscountDays(final Integer newDiscountDays) {
         firePropertyChange("discountDays", this.discountDays, newDiscountDays);
         discountDays = newDiscountDays;
     }
@@ -345,7 +347,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            discountValue}' feature.
      * @generated
      */
-    public void setDiscountValue(Double newDiscountValue) {
+    public void setDiscountValue(final Double newDiscountValue) {
         firePropertyChange("discountValue", this.discountValue, newDiscountValue);
         discountValue = newDiscountValue;
     }
@@ -373,7 +375,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setNetDays(Integer newNetDays) {
+    public void setNetDays(final Integer newNetDays) {
         firePropertyChange("netDays", this.netDays, newNetDays);
         netDays = newNetDays;
     }
@@ -401,7 +403,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setCategory(VoucherCategory newCategory) {
+    public void setCategory(final VoucherCategory newCategory) {
         firePropertyChange("category", this.category, newCategory);
         category = newCategory;
     }
@@ -429,7 +431,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setPaidText(String newPaidText) {
+    public void setPaidText(final String newPaidText) {
         firePropertyChange("paidText", this.paidText, newPaidText);
         paidText = newPaidText;
     }
@@ -457,7 +459,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            unpaidText}' feature.
      * @generated
      */
-    public void setUnpaidText(String newUnpaidText) {
+    public void setUnpaidText(final String newUnpaidText) {
         firePropertyChange("unpaidText", this.unpaidText, newUnpaidText);
         unpaidText = newUnpaidText;
     }
@@ -485,7 +487,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            depositText}' feature.
      * @generated
      */
-    public void setDepositText(String newDepositText) {
+    public void setDepositText(final String newDepositText) {
         firePropertyChange("depositText", this.depositText, newDepositText);
         depositText = newDepositText;
     }
@@ -516,9 +518,12 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Payment#getCode() code}' feature.
      * @generated
      */
-    public void setCode(String newCode) {
-        firePropertyChange("code", this.code, newCode);
-        code = newCode;
+    public void setCode(final String newCode) {
+        UNTDID4461 untCode;
+        if ((untCode = UNTDID4461.getByCode(newCode)) != null) {
+            firePropertyChange("code", this.code, newCode);
+            code = untCode.getCode();
+        }
     }
 
     /**
@@ -529,6 +534,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>description</b></em>' feature
      * @generated
      */
+    @Override
     public String getDescription() {
 
         return description;
@@ -544,7 +550,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            description}' feature.
      * @generated
      */
-    public void setDescription(String newDescription) {
+    @Override
+    public void setDescription(final String newDescription) {
         firePropertyChange("description", this.description, newDescription);
         description = newDescription;
     }
@@ -558,6 +565,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>name</b></em>' feature
      * @generated
      */
+    @Override
     public String getName() {
 
         return name;
@@ -573,7 +581,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Payment#getName() name}' feature.
      * @generated
      */
-    public void setName(String newName) {
+    @Override
+    public void setName(final String newName) {
         firePropertyChange("name", this.name, newName);
         name = newName;
     }
@@ -587,6 +596,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>dateAdded</b></em>' feature
      * @generated
      */
+    @Override
     public Date getDateAdded() {
 
         return dateAdded;
@@ -603,7 +613,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            dateAdded}' feature.
      * @generated
      */
-    public void setDateAdded(Date newDateAdded) {
+    @Override
+    public void setDateAdded(final Date newDateAdded) {
         firePropertyChange("dateAdded", this.dateAdded, newDateAdded);
         dateAdded = newDateAdded;
     }
@@ -616,6 +627,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>modifiedBy</b></em>' feature
      * @generated
      */
+    @Override
     public String getModifiedBy() {
 
         return modifiedBy;
@@ -631,7 +643,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            modifiedBy}' feature.
      * @generated
      */
-    public void setModifiedBy(String newModifiedBy) {
+    @Override
+    public void setModifiedBy(final String newModifiedBy) {
         firePropertyChange("modifiedBy", this.modifiedBy, newModifiedBy);
         modifiedBy = newModifiedBy;
     }
@@ -644,6 +657,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>modified</b></em>' feature
      * @generated
      */
+    @Override
     public Date getModified() {
 
         return modified;
@@ -659,7 +673,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setModified(Date newModified) {
+    @Override
+    public void setModified(final Date newModified) {
         firePropertyChange("modified", this.modified, newModified);
         modified = newModified;
     }
@@ -672,6 +687,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>id</b></em>' feature
      * @generated
      */
+    @Override
     public long getId() {
 
         return id;
@@ -686,7 +702,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            the new value of the '{@link Payment#getId() id}' feature.
      * @generated
      */
-    public void setId(long newId) {
+    @Override
+    public void setId(final long newId) {
         firePropertyChange("id", this.id, newId);
         id = newId;
     }
@@ -700,6 +717,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>deleted</b></em>' feature
      * @generated
      */
+    @Override
     public Boolean getDeleted() {
 
         return deleted;
@@ -716,7 +734,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setDeleted(Boolean newDeleted) {
+    @Override
+    public void setDeleted(final Boolean newDeleted) {
         firePropertyChange("deleted", this.deleted, newDeleted);
         deleted = newDeleted;
     }
@@ -731,6 +750,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>validFrom</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidFrom() {
 
         return validFrom;
@@ -748,7 +768,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            validFrom}' feature.
      * @generated
      */
-    public void setValidFrom(Date newValidFrom) {
+    @Override
+    public void setValidFrom(final Date newValidFrom) {
         firePropertyChange("validFrom", this.validFrom, newValidFrom);
         validFrom = newValidFrom;
     }
@@ -763,6 +784,7 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      * @return the value of '<em><b>validTo</b></em>' feature
      * @generated
      */
+    @Override
     public Date getValidTo() {
 
         return validTo;
@@ -780,7 +802,8 @@ public class Payment extends ModelObject implements Serializable, IDescribableEn
      *            feature.
      * @generated
      */
-    public void setValidTo(Date newValidTo) {
+    @Override
+    public void setValidTo(final Date newValidTo) {
         firePropertyChange("validTo", this.validTo, newValidTo);
         validTo = newValidTo;
     }

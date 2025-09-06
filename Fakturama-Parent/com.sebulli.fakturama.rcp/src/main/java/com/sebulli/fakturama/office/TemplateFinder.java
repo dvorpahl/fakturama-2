@@ -63,8 +63,16 @@ public class TemplateFinder {
     private List<Path> scanPathForTemplates(Path templatePath, String extension) {
         List<Path> templates = new ArrayList<>();
         try {
+        	
             if(Files.exists(templatePath)) {
-                templates = Files.list(templatePath).filter(f -> f.getFileName().toString().toLowerCase().endsWith(extension))
+                templates = Files.list(templatePath)
+                		.filter(f -> {
+							try {
+								return !Files.isHidden(f) && f.getFileName().toString().toLowerCase().endsWith(extension);
+							} catch (IOException e) {
+								return false;
+							}
+						})
                         .sorted(Comparator.comparing((Path p) -> p.getFileName().toString().toLowerCase()))
                         .collect(Collectors.toList());
             }

@@ -56,10 +56,12 @@ import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.opcoach.e4.preferences.IPreferenceStoreProvider;
 import com.sebulli.fakturama.dao.ItemAccountTypeDAO;
 import com.sebulli.fakturama.dao.ItemListTypeCategoriesDAO;
 import com.sebulli.fakturama.dao.PaymentsDAO;
@@ -153,7 +155,7 @@ public class LifecycleManager {
 
             splashService.setMessage("checking database...");
 
-            boolean dbupdate = dbUpdateService.updateDatabase();
+            final boolean dbupdate = dbUpdateService.updateDatabase();
             if (!dbupdate) {
                 log.error("couldn't create or update database!");
                 MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
@@ -180,7 +182,7 @@ public class LifecycleManager {
                         context.set(PropertiesDAO.class, ContextInjectionFactory.make(PropertiesDAO.class, context));
                         log.debug("start DAOs - end");
                         return Status.OK_STATUS;
-                    } catch (PersistenceException e) {
+                    } catch (final PersistenceException e) {
                         log.error(e, "Datenbank kann nicht gestartet werden. Anwendung wird beendet.");
                         MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
                         return Status.CANCEL_STATUS;
@@ -208,9 +210,9 @@ public class LifecycleManager {
 
     @PreSave
     public final void closeAndSaveEditors(final IEclipseContext context2) {
-        EHandlerService handlerService = context.get(EHandlerService.class);
-        ECommandService commandService = context.get(ECommandService.class);
-        ParameterizedCommand command = commandService.createCommand("org.eclipse.ui.file.closeAll", null);
+        final EHandlerService handlerService = context.get(EHandlerService.class);
+        final ECommandService commandService = context.get(ECommandService.class);
+        final ParameterizedCommand command = commandService.createCommand("org.eclipse.ui.file.closeAll", null);
         handlerService.executeHandler(command);
     }
 
@@ -226,13 +228,13 @@ public class LifecycleManager {
         // else you get a NPE!!!
         try {
             dbInitJob.join();
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             log.info("ready to go ahead and looking for default values in db.");
         }
 
         splashService.worked(1);
 
-        FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
+        final FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
 
         // the following is a workaround for the error if the database isn't available.
         // there was only a strange error message which doesn't helped the user.
@@ -240,21 +242,33 @@ public class LifecycleManager {
         VatsDAO vatsDAO = null;
         try {
             vatsDAO = context.get(VatsDAO.class);
-        } catch (NullPointerException npe) {
+        } catch (final NullPointerException npe) {
             MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
             System.exit(1);
         }
 
-        ShippingsDAO shippingsDAO = context.get(ShippingsDAO.class);
-        PaymentsDAO paymentsDAO = context.get(PaymentsDAO.class);
-        UnCefactCodeDAO unCefactCodeDAO = context.get(UnCefactCodeDAO.class);
-        ItemListTypeCategoriesDAO itemListTypeCategoriesDAO = context.get(ItemListTypeCategoriesDAO.class);
-        ItemAccountTypeDAO itemAccountTypeDAO = context.get(ItemAccountTypeDAO.class);
-        PropertiesDAO propertiesDao = context.get(PropertiesDAO.class);
+        final ShippingsDAO shippingsDAO = context.get(ShippingsDAO.class);
+        final PaymentsDAO paymentsDAO = context.get(PaymentsDAO.class);
+        final UnCefactCodeDAO unCefactCodeDAO = context.get(UnCefactCodeDAO.class);
+        final ItemListTypeCategoriesDAO itemListTypeCategoriesDAO = context.get(ItemListTypeCategoriesDAO.class);
+        final ItemAccountTypeDAO itemAccountTypeDAO = context.get(ItemAccountTypeDAO.class);
+        final PropertiesDAO propertiesDao = context.get(PropertiesDAO.class);
 
         // Fill some default data
         // see old sources: com.sebulli.fakturama.data.Data#fillWithInitialData()
+        final ServiceReference<IPreferenceStoreProvider> serviceReference = Activator.getContext().getServiceReference(IPreferenceStoreProvider.class);
+        if (serviceReference == null) {
+            log.error("no preference store available, Service Ref is very null");
+        }
         IPreferenceStore defaultValuesNode = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
+        if (defaultValuesNode == null) {
+            defaultValuesNode = Activator.getContext().getService(serviceReference).getPreferenceStore();
+            EclipseContextFactory.getServiceContext(Activator.getContext()).set(IPreferenceStore.class, defaultValuesNode);
+            if (EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class) == null) {
+                log.error("Cannot setup prefstore");
+            }
+
+        }
 
         splashService.worked(1);
 
@@ -302,7 +316,7 @@ public class LifecycleManager {
         }
 
         // store current program version
-        UserProperty userProp = new UserProperty();
+        final UserProperty userProp = new UserProperty();
         userProp.setName(Constants.CURRENT_PROGRAM_VERSION);
         userProp.setValue(Platform.getProduct().getDefiningBundle().getVersion().toString());
         propertiesDao.insertOrUpdate(userProp);
@@ -331,14 +345,14 @@ public class LifecycleManager {
 
         try {
             eclipsePrefs.flush();
-        } catch (BackingStoreException e) {
+        } catch (final BackingStoreException e) {
             log.error(e);
         }
         context.set(IPreferenceStore.class, defaultValuesNode);
         context.getParent().set(IPreferenceStore.class, defaultValuesNode);
         // the DefaultPreferences gets initialized through the calling extension point (which is defined in META-INF).
         // here we have to restore the preference values from database
-        PreferencesInDatabase preferencesInDatabase = ContextInjectionFactory.make(PreferencesInDatabase.class, context);
+        final PreferencesInDatabase preferencesInDatabase = ContextInjectionFactory.make(PreferencesInDatabase.class, context);
         context.set(PreferencesInDatabase.class, preferencesInDatabase);
         preferencesInDatabase.loadPreferencesFromDatabase();
         splashService.worked(1);
@@ -359,19 +373,19 @@ public class LifecycleManager {
         try (InputStream wbStream = FrameworkUtil.getBundle(TemplateResourceManager.class).getResource(CODELISTS_XLSX).openStream();) {
             log.info("importing code lists from " + CODELISTS_XLSX);
             //    		Workbook wb = WorkbookFactory.create(wbStream);
-            Workbook wb = new XSSFWorkbook(wbStream);
-            Sheet sheet = wb.getSheetAt(0);
-            int rows = sheet.getPhysicalNumberOfRows();
+            final Workbook wb = new XSSFWorkbook(wbStream);
+            final Sheet sheet = wb.getSheetAt(0);
+            final int rows = sheet.getPhysicalNumberOfRows();
             // skip the first n rows
-            int skiprows = 1; // in case we have somedays more than one header line
+            final int skiprows = 1; // in case we have somedays more than one header line
             for (int r = skiprows; r < rows; r++) {
-                Row row = sheet.getRow(r);
+                final Row row = sheet.getRow(r);
                 if (row == null) {
                     continue;
                 }
 
                 int i = 0; // column index
-                CEFACTCode cEFACTCode = modelFactory.createCEFACTCode();
+                final CEFACTCode cEFACTCode = modelFactory.createCEFACTCode();
 
                 // TEST ONLY (HSQLDB claims about updates of id field :-(
                 //				cEFACTCode.setId(r*(-1));
@@ -401,7 +415,7 @@ public class LifecycleManager {
 
     @PreDestroy
     public void postWindowClose(@Named(E4Workbench.INSTANCE_LOCATION) final Location instanceLocation) {
-        PreferencesInDatabase preferencesInDatabase = context.get(PreferencesInDatabase.class);
+        final PreferencesInDatabase preferencesInDatabase = context.get(PreferencesInDatabase.class);
         if (preferencesInDatabase != null) {
             log.debug("Storing preferences in database");
             preferencesInDatabase.savePreferencesInDatabase();
@@ -412,7 +426,7 @@ public class LifecycleManager {
         }
         try {
             eclipsePrefs.flush();
-        } catch (BackingStoreException e) {
+        } catch (final BackingStoreException e) {
             log.error(e);
         }
         saveDialogSettings(instanceLocation);
@@ -431,7 +445,7 @@ public class LifecycleManager {
         log.debug("save dialog settings");
 
         try {
-            URL path = instanceLocation.getDataArea(Activator.PLUGIN_ID);
+            final URL path = instanceLocation.getDataArea(Activator.PLUGIN_ID);
             Path storage = null;
             if (path == null) {
                 return;
@@ -461,13 +475,13 @@ public class LifecycleManager {
             dbUpdateService.updateDatabase();
         }
 
-        ConfigurationManager configMgr = ContextInjectionFactory.make(ConfigurationManager.class, context);
+        final ConfigurationManager configMgr = ContextInjectionFactory.make(ConfigurationManager.class, context);
         // launch ConfigurationManager.checkFirstStart
         configMgr.checkAndUpdateConfiguration();
 
         if (eclipsePrefs.get(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, null) != null) {
             eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, RESTART_APPLICATION));
-            IPreferenceStore defaultValuesNode = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
+            final IPreferenceStore defaultValuesNode = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
             context.set(IPreferenceStore.class, defaultValuesNode);
             context.getParent().set(IPreferenceStore.class, defaultValuesNode);
 
@@ -475,13 +489,13 @@ public class LifecycleManager {
             try {
                 eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, false, modelService, app));
                 fillWithInitialData(splashService);
-            } catch (FakturamaStoringException sqlex) {
+            } catch (final FakturamaStoringException sqlex) {
                 log.error(sqlex, "couldn't fill with initial data! " + sqlex);
             }
         }
         eclipsePrefs.putBoolean("isreinit", false);
 
-        MTrimmedWindow mainMTrimmedWindow = (MTrimmedWindow) modelService.find("com.sebulli.fakturama.application", app);
+        final MTrimmedWindow mainMTrimmedWindow = (MTrimmedWindow) modelService.find("com.sebulli.fakturama.application", app);
         mainMTrimmedWindow.setLabel(msg.applicationName + " - " + eclipsePrefs.get(Constants.GENERAL_WORKSPACE, null));
 
         initDialogSettings(instanceLocation);
@@ -520,12 +534,12 @@ public class LifecycleManager {
         @Override
         public void handleEvent(final Event event) {
             if (modelService != null) {
-                MTrimmedWindow mainMTrimmedWindow = (MTrimmedWindow) modelService.find("com.sebulli.fakturama.application", app);
-                ISaveHandler saveHandler = ContextInjectionFactory.make(SaveHandler.class, mainMTrimmedWindow.getContext());
+                final MTrimmedWindow mainMTrimmedWindow = (MTrimmedWindow) modelService.find("com.sebulli.fakturama.application", app);
+                final ISaveHandler saveHandler = ContextInjectionFactory.make(SaveHandler.class, mainMTrimmedWindow.getContext());
                 mainMTrimmedWindow.getContext().set(ISaveHandler.class, saveHandler);
             }
 
-            IWorkbench workbench = _context.get(IWorkbench.class);
+            final IWorkbench workbench = _context.get(IWorkbench.class);
             if (restartApplication) {
                 workbench.restart();
             }
@@ -563,7 +577,7 @@ public class LifecycleManager {
         URL dsURL = null;
         try {
             dsURL = instanceLocation.getDataArea(Activator.PLUGIN_ID + "/" + FN_DIALOG_SETTINGS);
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             log.error(e1, "Cannot determine current data area. Reason: ");
         }
         if (dsURL == null) {
@@ -571,7 +585,7 @@ public class LifecycleManager {
         }
 
         try {
-            BufferedReader reader = Files.newBufferedReader(Paths.get(dsURL.toURI()));
+            final BufferedReader reader = Files.newBufferedReader(Paths.get(dsURL.toURI()));
             dialogSettings.load(reader);
         } catch (IOException | URISyntaxException e) {
             // load failed so ensure we have an empty settings

@@ -1,5 +1,9 @@
 package com.sebulli.fakturama.common.i18n;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Locale;
 import java.util.Optional;
 
@@ -7,31 +11,25 @@ import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import com.sebulli.fakturama.common.Activator;
 import com.sebulli.fakturama.i18n.ILocaleService;
 import com.sebulli.fakturama.i18n.LocaleUtil;
 import com.sebulli.fakturama.misc.Constants;
 
-// @RunWith(PowerMockRunner.class)
-@RunWith(MockitoJUnitRunner.class)
-//@PrepareForTest(Activator.class)
-public class LocaleUtilTest {
+class LocaleUtilTest {
 
     private ILocaleService localeService;
 
     @Mock
     private IPreferenceStore mockPrefs;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         //		MockitoAnnotations.initMocks(this);
         IEclipseContext mockContext = EclipseContextFactory.create("mockContext");
@@ -39,39 +37,39 @@ public class LocaleUtilTest {
     }
 
     @Test
-    public void testGetDefaultLocale() {
-        Locale l = localeService.getDefaultLocale();
-        System.out.println(l);
+    void testGetDefaultLocale() {
+        Locale locale = localeService.getDefaultLocale();
+        System.out.println(locale);
 
-        Assert.assertNotNull("Default Locale should not be null", l);
+        assertNotNull(locale, "Default Locale should not be null");
     }
 
     @Test
-    public void testFindLocaleByDisplayCountry() {
+    void testFindLocaleByDisplayCountry() {
         Optional<Locale> localeByDisplayCountry = localeService.findLocaleByDisplayCountry("Italien");
-        Assert.assertTrue(localeByDisplayCountry.isPresent());
-        Assert.assertEquals(Locale.ITALY, localeByDisplayCountry.get());
+        assertTrue(localeByDisplayCountry.isPresent());
+        assertEquals(Locale.ITALY, localeByDisplayCountry.get());
     }
 
     @Test
-    public void testFindCodeByDisplayCountry() {
+    void testFindCodeByDisplayCountry() {
         String localeByDisplayCountry = localeService.findCodeByDisplayCountry("Italien", "de");
-        Assert.assertEquals("IT", localeByDisplayCountry);
+        assertEquals("IT", localeByDisplayCountry);
     }
 
     @Test
-    public void testGetCurrencyLocale() {
+    void testGetCurrencyLocale() {
         Locale currencyLocale = localeService.getCurrencyLocale();
-        Assert.assertEquals(Locale.GERMANY, currencyLocale);
+        assertEquals(Locale.GERMANY, currencyLocale);
     }
 
     @Test
-    @Ignore("can't be executed because of OSGi class loading quirks")
-    public void testFindByCode() {
+    @Disabled("can't be executed because of OSGi class loading quirks")
+    void testFindByCode() {
         Mockito.when(Activator.getPreferenceStore()).thenReturn(mockPrefs);
         Mockito.when(mockPrefs.getString(Constants.PREFERENCE_CURRENCY_LOCALE)).thenReturn("de_DE");
         Optional<Locale> localeByCode = localeService.findByCode("de");
-        Assert.assertTrue(localeByCode.isPresent());
-        Assert.assertEquals(Locale.GERMANY, localeByCode.get());
+        assertTrue(localeByCode.isPresent());
+        assertEquals(Locale.GERMANY, localeByCode.get());
     }
 }
