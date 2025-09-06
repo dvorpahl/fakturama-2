@@ -13,7 +13,7 @@
       <page
             class="org.fakturama.connectors.mail.MailServicePreferences"
             id="org.fakturama.connectors.page"
-            name="Mail Service">
+            name="Mail-Service">
       </page>
    </extension>
    <extension

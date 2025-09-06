@@ -225,7 +225,6 @@ public class PaymentEditor extends Editor<Payment> {
 
             //T: Payment Editor: Part Name of a new payment
             part.setLabel(msg.mainMenuNewPayment);
-            getMDirtyablePart().setDirty(true);
         } else {
 
             // Set the Editor's name to the payment name.

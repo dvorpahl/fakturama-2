@@ -50,7 +50,7 @@ public class LocaleUtil implements ILocaleService {
      * @return a {@link LocaleUtil} instance
      */
     @SuppressWarnings("restriction")
-    public void getInstance() {
+    public LocaleUtil getInstance() {
 
         String lang = (Activator.getContext() == null ? System.getProperty(EclipseStarter.PROP_NL)
                 : Activator.getContext().getProperty(EclipseStarter.PROP_NL));
@@ -79,6 +79,8 @@ public class LocaleUtil implements ILocaleService {
                 initLocaleUtil(lang);
             }
         }
+        
+        return this;
     }
 
     @Override
@@ -87,7 +89,7 @@ public class LocaleUtil implements ILocaleService {
         ServiceReference[] references = null;
         BundleContext bundleContext = Activator.getContext();
         try {
-            references = bundleContext.getAllServiceReferences(null, LocaleProvider.class.getName());
+            references = bundleContext.getAllServiceReferences(null, "(objectClass=" + LocaleProvider.class.getName() + ")");
         } catch (InvalidSyntaxException e) {
             // do nothing
         }
@@ -231,6 +233,8 @@ public class LocaleUtil implements ILocaleService {
             String localeString = Activator.getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
             if (localeString.isEmpty()) {
                 localeString = Locale.US.getDisplayCountry();
+// Alternative:
+//              localeString = Locale.GERMAN.getCountry() + "/" + Locale.GERMAN.getLanguage();
             }
             Pattern pattern = Pattern.compile("(\\w{2})/(\\w{2})");
             Matcher matcher = pattern.matcher(localeString);
