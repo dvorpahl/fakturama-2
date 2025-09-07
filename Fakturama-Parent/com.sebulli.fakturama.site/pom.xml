@@ -48,14 +48,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- https://mvnrepository.com/artifact/org.codehaus.mojo/exec-maven-plugin -->
-			<!-- plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>exec-maven-plugin</artifactId> 
-				<version>3.0.0</version> <executions> <execution> <id>exec</id> <phase>package</phase> 
-				<goals> <goal>exec</goal> </goals> </execution> </executions> <configuration> 
-				<executable>codesign</executable> <workingDirectory>/tmp</workingDirectory> 
-				<arguments> <argument>-f</argument> <argument>-s</argument> <argument>Developer 
-				ID</argument> <argument>-vvv</argument> <argument>${project.basedir}/target/products/Fakturama.ID/macosx/cocoa/x86_64/Fakturama2.app</argument> 
-				</arguments> </configuration> </plugin -->
 		</plugins>
 	</build>
 </project>
