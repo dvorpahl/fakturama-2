@@ -201,6 +201,7 @@
 				<artifactId>gitflow-maven-plugin</artifactId>
 				<configuration>
 					<tychoBuild>true</tychoBuild>
+					<allowSnapshots>true</allowSnapshots>
 				</configuration>
 			</plugin>
 		</plugins>
