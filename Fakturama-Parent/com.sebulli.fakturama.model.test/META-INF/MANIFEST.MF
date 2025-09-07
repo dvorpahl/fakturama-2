@@ -8,11 +8,12 @@ Fragment-Host: com.sebulli.fakturama.model
 Automatic-Module-Name: com.sebulli.fakturama.model.test
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: junit-jupiter-api,
- com.sebulli.fakturama.rcp,
  org.eclipse.osgi,
  org.mockito.junit-jupiter,
  junit-jupiter-engine,
- junit-jupiter-params
-Import-Package: org.eclipse.core.runtime.preferences,
- org.eclipse.e4.core.contexts,
- org.mockito;version="5.1.0"
+ junit-jupiter-params,
+ org.mockito.mockito-core;bundle-version="5.17.0"
+Import-Package: com.sebulli.fakturama.model,
+ com.sebulli.fakturama.util,
+ org.eclipse.core.runtime.preferences,
+ org.eclipse.e4.core.contexts
