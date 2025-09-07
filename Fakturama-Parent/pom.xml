@@ -10,7 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.resource.sourceEncoding>UTF-8</project.resource.sourceEncoding>
-
+		<java.version>17</java.version>
         <tycho.version>4.0.8</tycho.version>
         <tycho-extras.version>2.7.5</tycho-extras.version>
         <eclipselink.version>4.0.4</eclipselink.version>
@@ -36,6 +36,7 @@
         <module>org.fakturama.database.hsql</module>
         <module>org.fakturama.database.mariadb</module>
         <module>com.sebulli.fakturama.model</module>
+        <module>com.sebulli.fakturama.model.test</module>
         <module>com.sebulli.fakturama.feature</module>
         <module>com.sebulli.fakturama.common</module>
         <module>com.sebulli.fakturama.rcp</module>
@@ -84,14 +85,6 @@
                 <extensions>true</extensions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-                <version>2.16.0</version>
-                <configuration>
-                    <generateBackupPoms>false</generateBackupPoms>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.4.1</version>
@@ -136,7 +129,7 @@
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-compiler-plugin</artifactId>
                 <configuration>
-                    <release>17</release>
+                    <release>${java.version}</release>
                     <fork>false</fork>
                     <compilerId>jdt</compilerId>
                 </configuration>
@@ -400,9 +393,7 @@
                 </plugins>
             </build>
         </profile>
-
     </profiles>
-
 
     <repositories>
         <repository>
@@ -412,12 +403,7 @@
         <repository>
             <id>sonatype-snapshot</id>
             <url>https://oss.sonatype.org/content/groups/public</url>
-
         </repository>
-        <!--<repository>
-            <id>project-repository</id>
-            <url>file://${parent.projectLocation}/org.fakturama.target/projectMavenRepository</url>
-        </repository>-->
     </repositories>
 
     <pluginRepositories>
@@ -443,4 +429,14 @@
         and administer your web shop orders. And you can create labels for
         various parcel services online.
     </description>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.4-SNAPSHOT</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
 </project>
