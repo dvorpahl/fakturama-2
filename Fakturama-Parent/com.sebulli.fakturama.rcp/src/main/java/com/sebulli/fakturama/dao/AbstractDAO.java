@@ -1,5 +1,4 @@
-/*
- * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
+/* Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2013 Ralf Heydenreich
  * 
@@ -8,8 +7,7 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors: Ralf Heydenreich - initial API and implementation
- */
+ * Contributors: Ralf Heydenreich - initial API and implementation */
 package com.sebulli.fakturama.dao;
 
 import java.sql.SQLException;
@@ -167,7 +165,7 @@ public abstract class AbstractDAO<T extends IEntity> {
             object = getEntityManager().merge(object);
 
             getEntityManager().persist(object);
-            //getEntityManager().flush();
+            // getEntityManager().flush();
             trx.commit();
         } catch (Exception e) {
             throw new FakturamaStoringException("Error updating to the database.", e, object);
@@ -213,7 +211,7 @@ public abstract class AbstractDAO<T extends IEntity> {
         TypedQuery<T> q = getEntityManager().createQuery(query);
         if (forceRead) {
             q.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
-            //            query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
+            // query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
         }
         return q.getResultList();
     }

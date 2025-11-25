@@ -145,12 +145,13 @@ public class LifecycleManager {
             }
         });
 
-        //        splashService.setMessage("checks before startup");
+        // splashService.setMessage("checks before startup");
         // at first we check if we have to migrate an older version
         // check if the db connection is set
         if (StringUtils.isNotEmpty(eclipsePrefs.get(PersistenceUnitProperties.JDBC_DRIVER, ""))) {
 
-            // comment this if you want to generate or update the database with EclipseLink
+            // comment this if you want to generate or update the database with
+            // EclipseLink
             // (but don't forget to enable it in persistence.xml)
 
             splashService.setMessage("checking database...");
@@ -171,7 +172,8 @@ public class LifecycleManager {
                 protected IStatus run(final IProgressMonitor monitor) {
                     log.debug("start DAOs - begin");
                     try {
-                        // these DAOs are needed in a later stage of initialization
+                        // these DAOs are needed in a later stage of
+                        // initialization
                         // (see fillWithInitialData)
                         context.set(VatsDAO.class, ContextInjectionFactory.make(VatsDAO.class, context));
                         context.set(ShippingsDAO.class, ContextInjectionFactory.make(ShippingsDAO.class, context));
@@ -181,6 +183,7 @@ public class LifecycleManager {
                         context.set(ItemAccountTypeDAO.class, ContextInjectionFactory.make(ItemAccountTypeDAO.class, context));
                         context.set(PropertiesDAO.class, ContextInjectionFactory.make(PropertiesDAO.class, context));
                         log.debug("start DAOs - end");
+
                         return Status.OK_STATUS;
                     } catch (final PersistenceException e) {
                         log.error(e, "Datenbank kann nicht gestartet werden. Anwendung wird beendet.");
@@ -190,19 +193,27 @@ public class LifecycleManager {
                 }
             };
 
-            dbInitJob.schedule(10); // timeout that the OSGi env can be started before
+            dbInitJob.schedule(10); // timeout that the OSGi env can be started
+                                    // before
+            try {
+                fillWithInitialData(splashService);
+            } catch (final FakturamaStoringException sqlex) {
+                log.error(sqlex, "couldn't fill with initial data! " + sqlex);
 
+            }
             splashService.worked(5);
 
-            // register event handler for saving and closing editors before shutdown
+            // register event handler for saving and closing editors before
+            // shutdown
             eventBroker.subscribe(UIEvents.UILifeCycle.APP_SHUTDOWN_STARTED, event -> {
                 // formerly known as Workbench.busyClose()
                 closeAndSaveEditors(context);
-                //                        	eventBroker.unsubscribe(eventHandler)
+                // eventBroker.unsubscribe(eventHandler)
             });
 
         } else {
-            // if db connection is not set, it is a certain sign that the application 
+            // if db connection is not set, it is a certain sign that the
+            // application
             // is started the first time
             eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, RESTART_APPLICATION));
         }
@@ -236,7 +247,8 @@ public class LifecycleManager {
 
         final FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
 
-        // the following is a workaround for the error if the database isn't available.
+        // the following is a workaround for the error if the database isn't
+        // available.
         // there was only a strange error message which doesn't helped the user.
         // If no database is available, a NPE is thrown.
         VatsDAO vatsDAO = null;
@@ -255,7 +267,8 @@ public class LifecycleManager {
         final PropertiesDAO propertiesDao = context.get(PropertiesDAO.class);
 
         // Fill some default data
-        // see old sources: com.sebulli.fakturama.data.Data#fillWithInitialData()
+        // see old sources:
+        // com.sebulli.fakturama.data.Data#fillWithInitialData()
         final ServiceReference<IPreferenceStoreProvider> serviceReference = Activator.getContext().getServiceReference(IPreferenceStoreProvider.class);
         if (serviceReference == null) {
             log.error("no preference store available, Service Ref is very null");
@@ -279,7 +292,8 @@ public class LifecycleManager {
             defaultVat.setDescription(msg.dataDefaultVatDescription);
             defaultVat.setTaxValue(Double.valueOf(0.0));
             defaultVat = vatsDAO.findOrCreate(defaultVat);
-            //	        defaultValuesNode.setValue(Constants.DEFAULT_VAT, defaultVat.getId());
+            // defaultValuesNode.setValue(Constants.DEFAULT_VAT,
+            // defaultVat.getId());
             eclipsePrefs.putLong(Constants.DEFAULT_VAT, defaultVat.getId());
         }
 
@@ -293,7 +307,8 @@ public class LifecycleManager {
             defaultShipping.setAutoVat(ShippingVatType.SHIPPINGVATGROSS);
             defaultShipping.setShippingVat(vatsDAO.findById(eclipsePrefs.getLong(Constants.DEFAULT_VAT, Long.valueOf(0))));
             defaultShipping = shippingsDAO.findOrCreate(defaultShipping);
-            //            defaultValuesNode.setValue(Constants.DEFAULT_SHIPPING, defaultShipping.getId());
+            // defaultValuesNode.setValue(Constants.DEFAULT_SHIPPING,
+            // defaultShipping.getId());
             eclipsePrefs.putLong(Constants.DEFAULT_SHIPPING, defaultShipping.getId());
         }
 
@@ -301,7 +316,7 @@ public class LifecycleManager {
 
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_PAYMENT, Long.valueOf(0)) == 0L) {
             Payment defaultPayment = modelFactory.createPayment();
-            //	        defaultPayment.setCode(Constants.TAX_DEFAULT_CODE);
+            // defaultPayment.setCode(Constants.TAX_DEFAULT_CODE);
             defaultPayment.setName(msg.dataDefaultPayment);
             defaultPayment.setDescription(msg.dataDefaultPaymentDescription);
             defaultPayment.setDiscountValue(Double.valueOf(0.0));
@@ -311,7 +326,8 @@ public class LifecycleManager {
             defaultPayment.setDepositText(msg.dataDefaultPaymentDescription);
             defaultPayment.setUnpaidText(msg.dataDefaultPaymentUnpaidtext);
             defaultPayment = paymentsDAO.findOrCreate(defaultPayment);
-            //            defaultValuesNode.setValue(Constants.DEFAULT_PAYMENT, defaultPayment.getId());
+            // defaultValuesNode.setValue(Constants.DEFAULT_PAYMENT,
+            // defaultPayment.getId());
             eclipsePrefs.putLong(Constants.DEFAULT_PAYMENT, defaultPayment.getId());
         }
 
@@ -323,24 +339,30 @@ public class LifecycleManager {
 
         splashService.worked(1);
         // init UN/CEFACT codes
-        //        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
-        //        	initializeCodes(unCefactCodeDAO, modelFactory);
-        //        } 
+        // if(eclipsePrefs.getBoolean("isreinit", false) ||
+        // Long.valueOf(0L).compareTo(unCefactCodeDAO.getCount()) == 0) {
+        // initializeCodes(unCefactCodeDAO, modelFactory);
+        // }
         splashService.worked(1);
 
         // init salutations TODO activate!
-        //        if(eclipsePrefs.getBoolean("isreinit", false) || Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations")) == 0) {
-        //        	ItemListTypeCategory salutationCategory = itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
-        //        	ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
-        //        	
-        //    		for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
-        //	        	ItemAccountType salutation = modelFactory.createItemAccountType();
-        //	        	salutation.setCategory(salutationCategory);
-        //	        	salutation.setName(msg.commonFieldSalutation + " " + contactUtil.getSalutationString(i));
-        //	        	salutation.setValue(contactUtil.getSalutationString(i));
-        //	        	itemAccountTypeDAO.save(salutation);
-        //    		} 
-        //        } 
+        // if(eclipsePrefs.getBoolean("isreinit", false) ||
+        // Long.valueOf(0L).compareTo(itemAccountTypeDAO.getCountOf("data.list.salutations"))
+        // == 0) {
+        // ItemListTypeCategory salutationCategory =
+        // itemListTypeCategoriesDAO.getCategory("data.list.salutations", true);
+        // ContactUtil contactUtil =
+        // ContextInjectionFactory.make(ContactUtil.class, context);
+        //
+        // for (int i = 0; i <= ContactUtil.MAX_SALUTATION_COUNT; i++) {
+        // ItemAccountType salutation = modelFactory.createItemAccountType();
+        // salutation.setCategory(salutationCategory);
+        // salutation.setName(msg.commonFieldSalutation + " " +
+        // contactUtil.getSalutationString(i));
+        // salutation.setValue(contactUtil.getSalutationString(i));
+        // itemAccountTypeDAO.save(salutation);
+        // }
+        // }
         splashService.worked(1);
 
         try {
@@ -350,7 +372,8 @@ public class LifecycleManager {
         }
         context.set(IPreferenceStore.class, defaultValuesNode);
         context.getParent().set(IPreferenceStore.class, defaultValuesNode);
-        // the DefaultPreferences gets initialized through the calling extension point (which is defined in META-INF).
+        // the DefaultPreferences gets initialized through the calling extension
+        // point (which is defined in META-INF).
         // here we have to restore the preference values from database
         final PreferencesInDatabase preferencesInDatabase = ContextInjectionFactory.make(PreferencesInDatabase.class, context);
         context.set(PreferencesInDatabase.class, preferencesInDatabase);
@@ -372,12 +395,13 @@ public class LifecycleManager {
     private void initializeCodes(final UnCefactCodeDAO unCefactCodeDAO, final FakturamaModelFactory modelFactory) {
         try (InputStream wbStream = FrameworkUtil.getBundle(TemplateResourceManager.class).getResource(CODELISTS_XLSX).openStream();) {
             log.info("importing code lists from " + CODELISTS_XLSX);
-            //    		Workbook wb = WorkbookFactory.create(wbStream);
+            // Workbook wb = WorkbookFactory.create(wbStream);
             final Workbook wb = new XSSFWorkbook(wbStream);
             final Sheet sheet = wb.getSheetAt(0);
             final int rows = sheet.getPhysicalNumberOfRows();
             // skip the first n rows
-            final int skiprows = 1; // in case we have somedays more than one header line
+            final int skiprows = 1; // in case we have somedays more than one
+                                    // header line
             for (int r = skiprows; r < rows; r++) {
                 final Row row = sheet.getRow(r);
                 if (row == null) {
@@ -388,7 +412,7 @@ public class LifecycleManager {
                 final CEFACTCode cEFACTCode = modelFactory.createCEFACTCode();
 
                 // TEST ONLY (HSQLDB claims about updates of id field :-(
-                //				cEFACTCode.setId(r*(-1));
+                // cEFACTCode.setId(r*(-1));
 
                 cEFACTCode.setTarget(row.getCell(i++).getStringCellValue());
                 cEFACTCode.setCode(row.getCell(i++).getStringCellValue());
@@ -397,7 +421,7 @@ public class LifecycleManager {
                 cEFACTCode.setAbbreviation_en(getNullSafeCellValue(row.getCell(i++)));
                 cEFACTCode.setAbbreviation_de(getNullSafeCellValue(row.getCell(i++)));
                 cEFACTCode.setValidFrom(Date.from(Instant.now()));
-                //				cEFACTCode.setDateAdded(Date.from(Instant.now()));
+                // cEFACTCode.setDateAdded(Date.from(Instant.now()));
                 unCefactCodeDAO.save(cEFACTCode);
             }
         } catch (IOException | FakturamaStoringException e) {
@@ -486,12 +510,9 @@ public class LifecycleManager {
             context.getParent().set(IPreferenceStore.class, defaultValuesNode);
 
         } else {
-            try {
-                eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, false, modelService, app));
-                fillWithInitialData(splashService);
-            } catch (final FakturamaStoringException sqlex) {
-                log.error(sqlex, "couldn't fill with initial data! " + sqlex);
-            }
+
+            eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, false, modelService, app));
+
         }
         eclipsePrefs.putBoolean("isreinit", false);
 
@@ -502,7 +523,8 @@ public class LifecycleManager {
         splashService.worked(2);
 
         // close the static splash screen
-        // TODO check if we could call it twice (one call is before Migrationmanager)
+        // TODO check if we could call it twice (one call is before
+        // Migrationmanager)
         appContext.applicationRunning();
     }
 
@@ -573,7 +595,7 @@ public class LifecycleManager {
     private IDialogSettings loadDialogSettings(final Location instanceLocation) {
         dialogSettings = new DialogSettings("Workbench"); //$NON-NLS-1$
 
-        //look for bundle specific dialog settings
+        // look for bundle specific dialog settings
         URL dsURL = null;
         try {
             dsURL = instanceLocation.getDataArea(Activator.PLUGIN_ID + "/" + FN_DIALOG_SETTINGS);

@@ -44,7 +44,6 @@ class ProductUtilTest {
     @DisplayName("Test if price without given scale delivers correct result")
     void testGetPriceByQuantity_withoutScales_success() {
         Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(1);
-        productUtil.setEclipsePrefs(preferences);
         Product product = new Product();
         product.setPrice1(Double.valueOf(1.0));
         Double result = productUtil.getPriceByQuantity(product, quantityOfOne);
@@ -56,7 +55,6 @@ class ProductUtilTest {
     void testGetPriceByQuantity_withoutScales_scaledPrice() {
 
         Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(1);
-        productUtil.setEclipsePrefs(preferences);
         Product product = new Product();
         product.setPrice1(Double.valueOf(10.0));
         product.setPrice2(Double.valueOf(8.0));
@@ -70,7 +68,6 @@ class ProductUtilTest {
     @DisplayName("Test if price with given scale delivers scaled price")
     void testGetPriceByQuantity_withScales_scaledPrice() {
         Mockito.when(preferences.getInt(Mockito.eq(Constants.PREFERENCES_PRODUCT_SCALED_PRICES), Mockito.anyInt())).thenReturn(Integer.valueOf(2));
-        productUtil.setEclipsePrefs(preferences);
         Product product = new Product();
         product.setPrice1(Double.valueOf(10.0));
         product.setPrice2(Double.valueOf(8.0));

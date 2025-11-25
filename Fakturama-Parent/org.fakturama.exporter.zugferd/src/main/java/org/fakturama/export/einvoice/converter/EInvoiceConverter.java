@@ -53,6 +53,7 @@ import org.javamoney.moneta.Money;
 import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
 import com.sebulli.fakturama.dao.CEFACTCodeDAO;
 import com.sebulli.fakturama.dao.ContactsDAO;
+import com.sebulli.fakturama.dto.AddressDTO;
 import com.sebulli.fakturama.dto.DocumentSummary;
 import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.Transaction;
@@ -565,11 +566,10 @@ public class EInvoiceConverter {
         // (Handelsregistereintrag)
         // further missing: BT-51, bt-163 (Adresse 2 und 3), BT-54 (Bundesland)
         final DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
-
         final InvoiceBuyer invoiceBuyer = eInvoice.getInvoiceBuyer();
         final AddressData address = invoiceBuyer.getBuyerAddress();
         // BT-44
-        invoiceBuyer.setBuyerName(billingAddress.getName());
+        invoiceBuyer.setBuyerName(getCompanyOrLastname(AddressDTO.from(billingAddress)));
 
         // BT-48
         invoiceBuyer.setBuyerVatIdentifier(StringUtils.trimToNull(billingAddress.getVatNumber()));
@@ -889,5 +889,21 @@ public class EInvoiceConverter {
             throw new InvoiceConverterException("Document Type not supported");
         }
         return String.valueOf(documentType.getCode());
+    }
+
+    /**
+     * @param contact
+     * @return
+     */
+    private String getCompanyOrLastname(final AddressDTO contact) {
+        String line = "";
+        if (StringUtils.isNotBlank(contact.getCompany())) {
+            line = DataUtils.getInstance().getSingleLine(contact.getCompany());
+        } else if (StringUtils.isNotBlank(contact.getName())) {
+            line = contact.getName();
+        } else if (contact.getManualAddress() != null) {
+            line = contactUtil.getDataFromAddressField(contact.getManualAddress(), ContactUtil.KEY_NAME);
+        }
+        return line;
     }
 }
