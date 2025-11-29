@@ -186,7 +186,6 @@ public class TextEditor extends Editor<TextModule> {
 
             //T: Text Editor: Part Name of a new text entry
             part.setLabel(msg.editorTextNameNeu);
-            getMDirtyablePart().setDirty(true);
         } else {
 
             // Set the Editor's name to the shipping name.

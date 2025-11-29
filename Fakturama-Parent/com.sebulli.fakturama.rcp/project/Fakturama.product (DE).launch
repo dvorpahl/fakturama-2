@@ -810,7 +810,7 @@
         <setEntry value="org.eclipse.urischeme@default:default"/>
         <setEntry value="org.glassfish.hk2.api@default:default"/>
         <setEntry value="org.glassfish.hk2.external.aopalliance-repackaged@default:default"/>
-        <setEntry value="org.glassfish.hk2.osgi-resource-locator@default:default"/>
+        <setEntry value="org.glassfish.hk2.osgi-resource-locator*3.0.0@default:default"/>
         <setEntry value="org.glassfish.hk2.utils@default:default"/>
         <setEntry value="org.glassfish.jaxb.core@default:default"/>
         <setEntry value="org.glassfish.jaxb.runtime@default:default"/>

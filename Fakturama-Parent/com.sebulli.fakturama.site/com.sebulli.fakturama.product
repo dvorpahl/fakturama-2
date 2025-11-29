@@ -208,7 +208,56 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.e4.ui.widgets"/>
       <plugin id="org.eclipse.e4.ui.workbench"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_uk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_uk"/>
       <plugin id="org.eclipse.e4.ui.workbench.swt"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_uk"/>
       <plugin id="org.eclipse.e4.ui.workbench3"/>
       <plugin id="org.eclipse.emf.common"/>
       <plugin id="org.eclipse.emf.databinding"/>
@@ -227,11 +276,45 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.equinox.weaving.hook"/>
       <plugin id="org.eclipse.jface"/>
       <plugin id="org.eclipse.jface.databinding"/>
+      <plugin id="org.eclipse.jface.nl_ar"/>
+      <plugin id="org.eclipse.jface.nl_de"/>
+      <plugin id="org.eclipse.jface.nl_el"/>
+      <plugin id="org.eclipse.jface.nl_es"/>
+      <plugin id="org.eclipse.jface.nl_eu"/>
+      <plugin id="org.eclipse.jface.nl_fr"/>
+      <plugin id="org.eclipse.jface.nl_hu"/>
+      <plugin id="org.eclipse.jface.nl_it"/>
+      <plugin id="org.eclipse.jface.nl_nl"/>
+      <plugin id="org.eclipse.jface.nl_no"/>
+      <plugin id="org.eclipse.jface.nl_pl"/>
+      <plugin id="org.eclipse.jface.nl_ro"/>
+      <plugin id="org.eclipse.jface.nl_ru"/>
+      <plugin id="org.eclipse.jface.nl_sk"/>
+      <plugin id="org.eclipse.jface.nl_tr"/>
+      <plugin id="org.eclipse.jface.nl_uk"/>
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state"/>
       <plugin id="org.eclipse.osgi.services"/>
       <plugin id="org.eclipse.persistence.moxy"/>
       <plugin id="org.eclipse.swt"/>
+      <plugin id="org.eclipse.swt.win32.win32.x86_64"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64"/>
+      <plugin id="org.eclipse.swt.nl_ar"/>
+      <plugin id="org.eclipse.swt.nl_de"/>
+      <plugin id="org.eclipse.swt.nl_el"/>
+      <plugin id="org.eclipse.swt.nl_es"/>
+      <plugin id="org.eclipse.swt.nl_eu"/>
+      <plugin id="org.eclipse.swt.nl_fr"/>
+      <plugin id="org.eclipse.swt.nl_hu"/>
+      <plugin id="org.eclipse.swt.nl_it"/>
+      <plugin id="org.eclipse.swt.nl_nl"/>
+      <plugin id="org.eclipse.swt.nl_no"/>
+      <plugin id="org.eclipse.swt.nl_pl"/>
+      <plugin id="org.eclipse.swt.nl_ro"/>
+      <plugin id="org.eclipse.swt.nl_ru"/>
+      <plugin id="org.eclipse.swt.nl_sk"/>
+      <plugin id="org.eclipse.swt.nl_tr"/>
+      <plugin id="org.eclipse.swt.nl_uk"/>
       <plugin id="org.eclipse.swt.win32.win32.x86_64"/>
       <plugin id="org.eclipse.urischeme"/>
       <plugin id="org.javamoney.moneta"/>
@@ -299,19 +382,18 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="com.opcoach.e4.preferences" autoStart="true" startLevel="4" />
       <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
       <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
-      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.angus.mail" autoStart="true" startLevel="0" />
+      <plugin id="org.apache.aries.spifly.dynamic.bundle" autoStart="true" startLevel="1" />
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.angus.mail" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
-      <plugin id="org.eclipse.equinox.preferences" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.osgi" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.persistence.jpa" autoStart="true" startLevel="2" />
       <plugin id="org.fakturama.database.hsql" autoStart="true" startLevel="2" />
       <plugin id="org.fakturama.database.mariadb" autoStart="true" startLevel="2" />
       <plugin id="org.fakturama.database.mysql" autoStart="true" startLevel="2" />
-      <plugin id="org.hsqldb.hsqldb" autoStart="true" startLevel="2" />
       <plugin id="org.javamoney.moneta" autoStart="true" startLevel="3" />
       <plugin id="org.osgi.service.jdbc" autoStart="true" startLevel="2" />
       <plugin id="wrapped.org.eclipse.persistence.eclipselink" autoStart="true" startLevel="2" />

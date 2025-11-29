@@ -16,7 +16,7 @@
     <intAttribute key="default_start_level" value="5"/>
     <setAttribute key="deselected_workspace_bundles"/>
     <booleanAttribute key="generateProfile" value="true"/>
-    <booleanAttribute key="includeOptional" value="true"/>
+    <booleanAttribute key="includeOptional" value="false"/>
     <stringAttribute key="location" value="${workspace_loc}/../runtime-Fakturama.product"/>
     <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
     <mapAttribute key="org.eclipse.debug.core.environmentVariables">
@@ -41,6 +41,10 @@
     <booleanAttribute key="restart" value="true"/>
     <setAttribute key="selected_target_bundles">
         <setEntry value="angus-activation*2.0.2@default:default"/>
+        <setEntry value="bcpg*1.80.0@default:default"/>
+        <setEntry value="bcpkix@default:default"/>
+        <setEntry value="bcprov*1.80.0@default:default"/>
+        <setEntry value="bcutil@default:default"/>
         <setEntry value="ca.odell.glazedlists@default:default"/>
         <setEntry value="ch.qos.logback.classic@2:default"/>
         <setEntry value="ch.qos.logback.core@2:false"/>
@@ -54,8 +58,8 @@
         <setEntry value="com.opcoach.e4.preferences@default:default"/>
         <setEntry value="com.opencsv@default:default"/>
         <setEntry value="com.sun.istack.commons-runtime*4.2.0@default:default"/>
-        <setEntry value="com.sun.jna*5.15.0@default:default"/>
-        <setEntry value="com.sun.jna.platform*5.15.0@default:default"/>
+        <setEntry value="com.sun.jna.platform@default:default"/>
+        <setEntry value="com.sun.jna@default:default"/>
         <setEntry value="com.sun.xml.bind.jaxb-xjc@default:default"/>
         <setEntry value="com.sun.xml.fastinfoset.FastInfoset@default:default"/>
         <setEntry value="jakarta.activation-api*2.1.3@default:default"/>
@@ -172,7 +176,6 @@
         <setEntry value="org.eclipse.e4.ui.css.swt@default:default"/>
         <setEntry value="org.eclipse.e4.ui.di.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.di@default:default"/>
-        <setEntry value="org.eclipse.e4.ui.dialogs.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.dialogs@default:default"/>
         <setEntry value="org.eclipse.e4.ui.model.workbench.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.model.workbench@default:default"/>
@@ -183,6 +186,8 @@
         <setEntry value="org.eclipse.e4.ui.workbench.addons.swt.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.addons.swt@default:default"/>
         <setEntry value="org.eclipse.e4.ui.workbench.nl_de@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_de@default:false"/>
+        <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.cocoa@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.workbench.renderers.swt@default:default"/>
         <setEntry value="org.eclipse.e4.ui.workbench.swt.nl_de@default:false"/>
@@ -197,8 +202,10 @@
         <setEntry value="org.eclipse.emf.ecore@default:default"/>
         <setEntry value="org.eclipse.equinox.app@default:default"/>
         <setEntry value="org.eclipse.equinox.bidi@default:default"/>
+        <setEntry value="org.eclipse.equinox.cm@default:default"/>
         <setEntry value="org.eclipse.equinox.common@2:true"/>
         <setEntry value="org.eclipse.equinox.device@default:default"/>
+        <setEntry value="org.eclipse.equinox.ds@1:true"/>
         <setEntry value="org.eclipse.equinox.event@3:true"/>
         <setEntry value="org.eclipse.equinox.launcher@default:default"/>
         <setEntry value="org.eclipse.equinox.p2.artifact.repository.nl_de@default:false"/>
@@ -257,6 +264,7 @@
         <setEntry value="org.eclipse.persistence.jpa@2:true"/>
         <setEntry value="org.eclipse.persistence.moxy@default:default"/>
         <setEntry value="org.eclipse.rcp@default:default"/>
+        <setEntry value="org.eclipse.swt.cocoa.macosx.aarch64@default:false"/>
         <setEntry value="org.eclipse.swt.nl_de@default:false"/>
         <setEntry value="org.eclipse.swt@default:default"/>
         <setEntry value="org.eclipse.ui.themes@default:default"/>
@@ -265,7 +273,7 @@
         <setEntry value="org.eclipse.urischeme@default:default"/>
         <setEntry value="org.glassfish.hk2.api@default:default"/>
         <setEntry value="org.glassfish.hk2.external.aopalliance-repackaged@default:default"/>
-        <setEntry value="org.glassfish.hk2.osgi-resource-locator@default:default"/>
+        <setEntry value="org.glassfish.hk2.osgi-resource-locator*3.0.0@default:default"/>
         <setEntry value="org.glassfish.hk2.utils@default:default"/>
         <setEntry value="org.glassfish.jaxb.core@default:default"/>
         <setEntry value="org.glassfish.jaxb.runtime@default:default"/>
@@ -275,11 +283,11 @@
         <setEntry value="org.jvnet.staxex.stax-ex@default:default"/>
         <setEntry value="org.liquibase.core.source"/>
         <setEntry value="org.liquibase.core@default:default"/>
-        <setEntry value="org.objectweb.asm*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.commons*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.tree*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.tree.analysis*9.6.0@default:default"/>
-        <setEntry value="org.objectweb.asm.util*9.6.0@default:default"/>
+        <setEntry value="org.objectweb.asm.commons@default:default"/>
+        <setEntry value="org.objectweb.asm.tree.analysis@default:default"/>
+        <setEntry value="org.objectweb.asm.tree@default:default"/>
+        <setEntry value="org.objectweb.asm.util@default:default"/>
+        <setEntry value="org.objectweb.asm@default:default"/>
         <setEntry value="org.objenesis@default:default"/>
         <setEntry value="org.odftoolkit.odfdom-java@default:default"/>
         <setEntry value="org.opentest4j*1.3.0@default:default"/>
@@ -308,6 +316,7 @@
         <setEntry value="org.w3c.dom.smil@default:default"/>
         <setEntry value="org.w3c.dom.svg@default:default"/>
         <setEntry value="org.yaml.snakeyaml@default:default"/>
+        <setEntry value="slf4j.api*2.0.17@default:default"/>
         <setEntry value="wrapped.com.beust.jcommander@default:default"/>
         <setEntry value="wrapped.com.github.waffle.waffle-jna@default:default"/>
         <setEntry value="wrapped.com.google.zxing.javase@default:default"/>
@@ -342,6 +351,7 @@
         <setEntry value="org.fakturama.export@default:default"/>
         <setEntry value="org.fakturama.exporter.zugferd@default:default"/>
         <setEntry value="org.fakturama.import@default:default"/>
+        <setEntry value="org.fakturama.logging@default:false"/>
         <setEntry value="org.fakturama.print.openoffice@default:default"/>
         <setEntry value="org.fakturama.qrcode@default:default"/>
         <setEntry value="org.fakturama.wizards@default:default"/>
