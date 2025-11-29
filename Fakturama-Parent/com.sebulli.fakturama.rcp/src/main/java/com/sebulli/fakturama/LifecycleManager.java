@@ -75,6 +75,8 @@ import com.sebulli.fakturama.handlers.SaveHandler;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.Constants;
+import com.sebulli.fakturama.misc.UNTDID4461;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.CEFACTCode;
 import com.sebulli.fakturama.model.FakturamaModelFactory;
 import com.sebulli.fakturama.model.FakturamaModelPackage;
@@ -291,9 +293,9 @@ public class LifecycleManager {
             defaultVat.setName(msg.dataDefaultVat);
             defaultVat.setDescription(msg.dataDefaultVatDescription);
             defaultVat.setTaxValue(Double.valueOf(0.0));
+            defaultVat.setCode(UNTDID5305.S);
             defaultVat = vatsDAO.findOrCreate(defaultVat);
             // defaultValuesNode.setValue(Constants.DEFAULT_VAT,
-            // defaultVat.getId());
             eclipsePrefs.putLong(Constants.DEFAULT_VAT, defaultVat.getId());
         }
 
@@ -308,7 +310,6 @@ public class LifecycleManager {
             defaultShipping.setShippingVat(vatsDAO.findById(eclipsePrefs.getLong(Constants.DEFAULT_VAT, Long.valueOf(0))));
             defaultShipping = shippingsDAO.findOrCreate(defaultShipping);
             // defaultValuesNode.setValue(Constants.DEFAULT_SHIPPING,
-            // defaultShipping.getId());
             eclipsePrefs.putLong(Constants.DEFAULT_SHIPPING, defaultShipping.getId());
         }
 
@@ -325,6 +326,7 @@ public class LifecycleManager {
             defaultPayment.setPaidText(msg.dataDefaultPaymentPaidtext);
             defaultPayment.setDepositText(msg.dataDefaultPaymentDescription);
             defaultPayment.setUnpaidText(msg.dataDefaultPaymentUnpaidtext);
+            defaultPayment.setCode(UNTDID4461.VALUE_ZZZ.getCode());
             defaultPayment = paymentsDAO.findOrCreate(defaultPayment);
             // defaultValuesNode.setValue(Constants.DEFAULT_PAYMENT,
             // defaultPayment.getId());
