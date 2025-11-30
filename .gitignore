@@ -12,3 +12,4 @@
 **/*.log
 **/bin/
 **/.vscode/
+**/bin/

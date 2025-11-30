@@ -18,9 +18,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.money.MonetaryAmount;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Shell;
@@ -88,8 +91,9 @@ public abstract class AbstractEInvoice implements IEinvoice {
         return null;
     }
 
-    AbstractEInvoice() {
-    	customMoneyScale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
+    @PostConstruct
+    public void init() {
+        customMoneyScale = preferences.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES);
         if (customMoneyScale < 0) {
             customMoneyScale = 2;
         }

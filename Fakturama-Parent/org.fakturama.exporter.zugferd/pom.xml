@@ -10,23 +10,10 @@
     </parent>
     <artifactId>org.fakturama.exporter.zugferd</artifactId>
     <packaging>eclipse-plugin</packaging>
-    <description>This module manages the PDF/A3 conversion for ZUGFeRD. It
-        includes the combining of an ZUGFeRD-invoice.xml file and a PDF/A-1
-        document into a PDF/A-3 document. Furthermore, it includes an extractor
-        which can extract the ZUGFeRD-invoice.xml from a valid PDF/A-3 document.</description>
-
-    <properties>
-
-
-    </properties>
     <build>
-        <sourceDirectory>src</sourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
             </resource>
         </resources>
         <plugins>
@@ -90,19 +77,8 @@
                 </executions>
             </plugin>
         </plugins>
-
-
     </build>
     <!-- To use the report goals in your POM or parent POM -->
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.4-SNAPSHOT</version>
-            </plugin>
-        </plugins>
-    </reporting>
     <dependencies>
         <dependency>
             <groupId>com.sebulli.fakturama</groupId>

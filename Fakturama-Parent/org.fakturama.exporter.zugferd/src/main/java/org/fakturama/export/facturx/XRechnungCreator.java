@@ -1,5 +1,4 @@
-/*
- * Fakturama - Free Invoicing Software - http://www.fakturama.org
+/* Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 Ralf Heydenreich
  * 
@@ -8,8 +7,7 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors: Ralf Heydenreich - initial API and implementation
- */
+ * Contributors: Ralf Heydenreich - initial API and implementation */
 package org.fakturama.export.facturx;
 
 import java.io.Serializable;
@@ -18,7 +16,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
-import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.fakturama.export.einvoice.AbstractEInvoiceCreator;
@@ -60,9 +57,6 @@ import com.sebulli.fakturama.util.ContactUtil;
  */
 public class XRechnungCreator extends AbstractEInvoiceCreator {
 
-    @Inject
-    private IEclipseContext context;
-
     private IPdfHelper pdfHelper;
 
     @Inject // node: org.fakturama.export.zugferd
@@ -101,13 +95,13 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
             return false;
         }
         switch (zugferdProfile) {
-            case ZUGFERD_V2_EN16931, FACTURX_EN16931, XRECHNUNG:
-                eInvoiceImpl = ContextInjectionFactory.make(XRechnung.class, context);
-                invoiceXml = eInvoiceImpl.getInvoiceXml(eInvoice);
-                break;
-            default:
-                // if we have another profile... exit with error
-                return false;
+        case ZUGFERD_V2_EN16931, FACTURX_EN16931, XRECHNUNG:
+            eInvoiceImpl = ContextInjectionFactory.make(XRechnung.class, eclipseContext);
+            invoiceXml = eInvoiceImpl.getInvoiceXml(eInvoice);
+            break;
+        default:
+            // if we have another profile... exit with error
+            return false;
         }
 
         // 3. merge XML & PDF/A-1 to PDF/A-3

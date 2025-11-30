@@ -15,4 +15,13 @@
         <module>Fakturama-Parent</module>
         <module>org.fakturama.migtool</module>
    </modules>
+   <build>
+    <plugins>
+        <plugin>
+            <groupId>com.amashchenko.maven.plugin</groupId>
+            <artifactId>gitflow-maven-plugin</artifactId>
+            <version>1.21.0</version>
+        </plugin>
+    </plugins>
+</build>
 </project>

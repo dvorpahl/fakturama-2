@@ -1,5 +1,4 @@
-/*
- * Fakturama - Free Invoicing Software - http://www.fakturama.org
+/* Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2020 www.fakturama.org
  * 
@@ -8,8 +7,7 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors: The Fakturama Team - initial API and implementation
- */
+ * Contributors: The Fakturama Team - initial API and implementation */
 
 package org.fakturama.export.facturx;
 
@@ -100,7 +98,8 @@ public class XRechnung extends AbstractEInvoice {
             return null;
         }
         factory = new ObjectFactory();
-        // We create all the root elements and 2nd level here, all other things are done in the methods
+        // We create all the root elements and 2nd level here, all other things
+        // are done in the methods
 
         final CrossIndustryInvoiceType root = new CrossIndustryInvoiceType();
         // 3 root level objects
@@ -130,7 +129,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private HeaderTradeSettlementType makeApplicableHeaderTradeSettlement(final EInvoice eInvoice) {
-        // What we do not need: BT-6 (TaxCurrencyCode), 
+        // What we do not need: BT-6 (TaxCurrencyCode),
         final HeaderTradeSettlementType headerTradeSettlement = factory.createHeaderTradeSettlementType();
         // BT-5
         final CurrencyCodeType currency = getGlobalCurrencyCode(eInvoice.getInvoiceData().getInvoiceCurrencyCode());
@@ -154,8 +153,10 @@ public class XRechnung extends AbstractEInvoice {
         }
         // BG-14 BillingSpecifiedPeriod --> OK
         headerTradeSettlement.setBillingSpecifiedPeriod(createBillingSpecificPeriod(eInvoice.getInvoiceData()));
-        // BG-20 SpecifiedTradeAllowanceCharge <Document Level Allowances ABSCHLÄGE AUF DOKUMENTENEBENE > OK
-        // BG-21 SpecifiedTradeAllowanceCharge <Document Level Charges    ZUSCHLÄGE AUF DOKUMENTENEBENE > OK
+        // BG-20 SpecifiedTradeAllowanceCharge <Document Level Allowances
+        // ABSCHLÄGE AUF DOKUMENTENEBENE > OK
+        // BG-21 SpecifiedTradeAllowanceCharge <Document Level Charges ZUSCHLÄGE
+        // AUF DOKUMENTENEBENE > OK
         final Collection<TradeAllowanceChargeType> specifiedTradeAllowanceChargeList = createSpecifiedTradeAllowanceChargeList(eInvoice);
         if (specifiedTradeAllowanceChargeList != null) {
             headerTradeSettlement.getSpecifiedTradeAllowanceCharge().addAll(specifiedTradeAllowanceChargeList);
@@ -165,7 +166,8 @@ public class XRechnung extends AbstractEInvoice {
         // BG-22 SpecifiedTradeSettlementHeaderMonetarySummation --> OK
         headerTradeSettlement.setSpecifiedTradeSettlementHeaderMonetarySummation(createTradeSettlementMonetarySummation(eInvoice));
         // BG-3 InvoiceReferencedDocument NOT USED
-        // BT-19 ReceivableSpecifiedTradeAccountingAccount --> NOT USED, not interesting
+        // BT-19 ReceivableSpecifiedTradeAccountingAccount --> NOT USED, not
+        // interesting
 
         return headerTradeSettlement;
     }
@@ -249,7 +251,8 @@ public class XRechnung extends AbstractEInvoice {
         if (creditor != null) {
             paymentType.setPayeePartyCreditorFinancialAccount(creditor);
             final CreditorFinancialInstitutionType creditorFinancialInstitution = factory.createCreditorFinancialInstitutionType();
-            // we can safely use get(0) here case if creditor is nut null, this was used there already. Also we only have one bic
+            // we can safely use get(0) here case if creditor is nut null, this
+            // was used there already. Also we only have one bic
             creditorFinancialInstitution
                     .setBICID(createIdFromString(eInvoice.getInvoicePayment().getInvoiceCreditTransfers().get(0).getPaymentServiceProviderIdentifier()));
 
@@ -298,7 +301,7 @@ public class XRechnung extends AbstractEInvoice {
         // BG-13
         final TradePartyType tradePartyType = factory.createTradePartyType();
         // BT-71
-        tradePartyType.getID().add(createIdFromString(eInvoice.getInvoiceDeliveryInformation().getDeliverToPartyName()));
+        tradePartyType.getID().add(createIdFromString(eInvoice.getInvoiceDeliveryInformation().getDeliverToLocationIdentifier()));
         // BT-70
         tradePartyType.setName(createText(eInvoice.getInvoiceDeliveryInformation().getDeliverToPartyName()));
         // BG-15 Lieferanschrift
@@ -416,7 +419,7 @@ public class XRechnung extends AbstractEInvoice {
         // BT-44
         buyer.setName(createText(invoiceBuyer.getBuyerName()));
 
-        // BG-8 
+        // BG-8
         buyer.setPostalTradeAddress(createAddress(eInvoice.getInvoiceBuyer().getBuyerAddress()));
 
         // BT-47 SpecifiedLegalOrganization (NA), inside: BT-45, BT-47-1
@@ -455,17 +458,19 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private TradePartyType createSeller(final EInvoice eInvoice) {
-        // BT-29 (NA, ID, GlobalID), BT-29-1 (NA), BT-33 (NA, Description), 
+        // BT-29 (NA, ID, GlobalID), BT-29-1 (NA), BT-33 (NA, Description),
         final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
 
         final TradePartyType seller = factory.createTradePartyType();
-        //              .setID(createIdFromString(""))  // Kennung des Verkäufers (Durch den Kunden zugewiesene Lieferantennummer)
+        // .setID(createIdFromString("")) // Kennung des Verkäufers (Durch den
+        // Kunden zugewiesene Lieferantennummer)
         // BT-27
         seller.setName(createText(invoiceSeller.getSellerName()));
-        //              .setDescription(createText(""))  // Sonstige rechtliche Informationen des Verkäufers
+        // .setDescription(createText("")) // Sonstige rechtliche Informationen
+        // des Verkäufers
         // BG-6 DefinedTradeContact (OK)
         seller.getDefinedTradeContact().add(createContact(eInvoice, ContactType.SELLER));
-        // 
+        //
         // BG-5 PostalTradeAddress
         seller.setPostalTradeAddress(createAddress(eInvoice.getInvoiceSeller().getSellerAddress()));
 
@@ -475,7 +480,7 @@ public class XRechnung extends AbstractEInvoice {
         // BT-34
         seller.setURIUniversalCommunication(email);
 
-        // BT-31 (VAT Identifier) 
+        // BT-31 (VAT Identifier)
         seller.getSpecifiedTaxRegistration().add(createVatTaxNumber(eInvoice, ContactType.SELLER));
         if (eInvoice.getInvoiceSeller().getSellerTaxRegistrationIdentifier() != null) {
             final TaxRegistrationType retval = factory.createTaxRegistrationType();
@@ -487,11 +492,13 @@ public class XRechnung extends AbstractEInvoice {
 
         // BT-30, BT-28 OK
         seller.setSpecifiedLegalOrganization(createSellerLegalOrganization(eInvoice));
-        //        if (preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR) == null) {
-        //            seller.getGlobalID().add(createIdFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TAXNR)));
-        //        } else {
-        //            seller.getGlobalID().add(createIdWithSchemeFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR), "0088")); // "EAN" according to ISO 6523
-        //        }
+        // if (preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR) ==
+        // null) {
+        // seller.getGlobalID().add(createIdFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_TAXNR)));
+        // } else {
+        // seller.getGlobalID().add(createIdWithSchemeFromString(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_VATNR),
+        // "0088")); // "EAN" according to ISO 6523
+        // }
 
         return seller;
     }
@@ -520,11 +527,14 @@ public class XRechnung extends AbstractEInvoice {
      * @param exchangedDocumentType
      */
     private NoteType createNote(final InvoiceNote invoiceNote) {
-        final NoteType note = factory.createNoteType(); // free text on header level
+        final NoteType note = factory.createNoteType(); // free text on header
+                                                        // level
         // BT-22
         note.setContent(createText(invoiceNote.getInvoiceNote()));
         // BT-21
-        note.setSubjectCode(createCode(invoiceNote.getInvoiceNoteSubjectCode())); // see UNTDID 4451
+        note.setSubjectCode(createCode(invoiceNote.getInvoiceNoteSubjectCode())); // see
+                                                                                  // UNTDID
+                                                                                  // 4451
 
         return note;
     }
@@ -591,7 +601,9 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private LineTradeSettlementType createLineTradeSettlement(final InvoicePosition invoicePosition) {
-        // We dont implement BT-28 since it is not allowed anymore, BT-128 (no support in Fakturama), BT-133 (NA, Invoice line Buyer accounting reference)
+        // We dont implement BT-28 since it is not allowed anymore, BT-128 (no
+        // support in Fakturama), BT-133 (NA, Invoice line Buyer accounting
+        // reference)
         final LineTradeSettlementType retval = factory.createLineTradeSettlementType();
         // BG-30
         retval.getApplicableTradeTax().add(createTradeTax(invoicePosition));
@@ -630,7 +642,7 @@ public class XRechnung extends AbstractEInvoice {
             tradeAllowanceCharge.setActualAmount(createAmount(invoiceAllowances.getAmount()));
             // BT-137
             tradeAllowanceCharge.setBasisAmount(createAmount(invoiceAllowances.getBaseAmount()));
-            // BT-138            
+            // BT-138
             tradeAllowanceCharge.setCalculationPercent(createPercentType(invoiceAllowances.getPercentage()));
             // BT-139
             tradeAllowanceCharge.setReason(createText(invoiceAllowances.getReason()));
@@ -749,7 +761,8 @@ public class XRechnung extends AbstractEInvoice {
         tradePriceTypeNet.setChargeAmount(createMoneyAmount(itemPosition.getItemNetPrice()));
         if (itemPosition.getItemPriceBaseQuantity() != null) {
             // BT-149, 150 we do not set this at the moment
-            //            tradePriceTypeNet.setBasisQuantity(createQuantity(itemPosition.getItemPriceBaseQuantity(), itemPosition.getItemPriceBaseQuantityUnitOfMeasure()));
+            // tradePriceTypeNet.setBasisQuantity(createQuantity(itemPosition.getItemPriceBaseQuantity(),
+            // itemPosition.getItemPriceBaseQuantityUnitOfMeasure()));
         }
         retval.setNetPriceProductTradePrice(tradePriceTypeNet);
 
@@ -818,7 +831,8 @@ public class XRechnung extends AbstractEInvoice {
         // BT-131
         retval.setLineTotalAmount(createAmount(invoicePosition.getInvoiceLineNetAmount()));
 
-        // alle anderen hier angebotenen Felder resultieren nur aus dem XSD, die sind in der Spezifikation
+        // alle anderen hier angebotenen Felder resultieren nur aus dem XSD, die
+        // sind in der Spezifikation
         // gar nicht aufgeführt (nur an anderer Stelle, wo sie sinnvoller sind)
         return retval;
     }
@@ -952,6 +966,7 @@ public class XRechnung extends AbstractEInvoice {
     private AmountType createAmount(final BigDecimal amount) {
         return createAmount(amount, 2, null);
     }
+
     /**
      * creates an Amount field
      * 
@@ -960,8 +975,9 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private AmountType createQuantityAmount(final BigDecimal amount) {
-    	return createAmount(amount, customQuantityScale, null);
+        return createAmount(amount, customQuantityScale, null);
     }
+
     /**
      * creates an Amount field
      * 
@@ -970,7 +986,7 @@ public class XRechnung extends AbstractEInvoice {
      * @return
      */
     private AmountType createMoneyAmount(final BigDecimal amount) {
-    	return createAmount(amount, customMoneyScale, null);
+        return createAmount(amount, customMoneyScale, null);
     }
 
     /**
@@ -1022,17 +1038,17 @@ public class XRechnung extends AbstractEInvoice {
     private TaxRegistrationType createVatTaxNumber(final EInvoice eInvoice, final ContactType contactType) {
         TaxRegistrationType retval = factory.createTaxRegistrationType();
         switch (contactType) {
-            case SELLER:
-                final String companyVatNo = eInvoice.getInvoiceSeller().getSellerVatIdentifier();
-                retval.setID(createIdWithSchemeFromString(StringUtils.trimToNull(companyVatNo), "VA"));
-                break;
-            case BUYER:
-                final String buyerVatNo = eInvoice.getInvoiceBuyer().getBuyerVatIdentifier();
-                retval.setID(createIdWithSchemeFromString(StringUtils.trimToNull(buyerVatNo), "VA"));
-                break;
-            default:
-                retval = null;
-                break;
+        case SELLER:
+            final String companyVatNo = eInvoice.getInvoiceSeller().getSellerVatIdentifier();
+            retval.setID(createIdWithSchemeFromString(StringUtils.trimToNull(companyVatNo), "VA"));
+            break;
+        case BUYER:
+            final String buyerVatNo = eInvoice.getInvoiceBuyer().getBuyerVatIdentifier();
+            retval.setID(createIdWithSchemeFromString(StringUtils.trimToNull(buyerVatNo), "VA"));
+            break;
+        default:
+            retval = null;
+            break;
         }
         return retval.getID() == null ? null : retval;
     }
@@ -1062,7 +1078,13 @@ public class XRechnung extends AbstractEInvoice {
         retval.setLineTwo(createText(addressData.getAddressLine2()));
         retval.setLineThree(createText(addressData.getAddressLine3()));
         retval.setCityName(createText(addressData.getCity()));
-        retval.setCountryID(createCountry(addressData.getCountryCode())); // Nur die Alpha-2 Darstellung darf verwendet werden
+        retval.setCountryID(createCountry(addressData.getCountryCode())); // Nur
+                                                                          // die
+                                                                          // Alpha-2
+                                                                          // Darstellung
+                                                                          // darf
+                                                                          // verwendet
+                                                                          // werden
         retval.setCountrySubDivisionName(createText(addressData.getCountrySubdivision()));
         return retval;
     }
@@ -1092,29 +1114,29 @@ public class XRechnung extends AbstractEInvoice {
         boolean somethingSet = false;
         final UniversalCommunicationType email = factory.createUniversalCommunicationType();
         switch (contactType) {
-            case SELLER:
-                final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
-                // BT-41
-                contact.setPersonName(createText(StringUtils.trimToNull(invoiceSeller.getSellerContactPoint())));
-                // BT-42 
-                contact.setTelephoneUniversalCommunication(createCommunicationItem(StringUtils.trimToNull(invoiceSeller.getSellerContactTelephoneNumber())));
-                email.setURIID(createIdFromString(StringUtils.trimToNull(invoiceSeller.getSellerContactEmailAddress())));
-                // BT-43
-                contact.setEmailURIUniversalCommunication(email.getURIID() == null ? null : email);
+        case SELLER:
+            final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
+            // BT-41
+            contact.setPersonName(createText(StringUtils.trimToNull(invoiceSeller.getSellerContactPoint())));
+            // BT-42
+            contact.setTelephoneUniversalCommunication(createCommunicationItem(StringUtils.trimToNull(invoiceSeller.getSellerContactTelephoneNumber())));
+            email.setURIID(createIdFromString(StringUtils.trimToNull(invoiceSeller.getSellerContactEmailAddress())));
+            // BT-43
+            contact.setEmailURIUniversalCommunication(email.getURIID() == null ? null : email);
 
-                break;
-            case BUYER:
-                final InvoiceBuyer invoiceBuyer = eInvoice.getInvoiceBuyer();
-                // BT-56
-                contact.setPersonName(createText(StringUtils.trimToNull(invoiceBuyer.getBuyerContactPoint())));
-                // BT-57
-                contact.setTelephoneUniversalCommunication(createCommunicationItem(StringUtils.trimToNull(invoiceBuyer.getBuyerContactTelephoneNumber())));
-                // BT-58
-                email.setURIID(createIdWithSchemeFromString(StringUtils.trimToNull(invoiceBuyer.getBuyerContactEmailAddress()), "EM"));
-                contact.setEmailURIUniversalCommunication(email.getURIID() == null ? null : email);
-                break;
-            default:
-                break;
+            break;
+        case BUYER:
+            final InvoiceBuyer invoiceBuyer = eInvoice.getInvoiceBuyer();
+            // BT-56
+            contact.setPersonName(createText(StringUtils.trimToNull(invoiceBuyer.getBuyerContactPoint())));
+            // BT-57
+            contact.setTelephoneUniversalCommunication(createCommunicationItem(StringUtils.trimToNull(invoiceBuyer.getBuyerContactTelephoneNumber())));
+            // BT-58
+            email.setURIID(createIdWithSchemeFromString(StringUtils.trimToNull(invoiceBuyer.getBuyerContactEmailAddress()), "EM"));
+            contact.setEmailURIUniversalCommunication(email.getURIID() == null ? null : email);
+            break;
+        default:
+            break;
         }
         somethingSet = contact.getPersonName() != null || contact.getTelephoneUniversalCommunication() != null
                 || contact.getEmailURIUniversalCommunication() != null;

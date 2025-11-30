@@ -147,9 +147,12 @@ public class FileOrganizer {
         		.replaceAll("\\{docname\\}", replaceIllegalCharacters(document.getName()))
                 .replaceAll("\\{docref\\}", StringUtils.defaultString(customerRef))
                 .replaceAll("\\{doctype\\}", msg.getMessageFromKey(DocumentType.getPluralString(DocumentTypeUtil.findByBillingType(document.getBillingType()))))
-                .replaceAll("\\{address\\}", StringUtils.defaultString(address)).replaceAll("\\{name\\}", name)
-                .replaceAll("\\{firstname\\}", replaceIllegalCharacters(documentContact.getFirstName())).replaceAll("\\{companyorname\\}", companyOrName)
-                .replaceAll("\\{company\\}", replaceIllegalCharacters(StringUtils.defaultString(documentContact.getCompany()))).replaceAll("\\{alias\\}", alias)
+                .replaceAll("\\{address\\}", StringUtils.defaultString(address))
+                .replaceAll("\\{name\\}", name)
+                .replaceAll("\\{firstname\\}", replaceIllegalCharacters(documentContact.getFirstName()))
+                .replaceAll("\\{companyorname\\}", companyOrName)
+                .replaceAll("\\{company\\}", replaceIllegalCharacters(StringUtils.defaultString(documentContact.getCompany())))
+                .replaceAll("\\{alias\\}", alias)
                 .replaceAll("\\{version\\}", String.format("%03d", document.getVersion()))
                 .replaceAll("\\{custno\\}", StringUtils.defaultString(documentContact.getCustomerNumber()));
 

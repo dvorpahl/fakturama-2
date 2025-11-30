@@ -5,7 +5,7 @@ Bundle-SymbolicName: com.sebulli.fakturama.model;singleton:=true
 Bundle-Version: 2.2.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: javax.inject,
- com.sebulli.fakturama.common,
+ com.sebulli.fakturama.common;visibility:=reexport,
  org.eclipse.persistence.jpa;bundle-version="4.0.2",
  org.eclipse.e4.core.di;bundle-version="1.6.100",
  org.eclipse.e4.core.services;bundle-version="1.2.0",
