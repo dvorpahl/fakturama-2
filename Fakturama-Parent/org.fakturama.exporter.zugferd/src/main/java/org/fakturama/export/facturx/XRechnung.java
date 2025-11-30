@@ -913,7 +913,7 @@ public class XRechnung extends AbstractEInvoice {
     }
 
     /**
-     * Detailangaben zu Steuern im Allowance/charde document section
+     * Detailangaben zu Steuern im Allowance/charge document section
      * 
      * @param vatSummaryItem
      * @return
