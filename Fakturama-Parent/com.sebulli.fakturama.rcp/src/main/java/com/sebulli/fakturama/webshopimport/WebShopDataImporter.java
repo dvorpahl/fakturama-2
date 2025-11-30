@@ -494,7 +494,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         // sometimes there are no products...
         if (products != null) {
             // Get the general products data
-            productImagePath = products.getImagepath();
+            productImagePath = StringUtils.appendIfMissing(products.getImagepath(), "/");
 
             final List<ProductType> productList = products.getProduct();
             final int producListSize = productList.size();
@@ -1034,7 +1034,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
 
         // Create the URL to the product image
         byte[] picture = null;
-        final boolean usePicture = preferences.getDefaultBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE);
+        final boolean usePicture = preferences.getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE);
         if (usePicture && !product.getImage().isEmpty()) {
             picture = downloadImageFromUrl(product.getImage());
         }
@@ -1093,7 +1093,8 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         }
 
         // we should have a complete url here, nothing relative
-        final HttpGet httpGet = connector.createPublicGetRequest(address);
+        ;
+        final HttpGet httpGet = connector.createPublicGetRequest(productImagePath + address);
 
         final File targetFile = new File("downloaded-file");
         try (CloseableHttpClient client = HttpClients.createDefault(); CloseableHttpResponse response = client.execute(httpGet, responseHandler -> {
