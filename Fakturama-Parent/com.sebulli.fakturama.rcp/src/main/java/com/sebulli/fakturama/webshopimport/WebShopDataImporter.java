@@ -494,8 +494,10 @@ public class WebShopDataImporter implements IRunnableWithProgress {
         // sometimes there are no products...
         if (products != null) {
             // Get the general products data
+        	
             productImagePath = StringUtils.appendIfMissing(products.getImagepath(), "/");
-
+            productImagePath = StringUtils.prependIfMissing(productImagePath, connector.getShopURL());
+            
             final List<ProductType> productList = products.getProduct();
             final int producListSize = productList.size();
             for (int productIndex = 0; productIndex < producListSize; productIndex++) {
