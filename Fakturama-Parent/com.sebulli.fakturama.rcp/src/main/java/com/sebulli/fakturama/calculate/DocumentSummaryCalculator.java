@@ -96,7 +96,7 @@ public class DocumentSummaryCalculator {
         final int sign = DocumentTypeUtil.findByBillingType(dataSetDocument.getBillingType()).getSign();
 
         return calculate(vatSummarySet, dataSetDocument.getItems(),
-                shipping != null ? shipping.getShippingValue() : Optional.ofNullable(dataSetDocument.getShippingValue()).orElse(NumberUtils.DOUBLE_ZERO),
+                Optional.ofNullable(dataSetDocument.getShippingValue()).orElse(NumberUtils.DOUBLE_ZERO),
                 shipping != null ? shipping.getShippingVat() : null, shipping != null ? shipping.getAutoVat() : dataSetDocument.getShippingAutoVat(),
                 Optional.ofNullable(dataSetDocument.getItemsRebate()).orElse(NumberUtils.DOUBLE_ZERO), noVatReference, scaleFactor,
                 dataSetDocument.getNetGross(), deposit, sign);
