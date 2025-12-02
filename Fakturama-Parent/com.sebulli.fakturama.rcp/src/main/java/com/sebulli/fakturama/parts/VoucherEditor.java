@@ -632,7 +632,7 @@ public abstract class VoucherEditor extends Editor<Voucher> {
     public void handleForceClose(@UIEventTopic(ExpenditureVoucherEditor.EDITOR_ID + "/forceClose") final Event event) {
         //      sync.syncExec(() -> top.setRedraw(false));
         // the event has already all given params in it since we created them as Map
-        String targetDocumentName = (String) event.getProperty(DocumentEditor.DOCUMENT_ID);
+        String targetDocumentName = (String) event.getProperty(Editor.OBJECT_ID);
         // at first we have to check if the message is for us
         String voucherTempId = (String) part.getTransientData().get(PART_ID);
         if (!StringUtils.equals(targetDocumentName, voucherTempId)) {
