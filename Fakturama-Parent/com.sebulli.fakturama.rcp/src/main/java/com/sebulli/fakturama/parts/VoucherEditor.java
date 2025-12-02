@@ -540,8 +540,8 @@ public abstract class VoucherEditor extends Editor<Voucher> {
         }
 
         // Set all the items
-        List<VoucherItem> items = itemListTable.getVoucherItemsListData().stream().map(dto -> dto.getVoucherItem())
-                /*.sorted(Comparator.comparing(VoucherItem::getId))*/
+        List<VoucherItem> items = itemListTable.getVoucherItemsListData().stream()
+        		.map(dto -> dto.getVoucherItem())
                 .collect(Collectors.toList());
         voucher.setItems(items);
 

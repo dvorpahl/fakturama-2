@@ -190,6 +190,7 @@ public class ExpendituresCsvImporter {
 
 			// Read line by line
 			String[] cells;
+			int posNr = 1;
 			while ((cells = csvr.readNext()) != null) {
 				lineNr++;
 
@@ -271,6 +272,7 @@ public class ExpendituresCsvImporter {
 						vat.setCategory(vatCategory);
 						vat = vatsDAO.findOrCreate(vat);
 						expenditureItem.setVat(vat);
+						expenditureItem.setPosNr(posNr++);
 
 						// Add the expenditure and expenditure item to the data base
 //						expenditureItem = Data.INSTANCE.getExpenditureVoucherItems().addNewDataSet(expenditureItem);
