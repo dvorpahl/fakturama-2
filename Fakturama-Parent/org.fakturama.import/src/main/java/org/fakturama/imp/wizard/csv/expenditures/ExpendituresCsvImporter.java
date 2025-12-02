@@ -25,10 +25,15 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.e4.core.contexts.ContextInjectionFactory;
+import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.fakturama.imp.ImportMessages;
 
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.ICSVParser;
 import com.opencsv.exceptions.CsvValidationException;
 import com.sebulli.fakturama.calculate.VoucherSummaryCalculator;
 import com.sebulli.fakturama.dao.ExpendituresDAO;
@@ -65,7 +70,10 @@ public class ExpendituresCsvImporter {
 	@Inject
 	@Translation
 	protected Messages msg;
-    
+	
+    @Inject
+    private IEclipseContext ctx;
+
     @Inject
     protected ILogger log;
     
@@ -160,8 +168,9 @@ public class ExpendituresCsvImporter {
 	
 		// Open the existing file
 		// TODO use NIO
-		try (InputStreamReader isr = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
-			 CSVReader csvr = new CSVReader(isr);	) {
+		try (InputStreamReader isr = new InputStreamReader(new FileInputStream(fileName), "UTF-8")) {
+				ICSVParser csvParser = new CSVParserBuilder().withSeparator(';').withQuoteChar('"').build();
+				CSVReader csvr = new CSVReaderBuilder(isr).withCSVParser(csvParser).build();
 
 			// Read next CSV line
 			columns = csvr.readNext();
@@ -279,7 +288,7 @@ public class ExpendituresCsvImporter {
 //						}
 
 						// Recalculate the total sum of all items and set the total value
-						VoucherSummaryCalculator calculator = new VoucherSummaryCalculator();
+						VoucherSummaryCalculator calculator = ContextInjectionFactory.make(VoucherSummaryCalculator.class, ctx);
 						VoucherSummary summary = calculator.calculate(expenditure);
 						// Get the total result
 						Double total = summary.getTotalGross().getNumber().doubleValue();
