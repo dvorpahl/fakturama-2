@@ -16,9 +16,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.nebula.widgets.picture.ImageFilterExtension;
 import org.eclipse.nebula.widgets.picture.PictureControl;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
@@ -27,6 +29,7 @@ import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.resources.core.Icon;
 import com.sebulli.fakturama.resources.core.IconSize;
+import com.sebulli.fakturama.resources.core.ProgramImages;
 
 /**
  * a {@link org.eclipse.nebula.widgets.picture.PictureControl} with some
@@ -51,7 +54,11 @@ public class FakturamaPictureControl extends PictureControl {
     @Inject
     protected IPreferenceStore defaultValuePrefs;
 
-    private String[] filterExtensions = new String[] { "*.png", "*.jpg", "*.bmp" };
+    private String[] filterExtensions = ImageFilterExtension.createFilterExtension(false, 
+    		ImageFilterExtension.bmp,
+    		ImageFilterExtension.jpg,
+    		ImageFilterExtension.png,
+    		ImageFilterExtension.gif);
 
     public FakturamaPictureControl(final Composite parent) {
         super(parent);
@@ -61,42 +68,45 @@ public class FakturamaPictureControl extends PictureControl {
     public void init() {
         setModifyImageLinkText(msg.editorProductButtonChoosepicName);
         setDeleteImageLinkText(msg.mainMenuEditDeleteName);
+    
+    
     }
 
-    @PreDestroy
-    void cleanUp() {
-        this.dispose();
-    }
+//    @PreDestroy
+//    void cleanUp() {
+//        this.dispose();
+//    }
+//
+//    @Override
+//    public void setImageByteArray(final byte[] imageByteArray) {
+//        super.setImageByteArray(imageByteArray);
+//        Menu menu = getPictureLabel().getMenu();
+//        menu.getItem(0).setText(msg.mainMenuEditDeleteName);
+//        menu.getItem(0).setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
+//        menu.getItem(1).setText(msg.editorProductButtonChoosepicName);
+//        menu.getItem(1).setImage(Icon.COMMAND_ORDER_PROCESSING.getImage(IconSize.DefaultIconSize));
+//    }
 
-    @Override
-    public void setImageByteArray(final byte[] imageByteArray) {
-        super.setImageByteArray(imageByteArray);
-        Menu menu = getPictureLabel().getMenu();
-        menu.getItem(0).setText(msg.mainMenuEditDeleteName);
-        menu.getItem(0).setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
-        menu.getItem(1).setText(msg.editorProductButtonChoosepicName);
-        menu.getItem(1).setImage(Icon.COMMAND_ORDER_PROCESSING.getImage(IconSize.DefaultIconSize));
-    }
+	@Override
+	protected void configure(final FileDialog fd) {
+		super.configure(fd);
+		IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
+		String lastUsedPath = dialogSettings.get(PICTURE_CONTROL_LAST_USED_PATH);
+		String filterPath = StringUtils.isNotBlank(lastUsedPath) ? lastUsedPath
+				: defaultValuePrefs.getString(Constants.GENERAL_WORKSPACE);
+		fd.setFilterPath(filterPath);
 
-    @Override
-    protected void configure(final FileDialog fd) {
-        super.configure(fd);
-        IDialogSettings dialogSettings = getDialogSettings(PICTURE_CONTROL_SETTING);
-        String lastUsedPath = dialogSettings.get(PICTURE_CONTROL_LAST_USED_PATH);
-        String filterPath = StringUtils.isNotBlank(lastUsedPath) ? lastUsedPath : defaultValuePrefs.getString(Constants.GENERAL_WORKSPACE);
-        fd.setFilterPath(filterPath);
+		int lastUsedIndex;
+		try {
+			lastUsedIndex = dialogSettings.getInt(PICTURE_CONTROL_LAST_USED_FILTER);
+		} catch (NumberFormatException e) {
+			lastUsedIndex = 0;
+		}
+		fd.setFilterIndex(lastUsedIndex);
 
-        int lastUsedIndex;
-        try {
-            lastUsedIndex = dialogSettings.getInt(PICTURE_CONTROL_LAST_USED_FILTER);
-        } catch (NumberFormatException e) {
-            lastUsedIndex = 0;
-        }
-        fd.setFilterIndex(lastUsedIndex);
-
-        fd.setText(msg.editorProductButtonChoosepicName);
-        fd.setFilterExtensions(filterExtensions);
-    }
+		fd.setText(msg.editorProductButtonChoosepicName);
+		fd.setFilterExtensions(new String[] { String.join(";", filterExtensions) });
+	}
 
     /**
      * Open the Explorer File to select a new image.
@@ -116,19 +126,11 @@ public class FakturamaPictureControl extends PictureControl {
             saveDialogSettings(f.getParent(), filterIndex);
             try {
                 FileInputStream in = new FileInputStream(f);
-                // First, check if image is ok, after this, set it
-                ImageData image = new ImageData(in);
-                if (image != null) {
-                    setImageByteArray(image.data);
-                }
-            } catch (SWTException e) {
-                setImageByteArray(null);
-                handleError(e);
-            } catch (Throwable e) {
+				setImageStream(in);
+             } catch (Throwable e) {
                 setImageByteArray(null);
                 handleError(e);
             }
-
         }
     }
 
