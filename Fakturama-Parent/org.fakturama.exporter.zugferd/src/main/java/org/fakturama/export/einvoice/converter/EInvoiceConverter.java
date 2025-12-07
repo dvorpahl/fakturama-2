@@ -16,12 +16,11 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,7 +84,6 @@ public class EInvoiceConverter {
     /**
      * 
      */
-    private static final ZoneId ZONE_ID_JVM = TimeZone.getDefault().toZoneId();
     // Define patterns
     private static final String PATTERN_DEBTOR = ".*?Debtor ID=(\\p{Alnum}+).*";
     private static final String PATTERN_GLOBAL_ID = ".*?Global ID=(\\p{Alnum}+).*";
@@ -386,12 +384,12 @@ public class EInvoiceConverter {
             boolean periodToAdd = false;
             if (invoiceItem.getVestingPeriodStart() != null) {
                 // BT-134
-                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZONE_ID_JVM));
+                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZoneOffset.UTC));
                 periodToAdd = true;
             }
             if (invoiceItem.getVestingPeriodEnd() != null) {
                 // BT-135
-                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZONE_ID_JVM));
+                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZoneOffset.UTC));
                 periodToAdd = true;
             }
 
@@ -532,7 +530,7 @@ public class EInvoiceConverter {
         }
         if (invoice.getServiceDate() != null) {
             // BT-72
-            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), EInvoiceConverter.ZONE_ID_JVM));
+            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), ZoneOffset.UTC));
         }
 
         if (deliveryAddr.getDeleted() != null && deliveryAddr.getDeleted().booleanValue()) {
@@ -733,7 +731,7 @@ public class EInvoiceConverter {
         // BT-1
         invoiceData.setInvoiceNumber(StringUtils.trimToNull(invoice.getName()));
         // BT-2
-        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), EInvoiceConverter.ZONE_ID_JVM));
+        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), ZoneOffset.UTC));
 
         // BT-3
         invoiceData.setInvoiceTypeCode(getDocumentTypeCode(invoice));
@@ -790,11 +788,11 @@ public class EInvoiceConverter {
         invoiceData.setPaymentTerms(paymentText.orElse(null));
         if (invoice.getVestingPeriodStart() != null) {
             // BT-73
-            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZONE_ID_JVM));
+            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZoneOffset.UTC));
         }
         if (invoice.getVestingPeriodEnd() != null) {
             // BT-74
-            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZONE_ID_JVM));
+            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZoneOffset.UTC));
         }
     }
 
