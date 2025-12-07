@@ -24,8 +24,11 @@ import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
@@ -342,9 +345,9 @@ public class TemplateProcessor {
                     break;
                 case "DFORMAT":
                     try {
-                        final GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-                        final SimpleDateFormat sdf = new SimpleDateFormat(param.getValue());
-                        retval = sdf.format(checkDate.getTime());
+                    	var localDate = LocalDate.parse(retval, DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+						var formatter = DateTimeFormatter.ofPattern(param.getValue()).withZone(ZoneOffset.UTC);
+						retval = formatter.format(localDate);
                     } catch (final IllegalArgumentException e) {
                         retval = "### NVL ###";
                     }
