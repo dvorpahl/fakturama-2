@@ -297,7 +297,7 @@ public class DocumentSummaryCalculator {
             // only add VAT if a shipping value is set
             if (!shippingAmount.isZero()) {
                 final VatSummaryItem shippingVatSummaryItem = new VatSummaryItem(currentVatDescription, shippingVatPercent, param.getShippingVat().getCode(),
-                        retval.getShippingNet(), retval.getShippingVat());
+                        retval.getShippingNet(), retval.getShippingVat(), param.getShippingVat().getDescription());
 
                 // Adjust the vat summary item by the shipping part
                 retval.addVatSummaryItem(shippingVatSummaryItem);
@@ -398,7 +398,7 @@ public class DocumentSummaryCalculator {
                 discountVatValue = discountVatValue.add(discountPart.getUnitVat()).add(discountPart.getTotalSalesEqTax());
 
                 final VatSummaryItem discountVatSummaryItem = new VatSummaryItem(discountVatDescription, discountVatPercent, vatSummaryItem.getVatCode(),
-                        discountPart.getUnitNet(), discountPart.getUnitVat());
+                        discountPart.getUnitNet(), discountPart.getUnitVat(), vatSummaryItem.getDescription());
                 if (this.useSET && !vatSummaryItem.getSalesEqTax().isZero()) {
                     discountVatSummaryItem.setSalesEqTax(discountPart.getTotalSalesEqTaxRounded());
                     discountVatSummaryItem.setSalesEqTaxPercent(vatSummaryItem.getSalesEqTaxPercent());

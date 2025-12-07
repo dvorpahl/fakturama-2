@@ -57,23 +57,6 @@ public class VatSummaryItem implements Comparable<VatSummaryItem> {
 
     /**
      * Constructor Creates a VatSummaryItem from a net and vat value and the vat
-     * name.
-     * 
-     * @param vatName
-     *            Vat name
-     * @param vatPercent
-     *            Vat value in percent
-     * @param net
-     *            Absolute Net value
-     * @param vat
-     *            Absolute Vat value
-     */
-    public VatSummaryItem(final String vatName, final Double vatPercent, final UNTDID5305 vatCode, final MonetaryAmount net, final MonetaryAmount vat) {
-        this(vatName, vatPercent, vatCode, net, vat, "");
-    }
-
-    /**
-     * Constructor Creates a VatSummaryItem from a net and vat value and the vat
      * name with an additional description
      * 
      * @param vatName
