@@ -6,15 +6,19 @@ package com.sebulli.fakturama.webshopimport;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
-import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 /**
  * WebShopConfigVO contains all the necessary information
@@ -49,16 +53,30 @@ public class WebShopConnector {
 
     public HttpPost createPostRequest(final String action, final Map<String, String> params) {
         final HttpPost httpPost = new HttpPost(this.getScriptURL());
-        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addTextBody("username", this.getUser());
-        builder.addTextBody("password", this.getPassword());
-        builder.addTextBody("action", action);
-        if (params != null && !params.isEmpty()) {
-            params.forEach((key, value) -> builder.addTextBody(key, value));
+
+        List<NameValuePair> form = new ArrayList<>();
+        form.add(new BasicNameValuePair("username", this.getUser()));
+        form.add(new BasicNameValuePair("password", this.getPassword()));
+        form.add(new BasicNameValuePair("action", action));
+
+        if (params != null) {
+            params.forEach((k, v) -> form.add(new BasicNameValuePair(k, v)));
         }
 
-        final HttpEntity multipart = builder.build();
-        httpPost.setEntity(multipart);
+        httpPost.setEntity(new UrlEncodedFormEntity(form, StandardCharsets.UTF_8));
+        httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        //
+        // final MultipartEntityBuilder builder = UrlEncodedFormEntity.create();
+        // builder.addTextBody("username", this.getUser());
+        // builder.addTextBody("password", this.getPassword());
+        // builder.addTextBody("action", action);
+        // if (params != null && !params.isEmpty()) {
+        // params.forEach((key, value) -> builder.addTextBody(key, value));
+        // }
+        //
+        // final HttpEntity multipart = builder.build();
+        // httpPost.setEntity(multipart);
         if (this.getUseAuthorization() != null && this.getUseAuthorization().booleanValue()) {
             final String encodedPassword = Base64.getEncoder().encodeToString((this.getAuthorizationUser() + ":" + this.getAuthorizationPassword()).getBytes());
             httpPost.setHeader("Authorization", "Basic " + encodedPassword);
