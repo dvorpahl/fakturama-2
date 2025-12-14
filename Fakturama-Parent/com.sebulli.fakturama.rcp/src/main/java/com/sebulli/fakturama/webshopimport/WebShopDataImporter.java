@@ -280,91 +280,27 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             }
             final HttpPost httpPost = connector.createPostRequest(actionString, queryParams);
 
-            // final URLConnection connection = connector.createConnection();
-            // if (connection != null && connection.getDoOutput()) {
-            // final OutputStream outputStream = connection.getOutputStream();
-            // final OutputStreamWriter writer = new
-            // OutputStreamWriter(outputStream);
-            //
-            //// final StringBuilder postStringSb = new
-            // StringBuilder("username=").append(URLEncoder.encode(connector.getUser(),
-            // "UTF-8")).append("&password=")
-            //// .append(URLEncoder.encode(connector.getPassword(), "UTF-8"));
-            ////
-            //// String actionString = "";
-            //// if (connector.isGetProducts()) {
-            //// actionString += "_products";
-            //// }
-            //// if (connector.isGetOrders()) {
-            //// actionString += "_orders";
-            //// }
-            //// if (!actionString.isEmpty()) {
-            //// actionString = "&action=get" + actionString;
-            //// }
-            //
-            //// postStringSb.append(actionString).append("&setstate=").append(connector.getOrderstosynchronize().toString());
-            //
-            //
-            // log.debug("POST-String: " + postStringSb.toString());
-            // writer.write(postStringSb.toString());
-            // writer.flush();
-            // writer.close();
-            // }
             setProgress(30);
             final Path file = Files.createTempFile("result_", ".xml");
             try (OutputStream fos = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE); //
                     CloseableHttpClient client = HttpClients.createDefault(); //
                     CloseableHttpResponse response = client.execute(httpPost)) {
-                log.error("response {}", response.getCode());
-                if (response.getCode()<400) {
-                localMonitor.subTask(msg.importWebshopInfoLoading);
-                setProgress(20);
-                IOUtils.copyLarge(response.getEntity().getContent(), fos);
-                fos.flush();
-                }
-                else {
+                log.debug("Webservice download response {}", response.getCode());
+                if (response.getCode() < 400) {
+                    localMonitor.subTask(msg.importWebshopInfoLoading);
+                    setProgress(20);
+                    IOUtils.copyLarge(response.getEntity().getContent(), fos);
+                    fos.flush();
+                } else {
                     throw new Exception(response.getReasonPhrase());
                 }
             } catch (final Exception e) {
                 log.error(e);
                 setRunResult(msg.importWebshopErrorCantread);
             }
-            // // Start a connection in an extra thread
-            // final InterruptConnection interruptConnection = new
-            // InterruptConnection(connection);
-            // new Thread(interruptConnection).start();
-            // while (!localMonitor.isCanceled() &&
-            // !interruptConnection.isFinished() &&
-            // !interruptConnection.isError()) {
-            //
-            // }
-            //
-            // // If the connection was interrupted and not finished: return
-            // if (!interruptConnection.isFinished()) {
-            // ((HttpURLConnection) connection).disconnect();
-            // if (interruptConnection.isError()) {
-            // //T: Status error message importing data from web shop
-            // setRunResult(msg.importWebshopErrorCantconnect);
-            // }
-            // return;
-            // }
-            //
-            // // If there was an error, return with error message
-            // if (interruptConnection.isError()) {
-            // ((HttpURLConnection) connection).disconnect();
-            // //T: Status message importing data from web shop
-            // setRunResult(msg.importWebshopErrorCantread);
-            // return;
-            // }
 
             // 1. We need to create JAXBContext instance
             final JAXBContext jaxbContext = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
-
-            /* if we have larger documents we have to use SAX. */
-            // 2. create a new XML parser
-            // SAXParserFactory factory = SAXParserFactory.newInstance();
-            // factory.setNamespaceAware(true);
-            // XMLReader reader = factory.newSAXParser().getXMLReader();
 
             // 2. Use JAXBContext instance to create the Unmarshaller.
             final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -386,10 +322,6 @@ public class WebShopDataImporter implements IRunnableWithProgress {
                     Files.createDirectories(logFile.getParent());
                 }
 
-                // Create a new file
-                // Files.deleteIfExists(logFile);
-                // Files.createFile(logFile);
-                //
                 // Create a buffered writer to write the imported data to the
                 // file system
                 logBuffer = Files.newBufferedWriter(logFile, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -1143,7 +1075,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
                 }
 
             } else {
-                System.err.println("Unexpected picture download response status: " + status);
+                log.error("Unexpected picture download response status: " + status);
             }
             return null;
         });) {
