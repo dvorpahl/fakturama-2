@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="11.0.5" transformSequenceNumber="11">
-  <directoryPresets config="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-BETA" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
+<install4j version="12.0.1" transformSequenceNumber="12">
+  <directoryPresets config="../../../../../../Documents/Zertifikate/Fakturama-Zertifikat-AppleDev.p12" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-RC" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -26,7 +26,7 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning macEnabled="true" macPkcs12File="../../../../../Documents/Zertifikate/Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8">
+    <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsPkcs12File="../../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8">
       <macSearchedJars>
         <entry>jna-*</entry>
         <entry>swt-*</entry>
@@ -34,7 +34,7 @@
         <entry>com.sun.*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.14+7" />
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.17+10" />
   </application>
   <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git" preserveMode="true">
     <filesets>
@@ -84,7 +84,7 @@
   <installerGui>
     <autoUpdate useMinUpdatableVersion="true" minUpdatableVersion="2.0" />
     <applications>
-      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" launchInNewProcess="false">
+      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" macEntitlementsFile="./mac/entitlement.xml" launchInNewProcess="false">
         <serializedBean>
           <property name="customIconImageFiles">
             <add>
@@ -143,7 +143,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2025 Fakturama.info</property>
+                <property name="labelText" type="string">(c) ${installer:sys.year} Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -159,6 +159,7 @@
                   <property name="obtainIfNormalWin" type="boolean" value="true" />
                 </serializedBean>
               </action>
+              <action id="645" beanClass="com.install4j.runtime.beans.actions.control.SetInstallationDirectoryAction" actionElevationType="none" />
             </actions>
           </screen>
         </startup>
@@ -171,7 +172,7 @@
                     <element index="0">sys.installationDir</element>
                   </property>
                 </serializedBean>
-                <condition>context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+                <condition>context.getBooleanVariable("sys.streamlinedInstallation")</condition>
               </action>
             </actions>
             <formComponents>
@@ -192,9 +193,12 @@ return console.askOkCancel(message, true);
                   </property>
                 </serializedBean>
               </formComponent>
-              <formComponent id="74" beanClass="com.install4j.runtime.beans.formcomponents.UpdateAlertComponent" useExternalParametrization="true" externalParametrizationName="Update Alert" externalParametrizationMode="include">
+              <formComponent id="74" beanClass="com.install4j.runtime.beans.formcomponents.StreamlinedInstallationChooserComponent" useExternalParametrization="true" externalParametrizationName="Update Alert" externalParametrizationMode="include">
+                <serializedBean>
+                  <property name="streamlinedInstallationStrategy" type="enum" class="com.install4j.runtime.beans.formcomponents.StreamlinedInstallationStrategy" value="UPDATE_ONLY" />
+                </serializedBean>
                 <externalParametrizationPropertyNames>
-                  <propertyName>updateCheck</propertyName>
+                  <propertyName>streamlinedInstallationStrategy</propertyName>
                 </externalParametrizationPropertyNames>
               </formComponent>
               <formComponent id="75" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" insetTop="20">
@@ -243,7 +247,7 @@ return console.askOkCancel(message, true);
             </formComponents>
           </screen>
           <screen id="4" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen">
-            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+            <condition>!context.getBooleanVariable("sys.streamlinedInstallation")</condition>
             <actions>
               <action id="5" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true">
                 <serializedBean>
@@ -280,37 +284,15 @@ return console.askOkCancel(message, true);
               </formComponent>
             </formComponents>
           </screen>
-          <screen id="7" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
-            <serializedBean>
-              <property name="programGroupName" type="string">${compiler:sys.fullName}</property>
-            </serializedBean>
-            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
-          </screen>
           <screen id="8" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" rollbackBarrier="true">
             <actions>
-              <action id="525" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="2">
-                    <element index="0">
-                      <object class="java.io.File">
-                        <string>${installer:sys.installationDir}/plugins</string>
-                      </object>
-                    </element>
-                    <element index="1">
-                      <object class="java.io.File">
-                        <string>${installer:sys.userHome}/.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</string>
-                      </object>
-                    </element>
-                  </property>
-                  <property name="recursive" type="boolean" value="true" />
-                </serializedBean>
-              </action>
+              <action id="647" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" actionElevationType="elevated" rollbackBarrierExitCode="0" />
               <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" actionElevationType="elevated" failureStrategy="quit" errorMessage="${i18n:FileCorrupted}" />
-              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" actionElevationType="elevated" errorMessage="An error occured :-(">
+              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDefaultStartMenuEntriesAction" actionElevationType="elevated" errorMessage="An error occured :-(">
                 <serializedBean>
-                  <property name="addUninstaller" type="boolean" value="true" />
                   <property name="failForSymlinksNotCreated" type="boolean" value="true" />
-                  <property name="uninstallerMenuName" type="string">${i18n:UninstallerMenuEntry(${compiler:sys.fullName})}</property>
+                  <property name="folderName" type="string">${installer:sys.programGroupName}</property>
+                  <property name="linkDirectory" type="string">${installer:sys.symlinkDir}</property>
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
               </action>
@@ -347,6 +329,12 @@ return console.askOkCancel(message, true);
                 </serializedBean>
               </formComponent>
             </formComponents>
+          </screen>
+          <screen id="7" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
+            <serializedBean>
+              <property name="programGroupName" type="string">${compiler:sys.fullName}</property>
+            </serializedBean>
+            <condition>!context.getBooleanVariable("sys.streamlinedInstallation")</condition>
           </screen>
           <screen id="12" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" styleId="267" finishScreen="true">
             <actions>
@@ -432,7 +420,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2025 Fakturama.org</property>
+                <property name="labelText" type="string">(c) ${installer:sys.year} Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -470,18 +458,6 @@ return console.askYesNo(message, true);
           <screen id="16" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen">
             <actions>
               <action id="17" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" actionElevationType="elevated" />
-              <action id="377" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="1">
-                    <element index="0">
-                      <object class="java.io.File">
-                        <string>%USERPROFILE%/.eclipse</string>
-                      </object>
-                    </element>
-                  </property>
-                  <property name="recursive" type="boolean" value="true" />
-                </serializedBean>
-              </action>
             </actions>
             <formComponents>
               <formComponent id="223" beanClass="com.install4j.runtime.beans.formcomponents.ProgressComponent">
@@ -561,20 +537,19 @@ return console.askYesNo(message, true);
               <property name="imageEdgeBackgroundColor">
                 <object class="com.install4j.runtime.beans.LightOrDarkColor">
                   <object class="java.awt.Color">
-                    <int>25</int>
+                    <int>27</int>
                     <int>143</int>
                     <int>220</int>
                     <int>255</int>
                   </object>
                   <object class="java.awt.Color">
                     <int>0</int>
-                    <int>74</int>
-                    <int>151</int>
+                    <int>73</int>
+                    <int>150</int>
                     <int>255</int>
                   </object>
                 </object>
               </property>
-              <property name="imageEdgeBorder" type="boolean" value="true" />
               <property name="imageFile">
                 <object class="com.install4j.api.beans.ExternalFile">
                   <string>${compiler:sys.install4jHome}/resource/styles/wizard.png</string>
@@ -592,9 +567,14 @@ return console.askYesNo(message, true);
             <beans>
               <formComponent id="269" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent" insetTop="0">
                 <serializedBean>
-                  <property name="labelFontSizePercent" type="int" value="130" />
-                  <property name="labelFontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
-                  <property name="labelFontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                  <property name="labelWidgetStyle" id="LabelWidgetStyle0">
+                    <property name="fontDescriptor">
+                      <property name="fontSizePercent" type="int" value="130" />
+                      <property name="fontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
+                      <property name="fontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                    </property>
+                  </property>
+                  <property name="labelWidgetStyleId" type="null" />
                 </serializedBean>
               </formComponent>
               <formComponent id="270" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent" />
@@ -672,8 +652,13 @@ return console.askYesNo(message, true);
                 <beans>
                   <formComponent name="Title" id="276" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent">
                     <serializedBean>
-                      <property name="labelFontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
-                      <property name="labelFontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                      <property name="labelWidgetStyle" id="LabelWidgetStyle0">
+                        <property name="fontDescriptor">
+                          <property name="fontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
+                          <property name="fontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                        </property>
+                      </property>
+                      <property name="labelWidgetStyleId" type="null" />
                     </serializedBean>
                   </formComponent>
                   <formComponent name="Subtitle" id="277" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent" insetLeft="8">
@@ -738,6 +723,9 @@ return console.askYesNo(message, true);
         </beans>
       </group>
     </styles>
+    <widgetStyles defaultWidgetStyleId="124">
+      <widgetStyle name="Standard" id="124" beanClass="com.install4j.runtime.beans.widgets.WidgetStyleCollection" />
+    </widgetStyles>
   </installerGui>
   <mediaSets>
     <windows name="Windows 64bit" id="45" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}${compiler:sys.withJre}" installDir="Fakturama2" msi="true" architecture="64">
@@ -859,13 +847,13 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <jreBundle usePack200="false" />
     </macosFolder>
   </mediaSets>
-  <buildIds>
+  <buildIds buildAll="false">
     <mediaSet refId="45" />
-    <mediaSet refId="643" />
     <mediaSet refId="59" />
     <mediaSet refId="119" />
     <mediaSet refId="120" />
     <mediaSet refId="577" />
+    <mediaSet refId="528" />
+    <mediaSet refId="541" />
   </buildIds>
-  <buildOptions disableNotarization="true" />
 </install4j>
