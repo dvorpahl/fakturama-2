@@ -1,12 +1,12 @@
 0=Fakturama
 1=${releaseName}
-2=2025
+2=${releaseDate}
 3=Gerd Bartelt\n\
 Oliver Groth\n\
 Ralf Heydenreich\n\
 Steffen Lenhart\n\
 Martin Reinhardt\n\
-Boarschti\n\
+Karsten Röhle\n\
 Gerd Schrick\n
 4=Zayed Adel\n\
 Kemal Ak\u00E7oucuk\n\
