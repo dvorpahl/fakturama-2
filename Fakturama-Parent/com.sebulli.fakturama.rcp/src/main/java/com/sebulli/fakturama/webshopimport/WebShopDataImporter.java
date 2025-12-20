@@ -85,6 +85,7 @@ import com.sebulli.fakturama.misc.DocumentType;
 import com.sebulli.fakturama.misc.IDateFormatterService;
 import com.sebulli.fakturama.misc.INumberFormatterService;
 import com.sebulli.fakturama.misc.OrderState;
+import com.sebulli.fakturama.misc.UNTDID5305;
 import com.sebulli.fakturama.model.Address;
 import com.sebulli.fakturama.model.BillingType;
 import com.sebulli.fakturama.model.Contact;
@@ -929,6 +930,7 @@ public class WebShopDataImporter implements IRunnableWithProgress {
     private VAT getOrCreateVAT(final String vatName, final Double vatPercent) {
         VAT vat = fakturamaModelFactory.createVAT();
         vat.setName(vatName);
+        vat.setCode(UNTDID5305.S);
         // vat.setDescription(vatName);
         vat.setTaxValue(vatPercent);
         // vat.setValidFrom(new Date());
