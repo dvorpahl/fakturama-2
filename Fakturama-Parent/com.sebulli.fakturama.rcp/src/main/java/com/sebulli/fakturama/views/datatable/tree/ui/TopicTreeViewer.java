@@ -118,6 +118,8 @@ public class TopicTreeViewer<T extends AbstractCategory> {
 	public void init() {
 		Composite parent = (Composite) context.get(PARENT_COMPOSITE);
 		this.internalTreeViewer = new TreeViewer(parent, SWT.BORDER /*style*/);
+		internalTreeViewer.setUseHashlookup(true);
+		
 		Boolean useAll = (Boolean) context.get(USE_ALL);
 		Boolean useDocumentAndContactFilter = (Boolean)context.get(USE_DOCUMENT_AND_CONTACT_FILTER);
 		
