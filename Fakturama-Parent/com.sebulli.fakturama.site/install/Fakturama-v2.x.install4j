@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="12.0.1" transformSequenceNumber="12">
+<install4j version="12.0.2" transformSequenceNumber="12">
   <directoryPresets config="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" />
   <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-RC" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
@@ -872,6 +872,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
         <entry filesetId="547" />
       </exclude>
       <jreBundle platform="linux-aarch64" />
+      <preInstallScript>rm -rf ${sys.installationDir}/configuration ${sys.installationDir}/plugins</preInstallScript>
     </linuxDeb>
     <macosFolder name="macOS Folder - Intel" id="528" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" volumeName="${compiler:sys.shortName}_x64" architecture="amd64">
       <excludedLaunchers>
