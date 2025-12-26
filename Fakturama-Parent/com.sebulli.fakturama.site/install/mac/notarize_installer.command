@@ -14,7 +14,7 @@ die() {
 	exit $e
 }
 
-TARGET_PRODUCT_ROOT=${HOME}/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site/target/products
+TARGET_PRODUCT_ROOT=../../target/products
 
 # make sure we are in the correct dir when we double-click a .command file
 dir=${0%/*}
@@ -23,7 +23,7 @@ if [ -d "$dir" ]; then
 fi
 
 # set up your app name, version number, and background image file name
-VERSION=2.2.0-BETA
+VERSION=2.2.0-RC
 INSTALL_DIR=../install
 INSTALLER_NAME=Installer_Fakturama
    
@@ -57,10 +57,10 @@ for arg in "$@"; do
    if [ $? -eq 0 ]
    then
       echo "Successfully notarized ${DMG_FINAL}"
-	   xcrun stapler staple ${DMG_FINAL}
-	   spctl --assess --type open --context context:primary-signature --verbose "${DMG_FINAL}"
+	  xcrun stapler staple ${DMG_FINAL}
+	  spctl --assess --type open --context context:primary-signature --verbose "${DMG_FINAL}"
    else
-   	echo "*!*!*!*!*!*!*!*!*!*! Could not notarize ${DMG_FINAL}" >&2
+   	  echo "*!*!*!*!*!*!*!*!*!*! Could not notarize ${DMG_FINAL}" >&2
    fi
    
    # manual check  		
@@ -69,8 +69,8 @@ for arg in "$@"; do
    # some additional work for Linux and Windows archives
    for arch in x86_64 aarch64; do
       if [ -f ${TARGET_PRODUCT_ROOT}/Fakturama.ID-linux.gtk.$arch.tar.gz ]; then
-      	 echo "moving Linux installer (tar.gz) to installer directory (${INSTALL_DIR})"
-      	 mv ${TARGET_PRODUCT_ROOT}/Fakturama.ID-linux.gtk.$arch.tar.gz ${INSTALL_DIR}/${INSTALLER_NAME}_linux-$arch_${VERSION}.tar.gz
+      	 echo "moving Linux installer (tar.gz) to installer directory (${INSTALL_DIR}) for ${arch}"
+      	 mv ${TARGET_PRODUCT_ROOT}/Fakturama.ID-linux.gtk.${arch}.tar.gz ${INSTALL_DIR}/${INSTALLER_NAME}_linux-${arch}_${VERSION}.tar.gz
       fi
    done
 done
