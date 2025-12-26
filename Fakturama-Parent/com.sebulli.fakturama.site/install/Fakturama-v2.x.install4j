@@ -36,7 +36,7 @@
     </codeSigning>
     <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.17+10" />
   </application>
-  <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git" defaultOverwriteMode="1" defaultUninstallMode="2" launcherOverwriteMode="1" preserveMode="true">
+  <files keepModificationTimes="true" missingFilesStrategy="error" globalExcludeSuffixes=".svn,.git" defaultOverwriteMode="5" launcherOverwriteMode="1" preserveMode="true">
     <filesets>
       <fileset name="Installer MacOS - Intel" id="32" />
       <fileset name="Installer Win 64bit" id="41" />
@@ -404,7 +404,7 @@ return console.askOkCancel(message, true);
           </screen>
         </screens>
       </application>
-      <application id="uninstaller" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" actionElevationType="elevated" styleId="261" launchInNewProcess="false">
+      <application id="uninstaller" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" actionElevationType="elevated" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" launchInNewProcess="false">
         <serializedBean>
           <property name="customIconImageFiles">
             <add>
@@ -833,6 +833,8 @@ return console.askYesNo(message, true);
         <entry filesetId="547" />
         <entry filesetId="568" />
       </exclude>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
 sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
@@ -852,6 +854,8 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
         <entry filesetId="547" />
         <entry filesetId="568" />
       </exclude>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
 sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
@@ -872,7 +876,14 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
         <entry filesetId="547" />
       </exclude>
       <jreBundle platform="linux-aarch64" />
-      <preInstallScript>rm -rf ${sys.installationDir}/configuration ${sys.installationDir}/plugins</preInstallScript>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
+      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
+sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo chmod 755 /usr/share/fakturama2/Fakturama
+sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
+      <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
     <macosFolder name="macOS Folder - Intel" id="528" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" volumeName="${compiler:sys.shortName}_x64" architecture="amd64">
       <excludedLaunchers>
