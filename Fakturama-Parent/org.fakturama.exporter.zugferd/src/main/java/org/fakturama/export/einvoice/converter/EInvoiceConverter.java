@@ -16,6 +16,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -384,12 +385,12 @@ public class EInvoiceConverter {
             boolean periodToAdd = false;
             if (invoiceItem.getVestingPeriodStart() != null) {
                 // BT-134
-                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZoneOffset.UTC));
+                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZoneId.systemDefault()));
                 periodToAdd = true;
             }
             if (invoiceItem.getVestingPeriodEnd() != null) {
                 // BT-135
-                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZoneOffset.UTC));
+                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZoneId.systemDefault()));
                 periodToAdd = true;
             }
 
@@ -530,7 +531,7 @@ public class EInvoiceConverter {
         }
         if (invoice.getServiceDate() != null) {
             // BT-72
-            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), ZoneOffset.UTC));
+            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), ZoneId.systemDefault()));
         }
 
         if (deliveryAddr.getDeleted() != null && deliveryAddr.getDeleted().booleanValue()) {
@@ -731,7 +732,7 @@ public class EInvoiceConverter {
         // BT-1
         invoiceData.setInvoiceNumber(StringUtils.trimToNull(invoice.getName()));
         // BT-2
-        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), ZoneOffset.UTC));
+        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), ZoneId.systemDefault()));
 
         // BT-3
         invoiceData.setInvoiceTypeCode(getDocumentTypeCode(invoice));
@@ -788,11 +789,11 @@ public class EInvoiceConverter {
         invoiceData.setPaymentTerms(paymentText.orElse(null));
         if (invoice.getVestingPeriodStart() != null) {
             // BT-73
-            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZoneOffset.UTC));
+            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZoneId.systemDefault()));
         }
         if (invoice.getVestingPeriodEnd() != null) {
             // BT-74
-            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZoneOffset.UTC));
+            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZoneId.systemDefault()));
         }
     }
 
