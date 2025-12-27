@@ -292,6 +292,7 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 					</answer>
 				</qandaentry>
 			</qandadiv>
+			
 			<qandadiv>
 				<title>Fakturama 2 unter Linux</title>
 				<qandaentry>
@@ -305,6 +306,16 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 							<programlisting> 
 							sudo update-alternatives --display default-displaymanager
 							</programlisting>
+						</para>
+							Weitere Alternative:<br/>
+							Erstelle die Datei <code>.swt/trims.prefs</code> im Homeverzeichnis mit folgendem Inhalt:
+							<programlisting>
+								#Thu Dec 25 21:00:19 CET 2025
+								trimWidths=0 4 6 0 0 0 
+								trimHeights=0 4 6 0 0 23
+							</programlisting>
+							Die Lösung ist auch im <link xl:href="https://www.fakturama.info/community/postid/23285/">Forum</link> beschrieben.
+						<para>
 						</para>
 					</answer>
 				</qandaentry>
@@ -327,7 +338,7 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 				</qandaentry>
 				<qandaentry>
 					<question>
-						<para>Mein Fakturama startet nicht oder meldet <code>"MOZILLA_FIVE_HOME not set"</code>
+						<para>Mein Fakturama startet nicht oder meldet <code>"MOZILLA_FIVE_HOME not set"</code> bzw. <code>org.eclipse.swt.SWTError: No more handles because there is no underlying browser available.</code>
 						</para>
 					</question>
 					<answer>
@@ -336,6 +347,11 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 							apt-get install libwebkitgtk-3.0-0
 							</programlisting>
 							Weitere Hinweise zur Fehlerbehebung gibt es auch im <link xl:href="https://www.fakturama.info/community/postid/21043/">Forum</link>. Insbesondere Das Problem mit der libwebkitgtk-Bibliothek wurde hier intensiv behandelt. Ggf. hilft auch die Installation des Pakets libwebkit2gtk-4.0-37.
+						</para>
+						<para>Eine weitere Lösung besteht in der Installation des webkitgtk-Drivers:
+							<programlisting>
+							apt-get install webkit2gtk-driver
+							</programlisting>
 						</para>
 					</answer>
 				</qandaentry>

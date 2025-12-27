@@ -462,8 +462,11 @@ public class XRechnung extends AbstractEInvoice {
         final InvoiceSeller invoiceSeller = eInvoice.getInvoiceSeller();
 
         final TradePartyType seller = factory.createTradePartyType();
-        // .setID(createIdFromString("")) // Kennung des Verkäufers (Durch den
-        // Kunden zugewiesene Lieferantennummer)
+
+        // BT-29
+        // Kennung des Verkäufers (Durch den Kunden zugewiesene Lieferantennummer)
+        seller.getID().add(createIdFromString(eInvoice.getInvoiceSeller().getSellerIdentifier())); 
+        
         // BT-27
         seller.setName(createText(invoiceSeller.getSellerName()));
         // .setDescription(createText("")) // Sonstige rechtliche Informationen

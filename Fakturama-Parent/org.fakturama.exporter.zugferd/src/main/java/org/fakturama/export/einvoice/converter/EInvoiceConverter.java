@@ -855,7 +855,10 @@ public class EInvoiceConverter {
             // BT-28
             invoiceSeller.setSellerTradingName(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
         }
-
+        
+        // BT-29
+        final DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
+        invoiceSeller.setSellerIdentifier(billingAddress.getSupplierNumber());
     }
 
     private String getGlobalCurrencyCode() {

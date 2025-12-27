@@ -1797,7 +1797,7 @@ public class DocumentEditor extends Editor<Document> {
      * 
      */
     private void createDepositWarningIcon() {
-        if (!paidDataContainer.isDisposed()) {
+        if (paidDataContainer != null && !paidDataContainer.isDisposed()) {
             if (warningDepositIcon == null || warningDepositIcon.isDisposed() || warningDepositIcon.getImage() == null) { // if the editor is about to close...
                 // Add the attention sign if its a deposit
                 warningDepositIcon = new Label(paidDataContainer, SWT.NONE);

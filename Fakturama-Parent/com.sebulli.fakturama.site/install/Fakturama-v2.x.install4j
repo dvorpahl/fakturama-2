@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="12.0.2" transformSequenceNumber="12">
-  <directoryPresets config="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" />
+<install4j version="12.0.1" transformSequenceNumber="12">
+  <directoryPresets config="../app" />
   <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-RC" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
@@ -84,7 +84,7 @@
   <installerGui>
     <autoUpdate useMinUpdatableVersion="true" minUpdatableVersion="2.0" />
     <applications>
-      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" macEntitlementsFile="./mac/entitlement.xml" launchInNewProcess="false">
+      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" styleId="261" macEntitlementsFile="./mac/entitlement.xml" launchInNewProcess="false">
         <serializedBean>
           <property name="customIconImageFiles">
             <add>
@@ -105,6 +105,11 @@
             <add>
               <object class="com.install4j.api.beans.ExternalFile">
                 <string>../app/app_128.png</string>
+              </object>
+            </add>
+            <add>
+              <object class="com.install4j.api.beans.ExternalFile">
+                <string>../app/installer_icon.png</string>
               </object>
             </add>
           </property>
@@ -307,24 +312,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
               </action>
               <action id="655" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="ask" />
-              <action id="654" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="false" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="ask" />
-              <action id="525" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="false" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="2">
-                    <element index="0">
-                      <object class="java.io.File">
-                        <string>${installer:sys.installationDir}/plugins</string>
-                      </object>
-                    </element>
-                    <element index="1">
-                      <object class="java.io.File">
-                        <string>${installer:sys.userHome}/.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</string>
-                      </object>
-                    </element>
-                  </property>
-                  <property name="recursive" type="boolean" value="true" />
-                </serializedBean>
-              </action>
+              <action id="654" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="ask" />
               <action id="664" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="ask">
                 <serializedBean>
                   <property name="files" type="array" class="java.io.File" length="1">
@@ -338,7 +326,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
               </action>
               <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" actionElevationType="elevated" failureStrategy="ask" errorMessage="${i18n:FileCorrupted}" />
-              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" actionElevationType="elevated" errorMessage="An error occured :-(">
+              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDefaultStartMenuEntriesAction" actionElevationType="elevated" errorMessage="An error occured :-(">
                 <serializedBean>
                   <property name="addUninstaller" type="boolean" value="true" />
                   <property name="failForSymlinksNotCreated" type="boolean" value="true" />
@@ -346,7 +334,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
               </action>
-              <action id="11" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" actionElevationType="elevated">
+              <action id="11" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" actionElevationType="elevated" failureStrategy="ask">
                 <serializedBean>
                   <property name="icon">
                     <object class="com.install4j.api.beans.ExternalFile">
@@ -357,7 +345,7 @@ return console.askOkCancel(message, true);
                   <property name="itemName" type="string">${compiler:sys.fullName} ${compiler:sys.version}</property>
                 </serializedBean>
               </action>
-              <action id="206" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" actionElevationType="elevated">
+              <action id="206" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" actionElevationType="elevated" failureStrategy="ask">
                 <serializedBean>
                   <property name="fileTarget" type="enum" class="com.install4j.runtime.beans.actions.files.FileTarget" value="FILES" />
                   <property name="files" type="array" class="java.io.File" length="1">
@@ -916,6 +904,12 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
   </mediaSets>
   <buildIds buildAll="false">
     <mediaSet refId="45" />
+    <mediaSet refId="59" />
+    <mediaSet refId="119" />
+    <mediaSet refId="120" />
+    <mediaSet refId="577" />
+    <mediaSet refId="528" />
+    <mediaSet refId="541" />
   </buildIds>
   <buildOptions disableNotarization="true" />
 </install4j>

@@ -603,9 +603,9 @@ public class TemplateProcessor {
             }
         }
 
-        //        for (Node removeNode : nodesMarkedForRemoving) {
-        //            removeNode.getParentNode().removeChild(removeNode);
-        //        }
+        for (Node removeNode : nodesMarkedForRemoving) {
+            removeNode.getParentNode().removeChild(removeNode);
+        }
 
     }
 
