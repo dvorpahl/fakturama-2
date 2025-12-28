@@ -165,8 +165,8 @@ public class ContactsDAO extends AbstractDAO<Contact> {
         if (addressId != null) {
             Map<String, Object> props = new HashMap<>();
             props.put(QueryHints.CACHE_STORE_MODE, "REFRESH");
-            getEntityManager().find(Address.class, addressId, null, props);
-            return getEntityManager().find(Address.class, addressId);
+            return getEntityManager().find(Address.class, addressId, null, props);
+            //getEntityManager().find(Address.class, addressId);
         } else {
             return null;
         }

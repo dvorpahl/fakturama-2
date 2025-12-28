@@ -307,7 +307,8 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 							sudo update-alternatives --display default-displaymanager
 							</programlisting>
 						</para>
-							Weitere Alternative:<br/>
+						<para>	
+							Weitere Alternative:
 							Erstelle die Datei <code>.swt/trims.prefs</code> im Homeverzeichnis mit folgendem Inhalt:
 							<programlisting>
 								#Thu Dec 25 21:00:19 CET 2025
@@ -315,7 +316,7 @@ Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß 
 								trimHeights=0 4 6 0 0 23
 							</programlisting>
 							Die Lösung ist auch im <link xl:href="https://www.fakturama.info/community/postid/23285/">Forum</link> beschrieben.
-						<para>
+						
 						</para>
 					</answer>
 				</qandaentry>
