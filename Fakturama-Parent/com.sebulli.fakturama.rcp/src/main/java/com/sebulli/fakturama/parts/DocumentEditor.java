@@ -3217,6 +3217,8 @@ public class DocumentEditor extends Editor<Document> {
                     }
 
                     // this selected contact is from now on the main receiver for this document
+                    // refreshing contact
+                    contactDAO.findById(address.getContact().getId(), true);
                     final DocumentReceiver documentReceiver = addressManager.createDocumentReceiverFromAddress(address, document.getBillingType());
 
                     /*

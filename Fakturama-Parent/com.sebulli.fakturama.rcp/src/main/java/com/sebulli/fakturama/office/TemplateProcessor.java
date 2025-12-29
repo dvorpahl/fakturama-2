@@ -1453,7 +1453,7 @@ public class TemplateProcessor {
      * @return
      */
     private Node fillVatTableWithData(final VatSummaryItem vatSummaryItem, final PlaceholderNode cellPlaceholder) {
-        final String key = vatSummaryItem.getVatName();
+        final String key = vatSummaryItem.getDescription();
         final String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
         // Get the text of the column. This is to determine if it is the column
         // with the VAT description or with the VAT value

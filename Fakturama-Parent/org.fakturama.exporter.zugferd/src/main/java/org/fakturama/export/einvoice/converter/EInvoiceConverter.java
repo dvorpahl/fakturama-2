@@ -443,7 +443,6 @@ public class EInvoiceConverter {
      * @throws UnsupportedCodeException
      */
     private void setInvoicePayments(final EInvoice eInvoice, final Invoice invoice) throws UnsupportedCodeException {
-        // TODO Auto-generated method stub
         /*
          * Implement and set subs accordingly
          * Payment type code gem. "Payment Means Code" lt. Codeliste ZUGFeRD
