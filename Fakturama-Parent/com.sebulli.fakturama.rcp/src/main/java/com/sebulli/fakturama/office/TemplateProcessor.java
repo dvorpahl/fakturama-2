@@ -1619,7 +1619,7 @@ public class TemplateProcessor {
 
         // Get the item weight
         else if (key.equals("ITEM.WEIGHT")) {
-            value = item.getWeight() != null ? item.getWeight().toString() : "";
+            value = numberFormatterService.doubleToFormattedQuantity(item.getWeight());
         }
 
         // Get the item weight
