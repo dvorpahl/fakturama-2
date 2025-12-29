@@ -74,6 +74,7 @@ id="04_openoffice_libreoffice">
 			<para>Ein Platzhalter wird in LibreOffice Writer eingefügt über das Menü <guimenuitem>Einfügen/Feldbefehl/Andere</guimenuitem> oder die Tastenkombination <keycombo>
 					<keycap>STRG</keycap><keysym>F2</keysym>        
 				</keycombo>. Im Dialog unter dem Reiter <emphasis role="bold">Funktionen</emphasis> als Feldtyp <emphasis role="bold">Platzhalter</emphasis> auswählen und als <emphasis role="bold">Format</emphasis> den Eintrag <emphasis role="bold">Text</emphasis>. Der Platzhalter wird in Großbuchstaben ohne die <emphasis role="bold">spitzen Klammern</emphasis> im Feld <emphasis role="bold">Platzhalter</emphasis> eingegeben.</para>
+				<para>In Bedingungen wirken die Platzhalter derzeit noch nicht.</para>
 		</section>
 		<section>
 			<title>Abspeichern</title>
