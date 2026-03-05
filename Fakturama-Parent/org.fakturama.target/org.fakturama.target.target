@@ -49,24 +49,23 @@
 		<unit id="com.opcoach.e4.preferences.feature.feature.group" version="1.3.2"/>
 		<unit id="com.opcoach.e4.preferences.feature.source.feature.group" version="1.3.2"/>
 	</location>
-
-
 	<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="https://download.eclipse.org/nebula/updates/milestone/S202402091246/"/>
-		<!-- <unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202402011804"/>-->
-		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.passwordrevealer.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202402091246"/>
-    	<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202402091246"/>
-    	<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.202402091246"/>
-		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.202402091246"/>
-    	<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202402091246"/>
+		<repository location="https://archive.eclipse.org/nebula/Q22016/incubation/"/>
+		<unit id="org.eclipse.nebula.widgets.picture.feature.feature.group" version="1.0.0.201605182147"/>
+		<unit id="org.eclipse.nebula.widgets.radiogroup.feature.feature.group" version="0.1.0.201605182147"/>
+	</location>
+	<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="https://archive.eclipse.org/nebula/releases/3.1.1"/>
+		<unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.css.feature.feature.group" version="1.4.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.formattedtext.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.opal.checkboxgroup.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.opal.commons.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.opal.multichoice.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.pgroup.feature.feature.group" version="1.0.0.202402011804"/>
+		<unit id="org.eclipse.nebula.widgets.treemapper.feature.feature.group" version="1.0.0.202402011804"/>
 	</location>
 	<location includeDependencyDepth="none" includeDependencyScopes="compile" includeSource="true" label="Bouncycastle" missingManifest="generate" type="Maven">
 		<dependencies>
