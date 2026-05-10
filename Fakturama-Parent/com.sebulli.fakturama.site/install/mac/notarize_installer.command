@@ -23,7 +23,7 @@ if [ -d "$dir" ]; then
 fi
 
 # set up your app name, version number, and background image file name
-VERSION=2.2.0-RC
+VERSION=2.2.0
 INSTALL_DIR=../install
 INSTALLER_NAME=Installer_Fakturama
    
