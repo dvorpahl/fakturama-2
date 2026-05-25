@@ -76,36 +76,22 @@ public class NumberFormatterService implements INumberFormatterService {
     private boolean useThousandsSeparator = false;
     private Locale currencyLocale = Locale.getDefault();
 
-    void initialize() {
-        preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, FakturamaLogger.PLUGIN_ID_RCP);
+	void initialize() {
+		preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, FakturamaLogger.PLUGIN_ID_RCP);
+		useThousandsSeparator = preferenceStore.getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR);
 
-   
-        useThousandsSeparator = preferenceStore.getBoolean(Constants.PREFERENCES_GENERAL_HAS_THOUSANDS_SEPARATOR);
-        final String useCurrencySymbol = preferenceStore.getString(Constants.PREFERENCES_CURRENCY_USE_SYMBOL);
-        CurrencySettingEnum currencyCheckboxEnabled;
-        if (useCurrencySymbol.isEmpty()) {
-            // is no value is found we use symbol as default value
-            // (this happens in initialization phase of preferences page)
-            currencyCheckboxEnabled = CurrencySettingEnum.SYMBOL;
-        } else {
-            currencyCheckboxEnabled = CurrencySettingEnum.valueOf(useCurrencySymbol);
-        }
+		currencyLocale = localeUtil.getCurrencyLocale();
+		currencyFormat = NumberFormat.getCurrencyInstance(currencyLocale);
 
-        currencyLocale = localeUtil.getCurrencyLocale();
-
-        currencyFormat = NumberFormat.getCurrencyInstance(currencyLocale);
-        if (currencyCheckboxEnabled != CurrencySettingEnum.NONE) {
-//            Collection<CurrencyProviderSpi> currencyProviderSpi = Bootstrap.getServices(CurrencyProviderSpi.class);
-//            ServiceLoader<MonetaryConfigProvider> serv = ServiceLoader.load(MonetaryConfigProvider.class, Money.class.getClassLoader());
-            OSGIServiceHelper.registerService(Activator.getContext().getBundle(), MonetaryConfigProvider.class, DefaultConfigProvider.class);
-//            Collection<MonetaryConfigProvider> monetaryConfigProvider = Bootstrap.getServices(MonetaryConfigProvider.class);
-            mro = Monetary.getRounding(RoundingQueryBuilder.of().setCurrency(Monetary.getCurrency(currencyLocale))
-                    .setProviderName(FakturamaMonetaryRoundingProvider.DEFAULT_ROUNDING_ID)
-                    .setScale(preferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES))
-                    // das ist für die Schweizer Rundungsmethode auf 0.05 SFr.!
-                    .set("cashRounding", preferenceStore.getBoolean(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING)).build());
-        }
-    }
+		OSGIServiceHelper.registerService(Activator.getContext().getBundle(), MonetaryConfigProvider.class,
+				DefaultConfigProvider.class);
+		mro = Monetary.getRounding(RoundingQueryBuilder.of().setCurrency(Monetary.getCurrency(currencyLocale))
+				.setProviderName(FakturamaMonetaryRoundingProvider.DEFAULT_ROUNDING_ID)
+				.setScale(preferenceStore.getInt(Constants.PREFERENCES_GENERAL_CURRENCY_DECIMALPLACES))
+				// das ist für die Schweizer Rundungsmethode auf 0.05 SFr.!
+				.set("cashRounding", preferenceStore.getBoolean(Constants.PREFERENCES_CURRENCY_USE_CASHROUNDING))
+				.build());
+	}
 
     @Override
     public void update() {
