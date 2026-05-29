@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.parts;
@@ -57,51 +56,50 @@ import com.sebulli.fakturama.resources.core.Icon;
  */
 public class TextEditor extends Editor<TextModule> {
 
-	// Editor's ID
-	public static final String ID = "com.sebulli.fakturama.editors.textEditor";
+    // Editor's ID
+    public static final String ID = "com.sebulli.fakturama.editors.textEditor";
 
     public static final String EDITOR_ID = "TextEditor";
 
-	@Inject
-	private TextsDAO textsDAO;
-	
-	@Inject
-	private TextCategoriesDAO textCategoriesDAO;
+    @Inject
+    private TextsDAO textsDAO;
 
-	// This UniDataSet represents the editor's input 
-	private TextModule editorText;
+    @Inject
+    private TextCategoriesDAO textCategoriesDAO;
+
+    // This UniDataSet represents the editor's input 
+    private TextModule editorText;
 
     /**
-     * This field can't be injected since the part is created from
-     * a PartDescriptor (see createPartControl).
+     * This field can't be injected since the part is created from a
+     * PartDescriptor (see createPartControl).
      */
     private MPart part;
 
-	// SWT widgets of the editor
+    // SWT widgets of the editor
     private Composite top;
-	private Text textName;
-	private Text textText;
-	private CCombo comboCategory;
+    private Text textName;
+    private Text textText;
+    private CCombo comboCategory;
 
-	// defines, if the text is new created
-	private boolean newText;
+    // defines, if the text is new created
+    private boolean newText;
 
-	/**
-	 * Saves the contents of this part
-	 * 
-	 * @param monitor
-	 *            Progress monitor
-	 * @see org.eclipse.ui.part.EditorPart#doSave(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+    /**
+     * Saves the contents of this part
+     * 
+     * @param monitor
+     *            Progress monitor
+     */
     @Persist
-	public Boolean doSave(IProgressMonitor monitor) {
-		/*
-		 * the following parameters are not saved:
-		 * - id (constant)
-		 */
+    public Boolean doSave(final IProgressMonitor monitor) {
+        /*
+         * the following parameters are not saved:
+         * - id (constant)
+         */
 
-		// Always set the editor's data set to "undeleted"
-	    editorText.setDeleted(Boolean.FALSE);
+        // Always set the editor's data set to "undeleted"
+        editorText.setDeleted(Boolean.FALSE);
 
         // Set the Text data
         // ... done through databinding...
@@ -110,60 +108,57 @@ public class TextEditor extends Editor<TextModule> {
             // (the user could have written a new one into the combo field)
             String testCat = comboCategory.getText();
             // if there's no category we can skip this step
-            if(StringUtils.isNotBlank(testCat)) {
+            if (StringUtils.isNotBlank(testCat)) {
                 TextCategory parentCategory = textCategoriesDAO.getCategory(testCat, true);
                 // parentCategory now has the last found Category
                 editorText.setCategories(parentCategory);
             }
-            
+
             /*
              * If we DON'T use update, the category is saved again and again and again
              * because we have CascadeType.PERSIST. If we use update and save the new TextCategory before,
              * all went ok. That's the point...
              */
             editorText = textsDAO.update(editorText);
-        }
-        catch (FakturamaStoringException e) {
+        } catch (FakturamaStoringException e) {
             log.error(e, "can't save the current VAT: " + editorText.toString());
             return Boolean.FALSE;
         }
 
-		// If it is a new text, add it to the text list and
-		// to the data base
-		if (newText) {
-			newText = false;
-		}
+        // If it is a new text, add it to the text list and
+        // to the data base
+        if (newText) {
+            newText = false;
+        }
 
-		// Set the Editor's name to the shipping name...
-		part.setLabel(editorText.getName());
-        
+        // Set the Editor's name to the shipping name...
+        part.setLabel(editorText.getName());
+
         // ...and "mark" it with current objectId (though it can be find by 
         // CallEditor if one tries to open it immediately from list view)
         part.getTransientData().put(CallEditor.PARAM_OBJ_ID, Long.toString(editorText.getId()));
 
-		// Refresh the table view of all texts
+        // Refresh the table view of all texts
         evtBroker.post(TextEditor.EDITOR_ID, Editor.UPDATE_EVENT);
-        
+
         bindModel();
-        
+
         // reset dirty flag
         getMDirtyablePart().setDirty(false);
         return Boolean.TRUE;
-	}
+    }
 
-	/**
+    /**
      * Initializes the editor. If an existing data set is opened, the local
      * variable "text" is set to This data set. If the editor is opened to
      * create a new one, a new data set is created and the local variable "text"
-     * is set to this one.
-	 * Creates the SWT controls for this workbench part
-	 * 
-	 * @param the
-	 *            parent control
-	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
-	@PostConstruct
-	public void createPartControl(Composite parent) {
+     * is set to this one. Creates the SWT controls for this workbench part
+     * 
+     * @param the
+     *            parent control
+     */
+    @PostConstruct
+    public void createPartControl(final Composite parent) {
         Long objId = null;
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_TEXT.getIconURI());
@@ -184,126 +179,126 @@ public class TextEditor extends Editor<TextModule> {
             // Create a new data set
             editorText = modelFactory.createTextModule();
             String category = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
-            if(StringUtils.isNotEmpty(category)) {
+            if (StringUtils.isNotEmpty(category)) {
                 TextCategory newCat = textCategoriesDAO.findCategoryByName(category);
                 editorText.setCategories(newCat);
             }
-            
+
             //T: Text Editor: Part Name of a new text entry
             part.setLabel(msg.editorTextNameNeu);
-            getMDirtyablePart().setDirty(true);
-        }
-        else {
+        } else {
 
             // Set the Editor's name to the shipping name.
             part.setLabel(editorText.getName());
         }
 
-		// Create the top Composite
-		top = new Composite(parent, SWT.NONE);
-		GridLayoutFactory.swtDefaults().numColumns(2).applyTo(top);
+        // Create the top Composite
+        top = new Composite(parent, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(top);
 
-		// Add context help reference 
-//		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.TEXT_EDITOR);
+        // Add context help reference 
+        //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.TEXT_EDITOR);
 
-		// Create the title
-		Label labelTitle = new Label(top, SWT.NONE);
-		//T: Text Editor: Title
-		labelTitle.setText(msg.editorTextHeader);
-		GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).span(2, 1).applyTo(labelTitle);
-		makeLargeLabel(labelTitle);
+        // Create the title
+        Label labelTitle = new Label(top, SWT.NONE);
+        //T: Text Editor: Title
+        labelTitle.setText(msg.editorTextHeader);
+        GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).span(2, 1).applyTo(labelTitle);
+        makeLargeLabel(labelTitle);
 
-		// The name
-		Label labelName = new Label(top, SWT.NONE);
-		labelName.setText(msg.commonFieldName);
-		labelName.setToolTipText(msg.textFieldNameTooltip);
+        // The name
+        Label labelName = new Label(top, SWT.NONE);
+        labelName.setText(msg.commonFieldName);
+        labelName.setToolTipText(msg.textFieldNameTooltip);
 
-		GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
-		textName = new Text(top, SWT.BORDER);
-		textName.setToolTipText(labelName.getToolTipText());
-		GridDataFactory.fillDefaults().grab(true, false).applyTo(textName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
+        textName = new Text(top, SWT.BORDER);
+        textName.setToolTipText(labelName.getToolTipText());
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textName);
 
-		// The category
-		Label labelCategory = new Label(top, SWT.NONE);
-		labelCategory.setText(msg.commonFieldCategory);
-		labelCategory.setToolTipText(msg.textFieldCategoryTooltip);
-		GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
+        // The category
+        Label labelCategory = new Label(top, SWT.NONE);
+        labelCategory.setText(msg.commonFieldCategory);
+        labelCategory.setToolTipText(msg.textFieldCategoryTooltip);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
 
         comboCategory = new CCombo(top, SWT.BORDER);
-		GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
-		
-		// The text
-		Label labelText = new Label(top, SWT.NONE);
-		labelText.setText(msg.commonFieldText);
-		labelText.setToolTipText(msg.textFieldTextTooltip);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
 
-		GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelText);
-		textText = new Text(top, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		textText.setToolTipText(labelText.getToolTipText());
-		GridDataFactory.fillDefaults().grab(true, true).applyTo(textText);
-		
-		bindModel();
-	}
-	
-	@Override
-	protected void bindModel() {
-		part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
+        // The text
+        Label labelText = new Label(top, SWT.NONE);
+        labelText.setText(msg.commonFieldText);
+        labelText.setToolTipText(msg.textFieldTextTooltip);
 
-		bindModelValue(editorText, textName, TextModule_.name.getName(), 64);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelText);
+        textText = new Text(top, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+        textText.setToolTipText(labelText.getToolTipText());
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(textText);
+
+        bindModel();
+    }
+
+    @Override
+    protected void bindModel() {
+        part.getTransientData().put(BIND_MODE_INDICATOR, Boolean.TRUE);
+
+        bindModelValue(editorText, textName, TextModule_.name.getName(), 64);
         fillAndBindCategoryCombo();
         bindModelValue(editorText, textText, TextModule_.text.getName(), 10000);
-        
-		part.getTransientData().remove(BIND_MODE_INDICATOR);
-	}
+
+        part.getTransientData().remove(BIND_MODE_INDICATOR);
+    }
 
     /**
      * creates the combo box for the TextModule category
      */
     private void fillAndBindCategoryCombo() {
         // Collect all category strings as a sorted Set
-        final TreeSet<TextCategory> categories = new TreeSet<TextCategory>(new CategoryComparator<>());
+        final TreeSet<TextCategory> categories = new TreeSet<>(new CategoryComparator<>());
         categories.addAll(textCategoriesDAO.findAll());
 
         ComboViewer viewer = new ComboViewer(comboCategory);
         viewer.setContentProvider(new ArrayContentProvider() {
             @Override
-            public Object[] getElements(Object inputElement) {
+            public Object[] getElements(final Object inputElement) {
                 return categories.toArray();
             }
         });
-        
+
         TextCategory tmpCategory = editorText.getCategories();
         // Add all categories to the combo
         viewer.setInput(categories);
         viewer.setLabelProvider(new LabelProvider() {
             @Override
-            public String getText(Object element) {
-                return element instanceof TextCategory ? CommonConverter.getCategoryName((TextCategory)element, "") : null;
+            public String getText(final Object element) {
+                return element instanceof TextCategory ? CommonConverter.getCategoryName((TextCategory) element, "") : null;
             }
         });
         editorText.setCategories(tmpCategory);
 
-        UpdateValueStrategy<TextCategory, String> textCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<TextCategory>(TextCategory.class));
-        UpdateValueStrategy<String, TextCategory> target2VatcatModel = UpdateValueStrategy.create(new StringToCategoryConverter<TextCategory>(categories, TextCategory.class));
+        UpdateValueStrategy<TextCategory, String> textCatModel2Target = UpdateValueStrategy.create(new CategoryConverter<>(TextCategory.class));
+        UpdateValueStrategy<String, TextCategory> target2VatcatModel = UpdateValueStrategy
+                .create(new StringToCategoryConverter<>(categories, TextCategory.class));
         bindModelValue(editorText, comboCategory, TextModule_.categories.getName(), target2VatcatModel, textCatModel2Target);
     }
-	
-	/**
-	 * Set the focus to the top composite.
-	 * 
-	 * @see com.sebulli.fakturama.editors.Editor#setFocus()
-	 */
-	@Focus
-	public void setFocus() {
-		if(top != null) 
-			top.setFocus();
-	}
-    
+
+    /**
+     * Set the focus to the top composite.
+     * 
+     */
+    @Override
+    @Focus
+    public void setFocus() {
+        if (top != null) {
+            top.setFocus();
+        }
+    }
+
     @Override
     protected MDirtyable getMDirtyablePart() {
         return part;
     }
-    
+
     @Override
     protected Class<TextModule> getModelClass() {
         return TextModule.class;

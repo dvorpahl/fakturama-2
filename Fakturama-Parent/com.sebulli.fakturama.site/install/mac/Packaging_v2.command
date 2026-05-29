@@ -1,4 +1,5 @@
 #!/bin/zsh
+
 emulate -LR zsh # reset zsh options
 
 # DEVELOPER_PASSWORD is set in .bash_profile
@@ -10,7 +11,7 @@ die(){
 	local m="$1"  # the first arg 
 	local e=$2    # the second arg
 	echo "$m" 
-	exit $e
+	exit $e/Users/rheydenreich/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site/target/products/Fakturama.ID/macosx/cocoa/x86_64/Fakturama2.app/Contents/Eclipse/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info
 }
       
 export PLUGIN_ROOT=/Users/rheydenreich/git/fakturama-2/Fakturama-Parent/com.sebulli.fakturama.site
@@ -24,7 +25,7 @@ fi
 
 # set up your app name, version number, and background image file name
 APP_NAME="Fakturama2"
-VERSION=2.1.3c
+VERSION=2.2.0-BETA
    
 # if not enough args displayed, display an error and die
 [ $# -eq 0 ] && die "Usage: $0 1|2 
@@ -81,8 +82,12 @@ for arg in "$@"; do
    echo "staging dir created: ${STAGING_DIR}"
    
    # prepare the correct directory structure
+   echo unzipping product file...
    tar -xf ${PLUGIN_ROOT}/target/products/Fakturama.ID-macosx.cocoa.${ARCHITECTURE}.tar.gz -C "${STAGING_DIR}"
    
+   # this is only if you want to use the unpacked directory for some purposes...
+   # cp -R ${PLUGIN_ROOT}/target/products/Fakturama.ID/macosx/cocoa/${ARCHITECTURE}/${APP_NAME}.app "${STAGING_DIR}"
+      
    # ... cp anything else you want in the DMG - documentation, etc.
    
    # copy current JRE into the product
@@ -93,11 +98,21 @@ for arg in "$@"; do
    # enable some L10N (specific to MacOS)
    cd "${STAGING_DIR}"/${APP_NAME}.app/Contents/Resources
    echo "creating L10N directories..."
-   mkdir -v de.lproj it.lproj sv.lproj sk.lproj el.lproj nl.proj no.proj es.lproj ar_LY.lproj pl.lproj fr.lproj de_CH.lproj de_LI.lproj de_AT.lproj eu.lproj hu.lproj ro.lproj ru.lproj tr.lproj uk.lproj
+   mkdir -v ar_LY.lproj de_AT.lproj de_CH.lproj de_LI.lproj de.lproj el.lproj es.lproj eu.lproj fr.lproj hu.lproj it.lproj nl.proj pl.lproj ro.lproj ru.lproj sk.lproj sv.lproj tr.lproj uk.lproj
    cd -
-   
-   # cp DS_Store ${STAGING_DIR}/.DS_Store
-   
+    
+   # the following lines are only because com.sun.jna plug-in has a dynlib inside which isn't signed with this process,
+   # so that the resulting DMG cannot be notarized. So, I've copied the com.sun.jna plug-in from an existing local 
+   # Eclipse installation into this product. After this the bundles.info has to be updated with current plug-in path.
+   # This is weird, but I don't have another solution for this problem.
+      
+   # copy signed com.sun.jna into staging directory
+   rm -rf ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/plugins/com.sun.jna*
+   cp -fR /Applications/Eclipse_202412.app/Contents/Eclipse/plugins/com.sun.jna* "${STAGING_DIR}"/${APP_NAME}.app/Contents/Eclipse/plugins
+      
+   # the empty parameter is a hack for weird MacOS sed :-/
+   sed -i '' 's@com.sun.jna,5.15.0,plugins/com.sun.jna_5.15.0.jar,4,false@com.sun.jna,5.15.0.v20240915-2000,plugins/com.sun.jna_5.15.0.v20240915-2000/,4,false@g' ${STAGING_DIR}/${APP_NAME}.app/Contents/Eclipse/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info
+     
    pushd "${STAGING_DIR}"
    
    # strip the executable
@@ -121,7 +136,7 @@ for arg in "$@"; do
    
    #  assumes our contents are at least 1M!
    SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'  | sed 's/,/\./'` 
-   SIZE=`echo "${SIZE} + 2.0" | bc | awk '{print int($1+0.5)}'`
+   SIZE=`echo "${SIZE} + 3.0" | bc | awk '{print int($1+0.5)}'`
    
    echo "INFO:  SIZE=$SIZE"
    
@@ -196,9 +211,19 @@ for arg in "$@"; do
    
    echo 'notarize application...'
    xcrun notarytool submit ../install/${DMG_FINAL} --keychain-profile "Fakturama-Build" --wait
-   xcrun stapler staple ../install/${DMG_FINAL}
-   spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
+   if [ $? -eq 0 ]
+   then
+       echo "Successfully notarized ../install/${DMG_FINAL}"
    
+	   xcrun stapler staple ../install/${DMG_FINAL}
+	   spctl --assess --type open --context context:primary-signature --verbose "../install/${DMG_FINAL}"
+   else
+   		echo "*!*!*!*!*!*!*!*!*!*! Could not notarize ../install/${DMG_FINAL}" >&2
+   		
+# xcrun notarytool log e0eab77e-76aa-40e2-af05-113abb21a890 --keychain-profile "Fakturama-Build"   		
+   fi
+   
+   # some fixes for Linux and Windows archives
    if [ -f ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ]; then
    	echo 'moving installer (tar.gz) to installer directory'
    	mv ${PLUGIN_ROOT}/target/products/Fakturama.ID-linux.gtk.x86_64.tar.gz ../install/Installer_Fakturama_linux_x64_${VERSION}.tar.gz

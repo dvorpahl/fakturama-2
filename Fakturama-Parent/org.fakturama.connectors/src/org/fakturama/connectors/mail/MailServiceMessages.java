@@ -38,9 +38,15 @@ public class MailServiceMessages {
     public String mailservicePreferencesDescription;
     public String mailservicePreferencesServerHost;
     public String mailservicePreferencesServerPassword;
+
     public String mailservicePreferencesServerPort;
+
+    public String mailservicePreferencesServerUsessl;
+
     public String mailservicePreferencesServerTitle;
     public String mailservicePreferencesServerUser;
     public String mailservicePreferencesSubjectLabel;
     public String mailserviceSettingsInvalid;
+
+    public String mailserviceSendFailed;
 }

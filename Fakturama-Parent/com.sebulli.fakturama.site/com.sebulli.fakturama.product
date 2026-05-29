@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.1.3.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.2.0.qualifier" type="features" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="icon://APP_ABOUT_ICON"/>
@@ -40,10 +40,10 @@
    </launcher>
 
    <vm>
-      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</linux>
-      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</macos>
+      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
+      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
       <solaris include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</solaris>
-      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</windows>
+      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-19</windows>
    </vm>
 
    <license>
@@ -140,15 +140,43 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <plugins>
+      <plugin id="angus-activation"/>
+      <plugin id="ch.qos.logback.classic" version="1.5.18"/>
+      <plugin id="ch.qos.logback.core" version="1.5.18"/>
       <plugin id="com.ibm.icu"/>
-      <plugin id="de.fakturama.rcp"/>
-      <plugin id="javax.annotation"/>
-      <plugin id="javax.inject"/>
-      <plugin id="javax.xml"/>
+      <plugin id="com.ibm.icu.localespi"/>
+      <plugin id="com.mysql.cj"/>
+      <plugin id="com.opcoach.e4.preferences"/>
+      <plugin id="jakarta.activation-api"/>
+      <plugin id="jakarta.mail-api"/>
+      <plugin id="jakarta.persistence-api"/>
+      <plugin id="jakarta.transaction-api"/>
+      <plugin id="jakarta.xml.bind-api"/>
+      <plugin id="javax.money"/>
+      <plugin id="json"/>
+      <plugin id="mariadb-java-client"/>
+      <plugin id="net.rootdev.java-rdfa"/>
+      <plugin id="org.apache.aries.spifly.dynamic.bundle"/>
+      <plugin id="org.apache.batik.constants"/>
       <plugin id="org.apache.batik.css"/>
+      <plugin id="org.apache.batik.i18n"/>
       <plugin id="org.apache.batik.util"/>
-      <plugin id="org.apache.batik.util.gui"/>
+      <plugin id="org.apache.commons.collections"/>
+      <plugin id="org.apache.commons.collections4"/>
+      <plugin id="org.apache.commons.commons-beanutils"/>
+      <plugin id="org.apache.commons.commons-compress"/>
+      <plugin id="org.apache.commons.commons-io"/>
+      <plugin id="org.apache.commons.commons-validator"/>
+      <plugin id="org.apache.commons.digester"/>
+      <plugin id="org.apache.commons.jxpath"/>
+      <plugin id="org.apache.commons.lang3"/>
       <plugin id="org.apache.commons.logging"/>
+      <plugin id="org.apache.felix.gogo.command"/>
+      <plugin id="org.apache.felix.gogo.runtime"/>
+      <plugin id="org.apache.felix.gogo.shell"/>
+      <plugin id="org.apache.felix.scr"/>
+      <plugin id="org.apache.xmlgraphics"/>
+      <plugin id="org.eclipse.angus.mail"/>
       <plugin id="org.eclipse.core.commands"/>
       <plugin id="org.eclipse.core.contenttype"/>
       <plugin id="org.eclipse.core.databinding"/>
@@ -157,37 +185,79 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.core.databinding.property"/>
       <plugin id="org.eclipse.core.expressions"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.aix.ppc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.hpux.ia64_32" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.linux.ppc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.macosx" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86_64" fragment="true"/>
+      <plugin id="org.eclipse.core.filesystem.win32.x86_64"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.resources"/>
-      <plugin id="org.eclipse.core.resources.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.core.runtime"/>
-      <plugin id="org.eclipse.core.runtime.compatibility.registry" fragment="true"/>
       <plugin id="org.eclipse.e4.core.commands"/>
       <plugin id="org.eclipse.e4.core.contexts"/>
       <plugin id="org.eclipse.e4.core.di"/>
+      <plugin id="org.eclipse.e4.core.di.annotations"/>
       <plugin id="org.eclipse.e4.core.di.extensions"/>
+      <plugin id="org.eclipse.e4.core.di.extensions.supplier"/>
       <plugin id="org.eclipse.e4.core.services"/>
+      <plugin id="org.eclipse.e4.emf.xpath"/>
       <plugin id="org.eclipse.e4.ui.bindings"/>
       <plugin id="org.eclipse.e4.ui.css.core"/>
       <plugin id="org.eclipse.e4.ui.css.swt"/>
       <plugin id="org.eclipse.e4.ui.css.swt.theme"/>
       <plugin id="org.eclipse.e4.ui.di"/>
+      <plugin id="org.eclipse.e4.ui.dialogs"/>
       <plugin id="org.eclipse.e4.ui.model.workbench"/>
       <plugin id="org.eclipse.e4.ui.services"/>
       <plugin id="org.eclipse.e4.ui.widgets"/>
       <plugin id="org.eclipse.e4.ui.workbench"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt"/>
-      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa" fragment="true"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa.nl_uk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.nl_uk"/>
       <plugin id="org.eclipse.e4.ui.workbench.swt"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ar"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_de"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_el"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_es"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_eu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_fr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_hu"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_it"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_nl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_no"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_pl"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ro"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_ru"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_sk"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_tr"/>
+      <plugin id="org.eclipse.e4.ui.workbench.swt.nl_uk"/>
       <plugin id="org.eclipse.e4.ui.workbench3"/>
       <plugin id="org.eclipse.emf.common"/>
       <plugin id="org.eclipse.emf.databinding"/>
@@ -195,49 +265,87 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="org.eclipse.emf.ecore.change"/>
       <plugin id="org.eclipse.emf.ecore.xmi"/>
       <plugin id="org.eclipse.equinox.app"/>
+      <plugin id="org.eclipse.equinox.bidi"/>
       <plugin id="org.eclipse.equinox.common"/>
       <plugin id="org.eclipse.equinox.concurrent"/>
       <plugin id="org.eclipse.equinox.event"/>
       <plugin id="org.eclipse.equinox.preferences"/>
+      <plugin id="org.eclipse.equinox.region"/>
       <plugin id="org.eclipse.equinox.registry"/>
-      <plugin id="org.eclipse.equinox.transforms.hook" fragment="true"/>
-      <plugin id="org.eclipse.equinox.util"/>
-      <plugin id="org.eclipse.equinox.weaving.hook" fragment="true"/>
+      <plugin id="org.eclipse.equinox.transforms.hook"/>
+      <plugin id="org.eclipse.equinox.weaving.hook"/>
       <plugin id="org.eclipse.jface"/>
       <plugin id="org.eclipse.jface.databinding"/>
+      <plugin id="org.eclipse.jface.nl_ar"/>
+      <plugin id="org.eclipse.jface.nl_de"/>
+      <plugin id="org.eclipse.jface.nl_el"/>
+      <plugin id="org.eclipse.jface.nl_es"/>
+      <plugin id="org.eclipse.jface.nl_eu"/>
+      <plugin id="org.eclipse.jface.nl_fr"/>
+      <plugin id="org.eclipse.jface.nl_hu"/>
+      <plugin id="org.eclipse.jface.nl_it"/>
+      <plugin id="org.eclipse.jface.nl_nl"/>
+      <plugin id="org.eclipse.jface.nl_no"/>
+      <plugin id="org.eclipse.jface.nl_pl"/>
+      <plugin id="org.eclipse.jface.nl_ro"/>
+      <plugin id="org.eclipse.jface.nl_ru"/>
+      <plugin id="org.eclipse.jface.nl_sk"/>
+      <plugin id="org.eclipse.jface.nl_tr"/>
+      <plugin id="org.eclipse.jface.nl_uk"/>
       <plugin id="org.eclipse.osgi"/>
+      <plugin id="org.eclipse.osgi.compatibility.state"/>
       <plugin id="org.eclipse.osgi.services"/>
+      <plugin id="org.eclipse.persistence.moxy"/>
       <plugin id="org.eclipse.swt"/>
-      <plugin id="org.eclipse.swt.carbon.macosx" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390x" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.aix.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.hpux.ia64_32" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.linux.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.motif.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.swt.photon.qnx.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86" fragment="true"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
+      <plugin id="org.eclipse.swt.win32.win32.x86_64"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64"/>
+      <plugin id="org.eclipse.swt.nl_ar"/>
+      <plugin id="org.eclipse.swt.nl_de"/>
+      <plugin id="org.eclipse.swt.nl_el"/>
+      <plugin id="org.eclipse.swt.nl_es"/>
+      <plugin id="org.eclipse.swt.nl_eu"/>
+      <plugin id="org.eclipse.swt.nl_fr"/>
+      <plugin id="org.eclipse.swt.nl_hu"/>
+      <plugin id="org.eclipse.swt.nl_it"/>
+      <plugin id="org.eclipse.swt.nl_nl"/>
+      <plugin id="org.eclipse.swt.nl_no"/>
+      <plugin id="org.eclipse.swt.nl_pl"/>
+      <plugin id="org.eclipse.swt.nl_ro"/>
+      <plugin id="org.eclipse.swt.nl_ru"/>
+      <plugin id="org.eclipse.swt.nl_sk"/>
+      <plugin id="org.eclipse.swt.nl_tr"/>
+      <plugin id="org.eclipse.swt.nl_uk"/>
+      <plugin id="org.eclipse.swt.win32.win32.x86_64"/>
+      <plugin id="org.eclipse.urischeme"/>
+      <plugin id="org.javamoney.moneta"/>
+      <plugin id="org.odftoolkit.odfdom-java"/>
+      <plugin id="org.osgi.service.cm"/>
+      <plugin id="org.osgi.service.component"/>
+      <plugin id="org.osgi.service.device"/>
+      <plugin id="org.osgi.service.event"/>
+      <plugin id="org.osgi.service.jdbc"/>
+      <plugin id="org.osgi.service.metatype"/>
+      <plugin id="org.osgi.service.prefs"/>
+      <plugin id="org.osgi.service.provisioning"/>
+      <plugin id="org.osgi.service.upnp"/>
+      <plugin id="org.osgi.service.useradmin"/>
+      <plugin id="org.osgi.service.wireadmin"/>
+      <plugin id="org.osgi.util.function"/>
+      <plugin id="org.osgi.util.promise"/>
       <plugin id="org.w3c.css.sac"/>
+      <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
+      <plugin id="org.yaml.snakeyaml"/>
+      <plugin id="slf4j.api" version="2.0.17"/>
+      <plugin id="wrapped.com.squareup.okhttp3.okhttp"/>
    </plugins>
 
    <features>
-      <feature id="com.sebulli.fakturama.feature" version="2.1.3.qualifier"/>
-      <feature id="org.fakturama.exporter.zugferd.feature" version="2.1.3.qualifier"/>
-      <feature id="org.fakturama.export.feature" version="2.1.3.qualifier"/>
-      <feature id="org.fakturama.import.feature" version="2.1.3.qualifier"/>
-      <feature id="org.eclipse.gemini.ext.di.feature"/>
-      <feature id="com.mysql.jdbc.feature"/>
+      <feature id="com.sebulli.fakturama.feature" version="2.2.0.qualifier"/>
+      <feature id="org.fakturama.exporter.zugferd.feature" version="2.2.0.qualifier"/>
+      <feature id="org.fakturama.export.feature" version="2.2.0.qualifier"/>
+      <feature id="org.fakturama.import.feature" version="2.2.0.qualifier"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.nebula.widgets.nattable.core.feature"/>
       <feature id="org.eclipse.nebula.widgets.nattable.extension.glazedlists.feature"/>
@@ -262,30 +370,33 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <feature id="org.eclipse.babel.nls_eclipse_uk"/>
       <feature id="org.eclipse.babel.nls_eclipse_sk"/>
       <feature id="org.eclipse.babel.nls_eclipse_el"/>
-      <feature id="org.eclipse.persistence.moxy"/>
-      <feature id="org.eclipse.persistence.jpa" installMode="root"/>
-      <feature id="org.eclipse.gemini.dbaccess.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.mysql.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.hsqldb.feature"/>
-      <feature id="org.eclipse.gemini.jpa.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.derby.feature"/>
-      <feature id="org.eclipse.gemini.dbaccess.mariadb.feature"/>
       <feature id="org.eclipse.babel.nls_eclipse_nl"/>
       <feature id="org.eclipse.babel.nls_eclipse_no"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient5.feature"/>
+      <feature id="org.eclipse.swt.tools.feature" installMode="root"/>
    </features>
 
    <configurations>
-      <plugin id="ch.qos.logback.classic" autoStart="false" startLevel="2" />
-      <plugin id="ch.qos.logback.core" autoStart="false" startLevel="2" />
-      <plugin id="com.sebulli.fakturama.model" autoStart="true" startLevel="4" />
-      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
+      <plugin id="angus-activation" autoStart="true" startLevel="0" />
+      <plugin id="com.ibm.icu.localespi" autoStart="true" startLevel="4" />
+      <plugin id="com.opcoach.e4.preferences" autoStart="true" startLevel="4" />
+      <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
+      <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
+      <plugin id="org.apache.aries.spifly.dynamic.bundle" autoStart="true" startLevel="1" />
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.angus.mail" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="3" />
-      <plugin id="org.eclipse.gemini.dbaccess.derby" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.hsqldb" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.mariadb" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.dbaccess.mysql" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.gemini.jpa" autoStart="true" startLevel="3" />
+      <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.osgi" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.persistence.jpa" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.hsql" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.mariadb" autoStart="true" startLevel="2" />
+      <plugin id="org.fakturama.database.mysql" autoStart="true" startLevel="2" />
+      <plugin id="org.javamoney.moneta" autoStart="true" startLevel="3" />
+      <plugin id="org.osgi.service.jdbc" autoStart="true" startLevel="2" />
+      <plugin id="wrapped.org.eclipse.persistence.eclipselink" autoStart="true" startLevel="2" />
       <property name="eclipse.p2.data.area" value="@config.dir/../p2" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />
@@ -293,11 +404,11 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <property name="osgi.splashPath" value="file:plugins/com.sebulli.fakturama.rcp" />
       <property name="osgi.instance.area" value="@user.home/.fakturama2" />
       <property name="eclipse.buildId" value="${unqualifiedVersion}.${buildQualifier}" />
+      <property name="osgi.resolveOptionalImports" value="true" />
    </configurations>
 
    <repositories>
-      <repository location="https://files.fakturama.info/release/update2/" enabled="true" />
-      <repository location="https://files.fakturama.info/release/update2/" enabled="true" />
+      <repository location="https://files.fakturama.info/release/update2/" name="" enabled="false" />
    </repositories>
 
    <preferencesInfo>

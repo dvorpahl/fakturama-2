@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard.buyers;
@@ -38,55 +37,52 @@ import com.sebulli.fakturama.misc.Constants;
  */
 public class BuyerVolumesExportWizard extends Wizard implements IExportWizard {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	private IEclipseContext ctx;
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
 
+    @Inject
+    private IEclipseContext ctx;
 
-	// The first (and only) page of this wizard
-	private ExportWizardPageStartEndDate page1;
+    // The first (and only) page of this wizard
+    private ExportWizardPageStartEndDate page1;
 
-	/**
-	 * Initializes this creation wizard using the passed workbench and object
-	 * selection.
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 *      org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		setWindowTitle(msg.pageExport);
+    /**
+     * Initializes this creation wizard using the passed workbench and object
+     * selection.
+     * 
+     */
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        setWindowTitle(msg.pageExport);
 
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportBuyersTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportBuyersLongdescription);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_SINGLEPAGE, Boolean.TRUE);
-		page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportBuyersTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportBuyersLongdescription);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, Boolean.FALSE);
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_SINGLEPAGE, Boolean.TRUE);
+        page1 = ContextInjectionFactory.make(ExportWizardPageStartEndDate.class, ctx);
 
-		addPage(page1);
-	}
+        addPage(page1);
+    }
 
-	/**
-	 * Performs any actions appropriate in response to the user having pressed
-	 * the Finish button, or refuse if finishing now is not permitted.
-	 * 
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
-	@Override
-	public boolean performFinish() {
-		ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
-		ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
-		ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
-		BuyerVolumesExporter exporter = ContextInjectionFactory.make(BuyerVolumesExporter.class, ctx);
-		return exporter.export();
-	}
+    /**
+     * Performs any actions appropriate in response to the user having pressed
+     * the Finish button, or refuse if finishing now is not permitted.
+     * 
+     * @see org.eclipse.jface.wizard.Wizard#performFinish()
+     */
+    @Override
+    public boolean performFinish() {
+        ctx.set(Constants.PARAM_START_DATE, page1.getStartDate());
+        ctx.set(Constants.PARAM_END_DATE, page1.getEndDate());
+        ctx.set(ExportWizardPageStartEndDate.WIZARD_DATESELECT_DONTUSETIMEPERIOD, page1.getDoNotUseTimePeriod());
+        BuyerVolumesExporter exporter = ContextInjectionFactory.make(BuyerVolumesExporter.class, ctx);
+        return exporter.export();
+    }
 
 }

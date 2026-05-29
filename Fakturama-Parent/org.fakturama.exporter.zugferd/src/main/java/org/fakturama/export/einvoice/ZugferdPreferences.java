@@ -1,61 +1,67 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2016 www.fakturama.org
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * Contributors: The Fakturama Team - initial API and implementation
  */
- 
+
 package org.fakturama.export.einvoice;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.core.services.nls.Translation;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.BooleanPropertyAction;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.widgets.WidgetFactory;
 import org.eclipse.nebula.widgets.opal.checkboxgroup.CheckBoxGroup;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
 import com.sebulli.fakturama.preferences.IInitializablePreference;
 import com.sebulli.fakturama.preferences.PreferencesInDatabase;
+import com.sebulli.fakturama.preferences.Synchronize;
 
 /**
- * Preferences for the ZUGFeRD export settings (including Factur-X and XRechnung)
+ * Preferences for the ZUGFeRD export settings (including Factur-X and
+ * XRechnung)
  */
 public class ZugferdPreferences extends FieldEditorPreferencePage implements IInitializablePreference {
 
-	@Inject
+    @Inject
     @Translation
     protected ZFMessages msg;
-    
-    @Inject @Optional
+
+    @Inject
+    @Optional
     private PreferencesInDatabase preferencesInDatabase;
+
+    @Inject
+    @Optional
+    private IEclipseContext context;
 
     private ComboFieldEditor conformanceLevelCombo;
 
@@ -65,7 +71,7 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
 
         final String description, version;
 
-        ZugferdVersion(String description, String version) {
+        ZugferdVersion(final String description, final String version) {
             this.description = description;
             this.version = version;
         }
@@ -79,132 +85,123 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
         }
     }
 
-    private Map<ZugferdVersion, String[][]> featureMap;
+    private final Map<ZugferdVersion, String[][]> featureMap;
 
     private StringFieldEditor xrechnungPathField;
 
+    private BooleanFieldEditor xrechnungEmbedXmlInPdf;
+
     private Composite editorParent;
-    
+
+    private Composite paddingComposite;
+
     /**
      * The Constructor.
      */
-	public ZugferdPreferences() {
-		super(GRID);
-        
-        featureMap = new EnumMap<>(ZugferdVersion.class);
-        featureMap.put(ZugferdVersion.V1, new String[][] { 
-//          { ConformanceLevel.ZUGFERD_V1_BASIC.toString(), ConformanceLevel.ZUGFERD_V1_BASIC.toString() }, 
-            { ConformanceLevel.ZUGFERD_V1_COMFORT.toString(), ConformanceLevel.ZUGFERD_V1_COMFORT.toString()}});
-		
-        featureMap.put(ZugferdVersion.V2_1, new String[][] { 
-            { ConformanceLevel.ZUGFERD_V2_COMFORT.toString(), ConformanceLevel.ZUGFERD_V2_COMFORT.toString()}, 
-//            { ConformanceLevel.ZUGFERD_V2_EN16931.toString(), ConformanceLevel.ZUGFERD_V2_EN16931.toString()}, 
-            { ConformanceLevel.XRECHNUNG.toString(), ConformanceLevel.XRECHNUNG.toString()}, 
-            { ConformanceLevel.FACTURX_EN16931.toString(), ConformanceLevel.FACTURX_EN16931.toString()}}
-        );
-	}
+    public ZugferdPreferences() {
+        super(GRID);
 
-	/**
-	 * Creates the page's field editors.
-	 * 
-	 * @see org.eclipse.jface.preference.FieldEditorPreferencePage#createFieldEditors()
-	 */
-	@Override
-	protected void createFieldEditors() {
+        featureMap = new EnumMap<>(ZugferdVersion.class);
+
+        featureMap.put(ZugferdVersion.V2_1,
+                new String[][] { { ConformanceLevel.ZUGFERD_V2_EN16931.toString(), ConformanceLevel.ZUGFERD_V2_EN16931.toString() },
+                        { ConformanceLevel.XRECHNUNG.toString(), ConformanceLevel.XRECHNUNG.toString() },
+                        { ConformanceLevel.FACTURX_EN16931.toString(), ConformanceLevel.FACTURX_EN16931.toString() } });
+    }
+
+    /**
+     * Creates the page's field editors.
+     * 
+     * @see org.eclipse.jface.preference.FieldEditorPreferencePage#createFieldEditors()
+     */
+    @Override
+    protected void createFieldEditors() {
         final CheckBoxGroup group = new CheckBoxGroup(getFieldEditorParent(), SWT.NONE);
+        editorParent = group.getContent();
+
         group.setText(msg.zugferdPreferencesIsActive);
-        group.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,false));
-        
-        BooleanPropertyAction booleanPropertyAction = new BooleanPropertyAction("useZF", getPreferenceStore(), ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
+        group.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).align(SWT.FILL, SWT.FILL).grab(true, false).create());
+
+        final BooleanPropertyAction booleanPropertyAction = new BooleanPropertyAction("useZF", getPreferenceStore(), ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
         group.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                booleanPropertyAction.setChecked(((CheckBoxGroup)e.getSource()).getSelection());
+            public void widgetSelected(final SelectionEvent e) {
+                booleanPropertyAction.setChecked(((CheckBoxGroup) e.getSource()).getSelection());
                 booleanPropertyAction.run();
             }
         });
-        editorParent = group.getContent();
 
-//		addField(new BooleanFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_TEST, msg.zugferdPreferencesTestmode, getFieldEditorParent()));
- 
-		RadioGroupFieldEditor zugferdVersionRadioGroup = new RadioGroupFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_VERSION, msg.zugferdPreferencesVersion, 2, new String[][] { 
-			{ ZugferdVersion.V1.getDescription(), ZugferdVersion.V1.getVersion() },
-			{ ZugferdVersion.V2_1.getDescription(), ZugferdVersion.V2_1.getVersion() }},
-		        editorParent);
-        addField(zugferdVersionRadioGroup);
-        
-	    // fill combo box according to selected version!
-        String zfVersionStr = StringUtils.defaultIfBlank(getPreferenceStore().getString(ZFConstants.PREFERENCES_ZUGFERD_VERSION), 
-                getPreferenceStore().getDefaultString(ZFConstants.PREFERENCES_ZUGFERD_VERSION));
-        
-        java.util.Optional<ZugferdVersion> zfVersion = Arrays.stream(ZugferdVersion.values()).filter(v -> v.getVersion().equalsIgnoreCase(zfVersionStr)).findAny();
-        if(!featureMap.containsKey(zfVersion.get())) {
-            // emergency exit
-            zfVersion = java.util.Optional.of(ZugferdVersion.V2_1);
-        }
-		conformanceLevelCombo = new ComboFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, msg.zugferdPreferencesProfile, 
-				featureMap.get(zfVersion.get()), editorParent);
-		addField(conformanceLevelCombo);
-		
+        // fill combo box according to selected version!
+        final ZugferdVersion zfVersion = ZugferdVersion.V2_1;
+        conformanceLevelCombo = new ComboFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, msg.zugferdPreferencesProfile, featureMap.get(zfVersion),
+                editorParent);
+        conformanceLevelCombo.fillIntoGrid(editorParent, 2);
+        addField(conformanceLevelCombo);
+
         xrechnungPathField = new StringFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_PATH, msg.zugferdPreferencesFilelocation, editorParent) {
-            public void setEmptyStringAllowed(boolean b) {
+            @Override
+            public void setEmptyStringAllowed(final boolean b) {
                 super.setEmptyStringAllowed(b);
                 // else the error flag isn't reset
                 refreshValidState();
-            };
+            }
         };
+        xrechnungPathField.fillIntoGrid(editorParent, 2);
+
         xrechnungPathField.setEmptyStringAllowed(false);
         addField(xrechnungPathField);
-        boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
+
+        paddingComposite = WidgetFactory.composite(SWT.NONE).layout(GridLayoutFactory.fillDefaults().numColumns(1).create())
+                .layoutData(GridDataFactory.swtDefaults().span(1, 2).indent(0, 5).align(SWT.BEGINNING, SWT.BEGINNING).create()).create(editorParent);
+
+        xrechnungEmbedXmlInPdf = new BooleanFieldEditor(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, msg.zugferdPreferencesEmbedinpdf, paddingComposite);
+
+        addField(xrechnungEmbedXmlInPdf);
+
+        final boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
         group.setSelection(isZFActive);
         enableXRechnungPathField(isZFActive, getPreferenceStore().getString(ZFConstants.PREFERENCES_ZUGFERD_PROFILE));
-	}
+    }
 
-    private void enableXRechnungPathField(boolean isZFActive, String currentConformanceLevelString) {
+    private void enableXRechnungPathField(final boolean isZFActive, String currentConformanceLevelString) {
         ConformanceLevel currentConformanceLevel;
-        
-        if(currentConformanceLevelString == null) {
-            Combo comboBox = getCombo(conformanceLevelCombo);
-            currentConformanceLevelString = comboBox.getItem(comboBox.getSelectionIndex());
+
+        if (currentConformanceLevelString == null) {
+            final Combo comboBox = getCombo(conformanceLevelCombo);
+            if (comboBox != null) {
+                currentConformanceLevelString = comboBox.getItem(comboBox.getSelectionIndex());
+            }
         }
-        
+
         try {
             currentConformanceLevel = ConformanceLevel.valueOf(currentConformanceLevelString);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // only if conformance level can't be determined
             currentConformanceLevel = ConformanceLevel.FACTURX_EN16931;
         }
-        boolean enabled = isZFActive && ConformanceLevel.XRECHNUNG == currentConformanceLevel;
+        final boolean enabled = isZFActive && ConformanceLevel.XRECHNUNG == currentConformanceLevel;
         xrechnungPathField.setEnabled(enabled, editorParent);
         xrechnungPathField.setEmptyStringAllowed(!enabled);
+        xrechnungEmbedXmlInPdf.setEnabled(enabled, paddingComposite);
         checkState();
     }
-	
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
-	    super.propertyChange(event);
-        boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
-	    if(event.getSource() instanceof RadioGroupFieldEditor
-	            && event.getOldValue() != event.getNewValue()) {
-		    String selectionValueStr = ((RadioGroupFieldEditor)event.getSource()).getSelectionValue();
-	        java.util.Optional<ZugferdVersion> selectionValue = Arrays.stream(ZugferdVersion.values()).filter(v -> v.getVersion().equalsIgnoreCase(selectionValueStr)).findAny();
-		    Combo cfCombo = getCombo(conformanceLevelCombo);
-		    cfCombo.removeAll();
-            Arrays.stream(featureMap.get(selectionValue.get())).forEach(v -> cfCombo.add(v[0]));
-            cfCombo.select(0);
 
-            enableXRechnungPathField(isZFActive, cfCombo.getText());
-	    } else if(event.getSource() instanceof ComboFieldEditor) {
-	        enableXRechnungPathField(isZFActive, (String) event.getNewValue());
-	    }
-	}
+    @Override
+    public void propertyChange(final PropertyChangeEvent event) {
+        super.propertyChange(event);
+        final boolean isZFActive = getPreferenceStore().getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE);
+        if (event.getSource() instanceof ComboFieldEditor) {
+            enableXRechnungPathField(isZFActive, (String) event.getNewValue());
+        }
+    }
 
-	/**
-	 * Ugly hack get the combo box from field editor.
-	 * @param comboFieldEditor
-	 * @return
-	 */
-    private Combo getCombo(ComboFieldEditor comboFieldEditor) {
+    /**
+     * Ugly hack get the combo box from field editor.
+     * 
+     * @param comboFieldEditor
+     * @return
+     */
+    private Combo getCombo(final ComboFieldEditor comboFieldEditor) {
         Method privateStringMethod;
 
         try {
@@ -223,26 +220,37 @@ public class ZugferdPreferences extends FieldEditorPreferencePage implements IIn
      * @param write
      *            TRUE: Write to the data base
      */
-    public void syncWithPreferencesFromDatabase(boolean write) {
+    public void syncWithPreferencesFromDatabase(final boolean write) {
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_VERSION, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_TEST, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_PATH, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, write);
+        preferencesInDatabase.syncWithPreferencesFromDatabase(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, write);
     }
 
     @Override
-    public void setInitValues(IPreferenceStore node) {
+    public void setInitValues(final IPreferenceStore node) {
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, Boolean.FALSE);
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_VERSION, ZugferdVersion.V2_1.getVersion());
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_TEST, Boolean.FALSE);
+        node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_PATH, "XML/{yyyy}/{doctype}/{docname}_{address}.xml");
+        node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_EMBED_IN_PDF, Boolean.FALSE);
         node.setDefault(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, ConformanceLevel.XRECHNUNG.name());
     }
 
+    @Synchronize
+    public void loadUserValuesFromDB() {
+
+    }
+
     @Override
-    public void loadOrSaveUserValuesFromDB(IEclipseContext context) {
-        if(preferencesInDatabase != null) {
-            Boolean isWrite = (Boolean)context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
+    @Synchronize
+    public void loadOrSaveUserValuesFromDB(final IEclipseContext context) {
+        // TRUE ==> Save preferences
+        // FALSE ==> Load preferences
+        if (preferencesInDatabase != null) {
+            final Boolean isWrite = (Boolean) context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
             syncWithPreferencesFromDatabase(BooleanUtils.toBoolean(isWrite));
         }
     }

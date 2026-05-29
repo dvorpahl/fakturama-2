@@ -15,6 +15,7 @@ package org.fakturama.connectors.mail;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,27 +25,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.angus.mail.smtp.SMTPTransport;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.core.services.nls.Translation;
-import org.eclipse.e4.ui.model.application.MApplication;
-import org.eclipse.e4.ui.model.application.ui.MUIElement;
-import org.eclipse.e4.ui.model.application.ui.basic.MPart;
-import org.eclipse.e4.ui.model.application.ui.basic.MWindow;
-import org.eclipse.e4.ui.workbench.modeling.EModelService;
-import org.eclipse.e4.ui.workbench.modeling.EPartService;
-import org.eclipse.e4.ui.workbench.modeling.EPartService.PartState;
+import org.eclipse.e4.ui.di.UISynchronize;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Component;
@@ -60,20 +54,21 @@ import com.sebulli.fakturama.office.IPdfPostProcessor;
 import com.sebulli.fakturama.office.TemplateFinder;
 import com.sebulli.fakturama.office.TemplateProcessor;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
-import com.sun.mail.util.MailConnectException;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.Authenticator;
-import jakarta.mail.BodyPart;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
+import jakarta.mail.NoSuchProviderException;
+import jakarta.mail.Part;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
-import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.internet.MimeUtility;
 
 /**
  * The Mail Service class is an {@link IPdfPostProcessor} for sending mails
@@ -91,183 +86,186 @@ public class MailService implements IPdfPostProcessor {
 
     @Inject
     private IEclipseContext ctx;
-    
+
     @Inject
     private ILogger log;
-
     @Inject
-    private EModelService modelService;
-    
-    @Inject
-    private EPartService partService;
-
-    @Inject
-    private MApplication application;
+    private UISynchronize uiSync;
 
     @Inject
     @Translation
     protected Messages msg;
-    
+
     @Inject
     @Translation
     protected MailServiceMessages mailServiceMessages;
 
+    private MailInfoDialog mailInfoDialog;
+    public static final int MULTIPART_MODE_MIXED_RELATED = 3;
+
+    private static final String MULTIPART_SUBTYPE_ALTERNATIVE = "alternative";
+
+    private static final String CONTENT_TYPE_ALTERNATIVE = "text/alternative";
+
+    private static final String CONTENT_TYPE_HTML = "text/html";
+
+    private static final String CONTENT_TYPE_CHARSET_SUFFIX = ";charset=";
+
     @Override
-    public boolean canProcess() {
+    public int getPriority() {
+        return 50;
+    }
+
+    @Override
+    public boolean canProcess(final Optional<Invoice> inputDocument) {
         return prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE, false);
     }
 
     @Override
-    public boolean processPdf(Optional<Invoice> inputDocument) {
+    public boolean processPdf(final Optional<Invoice> inputDocument) {
         if (!inputDocument.isPresent()) {
             return true;
         }
 
-        DocumentReceiver billingAdress = addressManager.getBillingAdress(inputDocument.get());
-        if(StringUtils.isAllBlank(billingAdress.getEmail())) {
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(inputDocument.get());
+        if (StringUtils.isAllBlank(billingAdress.getEmail())) {
             // ignore silently...
             return true;
         }
 
         // Collect some settings...
-        MailSettings settings = createSettings(inputDocument.get());
-        ctx.set(MailSettings.class, settings);
-        
+        final MailSettings settings = createSettings(inputDocument.get());
+
         // check settings
-        if(!settings.isValid()) {
+        if (!settings.isValid()) {
             MessageDialog.openError(ctx.get(Shell.class), msg.dialogMessageboxTitleError, mailServiceMessages.mailserviceSettingsInvalid);
             return false;
         }
 
         //... and open the mail dialog for examining the mail to send
         // (only if user wants to see the dialog)
-        if (prefs.getBoolean("WANNA_SHOW_SENDMAIL_DIALOG", true)) {  // setting isn't available at the moment!!!
+        if (prefs.getBoolean("WANNA_SHOW_SENDMAIL_DIALOG", true)) { // setting isn't available at the moment!!!
             ctx.set(MailService.class, this);
-            
-            MWindow mailAppDialog = (MWindow) modelService.find(MailServiceConstants.MAIL_APP_MAIN_WINDOW_ID, application);
-
-            MPart mainPart = (MPart) mailAppDialog.getChildren().get(0);
-            partService.showPart(mainPart.getElementId(), PartState.ACTIVATE);
-            mainPart.setVisible(true);
-            partService.bringToTop(mainPart);
-            modelService.bringToTop(mailAppDialog);
-            mailAppDialog.setOnTop(true);
-
-            mailAppDialog.setVisible(true);
-            mailAppDialog.setToBeRendered(true);
+            loadMailModal(settings);
         } else {
             sendMail(settings);
         }
         return true;
     }
 
-    private MailSettings createSettings(Invoice invoice) {
+    public void loadMailModal(final MailSettings settings) {
+        // Ensure UI operations are performed on the UI thread
+        final Shell shell = new Shell(Display.getCurrent());
+        uiSync.asyncExec(() -> {
+            ctx.set(MailSettings.class, settings);
+            mailInfoDialog = new MailInfoDialog(shell);
+            ContextInjectionFactory.inject(mailInfoDialog, this.ctx);
 
-        TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, ctx);
-        DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
-        String rcpBundleName = FrameworkUtil.getBundle(IPdfPostProcessor.class).getSymbolicName();
-        String rcpBundlePrefsNodeName = String.format("/%s/%s", InstanceScope.SCOPE, rcpBundleName);
+            mailInfoDialog.open();
+        });
+    }
 
-        MailSettings settings = new MailSettings()
-                .withSender(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_EMAIL, ""))
+    private MailSettings createSettings(final Invoice invoice) {
+
+        final TemplateProcessor templateProcessor = ContextInjectionFactory.make(TemplateProcessor.class, ctx);
+        final DocumentReceiver billingAdress = addressManager.getBillingAdress(invoice);
+        final String rcpBundleName = FrameworkUtil.getBundle(IPdfPostProcessor.class).getSymbolicName();
+        final String rcpBundlePrefsNodeName = String.format("/%s/%s", InstanceScope.SCOPE, rcpBundleName);
+
+        final MailSettings settings = new MailSettings().withSender(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_EMAIL, ""))
                 .withSenderName(prefs.node(rcpBundlePrefsNodeName).get(Constants.PREFERENCES_YOURCOMPANY_NAME, ""))
-                .withUser(prefs.get(MailServiceConstants.PREFERENCES_MAIL_USER, "")) 
-                .withPassword(prefs.get(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, "")) 
-                .withHost(prefs.get(MailServiceConstants.PREFERENCES_MAIL_HOST, ""))
-                .withReceiversTo(billingAdress.getEmail())
+                .withUser(prefs.get(MailServiceConstants.PREFERENCES_MAIL_USER, "")).withPassword(prefs.get(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, ""))
+                .withHost(prefs.get(MailServiceConstants.PREFERENCES_MAIL_HOST, "")).withReceiversTo(billingAdress.getEmail())
                 .withReceiversCC(prefs.get(MailServiceConstants.PREFERENCES_MAIL_CC_FIX, "").split(MailSettings.ADDRESS_SEPARATOR_CHAR))
                 .withReceiversBCC(prefs.get(MailServiceConstants.PREFERENCES_MAIL_BCC_FIX, "").split(MailSettings.ADDRESS_SEPARATOR_CHAR))
                 .withSubject(createMailSubject(invoice, templateProcessor));
 
         settings.setBody(createBodyFromTemplate(invoice, templateProcessor));
-        
-        List<String> additionalDocs = collectAdditionalDocs(invoice); 
+
+        final List<String> additionalDocs = collectAdditionalDocs(invoice);
         settings.addToAdditionalDocs(additionalDocs);
         return settings;
     }
 
-    private List<String> collectAdditionalDocs(Invoice invoice) {
-        List<String> retList = new ArrayList<>();
-        
+    private List<String> collectAdditionalDocs(final Invoice invoice) {
+        final List<String> retList = new ArrayList<>();
+
         // the PDF is always an attachment
         retList.add(invoice.getPdfPath());
-        
+
         // optional documents found in additional path
-        String additionalFilesPath = prefs.get(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, "");
-        if(!additionalFilesPath.isBlank()) {
-            Path templatePath1 = Paths.get(additionalFilesPath);
-            List<String> templates = scanPathForadditionalFiles(templatePath1);
+        final String additionalFilesPath = prefs.get(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, "");
+        if (!additionalFilesPath.isBlank()) {
+            final Path templatePath1 = Paths.get(additionalFilesPath);
+            final List<String> templates = scanPathForadditionalFiles(templatePath1);
             retList.addAll(templates);
         }
         return retList;
     }
-    
+
     /**
-     * Scans the additional files path for all templates. If an additional file exists, add it
-     * to the list of available additional files
+     * Scans the additional files path for all templates. If an additional file
+     * exists, add it to the list of available additional files
      * 
      * @param additionalFilePath
      *            path which is scanned
      */
-    private List<String> scanPathForadditionalFiles(Path additionalFilePath) {
+    private List<String> scanPathForadditionalFiles(final Path additionalFilePath) {
         List<String> additionalFiles = new ArrayList<>();
         try {
-            if(Files.exists(additionalFilePath)) {
-                additionalFiles = Files.list(additionalFilePath)
-                        .sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase()))
-                        .map(p -> p.getFileName().toString())
-                        .collect(Collectors.toList());
+            if (Files.exists(additionalFilePath)) {
+                additionalFiles = Files.list(additionalFilePath).sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase()))
+                        .map(p -> p.toAbsolutePath().toString()).toList();
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error(e, "Error while scanning the additional files directory: " + additionalFilePath.toString());
         }
         return additionalFiles;
     }
 
-    private String createMailSubject(Document invoice, TemplateProcessor templateProcessor) {
+    private String createMailSubject(final Document invoice, final TemplateProcessor templateProcessor) {
         String prefDescriptor;
         switch (invoice.getBillingType()) {
-        case INVOICE:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE;
-            break;
-        case DELIVERY:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY;
-            break;
-        case OFFER:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_OFFER;
-            break;
-        case DUNNING:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DUNNING;
-            break;
-        case ORDER:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_ORDER;
-            break;
-        case PROFORMA:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_PROFORMA;
-            break;
-        case CREDIT:
-            prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_CREDIT;
-            break;
-        default:
-            prefDescriptor = "";
-            break;
+            case INVOICE:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE;
+                break;
+            case DELIVERY:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY;
+                break;
+            case OFFER:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_OFFER;
+                break;
+            case DUNNING:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DUNNING;
+                break;
+            case ORDER:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_ORDER;
+                break;
+            case PROFORMA:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_PROFORMA;
+                break;
+            case CREDIT:
+                prefDescriptor = MailServiceConstants.PREFERENCES_MAIL_SUBJECT_CREDIT;
+                break;
+            default:
+                prefDescriptor = "";
+                break;
         }
-        return templateProcessor.fill(invoice, Optional.empty(), 
-                prefs.get(prefDescriptor, "<no subject>"));
+        return templateProcessor.fill(invoice, Optional.empty(), prefs.get(prefDescriptor, "<no subject>"));
     }
 
-    private String createBodyFromTemplate(Document invoice, TemplateProcessor templateProcessor) {
+    private String createBodyFromTemplate(final Document invoice, final TemplateProcessor templateProcessor) {
         String templateString = "";
-        TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, ctx);
-        List<Path> templates = templateFinder.collectTemplates(DocumentTypeUtil.findByBillingType(invoice.getBillingType()),
+        final TemplateFinder templateFinder = ContextInjectionFactory.make(TemplateFinder.class, ctx);
+        final List<Path> templates = templateFinder.collectTemplates(DocumentTypeUtil.findByBillingType(invoice.getBillingType()),
                 TemplateFinder.TXT_TEMPLATE_FILEEXTENSION);
 
         if (templates != null && !templates.isEmpty()) {
-            Path mailTemplatePath = templates.get(0);
+            final Path mailTemplatePath = templates.get(0);
             if (Files.exists(mailTemplatePath)) {
                 try {
                     templateString = Files.readString(mailTemplatePath);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     log.error(e, "mail template can't be processed: " + mailTemplatePath.getFileName());
                 }
             }
@@ -278,13 +276,15 @@ public class MailService implements IPdfPostProcessor {
 
     public void sendMail(final MailSettings settings) {
         // create some properties and get the default Session
-        Properties props = System.getProperties();
+        final Properties props = System.getProperties();
         props.put(MailServiceConstants.MAIL_SMTP_HOST, settings.getHost());
         props.put(MailServiceConstants.MAIL_SMTP_AUTH, "true");
-        props.put(MailServiceConstants.MAIL_SMTP_STARTTLS_ENABLE, "true");
+        final boolean useSSL = prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_USESSL, false);
+        props.put(MailServiceConstants.MAIL_SMTP_STARTTLS_ENABLE, !useSSL);
+        props.put(MailServiceConstants.MAIL_SMTP_SSLTLS_ENABLE, useSSL);
         props.put(MailServiceConstants.MAIL_SMTP_PORT, MailServiceConstants.MAIL_SMTP_DEFAULT_PORT);
-     
-        Authenticator authenticator = new Authenticator() {
+        props.put("mail.smtp.ssl.trust", '*');
+        final Authenticator authenticator = new Authenticator() {
             final PasswordAuthentication authentication = new PasswordAuthentication(settings.getUser(), settings.getPassword());
 
             @Override
@@ -292,98 +292,130 @@ public class MailService implements IPdfPostProcessor {
                 return authentication;
             }
         };
-        Session session = Session.getInstance(props, authenticator);
-//        session.setDebug(debug);
-        
+
+        final Session session = Session.getInstance(props, authenticator);
+        session.setDebug(true);
+        boolean gotError = false;
         try {
-            // create a message
-            MimeMessage msg = new MimeMessage(session);
-            //set From email field
-            InternetAddress senderAddr = new InternetAddress(settings.getSender());
-            senderAddr.setPersonal(settings.getSenderName());
-			msg.setFrom(senderAddr);
-            msg.setSender(senderAddr);
-            
-            msg.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
-            msg.setRecipients(Message.RecipientType.CC,settings.getReceiversCC());
-            msg.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
-            
-            msg.setSubject(settings.getSubject());
+            final MimeMessage message = createMessage(settings, session);
 
-            // create the Multipart and add its parts to it
-            Multipart mp = new MimeMultipart();
+            SMTPTransport transport = null;
+            try {
+                transport = connectTransport(settings, session);
+                transport.sendMessage(message, message.getAllRecipients());
+            } catch (final MessagingException e) {
+                gotError = true;
+                log.error(e, "can't send mail");
+            }
 
-            // create and fill the first message part
-            // PLAIN TEXT
-            BodyPart messageBodyPart = new MimeBodyPart();
-            messageBodyPart.setText(settings.getBody());
-            mp.addBodyPart(messageBodyPart);
-//
-//            // HTML TEXT ==> future feature!
-//            messageBodyPart = new MimeBodyPart();
-//            String htmlText = settings.getBodyHtml();
-//            messageBodyPart.setContent(htmlText, "text/html");
-//            mp.addBodyPart(messageBodyPart);
-            
-            // add attachments
-            settings.getAdditionalDocs().stream().map(this::createMimePart).forEach(p -> {
-                try {
-                    mp.addBodyPart(p);
-                } catch (MessagingException e) {
-                    log.error(e, "can't add mime body");
-                }
-            });
-
-            // add the Multipart to the message
-            msg.setContent(mp);
-
-            // set the Date: header
-            msg.setSentDate(new Date());
-
-            CompletableFuture.runAsync(() -> {
-                Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-                try {
-
-                    // send the message
-                    Transport.send(msg);
-                } catch (final MailConnectException e) {
-                  log.error(e, "can't connect to mail server ("+settings.getHost()+")");
-                } catch (final MessagingException e) {
-                  log.error(e, "can't send mail");
-                }
-              }, Executors.newSingleThreadExecutor());           
-
-        } catch (MessagingException mex) {
+        } catch (final MessagingException mex) {
+            gotError = true;
             log.error(mex, "can't send mail");
             Exception ex = null;
             if ((ex = mex.getNextException()) != null) {
                 log.error(ex, "can't send mail");
             }
-        } catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} finally {
-            closeDialog();
+        } catch (final UnsupportedEncodingException ex) {
+            gotError = true;
+            log.error(ex, "can't send mail");
+        } finally {
+            if (!gotError && mailInfoDialog != null) {
+                mailInfoDialog.close();
+                mailInfoDialog = null;
+            } else {
+                MessageDialog.openError(ctx.get(Shell.class), msg.dialogMessageboxTitleError, mailServiceMessages.mailserviceSendFailed);
+            }
         }
     }
 
-    private void closeDialog() {
-        Optional<MUIElement> mailAppDialog = Optional.ofNullable(modelService.find(MailServiceConstants.MAIL_APP_MAIN_WINDOW_ID, application));
-        mailAppDialog.ifPresent(m -> {
-            m.setVisible(false);
-            m.setToBeRendered(false);
+    /**
+     * @param settings
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws MessagingException
+     */
+    private MimeMessage createMessage(final MailSettings settings, final Session session) throws UnsupportedEncodingException, MessagingException {
+        // create a message
+        final MimeMessage message = new MimeMessage(session);
+
+        //set From email field
+        final InternetAddress senderAddr = new InternetAddress(settings.getSender());
+        senderAddr.setPersonal(settings.getSenderName());
+        message.setFrom(senderAddr);
+        message.setSender(senderAddr);
+        message.setSubject(settings.getSubject());
+
+        message.setRecipients(Message.RecipientType.TO, settings.getReceiversTo());
+        message.setRecipients(Message.RecipientType.CC, settings.getReceiversCC());
+        message.setRecipients(Message.RecipientType.BCC, settings.getReceiversBCC());
+
+        // create and fill the first message part
+        // PLAIN TEXT
+        final MimeMultipart mimeMultipart = new MimeMultipart("mixed");
+        final MimeBodyPart mimeBodyPart = new MimeBodyPart();
+        mimeBodyPart.setContent(mimeBodyPart, CONTENT_TYPE_ALTERNATIVE);
+
+        final MimeBodyPart plainTextPart = new MimeBodyPart();
+        plainTextPart.setText(settings.getBody(), StandardCharsets.UTF_8.name());
+        mimeMultipart.addBodyPart(plainTextPart);
+
+        final MimeBodyPart htmlTextPart = new MimeBodyPart();
+        htmlTextPart.setContent(settings.getBody(), CONTENT_TYPE_HTML + CONTENT_TYPE_CHARSET_SUFFIX + StandardCharsets.UTF_8.name());
+        mimeMultipart.addBodyPart(htmlTextPart);
+
+        // add attachments
+        settings.getAdditionalDocs().stream().forEach(p -> {
+            try {
+                final MimeBodyPart mimePart = createMimePart(p);
+                mimeMultipart.addBodyPart(mimePart);
+            } catch (final MessagingException e) {
+                log.error(e, "can't add mime body");
+            }
         });
+
+        // add the Multipart to the message
+        message.setContent(mimeMultipart);
+
+        // set the Date: header
+        message.setSentDate(new Date());
+
+        return message;
     }
 
-    private MimeBodyPart createMimePart(String file) {
-        // create the next message part
-        MimeBodyPart mbp3 = new MimeBodyPart();
+    private MimeBodyPart createMimePart(final String file) throws MessagingException {
         try {
-            // attach the file to the message
-            mbp3.attachFile(file);
-        } catch (IOException | MessagingException ioex) {
-            log.error(ioex, "can't create mime body part");
+            final MimeBodyPart mimeBodyPart = new MimeBodyPart();
+            mimeBodyPart.setDisposition(Part.ATTACHMENT);
+            final Path filePath = Path.of(file);
+            mimeBodyPart.setFileName(MimeUtility.encodeText(filePath.getFileName().toString()));
+            final FileDataSource fileDataSource = new FileDataSource(filePath.toFile());
+
+            final DataHandler datahandler = new DataHandler(fileDataSource);
+            mimeBodyPart.setDataHandler(datahandler);
+            return mimeBodyPart;
+        } catch (final UnsupportedEncodingException ex) {
+            throw new MessagingException("Failed to set attachment for message", ex);
         }
-        return mbp3;
     }
+
+    protected SMTPTransport connectTransport(final MailSettings settings, final Session session) throws MessagingException {
+        String username = settings.getUser();
+        String password = settings.getPassword();
+        if ("".equals(username)) { // probably from a placeholder
+            username = null;
+            if ("".equals(password)) { // in conjunction with "" username, this means no password to use
+                password = null;
+            }
+        }
+
+        final SMTPTransport transport = getTransport(session);
+        transport.connect(settings.getHost(), settings.getPort(), username, password);
+        return transport;
+    }
+
+    protected SMTPTransport getTransport(final Session session) throws NoSuchProviderException {
+        final boolean useSSL = prefs.getBoolean(MailServiceConstants.PREFERENCES_MAIL_USESSL, false);
+        return (SMTPTransport) session.getTransport(useSSL ? "smtps" : "smtp");
+    }
+
 }

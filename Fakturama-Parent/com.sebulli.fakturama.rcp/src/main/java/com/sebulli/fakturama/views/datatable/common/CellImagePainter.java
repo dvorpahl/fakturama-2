@@ -30,42 +30,47 @@ import com.sebulli.fakturama.resources.core.ProgramImages;
  * {@link ImagePainter} for all sorts of Images in a NatTable.
  */
 public class CellImagePainter extends ImagePainter {
-    
+
     public static final int MAX_IMAGE_PREVIEW_WIDTH = 250;
-    
+
     private ITemplateResourceManager resourceManager;
 
-    public CellImagePainter(ITemplateResourceManager resourceManager) {
+    public CellImagePainter(final ITemplateResourceManager resourceManager) {
         this.resourceManager = resourceManager;
     }
 
     @Override
-    protected Image getImage(ILayerCell cell, IConfigRegistry configRegistry) {
+    protected Image getImage(final ILayerCell cell, final IConfigRegistry configRegistry) {
         Object dataValue = cell.getDataValue();
         Image retval = null;
         if (dataValue instanceof Icon) {
             retval = getImageFrom((Icon) dataValue);
         } else if (dataValue instanceof Image) {
             retval = getImageFrom((Image) dataValue);
-        } else if(dataValue instanceof String) {
+        } else if (dataValue instanceof String) {
             retval = getImageFrom((String) dataValue);
-        } else if(dataValue instanceof byte[]) {
-			retval = getImagefromByteArray(dataValue);
+        } else if (dataValue instanceof byte[]) {
+            retval = getImagefromByteArray(dataValue);
         }
+
         return retval;
     }
 
-	/**
-	 * @param dataValue
-	 * @return
-	 */
-    private Image getImagefromByteArray(Object dataValue) {
+    /**
+     * @param dataValue
+     * @return
+     */
+    private Image getImagefromByteArray(final Object dataValue) {
         Image image, retval = null;
         ByteArrayInputStream imgStream = new ByteArrayInputStream((byte[]) dataValue);
         try {
             image = new Image(Display.getCurrent(), imgStream);
         } catch (SWTException e) {
-            image = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.NOT_FOUND_PICTURE);
+        	image = JFaceResources.getImage("DEFAULT_PRODUCT_IMAGE");
+        	if(image == null) {
+        		image = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.NOT_FOUND_PICTURE);
+        		JFaceResources.getImageRegistry().put("DEFAULT_PRODUCT_IMAGE", image);
+        	}
         }
 
         // Get the pictures size
@@ -88,81 +93,79 @@ public class CellImagePainter extends ImagePainter {
         retval = new Image(Display.getCurrent(), image.getImageData().scaledTo(width, height));
         return retval;
     }
-    
-    private Image getImageFrom(Icon dataValue) {
+
+    private Image getImageFrom(final Icon dataValue) {
         Image retval = null;
-            Icon icon = (Icon) dataValue;
-            if (icon != null) {
-                retval = icon.getImage(IconSize.DefaultIconSize);
-            }
+        Icon icon = dataValue;
+        if (icon != null) {
+            retval = icon.getImage(IconSize.DefaultIconSize);
+        }
         return retval;
     }
-    
-    private Image getImageFrom(Image dataValue) {
+
+    private Image getImageFrom(final Image dataValue) {
         Image retval = null;
-            retval = (Image)dataValue;
+        retval = dataValue;
         return retval;
     }
-    
 
-        /**
-         * Scale the given image to {@link CellImagePainter#MAX_IMAGE_PREVIEW_WIDTH}
-         * px width. Copied from old ProductPictureDialog class.
-         * 
-         * @param pictureName
-         * @return Image
-         */
-    private Image getImageFrom(String pictureName) {
-            // The scaled image with width and height (used to resize the dialog)
-            Image scaledImage = null;
-            // Display the picture, if it is set.
-            if (!pictureName.isEmpty()) {
+    /**
+     * Scale the given image to {@link CellImagePainter#MAX_IMAGE_PREVIEW_WIDTH}
+     * px width. Copied from old ProductPictureDialog class.
+     * 
+     * @param pictureName
+     * @return Image
+     */
+    private Image getImageFrom(final String pictureName) {
+        // The scaled image with width and height (used to resize the dialog)
+        Image scaledImage = null;
+        // Display the picture, if it is set.
+        if (!pictureName.isEmpty()) {
 
-                int width = 300;
-                int height = 200;
+            int width = 300;
+            int height = 200;
 
-                // Load the image, based on the picture name
-                // but at first check if it exists
-                if(Files.notExists(Paths.get(pictureName))) {
-                    return null;
-                }
-                Image image = getImage(pictureName);
-
-                // Get the pictures size
-                width = image.getBounds().width;
-                height = image.getBounds().height;
-                
-                // Scale the image to 64x48 Pixel
-                if (width != 0 && height != 0) {
-                    // Picture is wider than height.
-                    if (width >= 64*height/48) {
-                        height = height * 64 / width;
-                        width = 64;
-                    }
-                    else { //if (height > ((48*width)/64)) {
-                        width = width * 48 / height;
-                        height = 48;
-                    }
-                }
-                
-                scaledImage = new Image(image.getDevice(), image.getImageData().scaledTo(width, height));
-                
-//                // Scale it to maximum 250px
-//                int maxWidth = MAX_IMAGE_PREVIEW_WIDTH;
-    //
-//                // Maximum picture width 
-//                if (width > maxWidth) {
-//                    height = maxWidth * height / width;
-//                    width = maxWidth;
-    //
-//                    // Rescale the picture to the maximum width
-//                    scaledImage = new Image(image.getDevice(), image.getImageData().scaledTo(width, height));
-//                }
-//                else {
-//                    scaledImage = image;
-//                }
+            // Load the image, based on the picture name
+            // but at first check if it exists
+            if (Files.notExists(Paths.get(pictureName))) {
+                return null;
             }
-            return scaledImage;
+            Image image = getImage(pictureName);
+
+            // Get the pictures size
+            width = image.getBounds().width;
+            height = image.getBounds().height;
+
+            // Scale the image to 64x48 Pixel
+            if (width != 0 && height != 0) {
+                // Picture is wider than height.
+                if (width >= 64 * height / 48) {
+                    height = height * 64 / width;
+                    width = 64;
+                } else { //if (height > ((48*width)/64)) {
+                    width = width * 48 / height;
+                    height = 48;
+                }
+            }
+
+            scaledImage = new Image(image.getDevice(), image.getImageData().scaledTo(width, height));
+
+            //                // Scale it to maximum 250px
+            //                int maxWidth = MAX_IMAGE_PREVIEW_WIDTH;
+            //
+            //                // Maximum picture width 
+            //                if (width > maxWidth) {
+            //                    height = maxWidth * height / width;
+            //                    width = maxWidth;
+            //
+            //                    // Rescale the picture to the maximum width
+            //                    scaledImage = new Image(image.getDevice(), image.getImageData().scaledTo(width, height));
+            //                }
+            //                else {
+            //                    scaledImage = image;
+            //                }
+        }
+        return scaledImage;
     }
 
     /**
@@ -171,7 +174,7 @@ public class CellImagePainter extends ImagePainter {
      * 
      * @return an {@link Image}
      */
-    private Image getImage(String path) {
+    private Image getImage(final String path) {
         Image image = JFaceResources.getImage(path);
         if (image == null) {
             image = addIconImageDescriptor(path);
@@ -180,20 +183,19 @@ public class CellImagePainter extends ImagePainter {
     }
 
     /**
-     * Add an image descriptor for a specific key to the
-     * global {@link ImageRegistry}
+     * Add an image descriptor for a specific key to the global
+     * {@link ImageRegistry}
      * 
      * @param name
      * @param is
      * @return <code>true</code> if successfully added, else <code>false</code>
      */
-    private Image addIconImageDescriptor(String path) {
+    private Image addIconImageDescriptor(final String path) {
         try {
             URL fileLocation = new File(path).toURI().toURL();
             ImageDescriptor id = ImageDescriptor.createFromURL(fileLocation);
             JFaceResources.getImageRegistry().put(path, id);
-        }
-        catch (MissingResourceException | MalformedURLException | IllegalArgumentException e) {
+        } catch (MissingResourceException | MalformedURLException | IllegalArgumentException e) {
             return null;
         }
         return JFaceResources.getImage(path);

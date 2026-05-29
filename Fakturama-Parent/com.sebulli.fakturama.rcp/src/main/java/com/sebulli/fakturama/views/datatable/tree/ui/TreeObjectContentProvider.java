@@ -56,25 +56,26 @@ class TreeObjectContentProvider<T extends AbstractCategory> implements ITreeCont
 
 			// Get the elements
 			if (parent == this.topicTreeViewer.root) {
-
+				
 				// Rebuild the elements, if some strings have changed
 				// => this replaces "getCategoryStringsChanged()"
-				// FIXME zur Zeit ändert sich hier nichts...
-//				inputElement.addListEventListener(new ListEventListener<MyRowObject>() {
-//
-//					@Override
-//					public void listChanged(ListEvent<MyRowObject> listChanges) {
+				this.topicTreeViewer.inputElement.addListEventListener(evt ->  {
 					// Clear the tree
 					this.topicTreeViewer.clear();
-					if (this.topicTreeViewer.inputElement instanceof List) {
 						// Get all category strings
-						for (T entry : this.topicTreeViewer.inputElement) {
-							// Start with the "root" or "all" element
-						    addEntry(this.topicTreeViewer.all != null ? this.topicTreeViewer.all : this.topicTreeViewer.root, entry);
-						}
+					for (T entry : this.topicTreeViewer.inputElement) {
+						// Start with the "root" or "all" element
+					    addEntry(this.topicTreeViewer.all != null ? this.topicTreeViewer.all : this.topicTreeViewer.root, entry);
 					}
-//						
-//				}});
+				});
+				
+				// FIXME find a better way to avoid code duplication
+				if(this.topicTreeViewer.getTree().getItemCount() < 3) {
+					for (T entry : this.topicTreeViewer.inputElement) {
+						// Start with the "root" or "all" element
+					    addEntry(this.topicTreeViewer.all != null ? this.topicTreeViewer.all : this.topicTreeViewer.root, entry);
+					}
+				}
 			}
 			
 			// Count the category strings

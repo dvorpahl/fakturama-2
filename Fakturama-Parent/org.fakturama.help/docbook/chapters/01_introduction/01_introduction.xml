@@ -4,35 +4,35 @@
 	<title>Schnelleinstieg</title>
 	<sect2>
 		<title>Installation</title>
-		<para>Laden Sie die Software von der <link xl:href="http://www.fakturama.info/">Projektseite</link> und installieren Sie diese.</para>
+		<para>Die Software kann von der <link xl:href="https://www.fakturama.info/downloads/">Projektseite</link> heruntergeladen und installiert werden.</para>
 		<para>Siehe auch <link linkend="install_main">Installation</link>
 		</para>
 	</sect2>
 	<sect2>
 		<title>Start</title>
-		<para>Wählen Sie nach dem ersten Start ein Arbeitsverzeichnis.</para>
+		<para>Nach dem ersten Start muss ein Arbeitsverzeichnis ausgewählt werden.</para>
 		<para>Siehe auch <link linkend="install_start">Start von Fakturama</link> und <link linkend="workspace_workspace">Arbeitsverzeichnis</link>.</para>
 	</sect2>
 	<sect2>
 		<title>Webshop Schnittstelle</title>
-		<para>Laden Sie die Webshop-Schnittstelle aus dem <link xl:href="http://vorlagen.fakturama.info/webshops/">Vorlagenportal</link> und kopieren Sie diese in den Ordner <emphasis role="bold">/admin/</emphasis> Ihres Webshops.</para>
+		<para>Im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=3">Vorlagenportal</link> gibt es Connectoren für verschiedene Webshop-Schnittstellen. Diese können im Ordner <emphasis role="bold">/admin/</emphasis> des Webshops installiert werden.</para>
 		<para>Siehe auch <link linkend="webshop_webshop_connector">Webshop Schnittstelle</link>
 		</para>
 	</sect2>
 	<sect2>
 		<title>Einstellungen</title>
-		<para>Setzen Sie die Einstellungen des Programms auf die von Ihnen gewünschten Werte. Vor allem wichtige Einstellungen wie <emphasis role="bold">Firmendaten</emphasis>, <emphasis role="bold">Verbindungsdaten Webshop</emphasis> oder <emphasis role="bold">Nummernkreise</emphasis> sollten hier hinterlegt werden.</para>
+		<para>In den Einstellungen des Programms sind die gewünschten Werte einzutragen. Vor allem wichtige Einstellungen wie <emphasis role="bold">Firmendaten</emphasis>, <emphasis role="bold">Verbindungsdaten Webshop</emphasis> oder <emphasis role="bold">Nummernkreise</emphasis> sollten hier hinterlegt werden. Dies ist besonders für die Erstellung von E-Rechnungen notwendig. In den Einstellungen ist auch das Programmverzeichnis von LibreOffice einzutragen, um PDF-Dateien korrekt erzeugen zu können.</para>
 		<para>Siehe auch <link linkend="preferences_main">Einstellungen</link>
 		</para>
 	</sect2>
 	<sect2>
-		<title>OpenOffice.org / LibreOffice Vorlagen</title>
-		<para>Passen Sie die Dokumentenvorlagen an Ihr Design an. Eine Standardvorlage finden Sie im Verzeichnis <emphasis role="bold">Vorlagen</emphasis> Ihres Arbeitsverzeichnisses. Viele weitere Vorlagen finden Sie in unserem <link xl:href="http://vorlagen.fakturama.info">Vorlagenportal</link>. Wählen Sie bitte auch in den Einstellungen das Programmverzeichnis von LibreOffice/OpenOffice aus, falls Sie PDF-Dateien erzeugen möchten.</para>
-		<para>Siehe auch <link linkend="openoffice_templates">OpenOffice.org/LibreOffice Vorlagen</link>
+		<title>LibreOffice Vorlagen</title>
+		<para>Alle Dokumentenvorlagen können an die persönlichen Erfordernisse angepasst werden. Im Verzeichnis <emphasis role="bold">Vorlagen</emphasis> des Arbeitsverzeichnisses befinden sich bereits Standardvorlagen für die einzelnen Dokumenttypen. Viele weitere Vorlagen können im <link xl:href="https://dms.fakturama.info/out/out.ViewFolder.php?folderid=36">Vorlagenportal</link> heruntergeladen werden.</para>
+		<para>Siehe auch <link linkend="openoffice_templates">LibreOffice-Vorlagen</link>
 		</para>
 	</sect2>
 	<sect2>
-		<title>Abrufen der Webshop Daten</title>
+		<title>Abrufen der Webshop-Daten</title>
 		<informalfigure>
 			<mediaobject>
 				<imageobject role="html">
@@ -43,7 +43,7 @@
 				</imageobject>
 			</mediaobject>
 		</informalfigure>
-		<para>Laden Sie die Daten (Produkte, Adressen und offene Bestellungen) aus dem Webshop.</para>
+		<para>Daten (Produkte, Adressen und offene Bestellungen) können aus dem Webshop geladen werden, sofern ein entsprechender Connector installiert und konfiguriert wurde.</para>
 		<para>Siehe auch <link linkend="application_main">Das Programm</link>
 		</para>
 	</sect2>

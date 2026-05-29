@@ -2,19 +2,26 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: QR-Code Generators
 Bundle-SymbolicName: org.fakturama.qrcode
-Bundle-Version: 2.1.3.qualifier
+Bundle-Version: 2.2.0.qualifier
+Export-Package: net.glxn.qrgen.core,
+ net.glxn.qrgen.core.exception,
+ net.glxn.qrgen.core.image,
+ net.glxn.qrgen.core.scheme,
+ net.glxn.qrgen.javase,
+ org.fakturama.qrcode
 Bundle-Activator: org.fakturama.qrcode.Activator
-Require-Bundle: org.javamoney.osgi;bundle-version="1.0.2",
- com.sebulli.fakturama.rcp;bundle-version="2.1.2",
- com.sebulli.fakturama.model;bundle-version="2.1.2",
- com.sebulli.fakturama.common;bundle-version="2.1.2",
- com.google.zxing.core;bundle-version="3.5.0",
- wrapped.com.google.zxing.javase;bundle-version="3.5.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: com.sebulli.fakturama.rcp;bundle-version="2.2.0",
+ com.sebulli.fakturama.model;bundle-version="2.2.0",
+ com.sebulli.fakturama.common;bundle-version="2.2.0",
+ javax.money;bundle-version="1.1.0",
+ org.javamoney.moneta;bundle-version="1.4.2",
+ org.apache.commons.lang3;bundle-version="3.13.0",
+ com.google.zxing.core;bundle-version="3.5.2",
+ wrapped.com.google.zxing.javase;bundle-version="3.5.2"
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: org.fakturama.qrcode
 Bundle-ActivationPolicy: lazy
-Import-Package: com.ibm.icu.util;version="67.1.0",
- javax.inject;version="1.0.0",
+Import-Package: javax.inject;version="1.0.0",
  net.codecrete.qrbill.generator;version="3.0.3",
  org.eclipse.e4.core.contexts;version="1.7.0",
  org.eclipse.e4.core.di;version="1.7.0",
@@ -22,7 +29,7 @@ Import-Package: com.ibm.icu.util;version="67.1.0",
  org.eclipse.jface.preference,
  org.osgi.framework;version="1.10.0",
  org.osgi.service.component.annotations;version="1.3.0"
-Bundle-ClassPath: lib/core-2.7.0-SNAPSHOT.jar,
- lib/javase-2.7.0-SNAPSHOT.jar,
- .
+Bundle-ClassPath: .,
+ lib/core-3.0.1.jar,
+ lib/javase-3.0.1.jar
 Service-Component: OSGI-INF/qrcodeservice.xml

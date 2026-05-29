@@ -1,16 +1,13 @@
-/* 
- * Fakturama - Free Invoicing Software - http://www.fakturama.org
+/* Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014 Ralf Heydenreich
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *   Ralf Heydenreich - initial API and implementation
- */
+ * Contributors: Ralf Heydenreich - initial API and implementation */
 package org.fakturama.export.einvoice;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
@@ -32,12 +29,12 @@ public class ZFDefaultValuesInitializer extends AbstractPreferenceInitializer {
      */
     @Override
     public void initializeDefaultPreferences() {
-        IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();       
-        
+        IPreferenceStore defaultValuesNode = ZFPreferenceStoreProvider.getInstance().getPreferenceStore();
+
         final Bundle bundle = FrameworkUtil.getBundle(ZFDefaultValuesInitializer.class);
+        EclipseContextFactory.getServiceContext(bundle.getBundleContext()).set(IPreferenceStore.class, defaultValuesNode);
         IInitializablePreference p = ContextInjectionFactory.make(ZugferdPreferences.class, EclipseContextFactory.getServiceContext(bundle.getBundleContext()));
         p.setInitValues(defaultValuesNode);
-        
-        EclipseContextFactory.getServiceContext(bundle.getBundleContext()).set(IPreferenceStore.class, defaultValuesNode);
+
     }
 }

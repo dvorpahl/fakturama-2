@@ -23,20 +23,26 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 
-import com.sebulli.fakturama.misc.Constants;
-
 /**
  * Container class for Mail Settings
  */
 public class MailSettings {
     public static final String ADDRESS_SEPARATOR_CHAR = ";";
-    private String user, password, host, templateText, subject, body, sender;
+    private String user;
+    private String password;
+    private String host;
+
+    private int port;
+    private String templateText;
+    private String subject;
+    private String body;
+    private String sender;
     private final List<String> receiversTo = new ArrayList<>();
     private final List<String> receiversCC = new ArrayList<>();
     private final List<String> receiversBCC = new ArrayList<>();
     private List<String> additionalDocs = new ArrayList<>();
-	private String senderName;
-    
+    private String senderName;
+
     // field list
     public static final String FIELD_RECEIVERS_TO = "receiversTo";
     public static final String FIELD_RECEIVERS_CC = "receiversCC";
@@ -44,94 +50,98 @@ public class MailSettings {
     public static final String FIELD_RECEIVERS_SUBJECT = "subject";
     public static final String FIELD_RECEIVERS_BODY = "body";
     public static final String FIELD_RECEIVERS_ADDITIONALDOCS = "additionalDocs";
-    
+
     /**
      * Checks if the mandatory fields are set
      * 
      * @return <code>true</code> if all necessary settings are set
      */
     public boolean isValid() {
-        boolean receiversAreValid = areReceiversValid(FIELD_RECEIVERS_TO)
-                && areReceiversValid(FIELD_RECEIVERS_CC)
+        final boolean receiversAreValid = areReceiversValid(FIELD_RECEIVERS_TO) && areReceiversValid(FIELD_RECEIVERS_CC)
                 && areReceiversValid(FIELD_RECEIVERS_BCC);
-        
-        return StringUtils.isNoneEmpty(user, host, password, sender) 
-                && !receiversTo.isEmpty() && receiversAreValid;
+
+        return StringUtils.isNoneEmpty(user, host, password, sender) && !receiversTo.isEmpty() && receiversAreValid;
     }
 
-    public boolean areReceiversValid(String fieldIdentifier) {
+    public boolean areReceiversValid(final String fieldIdentifier) {
         List<String> receivers;
         switch (fieldIdentifier) {
-        case FIELD_RECEIVERS_TO:
-            receivers = receiversTo;
-            break;
-        case FIELD_RECEIVERS_CC:
-            receivers = receiversCC;
-            break;
-        case FIELD_RECEIVERS_BCC:
-            receivers = receiversBCC;
-        default:
-            receivers = Collections.<String>emptyList();
-            break;
+            case FIELD_RECEIVERS_TO:
+                receivers = receiversTo;
+                break;
+            case FIELD_RECEIVERS_CC:
+                receivers = receiversCC;
+                break;
+            case FIELD_RECEIVERS_BCC:
+                receivers = receiversBCC;
+                break;
+            default:
+                receivers = Collections.<String> emptyList();
+                break;
         }
-       
-        boolean receiversAreValid = receivers
-                .stream()
-                .allMatch(e -> StringUtils.isBlank(e) || EmailValidator.getInstance().isValid(e));
-        return receiversAreValid;
+
+        return receivers.stream().allMatch(e -> StringUtils.isBlank(e) || EmailValidator.getInstance().isValid(e));
+
     }
-    
-    public MailSettings withUser(String user) {
+
+    public MailSettings withUser(final String user) {
         this.user = user;
         return this;
     }
 
-    public MailSettings withPassword(String pasword) {
+    public MailSettings withPassword(final String pasword) {
         this.password = pasword;
         return this;
     }
 
-    public MailSettings withSender(String sender) {
+    public MailSettings withSender(final String sender) {
         this.sender = sender;
         return this;
     }
 
-	public MailSettings withSenderName(String senderName) {
-		this.senderName = senderName;
-		return this;
-	}
+    public MailSettings withSenderName(final String senderName) {
+        this.senderName = senderName;
+        return this;
+    }
 
-    public MailSettings withAdditionalDocs(String... additionalDocs) {
+    public MailSettings withAdditionalDocs(final String... additionalDocs) {
         this.additionalDocs = Arrays.stream(additionalDocs).collect(Collectors.toList());
         return this;
     }
 
-    public MailSettings withTemplateText(String templateText) {
+    public MailSettings withTemplateText(final String templateText) {
         this.templateText = templateText;
         return this;
     }
 
-    public MailSettings withReceiversTo(String... receiversTo) {
+    public MailSettings withReceiversTo(final String... receiversTo) {
         this.receiversTo.addAll(Arrays.asList(receiversTo));
         return this;
     }
 
-    public MailSettings withReceiversCC(String... receiversCC) {
+    public MailSettings withReceiversCC(final String... receiversCC) {
         this.receiversCC.addAll(Arrays.asList(receiversCC));
         return this;
     }
 
-    public MailSettings withReceiversBCC(String... receiversBCC) {
+    public MailSettings withReceiversBCC(final String... receiversBCC) {
         this.receiversBCC.addAll(Arrays.asList(receiversBCC));
         return this;
     }
 
-    public MailSettings withHost(String host) {
-        this.host = host;
+    public MailSettings withHost(final String host) {
+        String[] splitted;
+        if ((splitted = StringUtils.split(host, ":", 2)) != null && splitted.length == 2) {
+            this.host = splitted[0];
+            this.port = Integer.parseInt(splitted[1]);
+        } else {
+            this.host = host;
+            this.port = MailServiceConstants.MAIL_SMTP_DEFAULT_PORT;
+        }
         return this;
     }
 
-    public MailSettings withSubject(String subject) {
+    public MailSettings withSubject(final String subject) {
         this.subject = subject;
         return this;
     }
@@ -140,7 +150,7 @@ public class MailSettings {
         return user;
     }
 
-    public void setUser(String user) {
+    public void setUser(final String user) {
         this.user = user;
     }
 
@@ -148,7 +158,7 @@ public class MailSettings {
         return password;
     }
 
-    public void setPassword(String pasword) {
+    public void setPassword(final String pasword) {
         this.password = pasword;
     }
 
@@ -156,18 +166,16 @@ public class MailSettings {
         return additionalDocs;
     }
 
-    public void addToAdditionalDocs(String filter, String... additionalDocs) {
-        this.additionalDocs.addAll(
-                Arrays.stream(additionalDocs)
-                .map(s -> !s.startsWith(filter) ? StringUtils.appendIfMissing(filter, File.separator)+s : s)
-                .collect(Collectors.toList()));
+    public void addToAdditionalDocs(final String filter, final String... additionalDocs) {
+        this.additionalDocs
+                .addAll(Arrays.stream(additionalDocs).map(s -> !s.startsWith(filter) ? StringUtils.appendIfMissing(filter, File.separator) + s : s).toList());
     }
 
-    public void addToAdditionalDocs(List<String> additionalDocs) {
+    public void addToAdditionalDocs(final List<String> additionalDocs) {
         this.additionalDocs.addAll(additionalDocs);
     }
-    
-    public void setAdditionalDocs(List<String> additionalDocs) {
+
+    public void setAdditionalDocs(final List<String> additionalDocs) {
         this.additionalDocs = additionalDocs;
     }
 
@@ -175,7 +183,7 @@ public class MailSettings {
         return templateText;
     }
 
-    public void setTemplateText(String templateText) {
+    public void setTemplateText(final String templateText) {
         this.templateText = templateText;
     }
 
@@ -183,21 +191,21 @@ public class MailSettings {
         return String.join(ADDRESS_SEPARATOR_CHAR, receiversTo);
     }
 
-    public void setReceiversTo(String receivers) {
+    public void setReceiversTo(final String receivers) {
         if (receivers != null) {
             receiversTo.clear();
             Arrays.stream(receivers.split(ADDRESS_SEPARATOR_CHAR)).forEach(r -> receiversTo.add(StringUtils.trim(r)));
         }
     }
-    
-    public void setReceiversCC(String receivers) {
+
+    public void setReceiversCC(final String receivers) {
         if (receivers != null) {
             receiversCC.clear();
             Arrays.stream(receivers.split(ADDRESS_SEPARATOR_CHAR)).forEach(r -> receiversCC.add(StringUtils.trim(r)));
         }
     }
-    
-    public void setReceiversBCC(String receivers) {
+
+    public void setReceiversBCC(final String receivers) {
         if (receivers != null) {
             receiversBCC.clear();
             Arrays.stream(receivers.split(ADDRESS_SEPARATOR_CHAR)).forEach(r -> receiversBCC.add(StringUtils.trim(r)));
@@ -216,11 +224,15 @@ public class MailSettings {
         return subject;
     }
 
+    public void setSubject(final String subject) {
+        this.subject = subject;
+    }
+
     public String getBody() {
         return body;
     }
 
-    public void setBody(String body) {
+    public void setBody(final String body) {
         this.body = body;
     }
 
@@ -228,19 +240,23 @@ public class MailSettings {
         return host;
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public String getSender() {
         return sender;
     }
-    
+
     public String getSenderWithName() {
-    	return String.format("%s <%s>", senderName, sender);
+        return String.format("%s <%s>", senderName, sender);
     }
 
-	public String getSenderName() {
-		return senderName;
-	}
+    public String getSenderName() {
+        return senderName;
+    }
 
-    public void removeFromAdditionalDocs(String additionalDoc) {
+    public void removeFromAdditionalDocs(final String additionalDoc) {
         this.additionalDocs.remove(additionalDoc);
     }
 

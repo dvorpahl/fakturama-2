@@ -5,9 +5,11 @@
 
 # Prerequisites: pom.xml and appropriate project structure should exist in the repository.
 
-image: maven:3.6.3
+image: maven:3.9-eclipse-temurin-17
 
 pipelines:
+  caches:
+    - maven
   default:
     - parallel:
       - step:
@@ -15,7 +17,7 @@ pipelines:
           caches:
             - maven
           script:
-            - mvn -B verify --file Fakturama-Parent/pom.xml
+            - mvn -B  clean verify --file Fakturama-Parent/pom.xml -P cicd
           after-script:
               # Collect checkstyle results, if any, and convert to Bitbucket Code Insights.
             - pipe: atlassian/checkstyle-report:0.2.0

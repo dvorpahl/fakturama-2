@@ -6,13 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.persistence.config.QueryHints;
@@ -23,114 +16,112 @@ import com.sebulli.fakturama.model.Contact;
 import com.sebulli.fakturama.model.Contact_;
 import com.sebulli.fakturama.oldmodel.OldContacts;
 
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
 @Creatable
 public class ContactsDAO extends AbstractDAO<Contact> {
-    
+
     /**
-     * We have to override this method since we want to only find "real" contacts, i.e., no "alternate" contacts.
+     * We have to override this method since we want to only find "real"
+     * contacts, i.e., no "alternate" contacts.
      */
     @Override
     public List<Contact> findAll() {
         return findAll(false);
     }
-    
+
     @Override
-    public List<Contact> findAll(boolean forceRead) {
+    public List<Contact> findAll(final boolean forceRead) {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Contact> query = cb.createQuery(getEntityClass());
         Root<Contact> root = query.from(getEntityClass());
         /*
          * A "real" contact has _always_ a contact number, even if it's a space...
          */
-        query.where(
-        		cb.and(
-        				cb.not(root.<Boolean> get(Contact_.deleted)),
-        				cb.isNotNull(root.get(Contact_.customerNumber)))
-        		);
+        query.where(cb.and(cb.not(root.<Boolean> get(Contact_.deleted)), cb.isNotNull(root.get(Contact_.customerNumber))));
         TypedQuery<Contact> q = getEntityManager().createQuery(query);
-        if(forceRead) {
+        if (forceRead) {
             q.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
         }
         return q.getResultList();
     }
-    
+
     @Override
-    protected Set<Predicate> getRestrictions(Contact object, CriteriaBuilder cb, Root<Contact> root) {
+    protected Set<Predicate> getRestrictions(final Contact object, final CriteriaBuilder cb, final Root<Contact> root) {
         /* Customer number, first
          * name, name and ZIP are compared. Customer number is only compared, if it
          * is set.
          */
-    	
+
         Set<Predicate> restrictions = new HashSet<>();
         // Compare customer number, only if it is set.
-        if(StringUtils.isNotBlank(object.getCustomerNumber())) {
+        if (StringUtils.isNotBlank(object.getCustomerNumber())) {
             restrictions.add(cb.equal(root.get(Contact_.customerNumber), object.getCustomerNumber()));
         }
         // if the value is not set (null), then we use the empty String for comparison. 
         // Then we get no result (which is correct).
         restrictions.add(cb.equal(root.get(Contact_.firstName), StringUtils.defaultString(object.getFirstName())));
         restrictions.add(cb.equal(root.get(Contact_.name), StringUtils.defaultString(object.getName())));
-        
+
         /*
          * The restriction for ZIP makes no sense furthermore, since we have more than one address per contact.
          * Therefore more than one address could have the same ZIP code for a completely different other address. 
          */
-//    	Join<Contact, Address> addresses = root.join(Contact_.addresses);
-//        if (object.getAddresses() != null) {
-//            restrictions.add(cb.in(addresses.get(Address_.zip), object.getAddresses().getZip())));
-//        } else {
-//            // set to an undefined value so we get no result (then the contact is not found in the database)
-//            restrictions.add(cb.equal(addresses.get(Address_.zip), "-1"));
-//        }
-        
+        //    	Join<Contact, Address> addresses = root.join(Contact_.addresses);
+        //        if (object.getAddresses() != null) {
+        //            restrictions.add(cb.in(addresses.get(Address_.zip), object.getAddresses().getZip())));
+        //        } else {
+        //            // set to an undefined value so we get no result (then the contact is not found in the database)
+        //            restrictions.add(cb.equal(addresses.get(Address_.zip), "-1"));
+        //        }
+
         // and, finally, filter all deleted contacts (or contacts that aren't valid anymore)
-        restrictions.add(cb.and(
-                cb.not(root.get(Contact_.deleted)),
-                cb.or(
-                    cb.isNull(root.get(Contact_.validTo)),
-                    cb.greaterThanOrEqualTo(root.get(Contact_.validTo), cb.currentDate())
-                    )));
+        restrictions.add(cb.and(cb.not(root.get(Contact_.deleted)),
+                cb.or(cb.isNull(root.get(Contact_.validTo)), cb.greaterThanOrEqualTo(root.get(Contact_.validTo), cb.currentDate()))));
         return restrictions;
     }
 
-	@Override
-	protected Class<Contact> getEntityClass() {
-		return Contact.class;
-	}
-	
-	public Contact findByOldContact(OldContacts oldContact) {
-    	CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-    	CriteriaQuery<Contact> criteria = cb.createQuery(Contact.class);
-    	Root<Contact> root = criteria.from(Contact.class);
-		CriteriaQuery<Contact> cq = criteria.where(
-				cb.and(
-						cb.equal(root.<String>get(Contact_.firstName), oldContact.getFirstname()),
-						cb.equal(root.<String>get(Contact_.name), oldContact.getName())));
-    	return getEntityManager().createQuery(cq).getSingleResult();
-	}
-	
+    @Override
+    protected Class<Contact> getEntityClass() {
+        return Contact.class;
+    }
+
+    public Contact findByOldContact(final OldContacts oldContact) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Contact> criteria = cb.createQuery(Contact.class);
+        Root<Contact> root = criteria.from(Contact.class);
+        CriteriaQuery<Contact> cq = criteria.where(cb.and(cb.equal(root.<String> get(Contact_.firstName), oldContact.getFirstname()),
+                cb.equal(root.<String> get(Contact_.name), oldContact.getName())));
+        return getEntityManager().createQuery(cq).getSingleResult();
+    }
+
     /**
      * Gets the all visible properties of this VAT object.
      * 
      * @return String[] of visible VAT properties
      */
     public String[] getVisibleProperties() {
-        return new String[] { Contact_.customerNumber.getName(), Contact_.firstName.getName(), Contact_.name.getName(),
-                Contact_.company.getName(), Address_.zip.getName(), Address_.city.getName()};
+        return new String[] { Contact_.customerNumber.getName(), Contact_.firstName.getName(), Contact_.name.getName(), Contact_.company.getName(),
+                Address_.zip.getName(), Address_.city.getName() };
     }
 
-	/**
-	 * Checks if a {@link Contact} with the same values exists.
-	 * 
-	 * @param name
-	 * @param firstName
-	 * @param street
-	 * @return
-	 */
-	public Contact checkContactWithSameValues(String name, String firstName, String street) {
-		Set<Predicate> restrictions = new HashSet<>();
-		Contact retval = null;
-    	CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+    /**
+     * Checks if a {@link Contact} with the same values exists.
+     * 
+     * @param name
+     * @param firstName
+     * @param street
+     * @return
+     */
+    public Contact checkContactWithSameValues(final String name, final String firstName, final String street) {
+        Set<Predicate> restrictions = new HashSet<>();
+        Contact retval = null;
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Contact> query = cb.createQuery(getEntityClass());
         Root<Contact> root = query.from(getEntityClass());
         Join<Contact, Address> address = root.join(Contact_.addresses);
@@ -138,45 +129,46 @@ public class ContactsDAO extends AbstractDAO<Contact> {
         restrictions.add(cb.equal(root.get(Contact_.name), StringUtils.defaultString(name)));
         restrictions.add(cb.not(root.get(Contact_.deleted)));
         restrictions.add(cb.equal(address.get(Address_.street), StringUtils.defaultString(street)));
-        
-        CriteriaQuery<Contact> select = query.select(root);
-        select.where(restrictions.toArray(new Predicate[]{}));
-        List<Contact> resultList = getEntityManager().createQuery(select).getResultList();
-        if(!resultList.isEmpty()) {
-        	retval = resultList.get(0);
-        }
-		return retval;
-	}
 
-	/**
-	 * Checks if a {@link Contact} with the same number exists.
-	 * 
-	 * @param contactNumber 
-	 * @return
-	 */
-	public Contact getContactWithSameNumber(String contactNumber) {
-		Set<Predicate> restrictions = new HashSet<>();
-		Contact retval = null;
-    	CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Contact> select = query.select(root);
+        select.where(restrictions.toArray(new Predicate[] {}));
+        List<Contact> resultList = getEntityManager().createQuery(select).getResultList();
+        if (!resultList.isEmpty()) {
+            retval = resultList.get(0);
+        }
+        return retval;
+    }
+
+    /**
+     * Checks if a {@link Contact} with the same number exists.
+     * 
+     * @param contactNumber
+     * @return
+     */
+    public Contact getContactWithSameNumber(final String contactNumber) {
+        Set<Predicate> restrictions = new HashSet<>();
+        Contact retval = null;
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Contact> query = cb.createQuery(getEntityClass());
         Root<Contact> root = query.from(getEntityClass());
         restrictions.add(cb.equal(root.get(Contact_.customerNumber), StringUtils.defaultString(contactNumber)));
         restrictions.add(cb.not(root.get(Contact_.deleted)));
-        CriteriaQuery<Contact> q = query.select(root).where(restrictions.toArray(new Predicate[]{}));
+        CriteriaQuery<Contact> q = query.select(root).where(restrictions.toArray(new Predicate[] {}));
         List<Contact> resultList = getEntityManager().createQuery(q).getResultList();
-        if(!resultList.isEmpty()) {
-        	retval = resultList.get(0);
+        if (!resultList.isEmpty()) {
+            retval = resultList.get(0);
         }
-		return retval;
-	}
+        return retval;
+    }
 
-	public Address findByAddressId(Long addressId) {
-		if (addressId != null) {
-		    Map<String, Object> props = new HashMap<>();
-		    props.put(QueryHints.CACHE_STORE_MODE, "REFRESH");
-		    getEntityManager().find(Address.class, addressId, null, props);
-			return getEntityManager().find(Address.class, addressId);
-		} else
-			return null;
-	}
+    public Address findByAddressId(final Long addressId) {
+        if (addressId != null) {
+            Map<String, Object> props = new HashMap<>();
+            props.put(QueryHints.CACHE_STORE_MODE, QueryHints.REFRESH_CASCADE);
+            return getEntityManager().find(Address.class, addressId, null, props);
+            //getEntityManager().find(Address.class, addressId);
+        } else {
+            return null;
+        }
+    }
 }

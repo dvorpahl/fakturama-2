@@ -23,7 +23,9 @@ import com.sebulli.fakturama.model.Product;
  */
 @Singleton
 public final class ProductUtil {
-       
+
+    @Inject
+    @Preference(nodePath = "/instance/com.sebulli.fakturama.rcp")
     private IEclipsePreferences eclipsePrefs;
 
     /**
@@ -56,13 +58,12 @@ public final class ProductUtil {
         for (char c : ILLEGAL_CHARACTERS) {
             pictureName = pictureName.replace(c, '_');
         }
-        
+
         // Add the .*jpg extension
         pictureName += ".jpg";
 
         return pictureName;
     }
-    
 
     public static byte[] readPicture(String fileName, Path basePath) {
         Path productPictureFile = basePath.resolve(fileName);
@@ -71,7 +72,9 @@ public final class ProductUtil {
             try {
                 retval = Files.readAllBytes(productPictureFile);
             } catch (IOException ioex) {
-//                log.error(String.format("Can't read product picture from file '%s'. Reason: ", productPictureFile.toString(), ioex.getMessage()));
+                // log.error(String.format("Can't read product picture from file
+                // '%s'. Reason: ", productPictureFile.toString(),
+                // ioex.getMessage()));
             }
         }
         return retval;
@@ -92,13 +95,13 @@ public final class ProductUtil {
         int blockQuantity = Integer.valueOf(0);
         int newQuantity;
         int scaledPrices;
-        scaledPrices = getEclipsePrefs().getInt(Constants.PREFERENCES_PRODUCT_SCALED_PRICES, Integer.valueOf(1));
+        scaledPrices = eclipsePrefs.getInt(Constants.PREFERENCES_PRODUCT_SCALED_PRICES, Integer.valueOf(1));
 
         // search all used blocks
         // no reflection used because of unwanted side effects...
         // maybe later on we use a list of "blocks"
-        Integer[] blocks = new Integer[] {product.getBlock1(), product.getBlock2(), product.getBlock3(), product.getBlock4(), product.getBlock5()};
-        Double[] prices = new Double[] {product.getPrice1(), product.getPrice2(), product.getPrice3(), product.getPrice4(), product.getPrice5()};
+        Integer[] blocks = new Integer[] { product.getBlock1(), product.getBlock2(), product.getBlock3(), product.getBlock4(), product.getBlock5() };
+        Double[] prices = new Double[] { product.getPrice1(), product.getPrice2(), product.getPrice3(), product.getPrice4(), product.getPrice5() };
         for (int i = 0; i < scaledPrices; i++) {
             newQuantity = blocks[i] == null ? 0 : blocks[i];
             if (newQuantity > blockQuantity && quantity >= newQuantity - 0.0001 && prices[i] != 0) {
@@ -108,14 +111,5 @@ public final class ProductUtil {
         }
         return price;
     }
-
-	IEclipsePreferences getEclipsePrefs() {
-		return eclipsePrefs;
-	}
-
-    @Inject
-	public void setEclipsePrefs(@Preference(nodePath="/instance/com.sebulli.fakturama.rcp") IEclipsePreferences eclipsePrefs) {
-		this.eclipsePrefs = eclipsePrefs;
-	}
 
 }

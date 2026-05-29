@@ -29,6 +29,7 @@ import org.javamoney.moneta.Money;
 import com.sebulli.fakturama.calculate.DocumentSummaryCalculator;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Document;
+import com.sebulli.fakturama.model.Shipping;
 import com.sebulli.fakturama.util.DocumentTypeUtil;
 
 /**
@@ -65,10 +66,11 @@ public class VatSummarySetManager {
 		// Create a new summary object and start the calculation.
 		// This will add all the entries to the VatSummarySet
 		DocumentSummaryCalculator documentSummaryCalculator = ContextInjectionFactory.make(DocumentSummaryCalculator.class, context);
+		final Shipping documentShipping = document.getShipping();
 		DocumentSummary documentSummary = documentSummaryCalculator.calculate(vatSummarySet, document.getItems(), 
-				document.getShipping() != null ? document.getShipping().getShippingValue() : Optional.ofNullable(document.getShippingValue()).orElse(Double.valueOf(0.0)) * parentSign,
-				document.getShipping() != null ? document.getShipping().getShippingVat() : null,
-				document.getShipping() != null ? document.getShipping().getAutoVat() : document.getShippingAutoVat(), 
+				documentShipping != null ? documentShipping.getShippingValue() : Optional.ofNullable(document.getShippingValue()).orElse(Double.valueOf(0.0)) * parentSign,
+				documentShipping != null ? documentShipping.getShippingVat() : null,
+				documentShipping != null ? documentShipping.getAutoVat() : document.getShippingAutoVat(), 
 				Optional.ofNullable(document.getItemsRebate()).orElse(Double.valueOf(0.0)), 
 				document.getNoVatReference(),
  			    scaleFactor, document.getNetGross(), deposit, parentSign);

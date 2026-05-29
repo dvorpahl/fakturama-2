@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.4" transformSequenceNumber="10">
-  <directoryPresets config="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.1.3c" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="11" jdkName="JDK 1.8 x64">
+<install4j version="12.0.2" transformSequenceNumber="12">
+  <directoryPresets config="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-RC" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -19,30 +19,44 @@
         <language id="es" />
         <language id="sv" />
         <language id="tr" />
+        <language id="uk" />
       </additionalLanguages>
     </languages>
     <variables>
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning windowsEnabled="true" windowsPkcs12File="../../../../../Documents/Zertifikate/2023_Fakturama_neu.pfx" />
-    <jreBundles jdkProviderId="Zulu" release="17/17.0.1" />
+    <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8">
+      <macSearchedJars>
+        <entry>jna-*</entry>
+        <entry>swt-*</entry>
+        <entry>javafx-*</entry>
+        <entry>com.sun.*</entry>
+      </macSearchedJars>
+    </codeSigning>
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.17+10" />
   </application>
-  <files keepModificationTimes="true" globalExcludeSuffixes=".svn,.git">
+  <files keepModificationTimes="true" missingFilesStrategy="error" globalExcludeSuffixes=".svn,.git" defaultOverwriteMode="5" launcherOverwriteMode="1" preserveMode="true">
     <filesets>
-      <fileset name="Installer MacOS" id="32" />
+      <fileset name="Installer MacOS - Intel" id="32" />
       <fileset name="Installer Win 64bit" id="41" />
       <fileset name="Installer Linux 64bit" id="54" />
+      <fileset name="Installer MacOS - ARM" id="547" />
+      <fileset name="Installer Linux ARM64" id="568" />
     </filesets>
     <roots>
       <root id="33" fileset="32" />
       <root id="42" fileset="41" />
       <root id="55" fileset="54" />
+      <root id="548" fileset="547" />
+      <root id="569" fileset="568" />
     </roots>
     <mountPoints>
       <mountPoint id="34" root="33" />
       <mountPoint id="43" root="42" />
       <mountPoint id="56" root="55" />
+      <mountPoint id="550" root="548" />
+      <mountPoint id="570" root="569" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="34" file="../target/products/Fakturama.ID/macosx/cocoa/x86_64" subDirectory="x86_64" />
@@ -57,16 +71,20 @@
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="56" file="linux_64bit/fakturama/usr/share" subDirectory="share" />
+      <dirEntry mountPoint="550" file="../target/products/Fakturama.ID/macosx/cocoa/aarch64" subDirectory="aarch64" />
+      <dirEntry mountPoint="570" file="../target/products/Fakturama.ID/linux/gtk/aarch64" subDirectory="aarch64" />
+      <dirEntry mountPoint="570" file="linux_64bit/fakturama/usr/share" subDirectory="share" />
     </entries>
   </files>
   <launchers>
     <launcher name="Fakturama.exe (win64)" id="44" external="true" externalFile="Fakturama.exe" />
     <launcher name="Fakturama (Linux 64bit)" id="58" external="true" externalFile="Fakturama" />
+    <launcher name="Fakturama (Mac OSX)" id="537" external="true" externalFile="Fakturama2.app" />
   </launchers>
   <installerGui>
     <autoUpdate useMinUpdatableVersion="true" minUpdatableVersion="2.0" />
     <applications>
-      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" launchInNewProcess="false">
+      <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" styleId="261" macEntitlementsFile="./mac/entitlement.xml" launchInNewProcess="false">
         <serializedBean>
           <property name="customIconImageFiles">
             <add>
@@ -87,6 +105,11 @@
             <add>
               <object class="com.install4j.api.beans.ExternalFile">
                 <string>../app/app_128.png</string>
+              </object>
+            </add>
+            <add>
+              <object class="com.install4j.api.beans.ExternalFile">
+                <string>../app/installer_icon.png</string>
               </object>
             </add>
           </property>
@@ -125,7 +148,7 @@
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2023 Fakturama.info</property>
+                <property name="labelText" type="string">(c) ${installer:sys.year} Fakturama.info</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -133,14 +156,17 @@
         <startup>
           <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
             <actions>
-              <action id="13" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" actionElevationType="none" failureStrategy="askQuit" errorMessage="Can't install Fakturama.">
+              <action id="13" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" actionElevationType="none" failureStrategy="ask" failureAskRetry="false" failureAskIgnore="false" errorMessage="Can't install Fakturama.">
                 <serializedBean>
+                  <property name="failIfNotObtainedLinux" type="boolean" value="true" />
                   <property name="failIfNotRootUnix" type="boolean" value="true" />
+                  <property name="linuxPrivilegeRequirement" type="enum" class="com.install4j.runtime.beans.actions.misc.PrivilegeRequirement" value="OBTAIN" />
                   <property name="obtainIfAdminMac" type="boolean" value="true" />
                   <property name="obtainIfNormalMac" type="boolean" value="true" />
                   <property name="obtainIfNormalWin" type="boolean" value="true" />
                 </serializedBean>
               </action>
+              <action id="645" beanClass="com.install4j.runtime.beans.actions.control.SetInstallationDirectoryAction" actionElevationType="none" failureStrategy="ask" failureAskIgnore="false" />
             </actions>
           </screen>
         </startup>
@@ -174,9 +200,12 @@ return console.askOkCancel(message, true);
                   </property>
                 </serializedBean>
               </formComponent>
-              <formComponent id="74" beanClass="com.install4j.runtime.beans.formcomponents.UpdateAlertComponent" useExternalParametrization="true" externalParametrizationName="Update Alert" externalParametrizationMode="include">
+              <formComponent id="74" beanClass="com.install4j.runtime.beans.formcomponents.StreamlinedInstallationChooserComponent" useExternalParametrization="true" externalParametrizationName="Update Alert" externalParametrizationMode="include">
+                <serializedBean>
+                  <property name="streamlinedInstallationStrategy" type="enum" class="com.install4j.runtime.beans.formcomponents.StreamlinedInstallationStrategy" value="UPDATE_ONLY" />
+                </serializedBean>
                 <externalParametrizationPropertyNames>
-                  <propertyName>updateCheck</propertyName>
+                  <propertyName>streamlinedInstallationStrategy</propertyName>
                 </externalParametrizationPropertyNames>
               </formComponent>
               <formComponent id="75" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" insetTop="20">
@@ -225,7 +254,7 @@ return console.askOkCancel(message, true);
             </formComponents>
           </screen>
           <screen id="4" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen">
-            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+            <condition>!context.getBooleanVariable("sys.streamlinedInstallation")</condition>
             <actions>
               <action id="5" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true">
                 <serializedBean>
@@ -270,12 +299,26 @@ return console.askOkCancel(message, true);
           </screen>
           <screen id="8" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" rollbackBarrier="true">
             <actions>
-              <action id="525" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+              <action id="665" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="quit">
+                <serializedBean>
+                  <property name="additionalExecutables" type="array" class="java.io.File" length="1">
+                    <element index="0">
+                      <object class="java.io.File">
+                        <string>${installer:sys.installationDir}/Fakturama.exe</string>
+                      </object>
+                    </element>
+                  </property>
+                  <property name="closeStrategy" type="enum" class="com.install4j.runtime.beans.actions.misc.CloseStrategy" value="ASK_FOR_CLOSE_AND_TERMINATE" />
+                </serializedBean>
+              </action>
+              <action id="655" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" rollbackBarrierExitCode="0" failureStrategy="ask" failureAskIgnore="false" />
+              <action id="654" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="false" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="ask" />
+              <action id="664" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" rollbackBarrierExitCode="0" failureStrategy="ask" failureAskIgnore="false">
                 <serializedBean>
                   <property name="files" type="array" class="java.io.File" length="2">
                     <element index="0">
                       <object class="java.io.File">
-                        <string>${installer:sys.installationDir}/plugins</string>
+                        <string>${installer:sys.installationDir}/configuration</string>
                       </object>
                     </element>
                     <element index="1">
@@ -287,8 +330,8 @@ return console.askOkCancel(message, true);
                   <property name="recursive" type="boolean" value="true" />
                 </serializedBean>
               </action>
-              <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" actionElevationType="elevated" failureStrategy="quit" errorMessage="${i18n:FileCorrupted}" />
-              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" actionElevationType="elevated" errorMessage="An error occured :-(">
+              <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" failureStrategy="ask" failureAskIgnore="false" errorMessage="${i18n:FileCorrupted}" />
+              <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDefaultStartMenuEntriesAction" actionElevationType="elevated" errorMessage="An error occured :-(">
                 <serializedBean>
                   <property name="addUninstaller" type="boolean" value="true" />
                   <property name="failForSymlinksNotCreated" type="boolean" value="true" />
@@ -296,7 +339,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
               </action>
-              <action id="11" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" actionElevationType="elevated">
+              <action id="11" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" failureStrategy="ask" failureAskIgnore="false">
                 <serializedBean>
                   <property name="icon">
                     <object class="com.install4j.api.beans.ExternalFile">
@@ -307,7 +350,7 @@ return console.askOkCancel(message, true);
                   <property name="itemName" type="string">${compiler:sys.fullName} ${compiler:sys.version}</property>
                 </serializedBean>
               </action>
-              <action id="206" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" actionElevationType="elevated">
+              <action id="206" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" failureStrategy="ask" failureAskIgnore="false">
                 <serializedBean>
                   <property name="fileTarget" type="enum" class="com.install4j.runtime.beans.actions.files.FileTarget" value="FILES" />
                   <property name="files" type="array" class="java.io.File" length="1">
@@ -331,19 +374,6 @@ return console.askOkCancel(message, true);
             </formComponents>
           </screen>
           <screen id="12" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" styleId="267" finishScreen="true">
-            <actions>
-              <action id="444" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="1">
-                    <element index="0">
-                      <object class="java.io.File">
-                        <string>${installer:sys.userHome}/.fakturama2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi</string>
-                      </object>
-                    </element>
-                  </property>
-                </serializedBean>
-              </action>
-            </actions>
             <formComponents>
               <formComponent id="210" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" insetBottom="10">
                 <serializedBean>
@@ -354,7 +384,7 @@ return console.askOkCancel(message, true);
           </screen>
         </screens>
       </application>
-      <application id="uninstaller" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" launchInNewProcess="false">
+      <application id="uninstaller" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" actionElevationType="elevated" styleId="261" customIcnsFile="../app/app.icns" customIcoFile="../app/win_Installer.ico" launchInNewProcess="false">
         <serializedBean>
           <property name="customIconImageFiles">
             <add>
@@ -414,7 +444,7 @@ return console.askOkCancel(message, true);
           <styleOverride name="Custom watermark" enabled="true">
             <formComponent name="Watermark" id="265" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent">
               <serializedBean>
-                <property name="labelText" type="string">(c) 2023 Fakturama.org</property>
+                <property name="labelText" type="string">(c) ${installer:sys.year} Fakturama.org</property>
               </serializedBean>
             </formComponent>
           </styleOverride>
@@ -424,6 +454,17 @@ return console.askOkCancel(message, true);
             <actions>
               <action id="20" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" />
               <action id="21" beanClass="com.install4j.runtime.beans.actions.misc.RequireInstallerPrivilegesAction" actionElevationType="none" />
+              <action id="650" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="files" type="array" class="java.io.File" length="1">
+                    <element index="0">
+                      <object class="java.io.File">
+                        <string>${installer:sys.installationDir}/configuration</string>
+                      </object>
+                    </element>
+                  </property>
+                </serializedBean>
+              </action>
             </actions>
           </screen>
         </startup>
@@ -452,18 +493,6 @@ return console.askYesNo(message, true);
           <screen id="16" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen">
             <actions>
               <action id="17" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" actionElevationType="elevated" />
-              <action id="377" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="files" type="array" class="java.io.File" length="1">
-                    <element index="0">
-                      <object class="java.io.File">
-                        <string>%USERPROFILE%/.eclipse</string>
-                      </object>
-                    </element>
-                  </property>
-                  <property name="recursive" type="boolean" value="true" />
-                </serializedBean>
-              </action>
             </actions>
             <formComponents>
               <formComponent id="223" beanClass="com.install4j.runtime.beans.formcomponents.ProgressComponent">
@@ -543,20 +572,19 @@ return console.askYesNo(message, true);
               <property name="imageEdgeBackgroundColor">
                 <object class="com.install4j.runtime.beans.LightOrDarkColor">
                   <object class="java.awt.Color">
-                    <int>25</int>
+                    <int>27</int>
                     <int>143</int>
                     <int>220</int>
                     <int>255</int>
                   </object>
                   <object class="java.awt.Color">
                     <int>0</int>
-                    <int>74</int>
-                    <int>151</int>
+                    <int>73</int>
+                    <int>150</int>
                     <int>255</int>
                   </object>
                 </object>
               </property>
-              <property name="imageEdgeBorder" type="boolean" value="true" />
               <property name="imageFile">
                 <object class="com.install4j.api.beans.ExternalFile">
                   <string>${compiler:sys.install4jHome}/resource/styles/wizard.png</string>
@@ -574,9 +602,14 @@ return console.askYesNo(message, true);
             <beans>
               <formComponent id="269" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent" insetTop="0">
                 <serializedBean>
-                  <property name="labelFontSizePercent" type="int" value="130" />
-                  <property name="labelFontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
-                  <property name="labelFontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                  <property name="labelWidgetStyle" id="LabelWidgetStyle0">
+                    <property name="fontDescriptor">
+                      <property name="fontSizePercent" type="int" value="130" />
+                      <property name="fontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
+                      <property name="fontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                    </property>
+                  </property>
+                  <property name="labelWidgetStyleId" type="null" />
                 </serializedBean>
               </formComponent>
               <formComponent id="270" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent" />
@@ -654,8 +687,13 @@ return console.askYesNo(message, true);
                 <beans>
                   <formComponent name="Title" id="276" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent">
                     <serializedBean>
-                      <property name="labelFontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
-                      <property name="labelFontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                      <property name="labelWidgetStyle" id="LabelWidgetStyle0">
+                        <property name="fontDescriptor">
+                          <property name="fontStyle" type="enum" class="com.install4j.runtime.beans.formcomponents.FontStyle" value="BOLD" />
+                          <property name="fontType" type="enum" class="com.install4j.runtime.beans.formcomponents.FontType" value="DERIVED" />
+                        </property>
+                      </property>
+                      <property name="labelWidgetStyleId" type="null" />
                     </serializedBean>
                   </formComponent>
                   <formComponent name="Subtitle" id="277" beanClass="com.install4j.runtime.beans.styles.ScreenTitleComponent" insetLeft="8">
@@ -720,9 +758,12 @@ return console.askYesNo(message, true);
         </beans>
       </group>
     </styles>
+    <widgetStyles defaultWidgetStyleId="124">
+      <widgetStyle name="Standard" id="124" beanClass="com.install4j.runtime.beans.widgets.WidgetStyleCollection" />
+    </widgetStyles>
   </installerGui>
   <mediaSets>
-    <windows name="Windows 64bit" id="45" mediaFileName="Installer_Fakturama_windows-x64_${compiler:sys.version}" installDir="Fakturama2" architecture="64">
+    <windows name="Windows 64bit" id="45" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}${compiler:sys.withJre}" installDir="Fakturama2" msi="true" architecture="64">
       <excludedLaunchers>
         <launcher id="58" />
       </excludedLaunchers>
@@ -730,10 +771,25 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="54" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <jreBundle usePack200="false" />
     </windows>
-    <unixInstaller name="Unix Installer (Linux 64bit)" id="59" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true">
+    <windows name="Windows (NO JRE) 64bit" id="643" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}${compiler:sys.withJre}" installDir="Fakturama2" msi="true" msiProductIdType="version" architecture="64">
+      <excludedLaunchers>
+        <launcher id="58" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="54" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
+      </exclude>
+      <jreBundle usePack200="false" jreBundleSource="none" />
+    </windows>
+    <unixInstaller name="Unix Installer (Linux 64bit)" id="59" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true">
       <excludedLaunchers>
         <launcher id="44" />
       </excludedLaunchers>
@@ -741,11 +797,12 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
-        <entry filesetId="49" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
       <jreBundle usePack200="false" />
     </unixInstaller>
-    <linuxRPM name="Linux RPM" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
+    <linuxRPM name="Linux RPM (x64)" id="119" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" arch="x86_64">
       <excludedLaunchers>
         <launcher id="44" />
       </excludedLaunchers>
@@ -753,7 +810,11 @@ return console.askYesNo(message, true);
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
 sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
@@ -761,15 +822,20 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (64bit)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.platform}_x64_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="Free and Open Source Invoicing Software" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
+        <launcher id="537" />
       </excludedLaunchers>
       <exclude>
         <entry defaultFileset="true" />
         <entry filesetId="32" />
         <entry filesetId="41" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
       </exclude>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
 sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
@@ -777,8 +843,59 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxDeb>
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="537" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="41" />
+        <entry filesetId="54" />
+        <entry filesetId="547" />
+      </exclude>
+      <jreBundle platform="linux-aarch64" />
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
+      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
+sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo chmod 755 /usr/share/fakturama2/Fakturama
+sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
+      <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
+    </linuxDeb>
+    <macosFolder name="macOS Folder - Intel" id="528" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" volumeName="${compiler:sys.shortName}_x64" architecture="amd64">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="58" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="41" />
+        <entry filesetId="54" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
+      </exclude>
+      <jreBundle usePack200="false" />
+    </macosFolder>
+    <macosFolder name="macOS Folder - ARM" id="541" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" volumeName="${compiler:sys.shortName}_AARCH64">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="58" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="41" />
+        <entry filesetId="54" />
+        <entry filesetId="568" />
+      </exclude>
+      <jreBundle usePack200="false" />
+    </macosFolder>
   </mediaSets>
-  <buildIds>
-    <mediaSet refId="45" />
+  <buildIds buildAll="false">
+    <mediaSet refId="643" />
   </buildIds>
+  <buildOptions disableJreBundling="true" disableNotarization="true" />
 </install4j>

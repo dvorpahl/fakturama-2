@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package org.fakturama.export.wizard.products;
@@ -41,54 +40,50 @@ import com.sebulli.fakturama.resources.core.ProgramImages;
  */
 public class ProductExportWizard extends Wizard implements IExportWizard {
 
-	@Inject
-	@Translation
-	protected Messages msg;
-	
-	@Inject
-	@Translation
-	protected ExportMessages exportMessages;
+    @Inject
+    @Translation
+    protected Messages msg;
 
-	@Inject
-	private IEclipseContext ctx;
-	
-	@Inject
-	private ITemplateResourceManager resourceManager;
+    @Inject
+    @Translation
+    protected ExportMessages exportMessages;
 
-	// The first (and only) page of this wizard
-	private EmptyWizardPage page1;
+    @Inject
+    private IEclipseContext ctx;
 
-	/**
-	 * Constructor Adds the first page to the wizard
-	 * Initializes this creation wizard using the passed workbench and object
-	 * selection.
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 *      org.eclipse.jface.viewers.IStructuredSelection)
-	 */
-	@PostConstruct
-	@Override
-	public void init(IWorkbench workbench, @Optional IStructuredSelection selection) {
-		setWindowTitle(msg.pageExport);
-		Image previewImage = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.EXPORT_PRODUCTS);
-		ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportProductsAllproductsTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportProductsTitle);
-		ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, previewImage);
-		page1 = ContextInjectionFactory.make(EmptyWizardPage.class, ctx);
-		addPage(page1);
-	}
+    @Inject
+    private ITemplateResourceManager resourceManager;
 
+    // The first (and only) page of this wizard
+    private EmptyWizardPage page1;
 
-	/**
-	 * Performs any actions appropriate in response to the user having pressed
-	 * the Finish button, or refuse if finishing now is not permitted.
-	 * 
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
-	@Override
-	public boolean performFinish() {
-		ProductExporter exporter = ContextInjectionFactory.make(ProductExporter.class, ctx);
-		return exporter.export();
-	}
+    /**
+     * Constructor Adds the first page to the wizard Initializes this creation
+     * wizard using the passed workbench and object selection.
+     * 
+     */
+    @PostConstruct
+    @Override
+    public void init(final IWorkbench workbench, @Optional final IStructuredSelection selection) {
+        setWindowTitle(msg.pageExport);
+        Image previewImage = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.EXPORT_PRODUCTS);
+        ctx.set(IFakturamaWizardService.WIZARD_TITLE, exportMessages.wizardExportProductsAllproductsTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_DESCRIPTION, exportMessages.wizardExportProductsTitle);
+        ctx.set(IFakturamaWizardService.WIZARD_PREVIEW_IMAGE, previewImage);
+        page1 = ContextInjectionFactory.make(EmptyWizardPage.class, ctx);
+        addPage(page1);
+    }
+
+    /**
+     * Performs any actions appropriate in response to the user having pressed
+     * the Finish button, or refuse if finishing now is not permitted.
+     * 
+     * @see org.eclipse.jface.wizard.Wizard#performFinish()
+     */
+    @Override
+    public boolean performFinish() {
+        ProductExporter exporter = ContextInjectionFactory.make(ProductExporter.class, ctx);
+        return exporter.export();
+    }
 
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014 Ralf Heydenreich
@@ -9,24 +9,29 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *   Ralf Heydenreich - initial API and implementation
+ * Ralf Heydenreich - initial API and implementation
  */
 package org.fakturama.export.einvoice;
 
 import java.util.Optional;
 
+import com.sebulli.fakturama.exception.FakturamaException;
 import com.sebulli.fakturama.model.Invoice;
 
 public interface IEinvoiceCreator {
 
     /**
-     * Create an e-Invoice based on invoice document and {@link ConformanceLevel}. 
-     * A PDF is created in the location which is given by invoice document. 
-     *  
-     * @param invoice an invoice document
-     * @param zugferdProfile the {@link ConformanceLevel} of the resulting file
+     * Create an e-Invoice based on invoice document and
+     * {@link ConformanceLevel}.
+     * A PDF is created in the location which is given by invoice document.
+     * 
+     * @param invoice
+     *            an invoice document
+     * @param zugferdProfile
+     *            the {@link ConformanceLevel} of the resulting file
      * @return <code>true</code>, if the conversion was successful
+     * @throws FakturamaException
      */
-    boolean createEInvoice(Optional<Invoice> invoice, ConformanceLevel zugferdProfile);
+    boolean createEInvoice(Optional<Invoice> invoice, ConformanceLevel zugferdProfile) throws FakturamaException;
 
 }

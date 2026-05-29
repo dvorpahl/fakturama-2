@@ -81,10 +81,13 @@ import com.sebulli.fakturama.resources.core.IconSize;
 import com.sebulli.fakturama.resources.core.ProgramImages;
 
 /**
- * <p>This class is the displays a TreeMapper for mapping product attributes to CSV fields.</p>
+ * <p>
+ * This class is the displays a TreeMapper for mapping product attributes to CSV
+ * fields.
+ * </p>
  * 
- * <i>NOTE:</i> This class is not used, since the table config variant seems to be a better approach.
- * I've only left this class for educational reasons :-)
+ * <i>NOTE:</i> This class is not used, since the table config variant seems to
+ * be a better approach. I've only left this class for educational reasons :-)
  */
 public class ImportCSVProductConfigPage extends WizardPage {
 
@@ -100,7 +103,7 @@ public class ImportCSVProductConfigPage extends WizardPage {
     @Inject
     @Translation
     protected Messages msg;
-    
+
     @Inject
     private PropertiesDAO propertiesDAO;
 
@@ -108,7 +111,7 @@ public class ImportCSVProductConfigPage extends WizardPage {
     private IEclipseContext ctx;
     private List<ImportMapping> mappings;
     private TreeMapper<ImportMapping, String, Pair<String, String>> treeMapper;
-    
+
     // Defines all columns that are used and imported
     private Map<String, Boolean> requiredHeaders = new HashMap<>();
 
@@ -116,8 +119,8 @@ public class ImportCSVProductConfigPage extends WizardPage {
     private ComboViewer specComboViewer;
     private Button saveSpecButton;
     private Button deleteSpecButton;
-    
-    public ImportCSVProductConfigPage(String title, String label, ProgramImages image) {
+
+    public ImportCSVProductConfigPage(final String title, final String label, final ProgramImages image) {
         super(PAGE_NAME);
         setTitle(title);
         setMessage(label);
@@ -133,18 +136,18 @@ public class ImportCSVProductConfigPage extends WizardPage {
     }
 
     @PostConstruct
-    public void initialize(IEclipseContext ctx) {
+    public void initialize(final IEclipseContext ctx) {
         setTitle((String) ctx.get(ImportOptionPage.WIZARD_TITLE));
         this.ctx = ctx;
-        
-        String[] reqHdr = new String[] {"itemnumber", "name", "price1"};
+
+        String[] reqHdr = new String[] { "itemnumber", "name", "price1" };
         for (String string : reqHdr) {
             requiredHeaders.put(string, Boolean.FALSE);
         }
     }
 
     @Override
-    public void createControl(Composite parent) {
+    public void createControl(final Composite parent) {
 
         // Create the top composite
         Composite top = new Composite(parent, SWT.NONE);
@@ -152,14 +155,14 @@ public class ImportCSVProductConfigPage extends WizardPage {
         GridDataFactory.swtDefaults().align(SWT.BEGINNING, SWT.CENTER).applyTo(top);
         setControl(top);
         setMessage(importMessages.wizardImportCsvGenericCreatemapping);
-        
+
         Label importConfigName = new Label(top, SWT.NONE);
         importConfigName.setText("select specification");
-        
+
         comboSpecifications = new CCombo(top, SWT.BORDER);
         fillSpecificationCombo();
         final ISelectionChangedListener listener = event -> {
-            if(!event.getStructuredSelection().isEmpty()) {
+            if (!event.getStructuredSelection().isEmpty()) {
                 applyMapping(event.getStructuredSelection());
             }
             deleteSpecButton.setEnabled(!event.getStructuredSelection().isEmpty());
@@ -170,15 +173,15 @@ public class ImportCSVProductConfigPage extends WizardPage {
             saveSpecButton.setEnabled(true);
         });
         GridDataFactory.fillDefaults().hint(200, SWT.DEFAULT).grab(true, false).applyTo(comboSpecifications);
-        
+
         saveSpecButton = new Button(top, SWT.PUSH);
         saveSpecButton.setEnabled(false); // enable only if valid mapping is available
         saveSpecButton.setImage(Icon.COMMAND_SAVE.getImage(IconSize.DefaultIconSize));
         saveSpecButton.setToolTipText("save specification");
         saveSpecButton.addSelectionListener(new SelectionAdapter() {
-            
+
             @Override
-            public void widgetSelected(SelectionEvent e) {
+            public void widgetSelected(final SelectionEvent e) {
                 String newText = comboSpecifications.getText();
                 UserProperty prop = createSpecFromMapping(newText);
                 try {
@@ -194,14 +197,14 @@ public class ImportCSVProductConfigPage extends WizardPage {
                 deleteSpecButton.setEnabled(!specComboViewer.getStructuredSelection().isEmpty());
             }
         });
-        
+
         deleteSpecButton = new Button(top, SWT.PUSH);
         deleteSpecButton.setImage(Icon.COMMAND_DELETE.getImage(IconSize.DefaultIconSize));
         deleteSpecButton.setToolTipText("delete specification");
         deleteSpecButton.setEnabled(!specComboViewer.getStructuredSelection().isEmpty());
         deleteSpecButton.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
+            public void widgetSelected(final SelectionEvent e) {
                 IStructuredSelection structuredSelection = specComboViewer.getStructuredSelection();
                 specComboViewer.removeSelectionChangedListener(listener);
                 specComboViewer.remove(structuredSelection);
@@ -219,9 +222,10 @@ public class ImportCSVProductConfigPage extends WizardPage {
     /**
      * Read the selected mapping and apply it to the current view.
      * 
-     * @param mappingSelection current selection
+     * @param mappingSelection
+     *            current selection
      */
-    private void applyMapping(IStructuredSelection mappingSelection) {
+    private void applyMapping(final IStructuredSelection mappingSelection) {
         if (!mappingSelection.isEmpty()) {
             try {
 
@@ -250,9 +254,11 @@ public class ImportCSVProductConfigPage extends WizardPage {
 
     /**
      * Create a new specification (mapping) with the given name.
-     * @param specName the name for the spec mapping
+     * 
+     * @param specName
+     *            the name for the spec mapping
      */
-    private UserProperty createSpecFromMapping(String specName) {
+    private UserProperty createSpecFromMapping(final String specName) {
         UserProperty specMapping = null;
         if (validateMapping()) {
             // check if a mapping with same name exists
@@ -284,22 +290,24 @@ public class ImportCSVProductConfigPage extends WizardPage {
 
         specComboViewer = new ComboViewer(comboSpecifications);
         specComboViewer.setComparer(new IElementComparer() {
-            
+
             @Override
-            public int hashCode(Object element) {
-                if(element instanceof UserProperty) return ((UserProperty)element).hashCode();
+            public int hashCode(final Object element) {
+                if (element instanceof UserProperty) {
+                    return ((UserProperty) element).hashCode();
+                }
                 return 0;
             }
-            
+
             @Override
-            public boolean equals(Object a, Object b) {
+            public boolean equals(final Object a, final Object b) {
                 // null checks are already done by caller
                 //                if(a == null && b == null) return true;
                 //                if(a == null && b != null || a != null && b == null) return false;
                 if (a instanceof StructuredSelection && b instanceof Vector) {
                     UserProperty up1 = (UserProperty) ((StructuredSelection) a).getFirstElement();
                     @SuppressWarnings("unchecked")
-                //  boolean result = ((Vector<UserProperty>) b).stream().anyMatch(p -> p.getId() == up1.getId());
+                    //  boolean result = ((Vector<UserProperty>) b).stream().anyMatch(p -> p.getId() == up1.getId());
                     UserProperty up2 = ((Vector<UserProperty>) b).firstElement();
                     return up1.getId() == up2.getId();
                 } else if (a instanceof StructuredSelection && b instanceof UserProperty) {
@@ -311,13 +319,13 @@ public class ImportCSVProductConfigPage extends WizardPage {
         });
         specComboViewer.setContentProvider(new ArrayContentProvider() {
             @Override
-            public Object[] getElements(Object inputElement) {
+            public Object[] getElements(final Object inputElement) {
                 return categories.toArray();
             }
         });
         specComboViewer.setLabelProvider(new LabelProvider() {
             @Override
-            public String getText(Object element) {
+            public String getText(final Object element) {
                 return element instanceof UserProperty ? ((UserProperty) element).getName() : element.toString();
             }
         });
@@ -327,16 +335,16 @@ public class ImportCSVProductConfigPage extends WizardPage {
 
     }
 
-    private void createTreeMapperWidget(Composite parent) {
+    private void createTreeMapperWidget(final Composite parent) {
         Display display = parent.getDisplay();
 
         Color gray = display.getSystemColor(SWT.COLOR_GRAY);
         Color blue = display.getSystemColor(SWT.COLOR_BLUE);
         TreeMapperUIConfigProvider uiConfig = new TreeMapperUIConfigProvider(gray, 1, blue, 3);
         mappings = new ArrayList<>();
-        ISemanticTreeMapperSupport<ImportMapping, String, Pair<String, String>> semanticSupport = new ISemanticTreeMapperSupport<ImportMapping, String, Pair<String, String>>() {
+        ISemanticTreeMapperSupport<ImportMapping, String, Pair<String, String>> semanticSupport = new ISemanticTreeMapperSupport<>() {
             @Override
-            public ImportMapping createSemanticMappingObject(String leftItem, Pair<String, String> rightItem) {
+            public ImportMapping createSemanticMappingObject(final String leftItem, final Pair<String, String> rightItem) {
                 // create only one mapping (for the left item); delete old mapping if it was created before!
                 for (ImportMapping csvMappings : mappings) {
                     if (csvMappings.getLeftItem().equals(leftItem)) {
@@ -348,13 +356,19 @@ public class ImportCSVProductConfigPage extends WizardPage {
             }
 
             @Override
-            public String resolveLeftItem(ImportMapping semanticMappingObject) {
+            public String resolveLeftItem(final ImportMapping semanticMappingObject) {
                 return semanticMappingObject.getLeftItem();
             }
 
             @Override
-            public Pair<String, String> resolveRightItem(ImportMapping semanticMappingObject) {
+            public Pair<String, String> resolveRightItem(final ImportMapping semanticMappingObject) {
                 return semanticMappingObject.getRightItem();
+            }
+
+            @Override
+            public boolean signalOnMissingItem() {
+                // TODO CHECK if this is correct - Update of treemapper
+                return false;
             }
         };
         treeMapper = new TreeMapper<>(parent, semanticSupport, uiConfig);
@@ -370,7 +384,7 @@ public class ImportCSVProductConfigPage extends WizardPage {
                 cv = (Canvas) control;
                 cv.addKeyListener(new KeyAdapter() {
                     @Override
-                    public void keyPressed(KeyEvent e) {
+                    public void keyPressed(final KeyEvent e) {
                         switch (e.keyCode) {
                         case SWT.DEL:
                             ImportMapping selectedMapping = (ImportMapping) treeMapper.getSelection().getFirstElement();
@@ -392,18 +406,18 @@ public class ImportCSVProductConfigPage extends WizardPage {
 
         treeMapper.getControl().setWeights(new int[] { 2, 1, 2 });
         treeMapper.addSelectionChangedListener(new ISelectionChangedListener() {
-            
+
             @Override
-            public void selectionChanged(SelectionChangedEvent event) {
+            public void selectionChanged(final SelectionChangedEvent event) {
                 boolean canFinish = validateMapping();
-                
-                if(canFinish) {
+
+                if (canFinish) {
                     setErrorMessage(null);
                 } else {
-                    setErrorMessage(String.format(importMessages.wizardImportErrorMissingmappings, 
-                            StringUtils.join(requiredHeaders.entrySet().stream().filter(e -> !e.getValue()).map(e -> e.getKey()).collect(Collectors.toList()))));
+                    setErrorMessage(String.format(importMessages.wizardImportErrorMissingmappings, StringUtils
+                            .join(requiredHeaders.entrySet().stream().filter(e -> !e.getValue()).map(e -> e.getKey()).collect(Collectors.toList()))));
                 }
-                
+
                 saveSpecButton.setEnabled(canFinish);
                 deleteSpecButton.setEnabled(!specComboViewer.getStructuredSelection().isEmpty());
                 options.setMappingAvailable(canFinish);
@@ -429,12 +443,12 @@ public class ImportCSVProductConfigPage extends WizardPage {
                 ICSVParser csvParser = new CSVParserBuilder().withIgnoreLeadingWhiteSpace(true).withSeparator(separator).withQuoteChar(quoteChar).build();
                 CSVReader csvr = new CSVReaderBuilder(in).withCSVParser(csvParser).build();
                 String[] headerLine = csvr.readNextSilently();
-                if(headerLine != null && headerLine.length > 0) {
-                    
+                if (headerLine != null && headerLine.length > 0) {
+
                     Map<String, Integer> headerToPositions = new HashMap<>();
                     for (int i = 0; i < headerLine.length; i++) {
                         String entry = StringUtils.trim(headerLine[i]);
-                        if(StringUtils.isNotBlank(entry)) {
+                        if (StringUtils.isNotBlank(entry)) {
                             headerToPositions.put(entry, i);
                         }
                     }
@@ -450,37 +464,39 @@ public class ImportCSVProductConfigPage extends WizardPage {
     }
 
     /**
-     * List of {@link ImportMapping}s where <b>any</b> member of CSV file
-     * is contained, but can be <code>null</code> if not assigned to a bean attribute.
-     * This is necessary for later import, where the mapping have to be complete.
+     * List of {@link ImportMapping}s where <b>any</b> member of CSV file is
+     * contained, but can be <code>null</code> if not assigned to a bean
+     * attribute. This is necessary for later import, where the mapping have to
+     * be complete.
      * 
      * @return
      */
     @SuppressWarnings("unchecked")
     public List<ImportMapping> getCompleteMappings() {
         // complete for missing assignments
-        for (String availableColumn : ((HashMap<String, Integer>)treeMapper.getLeftTreeViewer().getInput()).keySet()) {
-            if(!mappings.parallelStream().anyMatch(pm -> pm.getLeftItem().equalsIgnoreCase(availableColumn))) {
+        for (String availableColumn : ((HashMap<String, Integer>) treeMapper.getLeftTreeViewer().getInput()).keySet()) {
+            if (!mappings.parallelStream().anyMatch(pm -> pm.getLeftItem().equalsIgnoreCase(availableColumn))) {
                 mappings.add(ImportMapping.ofNullValue(availableColumn));
             }
         }
         return mappings;
     }
-    
+
     /**
-     * Validates if the current mapping has at least all required headers mapped.
+     * Validates if the current mapping has at least all required headers
+     * mapped.
      * 
-     * @return <code>true</code> if all required headers are mapped, <code>false</code> otherwise
+     * @return <code>true</code> if all required headers are mapped,
+     *         <code>false</code> otherwise
      */
     private boolean validateMapping() {
         boolean canFinish;
         for (String headerName : requiredHeaders.keySet()) {
-           if( mappings.stream()
-                    .anyMatch(pm -> pm.getRightItem().getKey().equalsIgnoreCase(headerName))) {
-               requiredHeaders.put(headerName, Boolean.TRUE);
-           }
+            if (mappings.stream().anyMatch(pm -> pm.getRightItem().getKey().equalsIgnoreCase(headerName))) {
+                requiredHeaders.put(headerName, Boolean.TRUE);
+            }
         }
-        
+
         // can finish only if all required headers are set
         canFinish = !requiredHeaders.values().contains(Boolean.FALSE);
         return canFinish;
@@ -493,7 +509,7 @@ public class ImportCSVProductConfigPage extends WizardPage {
     public class ProductImportContentProvider extends SimpleTreeContentProvider {
         @SuppressWarnings("unchecked")
         @Override
-        public Object[] getElements(Object inputElement) {
+        public Object[] getElements(final Object inputElement) {
             return ((Map<String, Integer>) inputElement).keySet().toArray(new String[] {});
         }
     }
@@ -502,17 +518,17 @@ public class ImportCSVProductConfigPage extends WizardPage {
 
         @SuppressWarnings("unchecked")
         @Override
-        public String getText(Object element) {
+        public String getText(final Object element) {
             String retval;
             if (element instanceof Pair) {
-                retval = ((Pair<String, String>)element).getValue();
+                retval = ((Pair<String, String>) element).getValue();
             } else {
                 retval = super.getText(element);
             }
             return retval;
         }
 
-     }
+    }
 
     /**
      * Provides all selectable fields for product import.
@@ -522,14 +538,10 @@ public class ImportCSVProductConfigPage extends WizardPage {
         private Object[] productAttributes;
 
         @Override
-        public Object[] getElements(Object inputElement) {
+        public Object[] getElements(final Object inputElement) {
             if (productAttributes == null) {
-                List<Pair<String, String>> retList = ProductBeanCSV.createProductsAttributeMap(msg)
-                        .entrySet()
-                        .stream()
-                        .map(Pair::of)
-                        .sorted(Comparator.comparing(Pair::getValue))
-                        .collect(Collectors.toList());
+                List<Pair<String, String>> retList = ProductBeanCSV.createProductsAttributeMap(msg).entrySet().stream().map(Pair::of)
+                        .sorted(Comparator.comparing(Pair::getValue)).collect(Collectors.toList());
                 productAttributes = retList.toArray();
             }
             return productAttributes;

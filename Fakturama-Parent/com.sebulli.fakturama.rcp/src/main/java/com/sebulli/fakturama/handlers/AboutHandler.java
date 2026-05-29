@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.sebulli.fakturama.handlers;
 
@@ -19,15 +19,15 @@ import com.sebulli.fakturama.ui.dialogs.AboutDialogE4;
 
 public class AboutHandler {
 
-	@Execute
-	public void execute(Shell shell, IEclipseContext context) {
-		
-		// formerly done in org.eclipse.ui.internal.WorkbenchPlugin#getProductInfo
-		// the (formerly) first call to this was in org.eclipse.ui.internal.Workbench:
-		// (while creating the workbench window)
-		//       String applicationName = WorkbenchPlugin.getDefault().getAppName();
+    @Execute
+    public void execute(final Shell shell, final IEclipseContext context) {
 
-		AboutDialogE4 dlg = ContextInjectionFactory.make(AboutDialogE4.class, context);
-		dlg.open();
-	}
+        // formerly done in org.eclipse.ui.internal.WorkbenchPlugin#getProductInfo
+        // the (formerly) first call to this was in org.eclipse.ui.internal.Workbench:
+        // (while creating the workbench window)
+        //       String applicationName = WorkbenchPlugin.getDefault().getAppName();
+
+        final AboutDialogE4 dlg = ContextInjectionFactory.make(AboutDialogE4.class, context);
+        dlg.open();
+    }
 }

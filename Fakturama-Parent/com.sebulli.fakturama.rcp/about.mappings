@@ -1,20 +1,23 @@
 0=Fakturama
 1=${releaseName}
-2=2022
+2=${releaseDate}
 3=Gerd Bartelt\n\
 Oliver Groth\n\
 Ralf Heydenreich\n\
 Steffen Lenhart\n\
 Martin Reinhardt\n\
+Karsten Röhle\n\
 Gerd Schrick\n
 4=Zayed Adel\n\
 Kemal Ak\u00E7oucuk\n\
 Pierre Backes\n\
 Ander Baraja\n\
+Franz Braile\n\
 Ondrej J\u00E1no\u0161\u00EDk\n\
 Odd Johansson\n\
 Dennis Kamolow\n\
 Christoph Kieffer\n\
+Philippe Li\u00E8ge\n\
 Konstantin Stamatopoulos\n\
 Joachim Szab\u00F3\n\
 Monika Viste\n

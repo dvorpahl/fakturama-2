@@ -1,0 +1,19 @@
+# Source for Migration of Databases
+source:
+    # JDBC-URL for sourcedb
+    url: jdbc:hsqldb:file:C:/fakturama/Database/Database
+    # schema in sourcedb
+    catalog: PUBLIC
+    # user and password for source db with most likely root privs for the schema 
+    user: sa
+    password: ''
+# Destination Database
+destination:
+    # JDBC-URL for destination db
+    url: jdbc:mariadb://localhost:3306/fakturama
+    # schema in destination db
+    catalog: fakturama
+    # user and password for source db with most likely root privs for the schema
+    user: fakturama
+    password: ''
+    

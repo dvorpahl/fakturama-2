@@ -51,13 +51,6 @@ public class DeleteHandler {
 	@CanExecute
 	@AllowedFor(roles = { FakturamaRole.ADMIN, FakturamaRole.USER }) // experimental!!!
 	public boolean isEnabled(@Active MPart activePart, ESelectionService selectionService) {
-//		Method[] methods = MethodUtils.getMethodsWithAnnotation(getClass(), AllowedFor.class);
-//		for (Method m : methods) {
-//			AllowedFor a = m.getAnnotation(AllowedFor.class);
-//			System.out.println("Methode:    " + m.getName());
-//			System.out.println("roles()[0]: " + a.roles()[0]);
-//			System.out.println("roles()[1]: " + a.roles()[1]);
-//		}
 		List<?> selection = (List<?>)selectionService.getSelection(activePart.getElementId());
 		
 		return activePart.getObject() instanceof AbstractViewDataTable

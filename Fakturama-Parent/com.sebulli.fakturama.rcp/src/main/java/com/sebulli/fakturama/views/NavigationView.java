@@ -22,15 +22,15 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.eclipse.core.commands.ParameterizedCommand;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
-import org.eclipse.e4.core.contexts.EclipseContextFactory;
-import org.eclipse.e4.core.di.extensions.Preference;
+import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.nebula.widgets.pgroup.PGroup;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -38,11 +38,13 @@ import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
-import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.handlers.CommandIds;
 import com.sebulli.fakturama.handlers.OpenBrowserEditorHandler;
@@ -53,6 +55,7 @@ import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.parts.DebitorEditor;
 import com.sebulli.fakturama.parts.ProductEditor;
+import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
 import com.sebulli.fakturama.resources.core.Icon;
 import com.sebulli.fakturama.resources.core.IconSize;
 import com.sebulli.fakturama.views.datatable.contacts.CreditorListTable;
@@ -80,17 +83,17 @@ public class NavigationView {
     @Inject
     private ECommandService commandService;
 
-    @Inject
-    @Preference(value=InstanceScope.SCOPE)
-    private IPreferenceStore preferences;
+    private final IPreferenceStore preferences = FakturamaPreferenceStoreProvider.getInstance().getPreferenceStore();
 
     @Inject
     @Translation
     protected Messages msg;
 
-    private List<PGroup> groupList = new ArrayList<>();
+    private final List<PGroup> groupList = new ArrayList<>();
 
     private Composite composite;
+
+    private final Map<String, CLabel> labelMap = new HashMap<>();
 
     /**
      * This is a callback that will allow us to create the viewer and initialize
@@ -102,83 +105,87 @@ public class NavigationView {
 
         // Add context help reference 
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ContextHelpConstants.NAVIGATION_VIEW);
-        this.preferences = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
+        //        this.preferences = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
 
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout());
 
         // Create the first expand bar "Import"
-        PGroup group = createPGroup("command.navigation.import", Icon.ICON_SHOP);
+        final PGroup group = createPGroup("command.navigation.import", Icon.ICON_SHOP);
         parameters = new HashMap<>();
         parameters.put(WebShopCallHandler.PARAM_IS_GET_PRODUCTS, Boolean.TRUE);
         parameters.put(WebShopCallHandler.PARAM_ACTION, WebShopCallHandler.WEBSHOP_CONNECTOR_ACTION_IMPORT);
         addAction(group, Icon.COMMAND_IMPORT, "command.webshop", CommandIds.CMD_WEBSHOP_IMPORT, parameters);
 
         // Create the 2nd expand bar "Data"
-        PGroup group2 = createPGroup("command.data.name", Icon.ICON_LETTER);
+        final PGroup group2 = createPGroup("command.data.name", Icon.ICON_LETTER);
         addAction(group2, Icon.COMMAND_LETTER, "command.documents", CommandIds.CMD_OPEN_DOCUMENTS);
- 
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ProductListTable.ID);
         addAction(group2, Icon.COMMAND_PRODUCT, "command.products", CommandIds.CMD_OPEN_PRODUCTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenContactsHandler.PARAM_LIST_TYPE, CreditorListTable.ID);
         addAction(group2, Icon.COMMAND_VENDOR, "command.creditors", CommandIds.CMD_OPEN_CONTACTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenContactsHandler.PARAM_LIST_TYPE, DebitorListTable.ID);
         addAction(group2, Icon.COMMAND_CONTACT, "command.debtors", CommandIds.CMD_OPEN_CONTACTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, PaymentListTable.ID);
         addAction(group2, Icon.COMMAND_PAYMENT, "command.payments", CommandIds.CMD_OPEN_PAYMENTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ShippingListTable.ID);
         addAction(group2, Icon.COMMAND_SHIPPING, "command.shippings", CommandIds.CMD_OPEN_SHIPPINGS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, VATListTable.ID);
         addAction(group2, Icon.COMMAND_VAT, "command.vats", CommandIds.CMD_OPEN_VATS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, TextListTable.ID);
         addAction(group2, Icon.COMMAND_TEXT, "command.texts", CommandIds.CMD_OPEN_TEXTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ItemAccountTypeListTable.ID);
         addAction(group2, Icon.COMMAND_LIST, "command.lists", CommandIds.CMD_OPEN_LISTS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ExpenditureVoucherListTable.ID);
         addAction(group2, Icon.COMMAND_EXPENDITURE_VOUCHER, "command.expenditurevouchers", CommandIds.CMD_OPEN_EXPENDITUREVOUCHERS, parameters);
-        
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ReceiptVoucherListTable.ID);
         addAction(group2, Icon.COMMAND_RECEIPT_VOUCHER, "command.receiptvouchers", CommandIds.CMD_OPEN_RECEIPTVOUCHERS, parameters);
 
         // Create the 3rd expand bar "Create new"
-        PGroup group3 = createPGroup("main.menu.new", Icon.ICON_PRODUCT_NEW);
+        final PGroup group3 = createPGroup("main.menu.new", Icon.ICON_PRODUCT_NEW);
         parameters = new HashMap<>();
         parameters.put(CallEditor.PARAM_EDITOR_TYPE, ProductEditor.ID);
-        addAction(group3, Icon.COMMAND_PRODUCT, "command.new.product", CommandIds.CMD_CALL_EDITOR /*CommandIds.CMD_NEW_PRODUCT*/, parameters);
-        
+        addAction(group3, Icon.COMMAND_PRODUCT, "command.new.product",
+                CommandIds.CMD_CALL_EDITOR /* CommandIds.CMD_NEW_PRODUCT */, parameters);
+
         parameters = new HashMap<>();
         parameters.put(CallEditor.PARAM_EDITOR_TYPE, DebitorEditor.ID);
         addAction(group3, Icon.COMMAND_CONTACT, "main.menu.new.contact", CommandIds.CMD_NEW_CONTACT, parameters);
 
         // Create the 4th expand bar "export"
         /*
-        PGroup group4 = createPGroup("main.menu.export", Icon.ICON_PRODUCT_NEW);
-        addAction(group4, Icon.COMMAND_EXPORT, "command.export", CommandIds.CMD_EXPORT);
-        final ExpandBar bar4 = new ExpandBar(expandBarManager, top, SWT.NONE, msg("Export"),  Icon.COMMAND_EXPORT ,
-        		msg("Export documents, contacts .. to tables and files"));
-
-        bar4.addAction(new ExportSalesAction());
-        */
+         * PGroup group4 = createPGroup("main.menu.export",
+         * Icon.ICON_PRODUCT_NEW);
+         * addAction(group4, Icon.COMMAND_EXPORT, "command.export",
+         * CommandIds.CMD_EXPORT);
+         * final ExpandBar bar4 = new ExpandBar(expandBarManager, top, SWT.NONE,
+         * msg("Export"), Icon.COMMAND_EXPORT ,
+         * msg("Export documents, contacts .. to tables and files"));
+         * 
+         * bar4.addAction(new ExportSalesAction());
+         */
         // Create the 5th expand bar "Miscellaneous"
-        PGroup group5 = createPGroup("command.navigation.misc", Icon.ICON_MISC);
+        final PGroup group5 = createPGroup("command.navigation.misc", Icon.ICON_MISC);
         addAction(group5, Icon.COMMAND_PARCEL, "command.parcelservice", CommandIds.CMD_OPEN_PARCEL_SERVICE);
         parameters = new HashMap<>();
         parameters.put(OpenBrowserEditorHandler.PARAM_USE_PROJECT_URL, Boolean.TRUE.toString());
@@ -192,9 +199,20 @@ public class NavigationView {
         }
     }
 
-    private void addAction(PGroup group, Icon commandIcon, String commandIconDescriptor, final String commandId, final Map<String, Object> parameters) {
+    private void addAction(final PGroup group, final Icon commandIcon, final String commandIconDescriptor, final String commandId,
+            final Map<String, Object> parameters) {
         final CLabel label = new CLabel(group, SWT.NORMAL);
-        label.setImage(commandIcon.getImage(IconSize.DefaultIconSize));
+
+        Image swtImage = JFaceResources.getImageRegistry().get(commandId + "_" + commandIcon.name());
+        if (swtImage == null) {
+            swtImage = commandIcon.getImage(IconSize.DefaultIconSize);
+            JFaceResources.getImageRegistry().put(commandId + "_" + commandIcon.name(), swtImage);
+        }
+
+        label.setEnabled(handlerService.canExecute(commandService.createCommand(commandId, parameters)));
+        final Color color = Display.getDefault().getSystemColor(label.getEnabled() ? SWT.COLOR_WIDGET_FOREGROUND : SWT.COLOR_WIDGET_DISABLED_FOREGROUND);
+        label.setForeground(color);
+        label.setImage(swtImage);
         label.setToolTipText(msg.getMessageFromKey(commandIconDescriptor + ".tooltip"));
         label.setData(parameters);
 
@@ -202,32 +220,38 @@ public class NavigationView {
         label.setText(msg.getMessageFromKey(commandIconDescriptor + ".name"));
         label.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseDown(MouseEvent e) {
-                ParameterizedCommand pCmd = commandService.createCommand(commandId, parameters);
+            public void mouseDown(final MouseEvent e) {
+                final ParameterizedCommand pCmd = commandService.createCommand(commandId, parameters);
                 if (pCmd != null && handlerService.canExecute(pCmd)) {
                     handlerService.executeHandler(pCmd);
-                }
-                else {
+                } else {
                     MessageDialog.openInformation(composite.getShell(), "Action Info", "not yet implemented :-(");
                 }
             }
         });
 
+        labelMap.put(commandId, label);
+
     }
 
-    private void addAction(PGroup group, Icon commandIcon, String commandIconDescriptor, final String commandId) {
+    private void addAction(final PGroup group, final Icon commandIcon, final String commandIconDescriptor, final String commandId) {
         addAction(group, commandIcon, commandIconDescriptor, commandId, null);
     }
 
-    private PGroup createPGroup(String groupName, Icon groupIcon) {
-        PGroup group = new PGroup(composite, SWT.SMOOTH);
+    private PGroup createPGroup(final String groupName, final Icon groupIcon) {
+        final PGroup group = new PGroup(composite, SWT.SMOOTH);
         //T: Title of an expand bar in the navigations view
         group.setText(msg.getMessageFromKey(groupName));
         group.setToolTipText(msg.getMessageFromKey(groupName + ".tooltip"));
-        group.setImage(groupIcon.getImageDescriptor(IconSize.ToolbarIconSize).createImage());
+        Image swtImage = JFaceResources.getImageRegistry().get(groupName + "_" + groupIcon.name());
+        if (swtImage == null) {
+            swtImage = groupIcon.getImageDescriptor(IconSize.ToolbarIconSize).createImage();
+            JFaceResources.getImageRegistry().put(groupName + "_" + groupIcon.name(), swtImage);
+        }
+        group.setImage(swtImage);
         group.setImagePosition(SWT.LEFT | SWT.TOP);
 
-        GridData gd = new GridData();
+        final GridData gd = new GridData();
         gd.horizontalAlignment = SWT.FILL;
         gd.grabExcessHorizontalSpace = true;
         group.setLayoutData(gd);
@@ -235,8 +259,8 @@ public class NavigationView {
 
         group.addExpandListener(new ExpandAdapter() {
             @Override
-            public void itemExpanded(ExpandEvent e) {
-                PGroup current = (PGroup) e.getSource();
+            public void itemExpanded(final ExpandEvent e) {
+                final PGroup current = (PGroup) e.getSource();
                 // Collapse expand bar items, or not
                 if (preferences.getBoolean(Constants.PREFERENCES_GENERAL_COLLAPSE_EXPANDBAR)) {
                     groupList.stream().filter(g -> g != current).forEach(g -> g.setExpanded(false));
@@ -255,8 +279,23 @@ public class NavigationView {
      */
     @Focus
     public void setFocus() {
-        if (composite != null)
+        if (composite != null) {
             composite.setFocus();
+        }
     }
 
+    // Subscribe to enablement update
+    @Inject
+    @Optional
+
+    public void onEnablementUpdate(@UIEventTopic("views/navigationUpdate") final String cmdId) {
+        final CLabel lab = labelMap.get(cmdId);
+        if (lab != null) {
+            final boolean en = handlerService.canExecute(commandService.createCommand(cmdId, (Map<String, Object>) lab.getData()));
+            Display.getDefault().asyncExec(() -> {
+                lab.setEnabled(en);
+                lab.setForeground(Display.getDefault().getSystemColor(en ? SWT.COLOR_WIDGET_FOREGROUND : SWT.COLOR_WIDGET_DISABLED_FOREGROUND));
+            });
+        }
+    }
 }

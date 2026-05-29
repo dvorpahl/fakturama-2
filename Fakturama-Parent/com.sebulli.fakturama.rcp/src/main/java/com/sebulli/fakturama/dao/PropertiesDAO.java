@@ -3,15 +3,6 @@ package com.sebulli.fakturama.dao;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.persistence.config.QueryHints;
 
@@ -20,9 +11,19 @@ import com.sebulli.fakturama.model.UserProperty;
 import com.sebulli.fakturama.model.UserProperty_;
 import com.sebulli.fakturama.oldmodel.OldProperties;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+
 @Creatable
 public class PropertiesDAO extends AbstractDAO<UserProperty> {
 
+    @Override
     protected Class<UserProperty> getEntityClass() {
         return UserProperty.class;
     }
@@ -33,49 +34,52 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
      * @param oldVat
      * @return
      */
-    public OldProperties findByOldProperty(OldProperties oldProperties) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<OldProperties> criteria = cb.createQuery(OldProperties.class);
-        Root<OldProperties> root = criteria.from(OldProperties.class);
-        CriteriaQuery<OldProperties> cq = criteria.where(cb.and(cb.equal(root.<String> get("description"), oldProperties.getName()),
-                cb.equal(root.<String> get("name"), oldProperties.getName())));
+    public OldProperties findByOldProperty(final OldProperties oldProperties) {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<OldProperties> criteria = cb.createQuery(OldProperties.class);
+        final Root<OldProperties> root = criteria.from(OldProperties.class);
+        final CriteriaQuery<OldProperties> cq = criteria.where(
+                cb.and(cb.equal(root.<String> get("description"), oldProperties.getName()), cb.equal(root.<String> get("name"), oldProperties.getName())));
         return getEntityManager().createQuery(cq).getSingleResult();
     }
-    
+
     /**
      * Finds the value of an user specific property.
      * 
-     * @param name property
+     * @param name
+     *            property
      * @return value of that property
      */
-    public Optional<String> findPropertyValue(String name) {
+    public Optional<String> findPropertyValue(final String name) {
         return findPropertyValue(name, false);
     }
-    
+
     /**
      * Finds the value of an user specific property.
      * 
-     * @param name property
-     * @param force forces read of database
+     * @param name
+     *            property
+     * @param force
+     *            forces read of database
      * @return value of that property
      */
-    public Optional<String> findPropertyValue(String name, boolean force) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
-        Root<UserProperty> root = criteria.from(UserProperty.class);
+    public Optional<String> findPropertyValue(final String name, final boolean force) {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
+        final Root<UserProperty> root = criteria.from(UserProperty.class);
         criteria.where(cb.equal(root.get(UserProperty_.name), name)).orderBy(cb.desc(root.get(UserProperty_.dateAdded)));
         TypedQuery<UserProperty> query = null;
         UserProperty result = null;
-		try {
+        try {
             query = getEntityManager().createQuery(criteria);
-			query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
+            query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
             result = query.getSingleResult();
-		} catch (NoResultException e) {
-			// ignore, retval is an empty Optional
-		} catch (NonUniqueResultException nuex) {
-			log.warn("non-unique result found for property " + name);
-			result = query.getResultList().get(0);
-		}
+        } catch (final NoResultException e) {
+            // ignore, retval is an empty Optional
+        } catch (final NonUniqueResultException nuex) {
+            log.warn("non-unique result found for property " + name);
+            result = query.getResultList().get(0);
+        }
         return result != null ? Optional.ofNullable(result.getValue()) : Optional.empty();
     }
 
@@ -86,22 +90,20 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
      * @param key
      * @param value
      */
-    public void setProperty(String key, String value) {
+    public void setProperty(final String key, final String value) {
         try {
             UserProperty prop = findByName(key);
             if (prop != null) {
                 prop.setValue(value);
                 update(prop);
-            }
-            else {
-            	prop = modelFactory.createUserProperty();
+            } else {
+                prop = modelFactory.createUserProperty();
                 prop.setName(key);
                 prop.setValue(value);
                 prop.setUser(System.getProperty("user.name", "(unknown)"));
                 save(prop);
             }
-        }
-        catch (FakturamaStoringException e) {
+        } catch (final FakturamaStoringException e) {
             getLog().error(e);
         }
     }
@@ -109,29 +111,30 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
     /**
      * Find all stored mappings for a certain section.
      * 
-     * @param qualifier which section should be used (product, contact etc)
+     * @param qualifier
+     *            which section should be used (product, contact etc)
      * @return List of valid mappings
      */
-    public List<UserProperty> findMappingSpecs(String qualifier) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
-        Root<UserProperty> root = criteria.from(UserProperty.class);
+    public List<UserProperty> findMappingSpecs(final String qualifier) {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
+        final Root<UserProperty> root = criteria.from(UserProperty.class);
         criteria.where(cb.equal(root.get(UserProperty_.qualifier), qualifier));
         List<UserProperty> result = null;
         try {
-            TypedQuery<UserProperty> query = getEntityManager().createQuery(criteria);
+            final TypedQuery<UserProperty> query = getEntityManager().createQuery(criteria);
             query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
             result = query.getResultList();
-        } catch (NoResultException e) {
+        } catch (final NoResultException e) {
             // ignore
         }
         return result;
     }
-    
+
     public boolean delete(UserProperty prop) {
         if (prop != null) {
-            EntityManager entityManager = getEntityManager();
-            EntityTransaction trx = entityManager.getTransaction();
+            final EntityManager entityManager = getEntityManager();
+            final EntityTransaction trx = entityManager.getTransaction();
             trx.begin();
             prop = entityManager.merge(prop);
             getEntityManager().remove(prop);

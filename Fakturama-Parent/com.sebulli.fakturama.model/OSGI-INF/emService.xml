@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="com.sebulli.fakturama.entityManager">
+   <implementation class="org.eclipse.persistence.jpa.PersistenceProvider"/>
+   <service>
+      <provide interface="jakarta.persistence.spi.PersistenceProvider"/>
+   </service>
+</scr:component>

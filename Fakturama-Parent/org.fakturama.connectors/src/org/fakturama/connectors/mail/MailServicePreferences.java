@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2021 www.fakturama.org
@@ -9,9 +9,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     The Fakturama Team - initial API and implementation
+ * The Fakturama Team - initial API and implementation
  */
- 
+
 package org.fakturama.connectors.mail;
 
 import java.util.Arrays;
@@ -30,6 +30,7 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.BooleanPropertyAction;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -59,16 +60,18 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
     @Inject
     @Translation
     protected MailServiceMessages messages;
-    
-    @Inject @Optional
+
+    @Inject
+    @Optional
     private PreferencesInDatabase preferencesInDatabase;
-    
+
     @Inject
     @Translation
     protected Messages msg;
 
     private ExtendedStringFieldEditor mailServerPassword;
     private ExtendedStringFieldEditor mailUser;
+    private BooleanFieldEditor mailUseSsl;
     private ExtendedStringFieldEditor mailHost;
 
     private BooleanPropertyAction booleanPropertyAction;
@@ -82,7 +85,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
     private StringFieldEditor mailtoCC;
 
     private StringFieldEditor mailtoBCC;
-    
+
     public MailServicePreferences() {
         super(GRID);
     }
@@ -95,53 +98,58 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         booleanPropertyAction = new BooleanPropertyAction("useMail", getPreferenceStore(), MailServiceConstants.PREFERENCES_MAIL_ACTIVE) {
 
             @Override
-            public void runWithEvent(Event event) {
+            public void runWithEvent(final Event event) {
                 super.runWithEvent(event);
-                boolean isActive = ((CheckBoxGroup)event.widget).getSelection();
+                final boolean isActive = ((CheckBoxGroup) event.widget).getSelection();
                 setEmptyStringAllowed(!isActive);
-                
-                if(!isActive) {
-                 // if inactive any errors in fields are unimportant
-                   setErrorMessage(null);
-                   setValid(true);
+
+                if (!isActive) {
+                    // if inactive any errors in fields are unimportant
+                    setErrorMessage(null);
+                    setValid(true);
                 }
             }
         };
-        
+
         group.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                CheckBoxGroup eventSource = (CheckBoxGroup) e.getSource();
-                boolean selection = eventSource.getSelection();
+            public void widgetSelected(final SelectionEvent e) {
+                final CheckBoxGroup eventSource = (CheckBoxGroup) e.getSource();
+                final boolean selection = eventSource.getSelection();
                 booleanPropertyAction.setChecked(selection);
                 enableFields(selection);
-                
-                Event event = new Event();
+
+                final Event event = new Event();
                 event.widget = eventSource;
                 booleanPropertyAction.runWithEvent(event);
                 super.widgetSelected(e);
             }
 
         });
-        
+
         mailHost = new ExtendedStringFieldEditor(MailServiceConstants.PREFERENCES_MAIL_HOST, messages.mailservicePreferencesServerHost, group.getContent());
         addField(mailHost);
         mailUser = new ExtendedStringFieldEditor(MailServiceConstants.PREFERENCES_MAIL_USER, messages.mailservicePreferencesServerUser, group.getContent());
         addField(mailUser);
 
-        mailServerPassword = new ExtendedStringFieldEditor(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, messages.mailservicePreferencesServerPassword, group.getContent());
+        mailServerPassword = new ExtendedStringFieldEditor(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, messages.mailservicePreferencesServerPassword,
+                group.getContent());
         mailServerPassword.getTextControl(group.getContent()).setEchoChar('*');
         addField(mailServerPassword);
-        
-        addField(new DirectoryFieldEditor(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, messages.mailservicePreferencesAdditionaldocpath, group.getContent()));
 
-        boolean isMailActive = getPreferenceStore().getBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE);
+        mailUseSsl = new BooleanFieldEditor(MailServiceConstants.PREFERENCES_MAIL_USESSL, messages.mailservicePreferencesServerUsessl, group.getContent());
+        addField(mailUseSsl);
+
+        addField(new DirectoryFieldEditor(MailServiceConstants.PREFERENCES_MAIL_ADDITIONAL_DOCUMENTS_PATH, messages.mailservicePreferencesAdditionaldocpath,
+                group.getContent()));
+
+        final boolean isMailActive = getPreferenceStore().getBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE);
         group.setSelection(isMailActive);
         group.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1).create());
-        
+
         settingFields = Arrays.asList(mailServerPassword, mailHost, mailUser);
         setEmptyStringAllowed(!group.getSelection());
-        
+
         mailtoCC = getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_CC_FIX, "CC", getFieldEditorParent());
         addField(mailtoCC);
         mailtoBCC = getEmailValidationDecoratedField(MailServiceConstants.PREFERENCES_MAIL_BCC_FIX, "BCC", getFieldEditorParent());
@@ -149,7 +157,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
 
         subjectGroup = new Group(getFieldEditorParent(), SWT.NONE);
         subjectGroup.setText(messages.mailservicePreferencesSubjectLabel);
-        
+
         // subject fields
         createSubjectField(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE, BillingType.INVOICE);
         createSubjectField(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY, BillingType.DELIVERY);
@@ -163,20 +171,20 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         subjectGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create());
         enableFields(group.getSelection());
     }
-    
-    private void enableFields(boolean selection) {
+
+    private void enableFields(final boolean selection) {
         Arrays.asList(subjectGroup.getChildren()).forEach(c -> c.setEnabled(selection));
         mailtoCC.getTextControl(getFieldEditorParent()).setEnabled(selection);
         mailtoBCC.getTextControl(getFieldEditorParent()).setEnabled(selection);
     }
 
-    private StringFieldEditor getEmailValidationDecoratedField(String preferenceName, String title, Composite parentEditor) {
+    private StringFieldEditor getEmailValidationDecoratedField(final String preferenceName, final String title, final Composite parentEditor) {
 
-        StringFieldEditor emailField = new StringFieldEditor(preferenceName, title, parentEditor);
+        final StringFieldEditor emailField = new StringFieldEditor(preferenceName, title, parentEditor);
         // create error decoration
-        ControlDecoration deco = new ControlDecoration(emailField.getTextControl(parentEditor), SWT.TOP | SWT.LEFT);
+        final ControlDecoration deco = new ControlDecoration(emailField.getTextControl(parentEditor), SWT.TOP | SWT.LEFT);
 
-        Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
+        final Image image = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage();
         deco.setDescriptionText(msg.editorContactFieldEmailValidationerror);
         deco.setImage(image);
         deco.setShowOnlyOnFocus(true);
@@ -200,30 +208,29 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
                 setValid(false);
             }
         });
-        
+
         return emailField;
     }
-    
+
     @Override
     protected void performDefaults() {
         super.performDefaults();
-        boolean isMailServiceActivePerDefault = getPreferenceStore().getDefaultBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE);
+        final boolean isMailServiceActivePerDefault = getPreferenceStore().getDefaultBoolean(MailServiceConstants.PREFERENCES_MAIL_ACTIVE);
         group.setSelection(isMailServiceActivePerDefault);
         enableFields(isMailServiceActivePerDefault);
     }
-    
-    private void createSubjectField(String pref, BillingType billingType) {
-        StringFieldEditor subjectEntry = new StringFieldEditor(pref, 
-                msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(billingType).getSingularKey()), 
-                subjectGroup) {
-            
+
+    private void createSubjectField(final String pref, final BillingType billingType) {
+        final StringFieldEditor subjectEntry = new StringFieldEditor(pref,
+                msg.getMessageFromKey(DocumentTypeUtil.findByBillingType(billingType).getSingularKey()), subjectGroup) {
+
             @Override
-            protected void adjustForNumColumns(int numColumns) {
+            protected void adjustForNumColumns(final int numColumns) {
                 // ignore adjusting of columns
             }
-            
+
         };
-        
+
         addField(subjectEntry);
     }
 
@@ -233,7 +240,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
      * @param write
      *            TRUE: Write to the data base
      */
-    public void syncWithPreferencesFromDatabase(boolean write) {
+    public void syncWithPreferencesFromDatabase(final boolean write) {
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_HOST, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_USER, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_PASSWORD, write);
@@ -242,7 +249,7 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_ACTIVE, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_CC_FIX, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_BCC_FIX, write);
-        
+
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_INVOICE, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_DELIVERY, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(MailServiceConstants.PREFERENCES_MAIL_SUBJECT_OFFER, write);
@@ -254,35 +261,35 @@ public class MailServicePreferences extends FieldEditorPreferencePage implements
     }
 
     @Override
-    public void setInitValues(IPreferenceStore node) {
+    public void setInitValues(final IPreferenceStore node) {
         node.setDefault(MailServiceConstants.PREFERENCES_MAIL_ACTIVE, Boolean.FALSE);
     }
 
     @Override
-    public void loadOrSaveUserValuesFromDB(IEclipseContext context) {
-        if(preferencesInDatabase != null) {
-            Boolean isWrite = (Boolean)context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
+    public void loadOrSaveUserValuesFromDB(final IEclipseContext context) {
+        if (preferencesInDatabase != null) {
+            final Boolean isWrite = (Boolean) context.get(PreferencesInDatabase.LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE);
             syncWithPreferencesFromDatabase(BooleanUtils.toBoolean(isWrite));
         }
     }
 
-    private void setEmptyStringAllowed(boolean isAllowed) {
-        
+    private void setEmptyStringAllowed(final boolean isAllowed) {
+
         settingFields.forEach(f -> f.setEmptyStringAllowed(isAllowed));
         if (!isAllowed) {
             settingFields.forEach(ExtendedStringFieldEditor::refreshState);
-    
-            boolean isValid = settingFields.stream().allMatch(ExtendedStringFieldEditor::isValid);
+
+            final boolean isValid = settingFields.stream().allMatch(ExtendedStringFieldEditor::isValid);
             setValid(isValid);
         }
     }
-    
+
     /**
      * Private class for extended {@link StringFieldEditor}s
      *
      */
     class ExtendedStringFieldEditor extends StringFieldEditor {
-        public ExtendedStringFieldEditor(String name, String labelText, Composite parent) {
+        public ExtendedStringFieldEditor(final String name, final String labelText, final Composite parent) {
             super(name, labelText, parent);
         }
 

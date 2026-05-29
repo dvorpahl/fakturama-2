@@ -1,13 +1,11 @@
-@XmlSchema(namespace = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0",  
-    xmlns = {   
-//        @XmlNs(namespaceURI = "http://www.w3.org/2001/XMLSchema", prefix = "xs"),  
-        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100", prefix = "ram"),  
-        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:QualifiedDataType:100", prefix = "qdt"),  
-        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100", prefix = "rsm"),  
-        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100", prefix = "udt")  
-    },  
-    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.UNQUALIFIED)  
-  
+@XmlSchema(namespace = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0", xmlns = {
+        //        @XmlNs(namespaceURI = "http://www.w3.org/2001/XMLSchema", prefix = "xs"),  
+        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100", prefix = "ram"),
+        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:QualifiedDataType:100", prefix = "qdt"),
+        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100", prefix = "rsm"),
+        @XmlNs(namespaceURI = "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100", prefix = "udt") },
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.UNQUALIFIED)
+
 /*
 <xs:schema xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -32,8 +30,7 @@
 </xs:schema>
  */
 
+package org.fakturama.export.facturx.modelgen;
 
-package org.fakturama.export.facturx.modelgen;  
-  
-import javax.xml.bind.annotation.XmlNs;  
-import javax.xml.bind.annotation.XmlSchema; 
+import jakarta.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlSchema;

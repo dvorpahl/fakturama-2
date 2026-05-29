@@ -1,15 +1,14 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2012 Gerd Bartelt
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Gerd Bartelt - initial API and implementation
+ * Contributors: Gerd Bartelt - initial API and implementation
  */
 
 package com.sebulli.fakturama.views.datatable;
@@ -28,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.inject.Inject;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.e4.core.di.extensions.Preference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.commands.ParameterizedCommand;
@@ -82,6 +83,7 @@ import com.sebulli.fakturama.model.IEntity;
 import com.sebulli.fakturama.parts.DocumentEditor;
 import com.sebulli.fakturama.parts.Editor;
 import com.sebulli.fakturama.parts.widget.search.TextSearchControl;
+import com.sebulli.fakturama.preferences.FakturamaPreferenceStoreProvider;
 import com.sebulli.fakturama.views.datatable.layer.EntityGridListLayer;
 import com.sebulli.fakturama.views.datatable.tree.model.TreeObject;
 import com.sebulli.fakturama.views.datatable.tree.ui.TopicTreeViewer;
@@ -97,12 +99,11 @@ import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 public abstract class AbstractViewDataTable<T extends IEntity, C extends AbstractCategory> {
 
     /**
-     * Mode identifier for the current running state of the ViewDataTable 
+     * Mode identifier for the current running state of the ViewDataTable
      *
      */
     public enum ViewDataTableMode {
-        DIALOG,
-        LIST
+        DIALOG, LIST
     }
 
     public static final String ROOT_NODE_NAME = "all";
@@ -119,10 +120,11 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     public static final String DATE_CELL_LABEL = "DateValue_Cell_LABEL";
     public static final String STATE_CELL_LABEL = "StateValue_Cell_LABEL";
     public static final String VAT_CELL_LABEL = "VAT_Cell_LABEL";
-    
+
     @Inject
-    protected IPreferenceStore eclipsePrefs;
- 
+    @Preference //(value=InstanceScope.SCOPE)
+    protected IEclipsePreferences eclipsePrefs;
+
     @Inject
     protected ILogger log;
 
@@ -135,10 +137,10 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
 
     @Inject
     protected ECommandService commandService;
-    
+
     @Inject
     protected ESelectionService selectionService;
-    
+
     /**
      * Event Broker for sending update events from the list table
      */
@@ -148,219 +150,232 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     @Inject
     protected EMenuService menuService;
 
-	//The top composite
-	protected Composite top;
-	
-	protected TableColumnLayout tableColumnLayout;
+    //The top composite
+    protected Composite top;
 
-	// Filter the table 
-	protected Label filterLabel;
-	
-	/**
-	 * a new sophisticated search control which displays a magnifying glass and an eraser icon.
-	 * This is the default under Linux and Mac OS, but not under Windows. Here we have a nice
-	 * widget for all platforms.
-	 */
-	protected TextSearchControl searchText;
+    protected TableColumnLayout tableColumnLayout;
 
-	// The topic tree viewer displays the categories of the UniDataSets
-	protected TopicTreeViewer<C> topicTreeViewer;
+    // Filter the table 
+    protected Label filterLabel;
 
-	// The standard UniDataSet
-	protected String stdPropertyKey = null;
-	
-	protected NatTable natTable;
+    /**
+     * a new sophisticated search control which displays a magnifying glass and
+     * an eraser icon. This is the default under Linux and Mac OS, but not under
+     * Windows. Here we have a nice widget for all platforms.
+     */
+    protected TextSearchControl searchText;
 
-	/**
-	 * Creates the SWT controls for this workbench part.
-	 */
-	public Control createPartControl(Composite parent, Class<?> elementClass, boolean useFilter, String contextHelpId) {
-	    // Create the top composite
-		top = new Composite(parent, SWT.BORDER);
-		GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(2).applyTo(top);
-//		GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).applyTo(top);
+    // The topic tree viewer displays the categories of the UniDataSets
+    protected TopicTreeViewer<C> topicTreeViewer;
 
-		// Add context help reference 
-//		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, contextHelpId);
-        
+    // The standard UniDataSet
+    protected String stdPropertyKey = null;
+
+    protected NatTable natTable;
+
+    /**
+     * Creates the SWT controls for this workbench part.
+     */
+    public Control createPartControl(final Composite parent, final Class<?> elementClass, final boolean useFilter, final String contextHelpId) {
+        // Create the top composite
+        top = new Composite(parent, SWT.BORDER);
+        GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(2).applyTo(top);
+        //		GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).applyTo(top);
+
+        // Add context help reference 
+        //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, contextHelpId);
+
         // Create the tree viewer
-        topicTreeViewer = createCategoryTreeViewer(top); 
-//		GridDataFactory.swtDefaults().hint(10, -1).applyTo(topicTreeViewer.getTree());
+        topicTreeViewer = createCategoryTreeViewer(top);
+        //		GridDataFactory.swtDefaults().hint(10, -1).applyTo(topicTreeViewer.getTree());
 
         Composite searchAndTableComposite = top;
-        if(useFilter) {
-        // Create the composite that contains the search field and the table
-			searchAndTableComposite = createSearchAndTableComposite(top);
-//        } else {
-//            natTable = createListTable(top);
+        if (useFilter) {
+            // Create the composite that contains the search field and the table
+            searchAndTableComposite = createSearchAndTableComposite(top);
+            //        } else {
+            //            natTable = createListTable(top);
         }
         natTable = createListTable(searchAndTableComposite);
-        
+
         addCustomStyling(natTable);
-        
-       // if(useFilter) {
-            createDefaultContextMenu();
+
+        // if(useFilter) {
+        createDefaultContextMenu();
         //}
-        
+
         natTable.addDisposeListener(new DisposeListener() {
-            
+
             @Override
-            public void widgetDisposed(DisposeEvent e) {
+            public void widgetDisposed(final DisposeEvent e) {
                 onStop(natTable);
             }
         });
-        
+
         // call hook for post configure steps, if any
         postConfigureNatTable(natTable);
 
-        onStart(natTable);  // as late as possible! Otherwise sorting doesn't work! (don't ask why!)
+        onStart(natTable); // as late as possible! Otherwise sorting doesn't work! (don't ask why!)
 
-		// Workaround
-		// At startup the browser editor is the active part of the workbench.
-		// If now an element of this view is selected, the view does not get active.
-		// So we check, if we are active, and if not: we activate this view.
-//		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-//
-//			@Override
-//			public void selectionChanged(SelectionChangedEvent event) {
-//
-//				IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-//				IWorkbenchPage page = workbenchWindow.getActivePage();
-//
-//				if (page != null) {
-//					// Activate the part of the workbench page.
-//					if (!page.getActivePart().equals(me))
-//						page.activate(me);
-//				}
-//			}
-//		});
-        
+        // Workaround
+        // At startup the browser editor is the active part of the workbench.
+        // If now an element of this view is selected, the view does not get active.
+        // So we check, if we are active, and if not: we activate this view.
+        //		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+        //
+        //			@Override
+        //			public void selectionChanged(SelectionChangedEvent event) {
+        //
+        //				IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        //				IWorkbenchPage page = workbenchWindow.getActivePage();
+        //
+        //				if (page != null) {
+        //					// Activate the part of the workbench page.
+        //					if (!page.getActivePart().equals(me))
+        //						page.activate(me);
+        //				}
+        //			}
+        //		});
+
         natTable.setTheme(new ModernNatTableThemeConfiguration());
 
-		return top;
-	}
-	
+        return top;
+    }
 
     /**
      * We have to style the table a little bit...
      * 
-     * @param natTable the {@link NatTable} to style
+     * @param natTable
+     *            the {@link NatTable} to style
      */
-    private void addCustomStyling(NatTable natTable) {
-        DefaultSelectionStyleConfiguration selectionStyle = createDefaultSelectionStyle();
+    private void addCustomStyling(final NatTable natTable) {
+        final DefaultSelectionStyleConfiguration selectionStyle = createDefaultSelectionStyle();
 
         // Add all style configurations to NatTable
         natTable.addConfiguration(selectionStyle);
     }
 
-	/**
-	 * Loads the table settings (layout and such stuff) from a properties file.
-	 * @param natTable
-	 */
-    public void onStart(NatTable natTable) {
-        Properties properties = new Properties();
-        String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
-        Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
-
-        try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile);) {
-            properties.load(propertiesInputStream);
-            log.debug("Loading NatTable state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
-            properties.load(Files.newInputStream(propertiesFile, StandardOpenOption.READ));
-            natTable.loadState(getTableId(), properties);
-        } catch (IOException e) {
-            // No file found, oh well, move along
-            log.warn(Constants.VIEWTABLE_PREFERENCES_FILE + " not found, skipping load");
-        }
-    }
-	
     /**
-     * Before Nattable is disposed, all the settings for this table are stored in a properties file.
+     * Loads the table settings (layout and such stuff) from a properties file.
      * 
      * @param natTable
      */
-    public void onStop(NatTable natTable) {
-        Properties properties = new Properties();
-        String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
-        Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
-        if(Files.notExists(propertiesFile)) {
+    public void onStart(final NatTable natTable) {
+        final Properties properties = new Properties();
+        final String requestedWorkspace = this.eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
+
+        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
+        try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile, StandardOpenOption.READ);) {
+            properties.load(propertiesInputStream);
+            log.debug("Loading NatTable state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
+            natTable.loadState(getTableId(), properties);
+        } catch (final IOException e) {
+            // No file found, oh well, move along
+            log.warn(Constants.VIEWTABLE_PREFERENCES_FILE + " not found, skipping load");
+            if (Files.notExists(propertiesFile)) {
+                try {
+                    log.warn("{} not found, skipping load. new file to create: {}", Constants.VIEWTABLE_PREFERENCES_FILE, propertiesFile.toAbsolutePath());
+                    Files.createFile(propertiesFile);
+                } catch (final IOException ioex) {
+                    log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
+                }
+            }
+
+        }
+    }
+
+    /**
+     * Before Nattable is disposed, all the settings for this table are stored
+     * in a properties file.
+     * 
+     * @param natTable
+     */
+    public void onStop(final NatTable natTable) {
+        final Properties properties = new Properties();
+        final String requestedWorkspace = this.eclipsePrefs.get(Constants.GENERAL_WORKSPACE, "");
+        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
+        if (Files.notExists(propertiesFile)) {
             try {
                 Files.createFile(propertiesFile);
-            } catch (IOException ioex) {
+            } catch (final IOException ioex) {
                 log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
             }
         }
         try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile);) {
             properties.load(propertiesInputStream);
             natTable.saveState(getTableId(), properties);
-            
+
             // removing superfluous entries (i.e., count of rows)
             final Iterator<Object> mapIter = properties.keySet().iterator();
-            String[] prefixes = new String[]{
-            		getTableId() + "." + GridRegion.BODY + RowReorderLayer.PERSISTENCE_KEY_ROW_INDEX_ORDER,
-            		getTableId() + "." + GridRegion.COLUMN_HEADER + SortStatePersistor.PERSISTENCE_KEY_SORTING_STATE,
-            	};
+            final String[] prefixes = new String[] { getTableId() + "." + GridRegion.BODY + RowReorderLayer.PERSISTENCE_KEY_ROW_INDEX_ORDER,
+                    getTableId() + "." + GridRegion.COLUMN_HEADER + SortStatePersistor.PERSISTENCE_KEY_SORTING_STATE, };
             String elem;
-			while (mapIter.hasNext()) {
-				elem = (String) mapIter.next();
-				if (StringUtils.containsAny(elem, prefixes)) {
-					mapIter.remove();
-				}
-			}
-            
+            while (mapIter.hasNext()) {
+                elem = (String) mapIter.next();
+                if (StringUtils.containsAny(elem, prefixes)) {
+                    mapIter.remove();
+                }
+            }
+
             log.info("Saving NatTable state to " + Constants.VIEWTABLE_PREFERENCES_FILE);
             properties.store(Files.newOutputStream(propertiesFile, StandardOpenOption.CREATE), "NatTable state");
-        } catch (IOException ioex) {
+        } catch (final IOException ioex) {
             log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be written.");
         }
     }
-	
-    /**
-     * Creates the concrete list table for a given view. 
-     * 
-     * @param searchAndTableComposite container for the {@link NatTable}
-     * @return {@link NatTable} which displays some items
-     */
-	abstract protected NatTable createListTable(Composite searchAndTableComposite);
-	
-	/**
-	 * Gets a unique identifier for the implementing table (for using in conjunction with storing preferences).
-	 *  
-	 * @return unique identifier
-	 */
-	abstract public String getTableId();
-	
 
     /**
-     * Returns the editor id which corresponds to the current list table (relevant
-     * for creating a suitable command)
+     * Creates the concrete list table for a given view.
+     * 
+     * @param searchAndTableComposite
+     *            container for the {@link NatTable}
+     * @return {@link NatTable} which displays some items
+     */
+    abstract protected NatTable createListTable(Composite searchAndTableComposite);
+
+    /**
+     * Gets a unique identifier for the implementing table (for using in
+     * conjunction with storing preferences).
+     * 
+     * @return unique identifier
+     */
+    abstract public String getTableId();
+
+    /**
+     * Returns the editor id which corresponds to the current list table
+     * (relevant for creating a suitable command)
      * 
      * @return
      */
     protected abstract String getEditorId();
+
     protected abstract String getEditorTypeId();
-	
-	protected void postConfigureNatTable(NatTable natTable) {
-	    // per default this method is empty
-	}
-	
-	abstract protected TopicTreeViewer<C> createCategoryTreeViewer(Composite top);
-	abstract protected String getPopupId();
-	
+
+    protected void postConfigureNatTable(final NatTable natTable) {
+        // per default this method is empty
+    }
+
+    abstract protected TopicTreeViewer<C> createCategoryTreeViewer(Composite top);
+
+    abstract protected String getPopupId();
+
     /**
-     * Change the toolbar buttons (add/delete) so that they match the current viewed document types
-     * or categories. I.e., if invoices are shown then the "add"-button creates a new invoice etc.
+     * Change the toolbar buttons (add/delete) so that they match the current
+     * viewed document types or categories. I.e., if invoices are shown then the
+     * "add"-button creates a new invoice etc.
      * 
-     * @param treeObject current {@link TreeObject}
+     * @param treeObject
+     *            current {@link TreeObject}
      */
-    public void changeToolbarItem(TreeObject treeObject) {
-        MToolBar toolbar = getMToolBar();
-        if(toolbar != null) {
-            for (MToolBarElement tbElem : toolbar.getChildren()) {
+    public void changeToolbarItem(final TreeObject treeObject) {
+        final MToolBar toolbar = getMToolBar();
+        if (toolbar != null) {
+            for (final MToolBarElement tbElem : toolbar.getChildren()) {
                 if (tbElem.getElementId().contentEquals(getToolbarAddItemCommandId())) {
-                    HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
+                    final HandledToolItemImpl toolItem = (HandledToolItemImpl) tbElem;
                     ParameterizedCommand wbCommand = toolItem.getWbCommand();
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
+                    final Map<String, Object> parameterMap = wbCommand != null ? wbCommand.getParameterMap() : new HashMap<>();
                     parameterMap.put(CallEditor.PARAM_CATEGORY, treeObject.getFullPathName(true));
                     parameterMap.put(CallEditor.PARAM_FORCE_NEW, Boolean.TRUE);
                     if (wbCommand != null) {
@@ -394,7 +409,7 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     protected MToolBar getMToolBar() {
         return null;
     }
-    
+
     /**
      * On double click: open the corresponding editor
      * 
@@ -406,152 +421,162 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         nattable.getUiBindingRegistry().registerDoubleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
 
             @Override
-            public void run(NatTable natTable, MouseEvent event) {
+            public void run(final NatTable natTable, final MouseEvent event) {
                 //get the row position for the click in the NatTable
-                int rowPos = natTable.getRowPositionByY(event.y);
+                final int rowPos = natTable.getRowPositionByY(event.y);
                 //transform the NatTable row position to the row position of the body layer stack
-                int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
+                final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, gridLayer.getBodyDataLayer());
                 // extract the selected Object
-                T selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
-//                log.debug("Selected Object: " + selectedObject.getName());
+                final T selectedObject = gridLayer.getBodyDataProvider().getRowObject(bodyRowPos);
+                //                log.debug("Selected Object: " + selectedObject.getName());
                 // Call the corresponding editor. The editor is set
                 // in the variable "editor", which is used as a parameter
                 // when calling the editor command.
                 // in E4 we create a new Part (or use an existing one with the same ID)
                 // from PartDescriptor
-                Map<String, Object> params = new HashMap<>();
+                final Map<String, Object> params = new HashMap<>();
                 params.put(CallEditor.PARAM_OBJ_ID, Long.toString(selectedObject.getId()));
                 params.put(CallEditor.PARAM_EDITOR_TYPE, getEditorId());
-//                if(selectedObject instanceof Document) {
-//                    params.put(CallEditor.PARAM_CATEGORY, ((Document)selectedObject).getBillingType().getName());
-//                }
+                //                if(selectedObject instanceof Document) {
+                //                    params.put(CallEditor.PARAM_CATEGORY, ((Document)selectedObject).getBillingType().getName());
+                //                }
                 params.putAll(getAdditionalParameters());
-                ParameterizedCommand parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
+                final ParameterizedCommand parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
                 handlerService.executeHandler(parameterizedCommand);
             }
         });
     }
 
     /**
-     * If an Editor needs additional parameters to work you can set them here. This method 
-     * is empty per default and can be overwritten.
+     * If an Editor needs additional parameters to work you can set them here.
+     * This method is empty per default and can be overwritten.
      * 
-     * @param params the params HashMap
+     * @param params
+     *            the params HashMap
      */
-	protected Map<String, Object> getAdditionalParameters() {
-		// this method was intentionally left blank ;-) 
-		return new HashMap<>();
-	}
+    protected Map<String, Object> getAdditionalParameters() {
+        // this method was intentionally left blank ;-) 
+        return new HashMap<>();
+    }
 
-	/**
+    /**
      * Returns the actually marked rows in a table. Can be overwritten.
      * 
      * @return selected rows in a list table
      */
-    public T[] getSelectedObjects() { return null; }
-    
+    public T[] getSelectedObjects() {
+        return null;
+    }
+
     /**
      * Returns the actually marked rows in a table. Can be overwritten.
      * 
-     * @param selectIfSingleRow returns a selection if only one item is in the list
+     * @param selectIfSingleRow
+     *            returns a selection if only one item is in the list
      * @return selected rows in a list table
      */
-    public T[] getSelectedObjects(boolean selectIfSingleRow) { return null; }
-    
+    public T[] getSelectedObjects(final boolean selectIfSingleRow) {
+        return null;
+    }
+
     /**
-     * Returns the actually marked document in a table. Can be overwritten. May return <code>null</code>!
+     * Returns the actually marked document in a table. Can be overwritten. May
+     * return <code>null</code>!
      * 
      * @return selected row in a list table
      */
-    public T getSelectedObject() { return null;}
-    
+    public T getSelectedObject() {
+        return null;
+    }
+
     /**
      * Component for the Search field and the item table
      * 
-     * @param parent the parent {@link Composite} of this Component
+     * @param parent
+     *            the parent {@link Composite} of this Component
      * @return {@link Composite}
      */
-    private Composite createSearchAndTableComposite(Composite parent) {
-        Composite searchAndTableComposite = new Composite(parent, SWT.NONE);
+    private Composite createSearchAndTableComposite(final Composite parent) {
+        final Composite searchAndTableComposite = new Composite(parent, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns(1).applyTo(searchAndTableComposite);
         GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).applyTo(searchAndTableComposite);
 
         // Create the composite that contains the search field and the toolbar
-        Composite searchAndToolbarComposite = new Composite(searchAndTableComposite, SWT.NONE);
+        final Composite searchAndToolbarComposite = new Composite(searchAndTableComposite, SWT.NONE);
         GridLayoutFactory.fillDefaults().numColumns(3).applyTo(searchAndToolbarComposite);
         GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(searchAndToolbarComposite);
 
         // The toolbar is created via Application model (Application.e4xmi)
-        
+
         filterLabel = new Label(searchAndToolbarComposite, SWT.NONE);
-        FontData[] fD = filterLabel.getFont().getFontData();
+        final FontData[] fD = filterLabel.getFont().getFontData();
         fD[0].setHeight(20);
-        Font font = new Font(null, fD[0]);
+        final Font font = new Font(null, fD[0]);
         filterLabel.setFont(font);
         font.dispose();
         GridDataFactory.fillDefaults().grab(true, false).align(SWT.CENTER, SWT.CENTER).applyTo(filterLabel);
 
         // The search composite
-        Composite searchComposite = new Composite(searchAndToolbarComposite, SWT.NONE);
+        final Composite searchComposite = new Composite(searchAndToolbarComposite, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(searchComposite);
         GridDataFactory.fillDefaults().grab(true, true).align(SWT.END, SWT.CENTER).applyTo(searchComposite);
 
         // Search label an search field
-        Label searchLabel = new Label(searchComposite, SWT.NONE);
+        final Label searchLabel = new Label(searchComposite, SWT.NONE);
         searchLabel.setText(msg.commonLabelSearchfield);
         GridDataFactory.swtDefaults().applyTo(searchLabel);
-        
+
         searchText = new TextSearchControl(searchComposite, false, msg);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).hint(150, -1).applyTo(searchText);
         return searchAndTableComposite;
     }
 
-//	/**
-//	 * Returns the topic tree viewer
-//	 * 
-//	 * @return The topic tree viewer
-//	 */
-//	public TopicTreeViewer getTopicTreeViewer() {
-//		return topicTreeViewer;
-//	}
+    //	/**
+    //	 * Returns the topic tree viewer
+    //	 * 
+    //	 * @return The topic tree viewer
+    //	 */
+    //	public TopicTreeViewer getTopicTreeViewer() {
+    //		return topicTreeViewer;
+    //	}
 
-	/**
-	 * Create the menu manager for the context menu
-	 */
-	protected void createMenuManager() {
-	    menuService.registerContextMenu(natTable, getPopupId());
-	}
-    
-	/**
-	 * Create the default context menu with one addNew and one Delete action
-	 */
-	protected void createDefaultContextMenu() {
-		createMenuManager();
-//		if (addNewAction != null)
-//			menuManager.add(addNewAction);
-//		menuManager.add(new DeleteDataSetAction());
-	}
+    /**
+     * Create the menu manager for the context menu
+     */
+    protected void createMenuManager() {
+        menuService.registerContextMenu(natTable, getPopupId());
+    }
 
-	/**
-	 * Asks this part to take focus within the workbench.
-	 */
-	@Focus
-	public void setFocus() {
-	    natTable.setFocus();
-	}
+    /**
+     * Create the default context menu with one addNew and one Delete action
+     */
+    protected void createDefaultContextMenu() {
+        createMenuManager();
+        //		if (addNewAction != null)
+        //			menuManager.add(addNewAction);
+        //		menuManager.add(new DeleteDataSetAction());
+    }
 
-//	/**
-//	 * Set a reference to the tree object
-//	 * 
-//	 * @param treeObject
-//	 * 		The tree object
-//	 */
-//	public void setTreeObject(TreeObject treeObject){
-//		this.selectedTreeObject = treeObject;
-//	}
+    /**
+     * Asks this part to take focus within the workbench.
+     */
+    @Focus
+    public void setFocus() {
+        natTable.setFocus();
+    }
 
-	/**
+    //	/**
+    //	 * Set a reference to the tree object
+    //	 * 
+    //	 * @param treeObject
+    //	 * 		The tree object
+    //	 */
+    //	public void setTreeObject(TreeObject treeObject){
+    //		this.selectedTreeObject = treeObject;
+    //	}
+
+    /**
      * @return the natTable
      */
     public NatTable getNatTable() {
@@ -559,130 +584,141 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     }
 
     /**
-	 * Set the category filter
-	 * 
-	 * @param filter
-	 *            The new filter string
-	 */
-	abstract public void setCategoryFilter(String filter, TreeObjectType treeObjectType);
-	
-	/**
-	 * Set the transaction filter
-	 * 
-	 * @param filter
-	 *            The new filter string
-	 */
-	public void setTransactionFilter(long filter, TreeObject treeObject) {
-	    // per default this method does nothing
-	}
+     * Set the category filter
+     * 
+     * @param filter
+     *            The new filter string
+     */
+    abstract public void setCategoryFilter(String filter, TreeObjectType treeObjectType);
 
-	/**
-	 * Set the contact filter
-	 * 
-	 * @param filter
-	 *            The new filter string
-	 */
-	public void setContactFilter(long filter) {
-	    // per default this method does nothing
-	}
-	
+    /**
+     * Set the transaction filter
+     * 
+     * @param filter
+     *            The new filter string
+     */
+    public void setTransactionFilter(final long filter, final TreeObject treeObject) {
+        // per default this method does nothing
+    }
+
+    /**
+     * Set the contact filter
+     * 
+     * @param filter
+     *            The new filter string
+     */
+    public void setContactFilter(final long filter) {
+        // per default this method does nothing
+    }
+
     /**
      * controls if the header label for the list view should be shown
      * 
      * @return the headerLabelEnabled
      */
-	abstract protected boolean isHeaderLabelEnabled();
-	abstract protected EntityGridListLayer<T> getGridLayer();
-	protected abstract Class<T> getEntityClass();
-	
-	/**
-	 * Deletes the selected entry (or entries, if multiple selection is enabled) from the items table).
-	 */
-	public void removeSelectedEntry() {
+    abstract protected boolean isHeaderLabelEnabled();
+
+    abstract protected EntityGridListLayer<T> getGridLayer();
+
+    protected abstract Class<T> getEntityClass();
+
+    /**
+     * Deletes the selected entry (or entries, if multiple selection is enabled)
+     * from the items table).
+     */
+    public void removeSelectedEntry() {
         @SuppressWarnings("unchecked")
-		List<T> selection = (List<T>)selectionService.getSelection();
-        if(selection == null || selection.isEmpty()) {
-        	return;
+        final List<T> selection = (List<T>) selectionService.getSelection();
+        if (selection == null || selection.isEmpty()) {
+            return;
         }
-		int selectedEntries = selection.size();
-		boolean confirmation = false;
-		/*
-		 * If you switch between views the selection still remains and the ESelectionService
-		 * doesn't clear it's selection. Therefore we have to prove at least the first element 
-		 * of the selected list for it's class type.
-		 */
-		if(selectedEntries > 0 && getEntityClass().isInstance(selection.get(0))) {
-			if(selectedEntries > 1) {
-				confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle, 
-                        MessageFormat.format("Do you REALLY want to kill {0} entries?", selectedEntries));
-                if(!confirmation) return;
-			}
-			for (T objToDelete : selection) {
+        final int selectedEntries = selection.size();
+        boolean confirmation = false;
+        /*
+         * If you switch between views the selection still remains and the
+         * ESelectionService
+         * doesn't clear it's selection. Therefore we have to prove at least the
+         * first element
+         * of the selected list for it's class type.
+         */
+        if (selectedEntries > 0 && getEntityClass().isInstance(selection.get(0))) {
+            if (selectedEntries > 1) {
+                confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle,
+                        MessageFormat.format(msg.dialogDeletedatasetQuestion, selectedEntries));
+                if (!confirmation) {
+                    return;
+                }
+            }
+            for (T objToDelete : selection) {
                 try {
-                	/*
-                	 * If deletion was not confirmed yet (e.g., if we've only one entry to delete),
-                	 * here's the time to ask for it. 
-                	 */
-                	if(!confirmation) {
-	                    confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle, 
-	                          MessageFormat.format(msg.dialogDeletedatasetMessage, objToDelete.getName()));
-                	}
-                    if(confirmation) {  // only kill if confirmed
-                    	
+                    /*
+                     * If deletion was not confirmed yet (e.g., if we've only
+                     * one entry to delete),
+                     * here's the time to ask for it.
+                     */
+                    if (!confirmation) {
+                        confirmation = MessageDialog.openConfirm(top.getShell(), msg.dialogDeletedatasetTitle,
+                                MessageFormat.format(msg.dialogDeletedatasetMessage, objToDelete.getName()));
+                    }
+                    if (confirmation) { // only kill if confirmed
+
                         // refresh object from database
                         objToDelete = getEntityDAO().findById(objToDelete.getId(), true);
                         // Instead of deleting it completely from the database the element is just marked
                         // as deleted. So a document which still refers to this element would not cause an error.
                         objToDelete = handleCascadeDelete(objToDelete);
                         objToDelete.setDeleted(Boolean.TRUE);
-                        
+
                         objToDelete = getEntityDAO().update(objToDelete);
-                        
+
                         // if an editor with this object is open we have to close it forcibly
-                        Map<String, Object> params = new HashMap<>();
+                        final Map<String, Object> params = new HashMap<>();
                         params.put(Editor.OBJECT_ID, objToDelete.getName());
                         evtBroker.post(getEditorTypeId() + "/forceClose", params);
                     }
-                }
-                catch (FakturamaStoringException e) {
+                } catch (final FakturamaStoringException e) {
                     log.error(e, "can't save the current Entity: " + objToDelete.toString());
                 }
-                
+
                 /*
-                 * TODO as long as the categories aren't fully implemented (multiple categories per entity)
-                 * we use this workaround for deleting the empty categories. If we later on change the structure
-                 * of the entities we have to change this into a comprehensive form (i.e., use interface DescribableEntity
-                 * with category attribute).  
+                 * TODO as long as the categories aren't fully implemented
+                 * (multiple categories per entity)
+                 * we use this workaround for deleting the empty categories. If
+                 * we later on change the structure
+                 * of the entities we have to change this into a comprehensive
+                 * form (i.e., use interface DescribableEntity
+                 * with category attribute).
                  */
                 handleAfterDeletion(objToDelete);
-    
+
                 // Refresh the corresponding table view
                 evtBroker.post(getEditorTypeId(), Editor.UPDATE_EVENT);
-			}
+            }
         } else {
             log.debug("no rows selected!");
         }
-	}
-
-	/**
-	 * Hook for handling objects after the deletion is confirmed by user.
-	 * This method should be overwritten if additional behavior is wanted.
-	 * @return 
-	 */
-    protected T handleCascadeDelete(T objToDelete) {
-		// empty per default
-    	return objToDelete;
-	}
-    
-	/**
-	 * Hook for handling objects after the deletion was processed.
-	 * This method should be overwritten if additional behavior is wanted.
-	 */
-    protected void handleAfterDeletion(T objToDelete) {
-		// empty per default
     }
 
-	abstract protected AbstractDAO<T> getEntityDAO();
+    /**
+     * Hook for handling objects after the deletion is confirmed by user. This
+     * method should be overwritten if additional behavior is wanted.
+     * 
+     * @return
+     */
+    protected T handleCascadeDelete(final T objToDelete) {
+        // empty per default
+        return objToDelete;
+    }
+
+    /**
+     * Hook for handling objects after the deletion was processed. This method
+     * should be overwritten if additional behavior is wanted.
+     */
+    protected void handleAfterDeletion(final T objToDelete) {
+        // empty per default
+    }
+
+    abstract protected AbstractDAO<T> getEntityDAO();
 
     /**
      * @return
@@ -691,8 +727,8 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         // NOTE: Getting the colors and fonts from the GUIHelper ensures that
         // they are disposed properly (required by SWT)
         // Setup selection styling
-        DefaultSelectionStyleConfiguration selectionStyle = new DefaultSelectionStyleConfiguration();
-   //     selectionStyle.selectionFont = GUIHelper.getFont(new FontData("Verdana", 8, SWT.NORMAL));
+        final DefaultSelectionStyleConfiguration selectionStyle = new DefaultSelectionStyleConfiguration();
+        //     selectionStyle.selectionFont = GUIHelper.getFont(new FontData("Verdana", 8, SWT.NORMAL));
         selectionStyle.selectionBgColor = GUIHelper.getColor(217, 232, 251);
         selectionStyle.selectionFgColor = GUIHelper.COLOR_BLACK;
         selectionStyle.anchorBorderStyle = new BorderStyle(1, GUIHelper.COLOR_DARK_GRAY, LineStyleEnum.SOLID);
@@ -701,36 +737,31 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         return selectionStyle;
     }
 
+    /**
+     * @return the eclipsePrefs
+     */
+    protected IEclipsePreferences getEclipsePrefs() {
+         return eclipsePrefs;
+    }
+//
+//    /**
+//     * @param eclipsePrefs
+//     *            the eclipsePrefs to set
+//     */
+//    protected void setEclipsePrefs(final IPreferenceStore eclipsePrefs) {
+//        this.eclipsePrefs = eclipsePrefs;
+//    }
 
-	/**
-	 * @return the eclipsePrefs
-	 */
-	protected IPreferenceStore getEclipsePrefs() {
-		if(eclipsePrefs == null) {
-			eclipsePrefs = EclipseContextFactory.getServiceContext(Activator.getContext()).get(IPreferenceStore.class);
-		}
-		return eclipsePrefs;
-	}
+    public TextSearchControl getSearchControl() {
+        return searchText;
+    }
 
-
-	/**
-	 * @param eclipsePrefs the eclipsePrefs to set
-	 */
-	protected void setEclipsePrefs(IPreferenceStore eclipsePrefs) {
-		this.eclipsePrefs = eclipsePrefs;
-	}
-
-	
-	public TextSearchControl getSearchControl() {
-		return searchText;
-	}
-
-	protected String createRootNodeDescriptor(String filter) {
-		String rootNode = ""; 
-		String[] splittedString = filter.split("/");
-		if(splittedString.length > 1) {
-			rootNode = splittedString[1];
-		}
-		return rootNode;
-	}
+    protected String createRootNodeDescriptor(final String filter) {
+        String rootNode = "";
+        final String[] splittedString = filter.split("/");
+        if (splittedString.length > 1) {
+            rootNode = splittedString[1];
+        }
+        return rootNode;
+    }
 }

@@ -17,7 +17,7 @@ package com.sebulli.fakturama.office;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
-import org.odftoolkit.simple.common.navigation.PlaceholderParameters;
+import org.odftoolkit.helper.common.navigation.PlaceholderParameters;
 
 /**
  * Utility class for {@link TemplateProcessor}

@@ -12,34 +12,29 @@
 			</info>
 			<alt>Fakturama: Benutzerhandbuch</alt>
 			<imageobject>
-				<imagedata align="center" valign="bottom" width="6cm" depth="4cm" scalefit="0" format="PNG"
-				   fileref="images/titlelogo.png"/>
+				<imagedata align="center" valign="bottom" width="6cm" depth="4cm" scalefit="0" format="PNG" fileref="images/titlelogo.png"/>
 			</imageobject>
 			<imageobject>
-				<imagedata align="right" width="2cm" format="JPG"
-				   fileref="images/logo.jpg"/>
+				<imagedata align="right" width="2cm" format="JPG" fileref="images/logo.jpg"/>
 			</imageobject>
 		</mediaobject>
-
 		<authorgroup>
 			<author>
 				<surname>Fakturama Team</surname>
 			</author>
 		</authorgroup>
-		<edition>Benutzerhandbuch für Fakturama v2.1.3</edition>
+		<edition>Benutzerhandbuch für Fakturama v2.2.0</edition>
 		<pubdate>
 			<?dbtimestamp format="d.m.Y"?>
 		</pubdate>
 		<copyright>
-			<year>2011-2022</year>
+			<year>2011-2025</year>
 			<holder>Fakturama.org</holder>
 		</copyright>
-
 		<legalnotice>
 			<para>Alle Grafiken, die Hilfetexte und das Handbuch stehen unter der <link linkend="license_creative_commons">Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported Lizenz</link>
 			</para>
 		</legalnotice>
-
 		<legalnotice>
 			<title>Markennamen und Logos</title>
 			<para>Alle verwendeten Markennamen und Bezeichnungen sind eingetragene Warenzeichen und Marken der jeweiligen Eigentümer.</para>
@@ -54,8 +49,8 @@
 			<para>Fedora ist ein Markenzeichen von Red Hat, Inc.</para>
 			<para>Ubuntu ist ein eingetragenes Markenzeichen von Canonical Ltd.</para>
 		</legalnotice>
-
-		<legalnotice><anchor xreflabel="" xml:id="license_trademarks"/>
+		<legalnotice>
+			<anchor xreflabel="" xml:id="license_trademarks"/>
 			<title>Lizenz der Grafiken</title>
 			<para xml:id="license_creative_commons">Die im Fakturama Projekt benutzen Grafiken, die Hilfetexte und das Handbuch stehen unter der Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported Lizenz.</para>
 			<informalfigure>
@@ -68,267 +63,405 @@
 					</imageobject>
 				</mediaobject>
 			</informalfigure>
-			<para><emphasis role="bold">Sie dürfen:</emphasis></para>
-					<para><inlinemediaobject>
-						<imageobject role="html">
-							<imagedata fileref="chapters/images/license/share.png" format="PNG" scalefit="1"/>
-						</imageobject>
-						<imageobject role="fo">
-							<imagedata contentdepth="30%" fileref="chapters/images/license/share.png" format="PNG" scalefit="1" width="20pt"/>
-						</imageobject>
-					</inlinemediaobject>
+			<para>
+				<emphasis role="bold">Sie dürfen:</emphasis>
+			</para>
+			<para>
+				<inlinemediaobject>
+					<imageobject role="html">
+						<imagedata fileref="chapters/images/license/share.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="30%" fileref="chapters/images/license/share.png" format="PNG" scalefit="1" width="20pt"/>
+					</imageobject>
+				</inlinemediaobject>
 				das Werk bzw. den Inhalt vervielfältigen, verbreiten und öffentlich zugänglich machen</para>
-				<para><emphasis role="bold">Zu den folgenden Bedingungen:</emphasis></para>
-				<para>	<inlinemediaobject>
-						<imageobject role="html">
-							<imagedata fileref="chapters/images/license/by.png" format="PNG" scalefit="1"/>
-						</imageobject>
-						<imageobject role="fo">
-							<imagedata contentdepth="30%" fileref="chapters/images/license/by.png" format="PNG" scalefit="1" width="20pt"/>
-						</imageobject>
-					</inlinemediaobject>
-					<emphasis role="bold">Namensnennung</emphasis> — Sie müssen den Namen des Autors/Rechteinhabers in der von ihm festgelegten Weise nennen.</para>
-					<para><inlinemediaobject>
-						<imageobject role="html">
-							<imagedata fileref="chapters/images/license/nc.png" format="PNG" scalefit="1"/>
-						</imageobject>
-						<imageobject role="fo">
-							<imagedata contentdepth="30%" fileref="chapters/images/license/nc.png" format="PNG" scalefit="1" width="20pt"/>
-						</imageobject>
-					</inlinemediaobject>				
-					<emphasis role="bold">Keine kommerzielle Nutzung</emphasis> — Dieses Werk bzw. dieser Inhalt darf nicht für kommerzielle Zwecke verwendet werden.</para>
-					<para><inlinemediaobject>
-						<imageobject role="html">
-							<imagedata fileref="chapters/images/license/nd.png" format="PNG" scalefit="1"/>
-						</imageobject>
-						<imageobject role="fo">
-							<imagedata contentdepth="30%" fileref="chapters/images/license/nd.png" format="PNG" scalefit="1" width="20pt"/>
-						</imageobject>
-					</inlinemediaobject>
-				
-					<emphasis role="bold">Keine Bearbeitung</emphasis> — Dieses Werk bzw. dieser Inhalt darf nicht bearbeitet, abgewandelt oder in anderer Weise verändert werden.</para>
-			<para><emphasis role="bold">Wobei gilt:</emphasis></para>
-				
-					<para><emphasis role="bold">Verzichtserklärung</emphasis> — Jede der vorgenannten Bedingungen kann aufgehoben werden, sofern Sie die ausdrückliche Einwilligung des Rechteinhabers dazu erhalten.</para>
-				<para>
-					<emphasis role="bold">Public Domain (gemeinfreie oder nicht-schützbare Inhalte)</emphasis> — Soweit das Werk, der Inhalt oder irgendein Teil davon zur Public Domain der jeweiligen Rechtsordnung gehört, wird dieser Status von der Lizenz in keiner Weise berührt.</para>
-				<para>
-					<emphasis role="bold">Sonstige Rechte</emphasis> — Die Lizenz hat keinerlei Einfluss auf die folgenden Rechte:</para>
-				<itemizedlist spacing="compact">
-					<listitem>
-						<para> Your fair dealing or fair use rights, or other applicable copyright exceptions and limitations;</para>
-					</listitem>
-					<listitem>
-						<para> Das Urheberpersönlichkeitsrecht des Rechteinhabers;</para>
-					</listitem>
-					<listitem>
-						<para> Rechte anderer Personen, entweder am Lizenzgegenstand selber oder bezüglich seiner Verwendung, zum Beispiel Persönlichkeitsrechte abgebildeter Personen.</para>
-					</listitem>
-				</itemizedlist>
-				<para>
-					<emphasis role="bold">Hinweis</emphasis> — Im Falle einer Verbreitung müssen Sie anderen alle Lizenzbedingungen mitteilen, die für dieses Werk gelten.</para>
-				<para>Diese "Commons Deed" ist lediglich eine vereinfachte Zusammenfassung des <link xl:href="http://creativecommons.org/licenses/by-nc-nd/3.0/de/legalcode">rechtsverbindlichen Lizenzvertrages</link> in allgemeinverständlicher Sprache.</para>
+			<para>
+				<emphasis role="bold">Zu den folgenden Bedingungen:</emphasis>
+			</para>
+			<para>
+				<inlinemediaobject>
+					<imageobject role="html">
+						<imagedata fileref="chapters/images/license/by.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="30%" fileref="chapters/images/license/by.png" format="PNG" scalefit="1" width="20pt"/>
+					</imageobject>
+				</inlinemediaobject>
+				<emphasis role="bold">Namensnennung</emphasis> — Sie müssen den Namen des Autors/Rechteinhabers in der von ihm festgelegten Weise nennen.</para>
+			<para>
+				<inlinemediaobject>
+					<imageobject role="html">
+						<imagedata fileref="chapters/images/license/nc.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="30%" fileref="chapters/images/license/nc.png" format="PNG" scalefit="1" width="20pt"/>
+					</imageobject>
+				</inlinemediaobject>
+				<emphasis role="bold">Keine kommerzielle Nutzung</emphasis> — Dieses Werk bzw. dieser Inhalt darf nicht für kommerzielle Zwecke verwendet werden.</para>
+			<para>
+				<inlinemediaobject>
+					<imageobject role="html">
+						<imagedata fileref="chapters/images/license/nd.png" format="PNG" scalefit="1"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata contentdepth="30%" fileref="chapters/images/license/nd.png" format="PNG" scalefit="1" width="20pt"/>
+					</imageobject>
+				</inlinemediaobject>
+				<emphasis role="bold">Keine Bearbeitung</emphasis> — Dieses Werk bzw. dieser Inhalt darf nicht bearbeitet, abgewandelt oder in anderer Weise verändert werden.</para>
+			<para>
+				<emphasis role="bold">Wobei gilt:</emphasis>
+			</para>
+			<para>
+				<emphasis role="bold">Verzichtserklärung</emphasis> — Jede der vorgenannten Bedingungen kann aufgehoben werden, sofern Sie die ausdrückliche Einwilligung des Rechteinhabers dazu erhalten.</para>
+			<para>
+				<emphasis role="bold">Public Domain (gemeinfreie oder nicht-schützbare Inhalte)</emphasis> — Soweit das Werk, der Inhalt oder irgendein Teil davon zur Public Domain der jeweiligen Rechtsordnung gehört, wird dieser Status von der Lizenz in keiner Weise berührt.</para>
+			<para>
+				<emphasis role="bold">Sonstige Rechte</emphasis> — Die Lizenz hat keinerlei Einfluss auf die folgenden Rechte:</para>
+			<itemizedlist spacing="compact">
+				<listitem>
+					<para> Your fair dealing or fair use rights, or other applicable copyright exceptions and limitations;</para>
+				</listitem>
+				<listitem>
+					<para> Das Urheberpersönlichkeitsrecht des Rechteinhabers;</para>
+				</listitem>
+				<listitem>
+					<para> Rechte anderer Personen, entweder am Lizenzgegenstand selber oder bezüglich seiner Verwendung, zum Beispiel Persönlichkeitsrechte abgebildeter Personen.</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				<emphasis role="bold">Hinweis</emphasis> — Im Falle einer Verbreitung müssen Sie anderen alle Lizenzbedingungen mitteilen, die für dieses Werk gelten.</para>
+			<para>Diese "Commons Deed" ist lediglich eine vereinfachte Zusammenfassung des <link xl:href="http://creativecommons.org/licenses/by-nc-nd/3.0/de/legalcode">rechtsverbindlichen Lizenzvertrages</link> in allgemeinverständlicher Sprache.</para>
 		</legalnotice>
-
-		<releaseinfo>Version 2.1.3</releaseinfo>
+		<releaseinfo>Version 2.2.0</releaseinfo>
 	</bookinfo>
-
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/01_introduction/01_introduction.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/02_installation/02_installation.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/03_editors_and_views/03_editors_and_views.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/04_openoffice_libreoffice/04_openoffice_libreoffice.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/05_webshop/05_webshop.xml"/>
-	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/06_parcelservice/06_parcelservice.xml"/>
+	<!--	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/06_parcelservice/06_parcelservice.xml"/> -->
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/07_workspace/07_workspace.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/08_importexport/08_importexport.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/09_preferences/09_preferences.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/10_license/10_license.xml"/>
 	<xi:include xmlns:d="http://docbook.org/ns/docbook" href="chapters/appendix_a_connect-base/appendix_a_connect-base.xml"/>
-
 	<appendix>
 		<anchor xreflabel="faq" xml:id="appendix_faq"/>
-      <title>Häufig gestellte Fragen (FAQ)</title>
-    <qandaset>
-	<qandadiv>
-	<title>Allgemeines</title>
-	<qandaentry>
-	<question><para>Der Installer findet kein Java, obwohl es installiert ist.</para></question>
-	<answer><para>
-	Man kann den Installer mit dem Schalter <code>-manual</code> aufrufen, dann kann man die Laufzeitumgebung auswählen.
-	</para></answer></qandaentry>
-	<qandaentry>
-	<question><para>In der türkischen Lokalisierung startet Fakturama nicht.</para></question>
-	<answer><para>Beim Start von Fakturama werden die Metadaten der Datenbank von EclipseLink aus den Model-Dateien ermittelt.
+		<title>Häufig gestellte Fragen (FAQ)</title>
+		<qandaset>
+			<qandadiv>
+				<title>Allgemeines</title>
+				<qandaentry>
+					<question>
+						<para>Der Installer findet kein Java, obwohl es installiert ist.</para>
+					</question>
+					<answer>
+						<para>
+							Man kann den Installer mit dem Schalter <code>-manual</code> aufrufen, dann kann man die Laufzeitumgebung auswählen.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>In der türkischen Lokalisierung startet Fakturama nicht.</para>
+					</question>
+					<answer>
+						<para>Beim Start von Fakturama werden die Metadaten der Datenbank von EclipseLink aus den Model-Dateien ermittelt.
 Dabei werden alle Attribute in Großbuchstaben konvertiert, allerdings mit der Default-Locale (also tr_TR). Das hat
 zur Folge, daß der Kleinbuchstabe "i" in einen Großbuchstaben <!-- %ISOlat2; &#0130;--> "I" (mit einem Punkt darüber) konvertiert wird. Dieses
-Attribut gibt es natürlich nicht, deswegen kann die Datenbank nicht initialisiert werden. Das Problem ist ab Fakturama 2.1.1 gelöst.</para></answer>
-	</qandaentry>
-	<qandaentry>
-	<question><para>Verwendung von MySQL ab Version x bringt Fehler</para></question>
-	<answer><para>Symptom:
-	<programlisting>
-Tue Jun 20 21:33:55 CEST 2017 WARN: Establishing SSL connection without server's identity verification is not recommended. According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set. For compliance with existing applications not using SSL the verifyServerCertificate property is set to 'false'. You need either to explicitly disable SSL by setting useSSL=false, or set useSSL=true and provide truststore for server certificate verification.
-	</programlisting>
-Abhilfe: An die URL noch folgendes anhängen: <code>?useSSL=false</code>.
-also z. B. 
-<programlisting>jdbc:mysql://rhehomesrv/fakturama?useSSL=false&#038;characterEncoding=utf8&#038;useUnicode=yes</programlisting>
-</para>
-<para>Als Alternative wird der Einsatz einer verschlüsselten Verbindung empfohlen. Wie diese einzurichten ist steht im <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/raw/develop/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">HowTo-Dokument</link>.</para>
-</answer>
-	</qandaentry>
-	
-	<qandaentry><question><para>Fakturama startet nicht</para></question>
-	<answer><para>Folgendes prüfen:
-	<itemizedlist spacing="compact">
-<listitem>welche Java-Version wird verwendet?</listitem>
-<listitem>stehen in <code>~/.fakturama2/.metadata/.log</code> (bei Linux / Mac OS) bzw. <code>%USERPROFILE%\.fakturama2\.metadata\.log</code>  irgendwelche Hinweise?</listitem>
-</itemizedlist>
-Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
-</para></answer></qandaentry>
+Attribut gibt es natürlich nicht, deswegen kann die Datenbank nicht initialisiert werden. Das Problem ist ab Fakturama 2.1.1 gelöst.</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Verwendung von MySQL ab Version x bringt Fehler</para>
+						<para>Symptom:
+							<programlisting>
+						Tue Jun 20 21:33:55 CEST 2017 WARN: Establishing SSL connection without server's identity verification is not recommended. According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set. For compliance with existing applications not using SSL the verifyServerCertificate property is set to 'false'. You need either to explicitly disable SSL by setting useSSL=false, or set useSSL=true and provide truststore for server certificate verification.
+							</programlisting></para>
+					</question>
+					<answer>
+						<para>
+							Abhilfe: An die URL noch folgendes anhängen: <code>?useSSL=false</code>.
+							also z. B. 
+							<programlisting>jdbc:mysql://rhehomesrv/fakturama?useSSL=false&#038;characterEncoding=utf8&#038;useUnicode=yes</programlisting>
+						</para>
+						<para>Als Alternative wird der Einsatz einer verschlüsselten Verbindung empfohlen. Wie diese einzurichten ist steht im <link xl:href="https://bitbucket.org/fakturamadev/fakturama-2/raw/develop/Fakturama-Parent/org.fakturama.help/howto/mysql/ssl4mysql.md">HowTo-Dokument</link>.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Fakturama startet nicht</para>
+					</question>
+					<answer>
+						<para>Folgendes prüfen:
+							<itemizedlist spacing="compact">
+								<listitem>welche Java-Version wird verwendet?</listitem>
+								<listitem>stehen in <code>~/.fakturama2/.metadata/.log</code> (bei Linux / Mac OS) bzw. <code>%USERPROFILE%\.fakturama2\.metadata\.log</code>  irgendwelche Hinweise?</listitem>
+							</itemizedlist>
+							Die Frage kann dann mit den Zusatzhinweisen auch im Forum gepostet werden.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Fakturama bleibt beim Start hängen</para>
+					</question>
+					<answer>
+						<para>Die Ursache dafür kann ein Lock-Eintrag in der Datenbank sein. Zur Fehlerbereinigung muß die Datei <code>Database.script</code> mit einem Texteditor geändert werden. In dieser Datei muß die Zeile 
+						<programlisting>INSERT INTO DATABASECHANGELOGLOCK...</programlisting> gesucht und entfernt werden.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>MySQL-DB ist im Netzwerk nicht erreichbar</para>
+					</question>
+					<answer>
+						<para>
+						siehe dazu den entsprechenden <link xl:href="https://www.fakturama.info/community/fakturama-2/umschalten-auf-mysql/">Foreneintrag</link>.
+						Wichtig ist hier, als <code>bind-addr</code> <code>0.0.0.0</code> anzugeben.</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Fehler: The table data is read only</para>
+					</question>
+					<answer>
+						<para>Dies kann daran liegen, wenn eine Synchronisation auf ein entferntes Laufwerk (z. B. mit Seafile) eingerichtet ist. Das sorgt dafür, daß die Datenbank-Dateien gesperrt werden.
+Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß läuft, der die Tabellen gesperrt hat.</para>
+					</answer>
+				</qandaentry>
+			</qandadiv>
+			<qandadiv>
+				<title>Fakturama unter Mac OS</title>
+				<qandaentry>
+					<question>
+						<para>Unter MacOS sehe ich keine CoolBar (die Leiste mit den großen Icons) im Vollbildmodus.</para>
+					</question>
+					<answer>
+						<para>Dafür gibt es leider noch keine Lösung. Abhilfe schafft hier vorübergehend das nicht-maximierte Ausführen der Anwendung.</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Der Aufruf via Doppelklick bzw. Spotlight führt zur Fehlermeldung, dass das Programm scheinbar defekt ist.</para>
+					</question>
+					<answer>
+						<para>Da die Anwendung nicht signiert ist lehnt MacOS den start via Finder ab. Der Start über die Kommandozeile funktioniert allerdings. Deswegen kann man folgendes Script auf dem Desktop platzieren (Dateiendung <code>.sh</code>) und diesem das Fakturama-Icon zuweisen:
+							<programlisting>
+							#!/bin/bash
+							/Applications/Fakturama2.app/Contents/MacOS/Fakturama
+							</programlisting>
+							Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Beim Start der Anwendung meldet das System, dass die Datei beschädigt sei und in den Papierkorb verschoben werden soll.</para>
+					</question>
+					<answer>
+						<para>Zunächst folgendes in einem Terminalfenster eingeben:
+							<programlisting>
+					cd /Applications
+					xattr -d com.apple.quarantine Fakturama2.app
+							</programlisting>
+						   Anschließend im Finder mit gedrückter CTRL-Taste das Fakturama-Icon anklicken und in dem aufklappenden Menü "Öffnen" wählen. Dann muss man nur noch die Netzwerkverbindung zulassen. 
+						   Die nachfolgenden Aufrufe funktionieren dann auch ohne CTRL-Taste.
+					    </para>
+						<para>Seit Version 2.1 ist die Anwendung signiert, das Problem sollte damit nicht mehr auftreten.</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Die Menüleiste kann nicht aktiviert (angeklickt) werden</para>
+					</question>
+					<answer>
+						<para>Dazu kurz zu einem beliebigen anderen Programm (oder zum Desktop) wechseln und dann wieder zurück zu Fakturama.</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Druckproblem in LibreOffice unter MacOS (Drucken dauert extrem lange)</para>
+					</question>
+					<answer>
+						<para>Die Lösung wurde im <link xl:href="https://www.fakturama.info/community/postid/21451/">Forum</link> gepostet.</para>
+					</answer>
+				</qandaentry>
+			</qandadiv>
+			
+			<qandadiv>
+				<title>Fakturama 2 unter Linux</title>
+				<qandaentry>
+					<question><para>Der Start-Dialog ist nur zur Hälfte sichtbar</para></question>
+					<answer>
+						<para>In diesem Fall muß der Displaymanager gewechselt werden:
+							<programlisting>
+							sudo update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/xdm
+							</programlisting>
+							Mit folgendem Befehl kann man ermitteln, welcher Fenstermanager aktuell gesetzt ist:
+							<programlisting> 
+							sudo update-alternatives --display default-displaymanager
+							</programlisting>
+						</para>
+						<para>	
+							Weitere Alternative:
+							Erstelle die Datei <code>.swt/trims.prefs</code> im Homeverzeichnis mit folgendem Inhalt:
+							<programlisting>
+								#Thu Dec 25 21:00:19 CET 2025
+								trimWidths=0 4 6 0 0 0 
+								trimHeights=0 4 6 0 0 23
+							</programlisting>
+							Die Lösung ist auch im <link xl:href="https://www.fakturama.info/community/postid/23285/">Forum</link> beschrieben.
+						
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Der Installer meldet folgenden Fehler:
+							<programlisting>
+					Fehler: Fehler bei der Transaktionsüberprüfung:
+					package Fakturama2-2.0.4-20190317-1.x86_64 does not verify: no digest
+							</programlisting>
+						</para>
+					</question>
+					<answer>
+						<para>Im Terminal folgenden Befehl ausführen (dabei natürlich das korrekte Installer-Paket angeben)
+							<programlisting>
+							sudo rpm -i --nodigest Installer_Fakturama_linux_x64_2.0.4.rpm 
+							</programlisting>
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Mein Fakturama startet nicht oder meldet <code>"MOZILLA_FIVE_HOME not set"</code> bzw. <code>org.eclipse.swt.SWTError: No more handles because there is no underlying browser available.</code>
+						</para>
+					</question>
+					<answer>
+						<para>Hier hilft oft die Installation des WebToolkits:
+							<programlisting>
+							apt-get install libwebkitgtk-3.0-0
+							</programlisting>
+							Weitere Hinweise zur Fehlerbehebung gibt es auch im <link xl:href="https://www.fakturama.info/community/postid/21043/">Forum</link>. Insbesondere Das Problem mit der libwebkitgtk-Bibliothek wurde hier intensiv behandelt. Ggf. hilft auch die Installation des Pakets libwebkit2gtk-4.0-37.
+						</para>
+						<para>Eine weitere Lösung besteht in der Installation des webkitgtk-Drivers:
+							<programlisting>
+							apt-get install webkit2gtk-driver
+							</programlisting>
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Fakturama stürzt beim Start mit folgender Meldung ab:
+							<programlisting>
+			SWT WebKitGDBus: error creating DBus server Error binding to address (GUnixSocketAddress): No such file or directory
+			SWT WebKit: error initializing DBus server, dBusServer == 0
 
-	<qandaentry><question><para>Fakturama bleibt beim Start hängen</para></question>
-	<answer><para>Die Ursache dafür kann ein Lock-Eintrag in der Datenbank sein. Zur Fehlerbereinigung muß die Datei <code>Database.script</code> mit einem Texteditor geändert werden. In dieser Datei muß die Zeile 
-<programlisting>INSERT INTO DATABASECHANGELOGLOCK...</programlisting> gesucht und entfernt werden.
-</para></answer></qandaentry>
-<qandaentry><question><para>MySQL-DB ist im Netzwerk nicht erreichbar</para></question>
-<answer><para>
-siehe dazu den entsprechenden <link xl:href="https://www.fakturama.info/community/fakturama-2/umschalten-auf-mysql/">Foreneintrag</link>.
-Wichtig ist hier, als <code>bind-addr</code> <code>0.0.0.0</code> anzugeben.</para></answer></qandaentry>
-
-<qandaentry><question><para>Fehler: The table data is read only</para></question>
-<answer><para>Dies kann daran liegen, wenn eine Synchronisation auf ein entferntes Laufwerk (z. B. mit Seafile) eingerichtet ist. Das sorgt dafür, daß die Datenbank-Dateien gesperrt werden.
-Eine weitere Ursache kann auch sein, daß bereits ein anderer Datenbank-Prozeß läuft, der die Tabellen gesperrt hat.</para></answer></qandaentry>
-	</qandadiv>
-	
-	<qandadiv>
-		<title>Fakturama unter Mac OS</title>
-	<qandaentry>
-	<question><para>Unter MacOS sehe ich keine CoolBar (die Leiste mit den großen Icons) im Vollbildmodus.</para></question>
-	<answer><para>Dafür gibt es leider noch keine Lösung. Abhilfe schafft hier vorübergehend das nicht-maximierte Ausführen der Anwendung.</para></answer>
-	</qandaentry>		
-	<qandaentry>
-	<question><para>Der Aufruf via Doppelklick bzw. Spotlight führt zur Fehlermeldung, dass das Programm scheinbar defekt ist.</para></question>
-	<answer><para>Da die Anwendung nicht signiert ist lehnt MacOS den start via Finder ab. Der Start über die Kommandozeile funktioniert allerdings. Deswegen kann man folgendes Script auf dem Desktop platzieren (Dateiendung <code>.sh</code>) und diesem das Fakturama-Icon zuweisen:
-		<programlisting>
-		#!/bin/bash
-		/Applications/Fakturama2.app/Contents/MacOS/Fakturama
-		</programlisting>
-		Seit Version 2.1 ist die Anwendung signiert, da Problem sollte damit nicht mehr auftreten.
-</para></answer>
-	</qandaentry>	
-	<qandaentry>
-	<question><para>Beim Start der Anwendung meldet das System, dass die Datei beschädigt sei und in den Papierkorb verschoben werden soll.</para></question>
-	<answer><para>Zunächst folgendes in einem Terminalfenster eingeben:
-        <programlisting>
-cd /Applications
-xattr -d com.apple.quarantine Fakturama2.app
-        </programlisting>
-       Anschließend im Finder mit gedrückter CTRL-Taste das Fakturama-Icon anklicken und in dem aufklappenden Menü "Öffnen" wählen. Dann muss man nur noch die Netzwerkverbindung zulassen. 
-       Die nachfolgenden Aufrufe funktionieren dann auch ohne CTRL-Taste. </para><para>Seit Version 2.1 ist die Anwendung signiert, da Problem sollte damit nicht mehr auftreten.
-	</para></answer>
-	</qandaentry><qandaentry><question><para>Die Menüleiste kann nicht aktiviert (angeklickt) werden</para></question>
-	<answer><para>Dazu kurz zu einem beliebigen anderen Programm (oder zum Desktop) wechseln und dann wieder zurück zu Fakturama.</para></answer>
-	</qandaentry></qandadiv>
-	
-      <qandadiv>
-        <title>Fakturama 2 unter Linux</title>
-		<qandaentry>
-		<question>
-		<para>Der Installer meldet folgenden Fehler:
-		<programlisting>
-Fehler: Fehler bei der Transaktionsüberprüfung:
-package Fakturama2-2.0.4-20190317-1.x86_64 does not verify: no digest
-		</programlisting>
-		</para>
-		</question>
-		<answer><para>Im Terminal folgenden Befehl ausführen (dabei natürlich das korrekte Installer-Paket angeben)
-<programlisting>
-sudo rpm -i --nodigest Installer_Fakturama_linux_x64_2.0.4.rpm 
-</programlisting></para>
-		</answer>
-		</qandaentry>
-		
-		
-        <qandaentry>
-          <question>
-            <para>Mein Fakturama startet nicht oder meldet <code>"MOZILLA_FIVE_HOME not set"</code></para>
-          </question>
-          <answer>
-            <para>Hier hilft oft die Installation des WebToolkits:
-			<programlisting>
-			apt-get install libwebkitgtk-3.0-0
-			</programlisting>
-			</para>
-          </answer>
-        </qandaentry>
-		
-        <qandaentry>
-			<question><para>Unklarer Absturz unter Linux</para></question>
-			<answer><para>
-Symptom:
-			<programlisting>
-!MESSAGE Unable to create class 'com.sebulli.fakturama.views.datatable.documents.DocumentsListTable' from bundle '860'
-!STACK 0
-org.eclipse.e4.core.di.InjectionException: java.lang.NoClassDefFoundError: org/eclipse/swt/events/SelectionListener
-	at org.eclipse.e4.core.internal.di.InjectorImpl.internalMake(InjectorImpl.java:410)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.make(InjectorImpl.java:318)
-</programlisting></para>
-<para>
-Lösung: Schalter <code>-DSWT_GTK3=0</code> oder Schalter <code>-clean -consoleLog</code> beim Start der Anwendung über die Console (Terminal) mitgeben</para>
-			</answer>
-        </qandaentry>
-        <qandaentry>
-		<question><para>Eine Datei kann nicht bearbeitet werden, wenn sie auf einem Netzlaufwerk liegt (unter LibreOffice)</para></question>
-		<answer><para>Das file-locking von libreoffice macht Probleme, wenn die Datei von einem Netzlaufwerk über nfs geholt wird. Abhilfe schafft das Ausschalten des file-lockings in der Datei <code>/usr/lib/libreoffice/program/soffice</code>:
-<programlisting>
-# file locking now enabled by default
-SAL_ENABLE_FILE_LOCKING=1
-export SAL_ENABLE_FILE_LOCKING
-</programlisting>
-ändern in
-<programlisting>
-# file locking now enabled by default  - disabled
-#SAL_ENABLE_FILE_LOCKING=1
-#export SAL_ENABLE_FILE_LOCKING
-</programlisting>
-</para></answer>
-		</qandaentry>
-		<qandaentry><question><para>OpenOffice-Dokument wird nach dem Drucken nicht geöffnet</para></question>
-		<answer><para>Unter Linux, egal mit welcher UI, wird auf eine Mime-Datenbank zugegriffen. Diese befindet sich unter <code>/usr/share/mime/</code>
+			(Fakturama:87677): GLib-GIO-CRITICAL **: 08:14:06.114: g_dbus_server_get_client_address: assertion 'G_IS_DBUS_SERVER (server)' failed
+			#
+			# A fatal error has been detected by the Java Runtime Environment:
+			#
+			#  SIGSEGV (0xb) at pc=0x00007f2a2443ed16, pid=87677, tid=87678
+							</programlisting>
+						</para>
+					</question>
+					<answer>
+						<para>Die Lösung besteht darin, ein bestimmtes Verzeichnis anzulegen:
+							<programlisting>
+							mkdir /tmp/SWT-GDBusServer
+							</programlisting>
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Unklarer Absturz unter Linux</para>
+						<para>
+							Symptom:
+							<programlisting>
+				!MESSAGE Unable to create class 'com.sebulli.fakturama.views.datatable.documents.DocumentsListTable' from bundle '860'
+				!STACK 0
+				org.eclipse.e4.core.di.InjectionException: java.lang.NoClassDefFoundError: org/eclipse/swt/events/SelectionListener
+					at org.eclipse.e4.core.internal.di.InjectorImpl.internalMake(InjectorImpl.java:410)
+					at org.eclipse.e4.core.internal.di.InjectorImpl.make(InjectorImpl.java:318)
+				</programlisting>
+						</para>
+					</question>
+					<answer>
+						<para>
+							Lösung: Schalter <code>-DSWT_GTK3=0</code> oder Schalter <code>-clean -consoleLog</code> beim Start der Anwendung über die Console (Terminal) mitgeben
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>Eine Datei kann nicht bearbeitet werden, wenn sie auf einem Netzlaufwerk liegt (unter LibreOffice)</para>
+					</question>
+					<answer>
+						<para>Das file-locking von libreoffice macht Probleme, wenn die Datei von einem Netzlaufwerk über nfs geholt wird. Abhilfe schafft das Ausschalten des file-lockings in der Datei <code>/usr/lib/libreoffice/program/soffice</code>:
+							<programlisting>
+							# file locking now enabled by default
+							SAL_ENABLE_FILE_LOCKING=1
+							export SAL_ENABLE_FILE_LOCKING
+							</programlisting>
+							ändern in
+							<programlisting>
+							# file locking now enabled by default  - disabled
+							#SAL_ENABLE_FILE_LOCKING=1
+							#export SAL_ENABLE_FILE_LOCKING
+							</programlisting>
+						</para>
+					</answer>
+				</qandaentry>
+				<qandaentry>
+					<question>
+						<para>OpenOffice-Dokument wird nach dem Drucken nicht geöffnet</para>
+					</question>
+					<answer>
+						<para>Unter Linux, egal mit welcher UI, wird auf eine Mime-Datenbank zugegriffen. Diese befindet sich unter <code>/usr/share/mime/</code>
 und spezifisch für einen Benutzer in <code>~/.local/share/mime/</code>.</para>
-<para>
-Zum Beispiel:
-<informaltable> 
-<tgroup cols='3'>
-<colspec colwidth='1.3in'/>
-<colspec colwidth='1.3in'/>
-<colspec colwidth='2.5in'/>
-<thead>
-<row>
-  <entry align="center">Dateiendung</entry>
-  <entry>Name</entry>
-  <entry>MIME-Typ</entry>
-</row>
-</thead>
-<tbody>
-<row><entry>.odt</entry><entry>OpenDocument Text</entry><entry>application/vnd.oasis.opendocument.text</entry></row>
-</tbody>
-</tgroup>
-  </informaltable>
-</para></answer></qandaentry>
-
-		</qandadiv>
-    </qandaset>
-
-
-  </appendix>
+						<para>
+							Zum Beispiel:
+							<informaltable>
+								<tgroup cols='3'>
+									<colspec colwidth='1.3in'/>
+									<colspec colwidth='1.3in'/>
+									<colspec colwidth='2.5in'/>
+									<thead>
+										<row>
+											<entry align="center">Dateiendung</entry>
+											<entry>Name</entry>
+											<entry>MIME-Typ</entry>
+										</row>
+									</thead>
+									<tbody>
+										<row>
+											<entry>.odt</entry>
+											<entry>OpenDocument Text</entry>
+											<entry>application/vnd.oasis.opendocument.text</entry>
+										</row>
+									</tbody>
+								</tgroup>
+							</informaltable>
+						</para>
+					</answer>
+				</qandaentry>
+			</qandadiv>
+		</qandaset>
+	</appendix>
 	<glossary>
-    <glossentry id="Transaktionsnummer">
-      <glossterm>Transaktionsnummer</glossterm>
-      <glossdef>
-        <para>Die Transaktionsnummer ist eine über alle Dokumente desselben Vorganges einheitliche Nummer. Diese Nummer wird beispielsweise verwendet um zu prüfen, welche Mahnungen zu einer Rechnung gehören oder ob bereits ein Folgedokument für diesen Arbeitsablauf existiert.</para>
-      </glossdef>
-    </glossentry>
-  </glossary>
+		<glossentry id="Transaktionsnummer">
+			<glossterm>Transaktionsnummer</glossterm>
+			<glossdef>
+				<para>Die Transaktionsnummer ist eine über alle Dokumente desselben Vorganges einheitliche Nummer. Diese Nummer wird beispielsweise verwendet um zu prüfen, welche Mahnungen zu einer Rechnung gehören oder ob bereits ein Folgedokument für diesen Arbeitsablauf existiert.</para>
+			</glossdef>
+		</glossentry>
+	</glossary>
 	<!--index/-->
 </book>

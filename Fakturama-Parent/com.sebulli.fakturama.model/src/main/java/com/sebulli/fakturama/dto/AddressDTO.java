@@ -21,11 +21,14 @@ public class AddressDTO {
 	private Long gln = null;
 	private String manualAddress = null;
 	private String name = null;
+	private String addressAddon;
     
     public static AddressDTO from(DocumentReceiver documentReceiver) {
-    	AddressDTO addressDTO = new AddressDTO()
+    	if(documentReceiver != null) {
+    	return new AddressDTO()
 			.withAddressId(documentReceiver.getOriginAddressId())
 			.withCompany(documentReceiver.getCompany())
+			.withAddressAddon(documentReceiver.getNameAddon())
 			.withName(documentReceiver.getName())
 			.withFirstName(documentReceiver.getFirstName())
 			.withManualAddress(documentReceiver.getManualAddress())
@@ -35,10 +38,21 @@ public class AddressDTO {
 			.withTitle(documentReceiver.getTitle())
 			.withStreet(documentReceiver.getStreet())
 			.withCity(documentReceiver.getCity())
-			.withZip(documentReceiver.getZip())
-			;
-    	return addressDTO;
+			.withZip(documentReceiver.getZip());
+    	} else {
+    		return new AddressDTO();
+    	}
     }
+    
+	public static AddressDTO from(DocumentReceiver documentReceiver, Address originAddress) {
+		AddressDTO tmpDto = from(documentReceiver);
+		if (originAddress != null) {
+			// FIXME aus unbekannten Gründen ist das Addon-Feld in den Name gerutscht :-/
+			// tmpDto.setAddressAddon(originAddress.getName());
+			tmpDto.setEmail(originAddress.getEmail());
+		}
+		return tmpDto;
+	}
     
 	public static AddressDTO from(Contact contact, Address specificAddress) {
 		AddressDTO addressDTO = new AddressDTO().withCompany(contact.getCompany()) //
@@ -49,9 +63,11 @@ public class AddressDTO {
 				.withGender(contact.getGender()); //
 		if (specificAddress != null) {
 			addressDTO = addressDTO.withAddressId(specificAddress.getId())
+					.withAddressAddon(specificAddress.getAddressAddon()) // 
 					.withCountryCode(specificAddress.getCountryCode()) //
 					.withStreet(specificAddress.getStreet()) //
 					.withCity(specificAddress.getCity()) //
+					.withCityAddon(specificAddress.getCityAddon()) //
 					.withZip(specificAddress.getZip());
 		}
 		return addressDTO;
@@ -171,6 +187,26 @@ public class AddressDTO {
 		return zip;
 	}
 
+	public void setCityAddon(String cityAddon) {
+		this.cityAddon = cityAddon;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public void setSupplierNumber(String supplierNumber) {
+		this.supplierNumber = supplierNumber;
+	}
+
+	public void setGln(Long gln) {
+		this.gln = gln;
+	}
+
+	public void setAddressAddon(String addressAddon) {
+		this.addressAddon = addressAddon;
+	}
+
 	public AddressDTO withZip(String zip) {
 		this.zip = zip;
 		return this;
@@ -185,8 +221,22 @@ public class AddressDTO {
 		return this;
 	}
 
+	public AddressDTO withCityAddon(String cityAddon) {
+		this.cityAddon = cityAddon;
+		return this;
+	}
+	
+	public AddressDTO withAddressAddon(String addressAddon) {
+		this.addressAddon  = addressAddon;
+		return this;
+	}
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
+	}
+
+	public String getAddressAddon() {
+		return addressAddon;
 	}
 }

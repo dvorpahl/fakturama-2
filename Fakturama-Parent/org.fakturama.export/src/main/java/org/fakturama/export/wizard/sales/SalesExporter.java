@@ -210,7 +210,6 @@ public class SalesExporter extends OOCalcExporter {
 //		}
 		documents.forEach(doc -> vatSummarySetAllDocuments.add(doc, Double.valueOf(1.0)));
 
-		col = 11;
 		columnsWithVatHeading = 0;
 		columnsWithNetHeading = 0;
 		boolean vatIsNotZero = false;
@@ -400,7 +399,7 @@ public class SalesExporter extends OOCalcExporter {
 		// Show the sum only, if there are values in the table
 		if (sumrow > (headLine + 1)) {
 			for (int i = startColumn; i < (columnsWithVatHeading + columnsWithNetHeading); i++) {
-				col = 11 + i;
+				col = 12 + i;
 				try {
 					// Create formula for the sum. 
 					String cellNameBegin = CellFormatter.getCellName(headLine + 1, col);
@@ -416,7 +415,7 @@ public class SalesExporter extends OOCalcExporter {
 
 		// Draw a horizontal line (set the border of the top and the bottom
 		// of the table).
-		for (col = 0; col < (columnsWithVatHeading + columnsWithNetHeading) + 11; col++) {
+		for (col = 0; col < (columnsWithVatHeading + columnsWithNetHeading) + 12; col++) {
 			setBorder(headLine, col, Color.BLACK, false, false, true, false);
 			setBorder(sumrow, col, Color.BLACK, true, false, false, false);
 		}

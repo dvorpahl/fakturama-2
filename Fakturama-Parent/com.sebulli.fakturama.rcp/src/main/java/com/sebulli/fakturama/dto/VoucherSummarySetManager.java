@@ -80,7 +80,7 @@ public class VoucherSummarySetManager {
 		VoucherSummaryCalculator summary = ContextInjectionFactory.make(VoucherSummaryCalculator.class, ctx);
 		CurrencyUnit currencyCode = DataUtils.getInstance().getDefaultCurrencyUnit();
 		summary.calculate(vatSummarySet,
-				itemNr > -1 ? voucher.getItems().stream().filter(item -> item.getPosNr().compareTo(itemNr) == 0)
+				itemNr > -1 ? voucher.getItems().stream().filter(item -> Integer.valueOf(itemNr).compareTo(item.getPosNr()) == 0)
 						.collect(Collectors.toList()) : voucher.getItems(),
 				useCategory,
 				voucher.getPaidValue() != null ? Money.of(voucher.getPaidValue(), currencyCode)

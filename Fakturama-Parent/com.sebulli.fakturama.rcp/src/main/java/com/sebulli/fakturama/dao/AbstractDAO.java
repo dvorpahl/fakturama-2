@@ -1,16 +1,13 @@
-/* 
- * Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
+/* Fakturama - Free Invoicing Software - http://fakturama.sebulli.com
  * 
  * Copyright (C) 2013 Ralf Heydenreich
  * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Ralf Heydenreich - initial API and implementation
- */ 
+ * Contributors: Ralf Heydenreich - initial API and implementation */
 package com.sebulli.fakturama.dao;
 
 import java.sql.SQLException;
@@ -24,21 +21,10 @@ import java.util.Vector;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
-import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.gemini.ext.di.GeminiPersistenceContext;
-import org.eclipse.gemini.ext.di.GeminiPersistenceProperty;
 import org.eclipse.persistence.config.BatchWriting;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.QueryHints;
@@ -53,149 +39,161 @@ import com.sebulli.fakturama.model.FakturamaModelPackage;
 import com.sebulli.fakturama.model.IDescribableEntity;
 import com.sebulli.fakturama.model.IEntity;
 
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceUnit;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 /**
- * Abstract superclass for all DAOs. Used for finding, saving or updating certain entities.
+ * Abstract superclass for all DAOs. Used for finding, saving or updating
+ * certain entities.
  *
  */
 public abstract class AbstractDAO<T extends IEntity> {
 
     @Inject
-    @GeminiPersistenceContext(unitName = "unconfigured2", properties = {
-            @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_DRIVER, valuePref = @Preference(PersistenceUnitProperties.JDBC_DRIVER)),
-            @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_URL, valuePref = @Preference(PersistenceUnitProperties.JDBC_URL)),
-            @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_USER, valuePref = @Preference(PersistenceUnitProperties.JDBC_USER)),
-            @GeminiPersistenceProperty(name = PersistenceUnitProperties.JDBC_PASSWORD, valuePref = @Preference(PersistenceUnitProperties.JDBC_PASSWORD)),
-//            @GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING, value = "false"),
-            @GeminiPersistenceProperty(name = PersistenceUnitProperties.WEAVING_INTERNAL, value = "false") })
+    @PersistenceUnit(unitName = "unconfigured2")
+    private EntityManagerFactory emf;
+
     private EntityManager em;
-    
     @Inject
     protected ILogger log;
-    
+
     protected FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
-    
 
     @PreDestroy
     public void destroy() {
         if (em != null && em.isOpen()) {
             em.close();
         }
-    }  
+    }
 
-	protected EntityManager getEntityManager() {
-		return em;
-	}
-    public T save(T object) throws FakturamaStoringException {
-    	return save(object, false);
+    protected EntityManager getEntityManager() {
+        if (em == null) {
+            em = emf.createEntityManager();
+        }
+        return em;
+    }
+
+    public T save(final T object) throws FakturamaStoringException {
+        return save(object, false);
     }
 
     /**
      * Persists the given object.
      * 
-     * @param object the object to persist
+     * @param object
+     *            the object to persist
      * @return the persisted object
-     * @throws SQLException if an error is occurred
+     * @throws SQLException
+     *             if an error is occurred
      */
-    public T save(T object, boolean withBatch) throws FakturamaStoringException {
-    	Object oldBatchWritingSize = ""; 
-    	Object oldBatchWriting = 20;
-/*
- * BESSER: 
- * 
-@PersistenceUnit EntityManagerFactory factory;
-protected void doPost(HttpServlet req, ...) {
-EntityManager em = factory.createEntityManager();
-Order order = ...;
-em.persist(order);
-
-TODO (in den einzelnen Entities:)
-@Version Timestamp timestamp;
-
-bei read-only-entities (results): @TransactionAttribute(NOT_SUPPORTED)
-
-Transaktionen
-- neue Tx:
-@Resource UserTransaction utx;
-. . .
-utx.begin();
-EntityManager em = emf.createEntityManager();
-//em is now JTA
- * 
- * 
- * Verbinden zu bestehender: 
- * @Resource UserTransaction utx;
-. . .
-EntityManager em = emf.createEntityManager();
-//em is is RESOURCE_LOCAL
-utx.begin();
-em.joinTransaction();
-
-} */
+    public T save(T object, final boolean withBatch) throws FakturamaStoringException {
+        Object oldBatchWritingSize = "";
+        Object oldBatchWriting = 20;
+        /*
+         * BESSER: 
+         * 
+        @PersistenceUnit EntityManagerFactory factory;
+        protected void doPost(HttpServlet req, ...) {
+        EntityManager em = factory.createEntityManager();
+        Order order = ...;
+        em.persist(order);
         
-		try {
-			checkConnection();
-			EntityManager entityManager = getEntityManager();
-			EntityTransaction trx = entityManager.getTransaction();
-			trx.begin();
-			// merge before persist since we could have referenced entities
-			// which are already persisted
-			if(withBatch) {
-				// first save old values
-				oldBatchWriting = entityManager.getProperties().get(PersistenceUnitProperties.BATCH_WRITING);
-				oldBatchWritingSize = entityManager.getProperties().get(PersistenceUnitProperties.BATCH_WRITING_SIZE);
-				entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING, BatchWriting.JDBC);
-				entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING_SIZE, 20);
-			}
-			object = entityManager.merge(object);
-			getEntityManager().persist(object);
-			trx.commit();
-			if(withBatch) {
-				entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING, oldBatchWriting);
-				entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING_SIZE, oldBatchWritingSize);
-			}
-		} catch (SQLException e) {
-			throw new FakturamaStoringException("Error saving to the database.", e, object);
-		}
-		return object;
+        TODO (in den einzelnen Entities:)
+        @Version Timestamp timestamp;
+        
+        bei read-only-entities (results): @TransactionAttribute(NOT_SUPPORTED)
+        
+        Transaktionen
+        - neue Tx:
+        @Resource UserTransaction utx;
+        . . .
+        utx.begin();
+        EntityManager em = emf.createEntityManager();
+        //em is now JTA
+         * 
+         * 
+         * Verbinden zu bestehender: 
+         * @Resource UserTransaction utx;
+        . . .
+        EntityManager em = emf.createEntityManager();
+        //em is is RESOURCE_LOCAL
+        utx.begin();
+        em.joinTransaction();
+        
+        } */
+
+        try {
+            checkConnection();
+            EntityManager entityManager = getEntityManager();
+            EntityTransaction trx = entityManager.getTransaction();
+            trx.begin();
+            // merge before persist since we could have referenced entities
+            // which are already persisted
+            if (withBatch) {
+                // first save old values
+                oldBatchWriting = entityManager.getProperties().get(PersistenceUnitProperties.BATCH_WRITING);
+                oldBatchWritingSize = entityManager.getProperties().get(PersistenceUnitProperties.BATCH_WRITING_SIZE);
+                entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING, BatchWriting.JDBC);
+                entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING_SIZE, 20);
+            }
+            object = entityManager.merge(object);
+            getEntityManager().persist(object);
+            trx.commit();
+            if (withBatch) {
+                entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING, oldBatchWriting);
+                entityManager.setProperty(PersistenceUnitProperties.BATCH_WRITING_SIZE, oldBatchWritingSize);
+            }
+        } catch (SQLException e) {
+            throw new FakturamaStoringException("Error saving to the database.", e, object);
+        }
+        return object;
     }
-    
-	public T update(T object) throws FakturamaStoringException {
-		try {
-			checkConnection();
-			EntityTransaction trx = getEntityManager().getTransaction();
-			trx.begin();
-			object = getEntityManager().merge(object);
-			
-			getEntityManager().persist(object);
-			//getEntityManager().flush();
-			trx.commit();
-		} catch (Exception e) {
-			throw new FakturamaStoringException("Error updating to the database.", e, object);
-		}
-		return object;
-	}
+
+    public T update(T object) throws FakturamaStoringException {
+        try {
+            checkConnection();
+            EntityTransaction trx = getEntityManager().getTransaction();
+            trx.begin();
+            object = getEntityManager().merge(object);
+
+            getEntityManager().persist(object);
+            // getEntityManager().flush();
+            trx.commit();
+        } catch (Exception e) {
+            throw new FakturamaStoringException("Error updating to the database.", e, object);
+        }
+        return object;
+    }
 
     /**
-     * Inserts a new object into the database. If the object is already there only an update is performed.
-     *  
-     * @param object the object to be inserted or updated
+     * Inserts a new object into the database. If the object is already there
+     * only an update is performed.
+     * 
+     * @param object
+     *            the object to be inserted or updated
      * @return the new or updated object
-     * @throws SQLException 
+     * @throws SQLException
      */
-	public T insertOrUpdate(T object) throws FakturamaStoringException {
-		T foundObject = findByExample(object);
-		if (foundObject == null) {
-			foundObject = save(object);
-		} else {
-		    ((IEntity)object).setId(((IEntity)foundObject).getId());				
-			foundObject = update(object);
-		}
-		return foundObject;
-	}
+    public T insertOrUpdate(final T object) throws FakturamaStoringException {
+        T foundObject = findByExample(object);
+        if (foundObject == null) {
+            foundObject = save(object);
+        } else {
+            ((IEntity) object).setId(((IEntity) foundObject).getId());
+            foundObject = update(object);
+        }
+        return foundObject;
+    }
 
-	/* * * * * * * * * [some common finders] * * * * * * * * * * * * * * * * * * * * * /
+    /* * * * * * * * * [some common finders] * * * * * * * * * * * * * * * * * * * * * /
     /**
      * Get all {@link T} from Database.
      *
@@ -204,16 +202,16 @@ em.joinTransaction();
     public List<T> findAll() {
         return findAll(false);
     }
-    
-    public List<T> findAll(boolean forceRead) {
+
+    public List<T> findAll(final boolean forceRead) {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(getEntityClass());
         Root<T> root = query.from(getEntityClass());
         query.where(cb.not(root.<Boolean> get("deleted")));
         TypedQuery<T> q = getEntityManager().createQuery(query);
-        if(forceRead) {
+        if (forceRead) {
             q.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
-//            query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
+            // query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
         }
         return q.getResultList();
     }
@@ -221,48 +219,46 @@ em.joinTransaction();
     /**
      * Finds an entity with its name.
      * 
-     * @param entityName the name of the entity
+     * @param entityName
+     *            the name of the entity
      * @return T
      */
-    public T findByName(String entityName) {
+    public T findByName(final String entityName) {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> criteria = cb.createQuery(getEntityClass());
         Root<T> root = criteria.from(getEntityClass());
-        CriteriaQuery<T> cq;boolean hasDescription = false;
-        
+        CriteriaQuery<T> cq;
+        boolean hasDescription = false;
+
         // if the concrete class has a description attribute we can use it, too
-        if(getEClass() != null) {
+        if (getEClass() != null) {
             EList<EAttribute> eAllAttributes = getEClass().getEAllAttributes();
-            hasDescription = eAllAttributes.stream().anyMatch(p -> p.getName().contentEquals(FakturamaModelPackage.INSTANCE.getIDescribableEntity_Description().getName()));
+            hasDescription = eAllAttributes.stream()
+                    .anyMatch(p -> p.getName().contentEquals(FakturamaModelPackage.INSTANCE.getIDescribableEntity_Description().getName()));
         }
-        if(hasDescription) {
-            cq = criteria.where(
-            		cb.and(
-            		        cb.or(
-            		                cb.equal(root.<String> get("description"), entityName),
-            		                cb.equal(root.<String> get("name"), entityName)
-            		             ),
-            				cb.isFalse(root.<Boolean>get("deleted"))));
+        if (hasDescription) {
+            cq = criteria.where(cb.and(cb.or(cb.equal(root.<String> get("description"), entityName), cb.equal(root.<String> get("name"), entityName)),
+                    cb.isFalse(root.<Boolean> get("deleted"))));
         } else {
-            cq = criteria.where(
-            		cb.and(
-            		        cb.equal(root.<String> get("name"), entityName),
-            				cb.isFalse(root.<Boolean>get("deleted"))));
-            
+            cq = criteria.where(cb.and(cb.equal(root.<String> get("name"), entityName), cb.isFalse(root.<Boolean> get("deleted"))));
+
         }
         T result = null;
         try {
             result = getEntityManager().createQuery(cq).getSingleResult();
         } catch (NoResultException e) {
-            log.debug("no entities found for ["+entityName+"], returning {null} value.");
+            log.debug("no entities found for [" + entityName + "], returning {null} value.");
         }
         return result;
     }
-    
+
     /**
-     * <p>Returns the eClass of the concrete objects for which this DAO is responsible. Per default this
-     * method returns <code>null</code>, but in case of an {@link IDescribableEntity} one can
-     * overwrite this method in the concrete DAO class and return the proper eClass, e.g., return
+     * <p>
+     * Returns the eClass of the concrete objects for which this DAO is
+     * responsible. Per default this method returns <code>null</code>, but in
+     * case of an {@link IDescribableEntity} one can overwrite this method in
+     * the concrete DAO class and return the proper eClass, e.g., return
+     * 
      * <pre>
      * FakturamaModelPackage.INSTANCE.getPaymentEClass()
      * </pre>
@@ -274,112 +270,138 @@ em.joinTransaction();
     }
 
     /**
-     * Finds a {@link T} by id. 
-     * @param id the primary key to search
+     * Finds a {@link T} by id.
+     * 
+     * @param id
+     *            the primary key to search
      * @return found object
      */
-    public T findById(Long id) {
+    public T findById(final Long id) {
         return findById(id, false);
     }
 
     /**
-     * Finds a {@link T} by id. If parameter <code>forceReadFromDatabase</code> is set, the value from
-     * database is forced to read, else it will get from session cache. This is necessary e.g. if you 
-     * changed an object in an editor, then didn't save the changes and after close you again
-     * open the editor with the same object. Without forced read you get the previously changed (but not saved!)
-     * object. This is because the databinding works down to the entity object.
+     * Finds a {@link T} by id. If parameter <code>forceReadFromDatabase</code>
+     * is set, the value from database is forced to read, else it will get from
+     * session cache. This is necessary e.g. if you changed an object in an
+     * editor, then didn't save the changes and after close you again open the
+     * editor with the same object. Without forced read you get the previously
+     * changed (but not saved!) object. This is because the databinding works
+     * down to the entity object.
      * 
-     * @param id the primary key to search
-     * @param forceReadFromDatabase don't use a previously cached object, but refresh 
-     *  object with database content
+     * @param id
+     *            the primary key to search
+     * @param forceReadFromDatabase
+     *            don't use a previously cached object, but refresh object with
+     *            database content
      * @return found object
      */
-    public T findById(Long id, boolean forceReadFromDatabase) {
-    	if(id == null) {
-    		return null;
-    	}
-    	
-    	T find = getEntityManager().find(getEntityClass(), id);
-    	if(forceReadFromDatabase) {
-    	    getEntityManager().refresh(find);
-    	}
+    public T findById(final Long id, final boolean forceReadFromDatabase) {
+        if (id == null) {
+            return null;
+        }
+
+        T find = getEntityManager().find(getEntityClass(), id);
+        if (forceReadFromDatabase) {
+            getEntityManager().refresh(find);
+        }
         return find;
     }
-    
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */    
-    
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
     /**
-     * Adds a new entity if it doesn't exist. I.e., if a semantically equal object is in the database,
-     * no saving is done (this is useful e.g. for webshop import).
+     * Adds a new entity if it doesn't exist. I.e., if a semantically equal
+     * object is in the database, no saving is done (this is useful e.g. for
+     * webshop import).
      * 
-     * @param obj the entity to write
+     * @param obj
+     *            the entity to write
      * @return the refreshed entity
      */
-    public T addIfNew(T obj) throws FakturamaStoringException {
+    public T addIfNew(final T obj) throws FakturamaStoringException {
         T retval = findByExample(obj);
-        if(retval == null) {
+        if (retval == null) {
             retval = save(obj);
         }
         return retval;
     }
-    
-    /**
-     * <P>Find or create an Entity based on given Entity. This method is used e.g.
-     * for web shop import where a new contact is only created if it doesn't exist. 
-     * </P><P>
-     * This method is analogous to the old <code>isTheSameAs()</code> method of the <code>DataSet*</code> class.
-     * </P><P>The criteria are set in {@link AbstractDAO#getRestrictions(Object, CriteriaBuilder, Root)} which has to
-     * be overridden by sub classes.
-     * @param contact Entity to test
-     * @return found or newly created Entity
-     * @throws FakturamaStoringException 
-     */
-    public T findOrCreate(T object) throws FakturamaStoringException {
-    	return findOrCreate(object, false);
-    }
-    
-    /**
-     * <P>Find or create an entity based on given entity. This method is used e.g.
-     * for web shop import where a new contact is only created if it doesn't exist. 
-     * </P><P>
-     * This method is analog to the old <code>isTheSameAs()</code> method of the <code>DataSet*</code> class.
-     * </P><P>The criteria are set in {@link AbstractDAO#getRestrictions(Object, CriteriaBuilder, Root)} which has to
-     * be overridden by sub classes.
-     * @param contact Entity to test
-     * @param checkOnly if <code>true</code>, no new entity is created
-     * @return found or newly created Entity
-     * @throws FakturamaStoringException 
-     */
-	public T findOrCreate(T object, boolean checkOnly) throws FakturamaStoringException {
-		T retval = null;
-		CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<T> query = criteriaBuilder.createQuery(getEntityClass());
-		Root<T> root = query.from(getEntityClass());
-		Set<Predicate> restrictions = getRestrictions(object, criteriaBuilder, root);
-		CriteriaQuery<T> select = query.select(root).where(
-		        criteriaBuilder.and(restrictions.toArray(new Predicate[] {})),
-		        criteriaBuilder.isFalse(root.<Boolean>get("deleted"))
-		        );
 
-		List<T> resultList = getEntityManager().createQuery(select).getResultList();
-		if (checkOnly) {
-			if (!resultList.isEmpty()) {
-				retval = resultList.get(0);
-			}
-		} else {
-			if (resultList.isEmpty()) {
-				((IEntity) object).setValidFrom(new Date());
-				retval = save(object);
-			} else /* !resultList.isEmpty() */ {
-				retval = resultList.get(0);
-			}
-		}
-		return retval;
-	}    
-  
     /**
-     * Restrictions for {@link AbstractDAO#findOrCreate} method. Has to be overridden by sub classes.
-     * Here you can define the fields which are compared for finding an already persisted entity.
+     * <P>
+     * Find or create an Entity based on given Entity. This method is used e.g.
+     * for web shop import where a new contact is only created if it doesn't
+     * exist.
+     * </P>
+     * <P>
+     * This method is analogous to the old <code>isTheSameAs()</code> method of
+     * the <code>DataSet*</code> class.
+     * </P>
+     * <P>
+     * The criteria are set in
+     * {@link AbstractDAO#getRestrictions(Object, CriteriaBuilder, Root)} which
+     * has to be overridden by sub classes.
+     * 
+     * @param contact
+     *            Entity to test
+     * @return found or newly created Entity
+     * @throws FakturamaStoringException
+     */
+    public T findOrCreate(final T object) throws FakturamaStoringException {
+        return findOrCreate(object, false);
+    }
+
+    /**
+     * <P>
+     * Find or create an entity based on given entity. This method is used e.g.
+     * for web shop import where a new contact is only created if it doesn't
+     * exist.
+     * </P>
+     * <P>
+     * This method is analog to the old <code>isTheSameAs()</code> method of the
+     * <code>DataSet*</code> class.
+     * </P>
+     * <P>
+     * The criteria are set in
+     * {@link AbstractDAO#getRestrictions(Object, CriteriaBuilder, Root)} which
+     * has to be overridden by sub classes.
+     * 
+     * @param contact
+     *            Entity to test
+     * @param checkOnly
+     *            if <code>true</code>, no new entity is created
+     * @return found or newly created Entity
+     * @throws FakturamaStoringException
+     */
+    public T findOrCreate(final T object, final boolean checkOnly) throws FakturamaStoringException {
+        T retval = null;
+        CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = criteriaBuilder.createQuery(getEntityClass());
+        Root<T> root = query.from(getEntityClass());
+        Set<Predicate> restrictions = getRestrictions(object, criteriaBuilder, root);
+        CriteriaQuery<T> select = query.select(root).where(criteriaBuilder.and(restrictions.toArray(new Predicate[] {})),
+                criteriaBuilder.isFalse(root.<Boolean> get("deleted")));
+
+        List<T> resultList = getEntityManager().createQuery(select).getResultList();
+        if (checkOnly) {
+            if (!resultList.isEmpty()) {
+                retval = resultList.get(0);
+            }
+        } else {
+            if (resultList.isEmpty()) {
+                ((IEntity) object).setValidFrom(new Date());
+                retval = save(object);
+            } else /* !resultList.isEmpty() */ {
+                retval = resultList.get(0);
+            }
+        }
+        return retval;
+    }
+
+    /**
+     * Restrictions for {@link AbstractDAO#findOrCreate} method. Has to be
+     * overridden by sub classes. Here you can define the fields which are
+     * compared for finding an already persisted entity.
      * 
      * @param object
      * @param criteriaBuilder
@@ -387,25 +409,27 @@ em.joinTransaction();
      * @see AbstractDAO#findOrCreate(Object)
      * @return {@link Set}
      */
-    protected Set<Predicate> getRestrictions(T object, CriteriaBuilder criteriaBuilder, Root<T> root) {
+    protected Set<Predicate> getRestrictions(final T object, final CriteriaBuilder criteriaBuilder, final Root<T> root) {
         return new HashSet<>();
     }
 
     @SuppressWarnings("unchecked")
-    public T findByExample(T example) {
+    public T findByExample(final T example) {
         ReadAllQuery query = new ReadAllQuery(getEntityClass());
         query.setExampleObject(example);
         query.setQueryByExamplePolicy(getQueryByExamplePolicy());
         List<T> resultList = JpaHelper.createQuery(query, getEntityManager()).getResultList();
-        if(resultList.isEmpty()) {
+        if (resultList.isEmpty()) {
             return null;
         } else {
             return resultList.get(0);
         }
     }
-    
+
     /**
-     * Common {@link QueryByExamplePolicy}. May be overwritten if some fields don't have to appear in the query.
+     * Common {@link QueryByExamplePolicy}. May be overwritten if some fields
+     * don't have to appear in the query.
+     * 
      * @return
      */
     protected QueryByExamplePolicy getQueryByExamplePolicy() {
@@ -415,13 +439,15 @@ em.joinTransaction();
         policy.setShouldUseEqualityForNulls(false);
         return policy;
     }
-    
+
     /**
      * Contains all the attributes which are always necessary for comparing.
      * 
      * @return
      */
-    protected Map<Class<T>, Vector<String>> getAlwaysIncludeAttributes() {return Collections.emptyMap();}
+    protected Map<Class<T>, Vector<String>> getAlwaysIncludeAttributes() {
+        return Collections.emptyMap();
+    }
 
     /**
      * Gets the count of all entities of this type.
@@ -447,29 +473,28 @@ em.joinTransaction();
         }
     }
 
-	protected abstract Class<T> getEntityClass();
+    protected abstract Class<T> getEntityClass();
 
-	/**
-	 * @return the log
-	 */
-	public final ILogger getLog() {
-		return log;
-	}
+    /**
+     * @return the log
+     */
+    public final ILogger getLog() {
+        return log;
+    }
 
-	/**
-	 * Tests if an other entity with the same name exists.
-	 * 
-	 * @param entity the entity to test
-	 * @return 
-	 */
-	public boolean existsOther(T entity) {
-	    CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-	    CriteriaQuery<T> query = cb.createQuery(getEntityClass());
-	    Root<T> root = query.from(getEntityClass());
-	    CriteriaQuery<T> cq = query.where(
-	            cb.and(cb.notEqual(root.<Long>get("id"), entity.getId()),
-	                   cb.equal(root.<String>get("name"), entity.getName()),
-	                   cb.isFalse(root.<Boolean>get("deleted"))));
-	    return !getEntityManager().createQuery(cq).getResultList().isEmpty();
-	}
+    /**
+     * Tests if an other entity with the same name exists.
+     * 
+     * @param entity
+     *            the entity to test
+     * @return
+     */
+    public boolean existsOther(final T entity) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery(getEntityClass());
+        Root<T> root = query.from(getEntityClass());
+        CriteriaQuery<T> cq = query.where(cb.and(cb.notEqual(root.<Long> get("id"), entity.getId()), cb.equal(root.<String> get("name"), entity.getName()),
+                cb.isFalse(root.<Boolean> get("deleted"))));
+        return !getEntityManager().createQuery(cq).getResultList().isEmpty();
+    }
 }

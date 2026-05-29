@@ -1,4 +1,4 @@
-/* 
+/*
  * Fakturama - Free Invoicing Software - http://www.fakturama.org
  * 
  * Copyright (C) 2014 Ralf Heydenreich
@@ -9,7 +9,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *   Ralf Heydenreich - initial API and implementation
+ * Ralf Heydenreich - initial API and implementation
  */
 package org.fakturama.export.einvoice;
 
@@ -29,32 +29,31 @@ import com.opcoach.e4.preferences.ScopedPreferenceStore;
  *
  */
 public class ZFPreferenceStoreProvider implements IPreferenceStoreProvider {
-	
-	private static IPersistentPreferenceStore preferenceStore;
-	
-	private static IPreferenceStoreProvider preferenceStoreProvider = new ZFPreferenceStoreProvider(); 
-	
-	public static IPreferenceStoreProvider getInstance() {
-		return preferenceStoreProvider;
-	}
 
-	@Override
-	public IPersistentPreferenceStore getPreferenceStore() {
-		if(preferenceStore == null) {
-			preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE,
-					Activator.getContext().getBundle().getSymbolicName());
-		}
-		return preferenceStore;
-	}
-	
-	public void closeStore() {
-		try {
-			preferenceStore.save();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		preferenceStore = null;
-	}
+    private IPersistentPreferenceStore preferenceStore;
+
+    private static IPreferenceStoreProvider preferenceStoreProvider = new ZFPreferenceStoreProvider();
+
+    public static IPreferenceStoreProvider getInstance() {
+        return preferenceStoreProvider;
+    }
+
+    @Override
+    public IPersistentPreferenceStore getPreferenceStore() {
+        if (preferenceStore == null) {
+            preferenceStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, Activator.getContext().getBundle().getSymbolicName());
+        }
+        return preferenceStore;
+    }
+
+    public void closeStore() {
+        try {
+            preferenceStore.save();
+        } catch (final IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        preferenceStore = null;
+    }
 
 }

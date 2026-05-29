@@ -3,8 +3,8 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 /**
  * This class converts a given {@link LocalDate} to a {@link java.sql.Date} and vice versa. Used
