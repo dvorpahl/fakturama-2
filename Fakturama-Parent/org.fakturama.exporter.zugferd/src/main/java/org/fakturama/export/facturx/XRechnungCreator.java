@@ -91,7 +91,7 @@ public class XRechnungCreator extends AbstractEInvoiceCreator {
             // set vars related to profile
             converter.postProcess(eInvoice, zugferdProfile);
         } catch (final InvoiceConverterException e) {
-            log.error(e, "Error converting invoice to EInvoice");
+            log.error(e, "Error converting invoice to EInvoice. " + e.getMessage());
             return false;
         }
         switch (zugferdProfile) {

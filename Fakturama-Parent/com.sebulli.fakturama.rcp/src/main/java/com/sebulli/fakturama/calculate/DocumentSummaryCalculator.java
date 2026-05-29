@@ -96,7 +96,7 @@ public class DocumentSummaryCalculator {
         final int sign = DocumentTypeUtil.findByBillingType(dataSetDocument.getBillingType()).getSign();
 
         return calculate(vatSummarySet, dataSetDocument.getItems(),
-                shipping != null ? shipping.getShippingValue() : Optional.ofNullable(dataSetDocument.getShippingValue()).orElse(NumberUtils.DOUBLE_ZERO),
+                Optional.ofNullable(dataSetDocument.getShippingValue()).orElse(NumberUtils.DOUBLE_ZERO),
                 shipping != null ? shipping.getShippingVat() : null, shipping != null ? shipping.getAutoVat() : dataSetDocument.getShippingAutoVat(),
                 Optional.ofNullable(dataSetDocument.getItemsRebate()).orElse(NumberUtils.DOUBLE_ZERO), noVatReference, scaleFactor,
                 dataSetDocument.getNetGross(), deposit, sign);
@@ -211,7 +211,7 @@ public class DocumentSummaryCalculator {
         final MonetaryAmount shippingAmount = Money.of(param.getShippingValue() * param.getScaleFactor() * param.getSign(), getCurrencyCode());
         Double shippingVatPercent = param.getShippingVat() != null ? param.getShippingVat().getTaxValue() : NumberUtils.DOUBLE_ZERO;
         String currentVatDescription = param.getShippingVat() != null
-                ? StringUtils.defaultString(param.getShippingVat().getDescription(), param.getShippingVat().getName())
+                ? Objects.toString(param.getShippingVat().getName(), param.getShippingVat().getDescription())
                 : ""; // TODO or get it from additional document info???
 
         // If shippingAutoVat is not fix, the shipping VAT is 
@@ -268,7 +268,7 @@ public class DocumentSummaryCalculator {
                 retval.addToShippingVat(shippingPart.getUnitVat());
 
                 final VatSummaryItem shippingVatSummaryItem = new VatSummaryItem(currentVatDescription, shippingVatPercent, vatSummaryItem.getVatCode(),
-                        shippingPart.getUnitNet(), shippingPart.getUnitVat());
+                        shippingPart.getUnitNet(), shippingPart.getUnitVat(),Objects.toString(vatSummaryItem.getDescription(), currentVatDescription));
                 if (this.useSET && !vatSummaryItem.getSalesEqTax().isZero()) {
                     shippingVatSummaryItem.setSalesEqTaxPercent(vatSummaryItem.getSalesEqTaxPercent());
                 }
@@ -297,7 +297,7 @@ public class DocumentSummaryCalculator {
             // only add VAT if a shipping value is set
             if (!shippingAmount.isZero()) {
                 final VatSummaryItem shippingVatSummaryItem = new VatSummaryItem(currentVatDescription, shippingVatPercent, param.getShippingVat().getCode(),
-                        retval.getShippingNet(), retval.getShippingVat());
+                        retval.getShippingNet(), retval.getShippingVat(), param.getShippingVat().getDescription());
 
                 // Adjust the vat summary item by the shipping part
                 retval.addVatSummaryItem(shippingVatSummaryItem);
@@ -398,7 +398,7 @@ public class DocumentSummaryCalculator {
                 discountVatValue = discountVatValue.add(discountPart.getUnitVat()).add(discountPart.getTotalSalesEqTax());
 
                 final VatSummaryItem discountVatSummaryItem = new VatSummaryItem(discountVatDescription, discountVatPercent, vatSummaryItem.getVatCode(),
-                        discountPart.getUnitNet(), discountPart.getUnitVat());
+                        discountPart.getUnitNet(), discountPart.getUnitVat(), vatSummaryItem.getDescription());
                 if (this.useSET && !vatSummaryItem.getSalesEqTax().isZero()) {
                     discountVatSummaryItem.setSalesEqTax(discountPart.getTotalSalesEqTaxRounded());
                     discountVatSummaryItem.setSalesEqTaxPercent(vatSummaryItem.getSalesEqTaxPercent());
@@ -440,10 +440,9 @@ public class DocumentSummaryCalculator {
         }
         final boolean useGross = isUseGross(param);
 
-        final VatSummaryItem vatSummaryItem = new VatSummaryItem(StringUtils.defaultString(vatDescription, itemVat.getName()), vatPercent, vatCode,
+        final VatSummaryItem vatSummaryItem = new VatSummaryItem(itemVat.getName(), vatPercent, vatCode,
                 useGross ? price.getUnitGrossDiscounted().subtract(price.getUnitVatDiscounted()).subtract(price.getUnitSalesEqTaxDiscounted())
-                        .multiply(price.getQuantity()) : price.getTotalNet(),
-                itemVatAmount);
+                        .multiply(price.getQuantity()) : price.getTotalNet(), itemVatAmount, Objects.toString(vatDescription, itemVat.getName()));
 
         if (itemVat != null && this.useSET && itemVat.getSalesEqualizationTax() != null && !item.getNoVat()) {
             final double taxValue = DataUtils.getInstance().round(itemVat.getSalesEqualizationTax(),

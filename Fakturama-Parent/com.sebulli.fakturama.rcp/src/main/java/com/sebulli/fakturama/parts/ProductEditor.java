@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 
 import javax.annotation.PostConstruct;
@@ -418,30 +419,33 @@ public class ProductEditor extends Editor<Product> {
 					ImageData imageData = new ImageData(bais);
 					image = new Image(Display.getCurrent(), imageData);
 					JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
-
 				} catch (Exception e) {
 					// catch all exceptions here since we check for errors later
 					log.error(e, "Icon not found");
-
 				}
 			}
+			labelProductPicture.setImageByteArray(editorProduct.getPicture());
+		} else {
+			labelProductPicture.setImageByteArray(null);
 		}
+	}
+	
+	private void createAndSetDefaultImage() {
 		// Display an empty background if no picture is set or picture is not found.
-		if (image == null) {
-			try {
-				ImageDescriptor imageDesc = JFaceResources.getImageRegistry()
-						.getDescriptor(ProgramImages.NO_PICTURE.name());
-				if (imageDesc == null) {
-					image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
-					JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
-				} else {
-					image = imageDesc.createImage(true);
-				}
-			} catch (Exception e1) {
-				log.error(e1, "Icon not found");
+		try {
+			Image image = null;
+			ImageDescriptor imageDesc = JFaceResources.getImageRegistry()
+					.getDescriptor(ProgramImages.NO_PICTURE.name());
+			if (imageDesc == null) {
+				image = resourceManager.getProgramImage(display, ProgramImages.NO_PICTURE);
+				JFaceResources.getImageRegistry().put(ProgramImages.NO_PICTURE.name(), image);
+			} else {
+				image = JFaceResources.getImageRegistry().get(ProgramImages.NO_PICTURE.name());
 			}
+			labelProductPicture.setDefaultImage(image);
+		} catch (Exception e1) {
+			log.error(e1, "Icon not found");
 		}
-		labelProductPicture.setDefaultImage(image);
 	}
 
     /**
@@ -791,28 +795,24 @@ public class ProductEditor extends Editor<Product> {
         photoComposite.setBackground(new Color(null, 255, 255, 255));
 
         // The picture name label
-        labelProductPicture = new FakturamaPictureControl(photoComposite/*, defaultValuePrefs, msg*/);
+        labelProductPicture = new FakturamaPictureControl(photoComposite);
+        createAndSetDefaultImage();
         ContextInjectionFactory.inject(labelProductPicture, context);
-
-        //		labelProductPicture = ContextInjectionFactory.make(FakturamaPictureControl.class, context);
-        //		GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).minSize(100, SWT.DEFAULT).grab(true, false).applyTo(photoComposite);
-
-        //		 The picture path
-        //      ==> this is not longer necessary because we store the picture in database
-
-        // Load the picture from the picture path
-        //		createPicturePathFromPictureName();		
         setPicture();
 
         labelProductPicture.addPropertyChangeListener(FakturamaPictureControl.IMAGE_BYTEARRAY_PROPERTY, new PropertyChangeListener() {
             @Override
             public void propertyChange(final PropertyChangeEvent event) {
                 byte[] newImage = (byte[]) event.getNewValue();
+                final String imageKey = "prodimg_" + Objects.toString(editorProduct.getItemNumber(), Long.toString(editorProduct.getId()));
+                JFaceResources.getImageRegistry().remove(imageKey);
                 // if image was deleted we use the default image
-                if (newImage == null) {
-                    editorProduct.setPicture(labelProductPicture.getImageByteArray());
-                } else {
-                    editorProduct.setPicture(newImage);
+                editorProduct.setPicture(newImage);
+                if (newImage != null) {
+                    Display display = Display.getCurrent();
+                    ByteArrayInputStream bais = new ByteArrayInputStream(newImage);
+                    Image image = new Image(display, bais);	
+                    JFaceResources.getImageRegistry().put(imageKey, image);
                 }
                 getMDirtyablePart().setDirty(true);
             }
@@ -896,7 +896,10 @@ public class ProductEditor extends Editor<Product> {
         bindModelValue(editorProduct, udf02, Product_.cdf02.getName(), 64);
         bindModelValue(editorProduct, udf03, Product_.cdf03.getName(), 64);
         bindModelValue(editorProduct, note, Product_.note.getName(), 2048);
-
+             
+        // TODO das sollte perspektivisch über binding abgehandelt werden!
+        // bindModelValue(editorProduct, labelProductPicture, Product_.picture.getName(), null,null);
+        
         part.getTransientData().remove(BIND_MODE_INDICATOR);
     }
 

@@ -113,7 +113,9 @@ public class ExpendituresDAO extends AbstractDAO<Voucher> {
         List<Voucher> documentList = query.getResultList();
         List<AccountEntry> resultList = new ArrayList<>();
         for (Voucher document : documentList) {
-            AccountEntry accountEntry = new AccountEntry(document, AccountEntry.EXPENDITURE_SIGN);
+        	// der Betrag wird bereits negativ gespeichert und 
+        	// würde sonst positiv ausgegeben werden
+            AccountEntry accountEntry = new AccountEntry(document, (short)1);
             resultList.add(accountEntry);
         }
         return resultList;

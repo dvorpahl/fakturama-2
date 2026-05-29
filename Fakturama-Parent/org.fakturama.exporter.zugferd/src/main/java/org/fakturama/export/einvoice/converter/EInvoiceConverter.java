@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,7 +84,6 @@ public class EInvoiceConverter {
     /**
      * 
      */
-    private static final ZoneId ZONE_ID_JVM = TimeZone.getDefault().toZoneId();
     // Define patterns
     private static final String PATTERN_DEBTOR = ".*?Debtor ID=(\\p{Alnum}+).*";
     private static final String PATTERN_GLOBAL_ID = ".*?Global ID=(\\p{Alnum}+).*";
@@ -386,12 +384,12 @@ public class EInvoiceConverter {
             boolean periodToAdd = false;
             if (invoiceItem.getVestingPeriodStart() != null) {
                 // BT-134
-                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZONE_ID_JVM));
+                period.setInvoiceLinePeriodStartDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodStart().toInstant(), ZoneId.systemDefault()));
                 periodToAdd = true;
             }
             if (invoiceItem.getVestingPeriodEnd() != null) {
                 // BT-135
-                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZONE_ID_JVM));
+                period.setInvoiceLinePeriodEndDate(LocalDate.ofInstant(invoiceItem.getVestingPeriodEnd().toInstant(), ZoneId.systemDefault()));
                 periodToAdd = true;
             }
 
@@ -445,7 +443,6 @@ public class EInvoiceConverter {
      * @throws UnsupportedCodeException
      */
     private void setInvoicePayments(final EInvoice eInvoice, final Invoice invoice) throws UnsupportedCodeException {
-        // TODO Auto-generated method stub
         /*
          * Implement and set subs accordingly
          * Payment type code gem. "Payment Means Code" lt. Codeliste ZUGFeRD
@@ -532,7 +529,7 @@ public class EInvoiceConverter {
         }
         if (invoice.getServiceDate() != null) {
             // BT-72
-            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), EInvoiceConverter.ZONE_ID_JVM));
+            invoiceDeliveryInformation.setActualDeliveryDate(LocalDate.ofInstant(invoice.getServiceDate().toInstant(), ZoneId.systemDefault()));
         }
 
         if (deliveryAddr.getDeleted() != null && deliveryAddr.getDeleted().booleanValue()) {
@@ -733,7 +730,7 @@ public class EInvoiceConverter {
         // BT-1
         invoiceData.setInvoiceNumber(StringUtils.trimToNull(invoice.getName()));
         // BT-2
-        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), EInvoiceConverter.ZONE_ID_JVM));
+        invoiceData.setInvoiceIssueDate(LocalDate.ofInstant(invoice.getDocumentDate().toInstant(), ZoneId.systemDefault()));
 
         // BT-3
         invoiceData.setInvoiceTypeCode(getDocumentTypeCode(invoice));
@@ -790,11 +787,11 @@ public class EInvoiceConverter {
         invoiceData.setPaymentTerms(paymentText.orElse(null));
         if (invoice.getVestingPeriodStart() != null) {
             // BT-73
-            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZONE_ID_JVM));
+            invoiceData.setInvoicingPeriodStartDate(LocalDate.ofInstant(invoice.getVestingPeriodStart().toInstant(), ZoneId.systemDefault()));
         }
         if (invoice.getVestingPeriodEnd() != null) {
             // BT-74
-            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZONE_ID_JVM));
+            invoiceData.setInvoicingPeriodEndDate(LocalDate.ofInstant(invoice.getVestingPeriodEnd().toInstant(), ZoneId.systemDefault()));
         }
     }
 
@@ -856,7 +853,10 @@ public class EInvoiceConverter {
             // BT-28
             invoiceSeller.setSellerTradingName(StringUtils.trimToNull(preferences.getString(Constants.PREFERENCES_YOURCOMPANY_NAME)));
         }
-
+        
+        // BT-29
+        final DocumentReceiver billingAddress = addressManager.getBillingAdress(invoice);
+        invoiceSeller.setSellerIdentifier(billingAddress.getSupplierNumber());
     }
 
     private String getGlobalCurrencyCode() {

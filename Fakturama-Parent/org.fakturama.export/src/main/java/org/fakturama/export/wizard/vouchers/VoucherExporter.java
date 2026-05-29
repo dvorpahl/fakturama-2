@@ -303,7 +303,6 @@ public class VoucherExporter extends OOCalcExporter {
 					MonetaryAmount totalValue = Money.of(voucher.getTotalValue(), DataUtils.getInstance().getDefaultCurrencyUnit());
 					VoucherSummary voucherSummaryValue = calc.calculate(items, paidValue, totalValue, 
 							BooleanUtils.toBoolean(voucher.getDiscounted()));
-//					voucher.calculate();
 
 					// Add the voucher to the VAT summary
 					// +1 because we use the index as posNo which starts at 1 (only necessary for the VoucherSummarySetManager)

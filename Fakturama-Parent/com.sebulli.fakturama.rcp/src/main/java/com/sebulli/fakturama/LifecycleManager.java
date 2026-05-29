@@ -147,6 +147,10 @@ public class LifecycleManager {
             }
         });
 
+        final ConfigurationManager configMgr = ContextInjectionFactory.make(ConfigurationManager.class, context);
+        // launch ConfigurationManager.checkFirstStart
+        configMgr.checkAndUpdateConfiguration();
+
         // splashService.setMessage("checks before startup");
         // at first we check if we have to migrate an older version
         // check if the db connection is set
@@ -500,10 +504,6 @@ public class LifecycleManager {
         if (eclipsePrefs.getBoolean("isreinit", false)) {
             dbUpdateService.updateDatabase();
         }
-
-        final ConfigurationManager configMgr = ContextInjectionFactory.make(ConfigurationManager.class, context);
-        // launch ConfigurationManager.checkFirstStart
-        configMgr.checkAndUpdateConfiguration();
 
         if (eclipsePrefs.get(ConfigurationManager.GENERAL_WORKSPACE_REQUEST, null) != null) {
             eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new AppStartupCompleteEventHandler(context, RESTART_APPLICATION));

@@ -55,7 +55,7 @@ public class GiroCodeGenerator {
         numberInstance.setMaximumFractionDigits(2);
         
         String amount = String.format("%s%s", numberFormatterService.getCurrencyUnit(localeUtil.getCurrencyLocale()), 
-                numberInstance.format(document.getTotalValue()));
+                numberInstance.format(document.getTotalValue() - document.getPaidValue()));
         girocode.setAmount(amount);
 
         girocode.setEncoding(Encoding.UTF_8);

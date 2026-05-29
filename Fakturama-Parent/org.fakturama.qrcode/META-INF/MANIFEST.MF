@@ -10,9 +10,9 @@ Export-Package: net.glxn.qrgen.core,
  net.glxn.qrgen.javase,
  org.fakturama.qrcode
 Bundle-Activator: org.fakturama.qrcode.Activator
-Require-Bundle: com.sebulli.fakturama.rcp;bundle-version="2.1.2",
- com.sebulli.fakturama.model;bundle-version="2.1.2",
- com.sebulli.fakturama.common;bundle-version="2.1.2",
+Require-Bundle: com.sebulli.fakturama.rcp;bundle-version="2.2.0",
+ com.sebulli.fakturama.model;bundle-version="2.2.0",
+ com.sebulli.fakturama.common;bundle-version="2.2.0",
  javax.money;bundle-version="1.1.0",
  org.javamoney.moneta;bundle-version="1.4.2",
  org.apache.commons.lang3;bundle-version="3.13.0",

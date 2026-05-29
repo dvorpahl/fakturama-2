@@ -917,6 +917,7 @@ public class DocumentEditor extends Editor<Document> {
                     // Get first selected element.
                     shipping = (Shipping) structuredSelection.getFirstElement();
                     clearManualShipping(document);
+                    document.setShippingValue(shipping.getShippingValue());
                     document.setShipping(shipping);
                     getMDirtyablePart().setDirty(true);
 
@@ -1661,10 +1662,10 @@ public class DocumentEditor extends Editor<Document> {
         if (!DataUtils.getInstance().DoublesAreEqual(newShippingValue, currentShippingValue.getNumber().doubleValue())) {
             document.setShippingValue(newShippingValue);
             document.setShippingAutoVat(useGross ? ShippingVatType.SHIPPINGVATGROSS : ShippingVatType.SHIPPINGVATNET);
-            if (shipping != null && document.getAdditionalInfo().getShippingDescription() == null) {
+            document.getAdditionalInfo().setShippingName(comboShipping.getText());
+            if (shipping != null) {
                 // copy some information from previously selected Shipping record into additional info block
                 document.getAdditionalInfo().setShippingDescription(shipping.getDescription());
-                document.getAdditionalInfo().setShippingName(shipping.getName());
                 document.getAdditionalInfo().setShippingVatValue(shipping.getShippingVat().getTaxValue());
             }
         } else {
@@ -1796,7 +1797,7 @@ public class DocumentEditor extends Editor<Document> {
      * 
      */
     private void createDepositWarningIcon() {
-        if (!paidDataContainer.isDisposed()) {
+        if (paidDataContainer != null && !paidDataContainer.isDisposed()) {
             if (warningDepositIcon == null || warningDepositIcon.isDisposed() || warningDepositIcon.getImage() == null) { // if the editor is about to close...
                 // Add the attention sign if its a deposit
                 warningDepositIcon = new Label(paidDataContainer, SWT.NONE);
@@ -3216,6 +3217,8 @@ public class DocumentEditor extends Editor<Document> {
                     }
 
                     // this selected contact is from now on the main receiver for this document
+                    // refreshing contact
+                    contactDAO.findById(address.getContact().getId(), true);
                     final DocumentReceiver documentReceiver = addressManager.createDocumentReceiverFromAddress(address, document.getBillingType());
 
                     /*

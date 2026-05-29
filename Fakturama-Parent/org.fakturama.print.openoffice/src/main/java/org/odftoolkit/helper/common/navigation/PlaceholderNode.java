@@ -4,19 +4,15 @@
 package org.odftoolkit.helper.common.navigation;
 
 import java.net.URI;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 import org.apache.commons.lang3.StringUtils;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.dom.OdfDocumentNamespace;
 import org.odftoolkit.odfdom.dom.attribute.text.TextAnchorTypeAttribute;
-import org.odftoolkit.odfdom.dom.element.text.TextLineBreakElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
 import org.odftoolkit.odfdom.dom.element.text.TextParagraphElementBase;
 import org.odftoolkit.odfdom.dom.element.text.TextPlaceholderElement;
-import org.odftoolkit.odfdom.dom.element.text.TextSpanElement;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextExtractor;
@@ -28,7 +24,6 @@ import org.odftoolkit.odfdom.pkg.OdfFileDom;
 import org.odftoolkit.odfdom.type.Length;
 import org.odftoolkit.odfdom.type.Length.Unit;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Container for a placeholder. With some additional information.
@@ -214,120 +209,14 @@ public class PlaceholderNode extends Selection {
                     parentNode.getParentNode().removeChild(parentNode);
                     return null;
                 }
-            } else if (!newText.contains("\n")) {
+            } else {
                 OdfTextSpan span = new OdfTextSpan((OdfFileDom) parentNode.getOwnerDocument());
-                span.setTextContent(newText);
+                span.addContentWhitespace(newText);
                 parentNode.replaceChild(span, getNode());
                 return span;
             }
         }
-
-        // else, we have to tokenize the new text,
-        // clone the original node, put all the children _after_ the placeholder
-        // again in the clone and append a new text node for each new line on the cloned node.
-        // But wait - all reminding nodes _before_ the origin placeholder have to be retained, too.
-        // We do this in reversed order for simplicity.
-        // Sounds complicated, eh? But - yes, it is ;-).
-
-        // a list with all created nodes
-        // since we can't _append_ one node at another node we have to collect all the 
-        // nodes and insert it after all nodes were created.  
-        LinkedList<Node> substitutes = new LinkedList<>();
-
-        // create a copy of all children, if any
-        NodeList childNodes = parentNode.getChildNodes();
-        Node childNodesAfterPlaceholder = parentNode.cloneNode(false);
-        Node previousNode = null;
-        if (childNodes.getLength() > 1) {
-            int currentPosition = childNodes.getLength() - 1;
-
-            // collect all nodes _after_ placeholder node, start at the end of tree
-            // put all nodes into a clone of the origin parent node
-            // giving them a new parent (this removes the nodes from origin parent)
-            for (int i = currentPosition; i >= 0; i--) {
-                if (childNodes.item(i).isSameNode(getNode())) {
-                    break;
-                }
-                if (previousNode == null) {
-                    previousNode = childNodesAfterPlaceholder.appendChild(childNodes.item(i));
-                } else {
-                    previousNode = childNodesAfterPlaceholder.insertBefore(childNodes.item(i), previousNode);
-                }
-            }
-        }
-
-        // Splits by any platform-specific newline
-        String[] splittedString = StringUtils.defaultString(newText).split("\\R");
-
-        // if the first line is empty, we have a flag for this case
-        boolean firstSkip = false;
-        
-        // create a "template node" by cloning the original node
-        Node templateNode = parentNode.cloneNode(false);
-        
-        for (String stringPart : splittedString) {
-            if (stringPart.isEmpty() && !firstSkip) {
-                continue;
-            }
-            TextLineBreakElement lineBreakElement = new TextLineBreakElement((OdfFileDom) parentNode.getOwnerDocument());
-            firstSkip = true;
-            // Create a span for each line
-            TextSpanElement span = new TextSpanElement((OdfFileDom) parentNode.getOwnerDocument());
-            span.setTextContent(stringPart);
-            
-         // Append the span to the paragraph
-            templateNode.appendChild(span).appendChild(lineBreakElement);;
-        }
-
-        substitutes.add(templateNode);
-
-        // now lets assemble the nodes altogether.
-        /*
-         * BEFORE:
-         * 
-         *     O     parentNode
-         *    /|\ 
-         *  (O O O)
-         *       +-- childNodesAfterPlaceholder
-         *     +---- placeholder node
-         *  +------- (unnamed children from parentNode)
-         *  
-         * AFTER:
-         * 
-         *     O     parentNode (cloned)
-         *    /|\ 
-         * (O  | O)
-         *     | +-- childNodesAfterPlaceholder
-         *     O
-         *    /|\
-         *   O O O 
-         *     +---- substituted placeholder node
-         *  +------- (unnamed children from parentNode)
-         */
-
-        Node insertedNode = null;
-
-        // at first insert the (old) childNodes which were _after_ the placeholder node (if not empty)
-        if (childNodesAfterPlaceholder.hasChildNodes()) {
-            insertedNode = parentNode.getParentNode().insertBefore(childNodesAfterPlaceholder, parentNode.getNextSibling());
-        }
-        // ...put the collected nodes into parent container (before the origin parent node) ==> reversed order!
-        Iterator<Node> it = substitutes.descendingIterator();
-        while (it.hasNext()) {
-            Node node = it.next();
-            TextLineBreakElement lineBreakElement = new TextLineBreakElement((OdfFileDom) parentNode.getOwnerDocument());
-            Node lineBreak = insertedNode == null 
-            		? parentNode.getParentNode().insertBefore(lineBreakElement, parentNode.getNextSibling())
-                    : parentNode.getParentNode().insertBefore(lineBreakElement, insertedNode);
-            insertedNode = parentNode.getParentNode().insertBefore(node, lineBreak);
-        }
-        // ...then remove the origin "placeholder" node...
-        parentNode.removeChild(getNode());
-        if (!parentNode.hasChildNodes()) {
-            // delete (old) parent node if it's now empty
-            parentNode.getParentNode().removeChild(parentNode);
-        }
-        return substitutes.isEmpty() ? null : substitutes.getFirst();
+        return null;
     }
 
     public Node replaceWith(final URI uri, final Integer width, final Integer height) {

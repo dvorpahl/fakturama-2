@@ -182,11 +182,15 @@ public class NumberGenerator {
 		LocalDate now = LocalDate.now();
 		int yyyy = now.getYear();
 		int mm = now.getMonthValue();
-		int dd = now.getDayOfMonth();
+		int dd = now.getDayOfMonth();	
+        int weekOfYear = now.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+        int quarter = now.get(IsoFields.QUARTER_OF_YEAR);
 
-		int last_yyyy = 0; 
-		int last_mm = 0; 
-		int last_dd = 0; 
+		int lastSetYear = 0; 
+		int lastSetMonth = 0; 
+		int lastSetDay = 0; 
+		int lastSetQuarter = 0;
+		int lastSetWeek = 0;
 
 		Optional<String> propVal = propertiesDao.findPropertyValue("last_setnextnr_date_" + editorId.toLowerCase());
 		String lastSetNextNrDate = propVal.orElse(DateTimeFormatter.ISO_DATE.format(now));
@@ -194,30 +198,28 @@ public class NumberGenerator {
         // Get the year, month and date of a string like "2011-12-24"
         if (lastSetNextNrDate.length() == 10) {
             LocalDate localDate = LocalDate.parse(lastSetNextNrDate);
-            last_yyyy = localDate.getYear();
-            last_mm = localDate.getMonthValue();
-            last_dd = localDate.getDayOfMonth();
+            lastSetYear = localDate.getYear();
+            lastSetMonth = localDate.getMonthValue();
+            lastSetDay = localDate.getDayOfMonth();
+            lastSetWeek = localDate.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+            lastSetQuarter = localDate.get(IsoFields.QUARTER_OF_YEAR);
         }
 
 		// Get the last (it's the next free) document number from the preferences
 		format = defaultValuePrefs.getString(prefStrFormat);
 //		nr = defaultValuePrefs.getInt(prefStrNr);
 		nr = getCurrentNumber(editorId);
-		
-        int weekOfYear = now.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
-        int quarter = now.get(IsoFields.QUARTER_OF_YEAR);
 
 		// Check, whether the date string is a new one
-		boolean startNewCounting = false;
-		if ((format.contains("{yyyy}") || format.contains("{yy}")) && yyyy != last_yyyy
-				|| format.contains("{mm}") && mm != last_mm
-				|| format.contains("{dd}") && dd != last_dd)
-			startNewCounting = true;
-		
-		// Reset the counter
-		if (startNewCounting) {
+		if ((format.contains("{yyyy}") || format.contains("{yy}")) && yyyy != lastSetYear
+				|| format.contains("{mm}") && mm != lastSetMonth
+				|| format.contains("{dd}") && dd != lastSetDay
+		    	|| format.contains("{w}") && weekOfYear != lastSetWeek
+		    	|| format.contains("{q}") && quarter != lastSetQuarter) {
+			// Reset the counter
 			nr = 1;
 		}
+		
 		setNextNumber(prefStrNr, nr, editorId); 
 		
 		// Replace the date information
@@ -231,6 +233,8 @@ public class NumberGenerator {
 		format = format.replace("{YY}", String.format("%04d", yyyy).substring(2, 4));
 		format = format.replace("{MM}", String.format("%02d", mm));
 		format = format.replace("{DD}", String.format("%02d", dd));
+		format = format.replace("{W}", String.format("%02d", weekOfYear));
+		format = format.replace("{Q}", String.format("%d", quarter));
 		
 		// Find the placeholder for a decimal number with n digits
 		// with the format "{Xnr}", "X" is the number of digits.

@@ -66,7 +66,11 @@ public class CellImagePainter extends ImagePainter {
         try {
             image = new Image(Display.getCurrent(), imgStream);
         } catch (SWTException e) {
-            image = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.NOT_FOUND_PICTURE);
+        	image = JFaceResources.getImage("DEFAULT_PRODUCT_IMAGE");
+        	if(image == null) {
+        		image = resourceManager.getProgramImage(Display.getCurrent(), ProgramImages.NOT_FOUND_PICTURE);
+        		JFaceResources.getImageRegistry().put("DEFAULT_PRODUCT_IMAGE", image);
+        	}
         }
 
         // Get the pictures size

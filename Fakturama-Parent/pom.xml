@@ -20,6 +20,7 @@
 		<buildTimestamp>${maven.build.timestamp}</buildTimestamp>
 		<buildId>${buildTimestamp}</buildId>
 		<releaseName>${project.version}</releaseName>
+		<releaseDate>2011-2025</releaseDate>
 		<encoding>UTF-8</encoding>
 		<cxf-xjc-plugin.version>4.1.0</cxf-xjc-plugin.version>
 		<parent.projectLocation>${project.basedir}</parent.projectLocation>
@@ -232,6 +233,37 @@
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho.version}</version>
+				</plugin>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.eclipse.tycho
+										</groupId>
+										<artifactId>
+											tycho-bnd-plugin
+										</artifactId>
+										<versionRange>
+											[4.0.8,)
+										</versionRange>
+										<goals>
+											<goal>process</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

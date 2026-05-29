@@ -20,62 +20,35 @@ package com.sebulli.fakturama.misc;
  * @author Gerd Bartelt
  */
 public enum DocumentType {
+
+	//@formatter:off
     // all 8 data types
-    NONE(0, "None", "None", false, false, false, false, 1, "none", "document.type.letter.address", 0), LETTER(
-            1, "toolbar.new.letter.name" /* "Letter" */, "document.type.letter.plural", false, false, false, false, 1, "main.menu.new.letter",
-            "document.type.letter.address", 0
-    ), OFFER(
-            2, "toolbar.new.offer.name" /* "Offer" */, "document.type.offer.plural", true, true, false, false, 1, "main.menu.new.offer",
-            "document.type.invoice.address", 0
-    ), ORDER(
-            3, "toolbar.new.order.name" /* "Order" */, "document.type.order.plural", true, true, false, false, 1, "main.menu.new.order",
-            "document.type.invoice.address", 0
-    ), CONFIRMATION(
-            4, "toolbar.new.confirmation.name" /*
-                                                * "Confirmation"
-                                                */, "document.type.confirmation.plural", true, true, false, false, 1, "main.menu.new.confirmation",
-            "document.type.invoice.address", 0
-    ), INVOICE(
-            5, "toolbar.new.invoice.name" /*
-                                           * "Invoice"
-                                           */, "document.type.invoice.plural", true, true, true, false, 1, "main.menu.new.invoice",
-            "document.type.invoice.address", 380
-    ), DELIVERY(
-            6, "toolbar.new.deliverynote.name" /*
-                                                * "Delivery Note"
-                                                */, "document.type.deliverynote.plural", true, false, false, true, 1, "main.menu.new.deliverynote",
-            "document.type.deliverynote.address", 0
-    ), CREDIT(
-            7, "toolbar.new.document.credit.name" /*
-                                                   * "Credit"
-                                                   */, "document.type.credititems.plural", true, true, true, true, -1, "main.menu.new.credit",
-            "document.type.invoice.address", 384
-    ), DUNNING(
-            8, "toolbar.new.document.dunning.name" /*
-                                                    * "Dunning"
-                                                    */, "document.type.dunning.plural", false, false, false, true, 1, "main.menu.new.dunning",
-            "document.type.invoice.address", 0
-    ), PROFORMA(
-            9, "document.type.proforma" /*
-                                         * "Proforma"
-                                         */, "document.type.proforma.plural", true, true, false, false, 1, "main.menu.new.proforma",
-            "document.type.invoice.address", 325
-    );
+	NONE(0, "None", "None", false, false, false, false, 1, "none", "document.type.letter.address", 0),
+	LETTER(1, "toolbar.new.letter.name" /*"Letter"*/, "document.type.letter.plural", false, false, false, false, 1, "main.menu.new.letter", "document.type.letter.address", 0),
+	OFFER(2, "toolbar.new.offer.name" /*"Offer"*/, "document.type.offer.plural", true, true, false, false, 1, "main.menu.new.offer", "document.type.invoice.address", 0),
+	ORDER(3, "toolbar.new.order.name" /*"Order"*/, "document.type.order.plural", true, true, false, false, 1, "main.menu.new.order", "document.type.invoice.address", 0),
+	CONFIRMATION(4, "toolbar.new.confirmation.name" /*"Confirmation"*/, "document.type.confirmation.plural", true, true, false, false, 1, "main.menu.new.confirmation", "document.type.invoice.address", 0),
+	INVOICE(5, "toolbar.new.invoice.name" /*"Invoice"*/, "document.type.invoice.plural", true, true, true, false, 1, "main.menu.new.invoice", "document.type.invoice.address", 380),
+	DELIVERY(6, "toolbar.new.deliverynote.name" /*"Delivery Note"*/, "document.type.deliverynote.plural", true, false, false, true, 1, "main.menu.new.deliverynote", "document.type.deliverynote.address", 0),
+	CREDIT(7, "toolbar.new.document.credit.name" /*"Credit"*/, "document.type.credititems.plural", true, true, true, true, -1, "main.menu.new.credit", "document.type.invoice.address", 384),
+	DUNNING(8, "toolbar.new.document.dunning.name" /*"Dunning"*/, "document.type.dunning.plural", false, false, false, true, 1, "main.menu.new.dunning", "document.type.invoice.address", 0),
+	PROFORMA(9, "document.type.proforma" /*"Proforma"*/, "document.type.proforma.plural", true, true, false, false, 1, "main.menu.new.proforma", "document.type.invoice.address", 325);
+	//@formatter:on
 
-    // 9 types.
-    public final static int MAXID = DocumentType.values().length;
-    private int key, sign;
+	// 9 types.
+	public final static int MAXID = DocumentType.values().length;
+	private int key, sign;
 
-    /**
-     * This is the UNTDID 1001 code for electronic invoices
-     */
-    private int code;
+	/**
+	 * This is the UNTDID 1001 code for electronic invoices
+	 */
+	private int code;
 
-    /**
-     * the l10n key for a new document (e.g., "main.menu.new.letter" => "New
-     * Letter")
-     */
-    private String newTextKey;
+	/**
+	 * the l10n key for a new document (e.g., "main.menu.new.letter" => "New
+	 * Letter")
+	 */
+	private String newTextKey;
 
     /**
      * If {@link DocumentType} has an item table

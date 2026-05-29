@@ -23,14 +23,14 @@ import java.nio.file.Paths;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -342,9 +342,9 @@ public class TemplateProcessor {
                     break;
                 case "DFORMAT":
                     try {
-                        final GregorianCalendar checkDate = dateFormatterService.getCalendarFromDateString(retval);
-                        final SimpleDateFormat sdf = new SimpleDateFormat(param.getValue());
-                        retval = sdf.format(checkDate.getTime());
+                    	var localDate = LocalDate.parse(retval, DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+						var formatter = DateTimeFormatter.ofPattern(param.getValue()).withZone(ZoneOffset.UTC);
+						retval = formatter.format(localDate);
                     } catch (final IllegalArgumentException e) {
                         retval = "### NVL ###";
                     }
@@ -508,7 +508,8 @@ public class TemplateProcessor {
         setUseSalesEquationTaxForDocument(documentReceiverDao.isSETEnabled(document));
 
         final PlaceholderNavigation navi = new PlaceholderNavigation().of(textdoc).withDelimiters(true)
-                .withTableIdentifiers(PlaceholderTableType.ITEMS_TABLE, PlaceholderTableType.VATLIST_TABLE, PlaceholderTableType.SALESEQUALIZATIONTAX_TABLE, PlaceholderTableType.DISCOUNT_TABLE)
+				.withTableIdentifiers(PlaceholderTableType.ITEMS_TABLE, PlaceholderTableType.VATLIST_TABLE,
+						PlaceholderTableType.SALESEQUALIZATIONTAX_TABLE)
                 .withImageIdentifiers(Placeholder.INVOICE_SWISSCODE.getKey(), Placeholder.INVOICE_GIROCODE.getKey(), Placeholder.YOURCOMPANY_QRVCARD.getKey())
                 .build();
         final List<PlaceholderNode> placeholderNodes = Collections.unmodifiableList(navi.getPlaceHolders());
@@ -602,9 +603,9 @@ public class TemplateProcessor {
             }
         }
 
-        //        for (Node removeNode : nodesMarkedForRemoving) {
-        //            removeNode.getParentNode().removeChild(removeNode);
-        //        }
+        for (Node removeNode : nodesMarkedForRemoving) {
+            removeNode.getParentNode().removeChild(removeNode);
+        }
 
     }
 
@@ -1452,7 +1453,7 @@ public class TemplateProcessor {
      * @return
      */
     private Node fillVatTableWithData(final VatSummaryItem vatSummaryItem, final PlaceholderNode cellPlaceholder) {
-        final String key = vatSummaryItem.getVatName();
+        final String key = vatSummaryItem.getDescription();
         final String value = numberFormatterService.formatCurrency(vatSummaryItem.getVat());
         // Get the text of the column. This is to determine if it is the column
         // with the VAT description or with the VAT value
@@ -1618,7 +1619,7 @@ public class TemplateProcessor {
 
         // Get the item weight
         else if (key.equals("ITEM.WEIGHT")) {
-            value = item.getWeight() != null ? item.getWeight().toString() : "";
+            value = numberFormatterService.doubleToFormattedQuantity(item.getWeight());
         }
 
         // Get the item weight

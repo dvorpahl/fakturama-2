@@ -411,7 +411,6 @@ public abstract class Editor<T extends IEntity> {
             uiWidget = new CDateTimeObservableValue((CDateTime) source);
             observeModelChangeManually = true;
         } else {
-            //            uiWidget = WidgetProperties.text(SWT.FocusOut).observe(source);
             uiWidget = WidgetProperties.text(SWT.Modify).observe(source);
         }
 

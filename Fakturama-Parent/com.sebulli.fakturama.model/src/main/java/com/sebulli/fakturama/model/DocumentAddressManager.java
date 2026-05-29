@@ -144,7 +144,7 @@ public class DocumentAddressManager implements IDocumentAddressManager {
     @Override
     public Document addOrReplaceReceiverToDocument(final Document document, final DocumentReceiver documentReceiver) {
         final Optional<DocumentReceiver> existingReceiver = document.getReceiver().stream()
-                .filter(r -> r.getBillingType().compareTo(documentReceiver.getBillingType()) == 0).findAny();
+                .filter(r -> r.getBillingType() == documentReceiver.getBillingType()).findAny();
         existingReceiver.ifPresent(e -> {
             e.setDeleted(Boolean.TRUE);
             document.getReceiver().remove(e);
