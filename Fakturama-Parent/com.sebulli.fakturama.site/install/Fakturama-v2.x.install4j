@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="12.0.2" transformSequenceNumber="12">
-  <directoryPresets config="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0-RC" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
+<install4j version="12.0.4" transformSequenceNumber="12">
+  <directoryPresets config="../../../../../../Security/keys" />
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.0" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -26,7 +26,7 @@
       <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
       <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
     </variables>
-    <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8">
+    <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsKeySource="pkcs11" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" windowsCertDir="/Users/rheydenreich/Security/keys" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8" windowsPkcs11Library="/Library/OpenSC/lib/opensc-pkcs11.so">
       <macSearchedJars>
         <entry>jna-*</entry>
         <entry>swt-*</entry>
@@ -34,7 +34,7 @@
         <entry>com.sun.*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.17+10" />
+    <jreBundles jdkProviderId="Adoptium" release="17/jdk-17.0.19+10" />
   </application>
   <files keepModificationTimes="true" missingFilesStrategy="error" globalExcludeSuffixes=".svn,.git" defaultOverwriteMode="5" launcherOverwriteMode="1" preserveMode="true">
     <filesets>

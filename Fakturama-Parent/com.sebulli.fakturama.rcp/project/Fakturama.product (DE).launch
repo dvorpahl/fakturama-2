@@ -57,6 +57,7 @@
     </listAttribute>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_ATTR_USE_ARGFILE" value="false"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
     <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl}"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
@@ -121,13 +122,13 @@
         <setEntry value="com.sun.jna.platform@default:default"/>
         <setEntry value="com.sun.jna@default:default"/>
         <setEntry value="jakarta.activation-api*2.1.3@default:default"/>
-        <setEntry value="jakarta.annotation-api@default:default"/>
+        <setEntry value="jakarta.annotation-api*2.1.1@default:default"/>
         <setEntry value="jakarta.el-api*5.0.1@default:default"/>
-        <setEntry value="jakarta.enterprise.cdi-api*4.0.1@default:default"/>
+        <setEntry value="jakarta.enterprise.cdi-api@default:default"/>
         <setEntry value="jakarta.enterprise.lang-model@default:default"/>
         <setEntry value="jakarta.inject.jakarta.inject-api@default:default"/>
-        <setEntry value="jakarta.interceptor-api*2.1.0@default:default"/>
-        <setEntry value="jakarta.mail-api@default:default"/>
+        <setEntry value="jakarta.interceptor-api@default:default"/>
+        <setEntry value="jakarta.mail-api*2.1.3@default:default"/>
         <setEntry value="jakarta.persistence-api@2:true"/>
         <setEntry value="jakarta.transaction-api@2:true"/>
         <setEntry value="jakarta.xml.bind-api*4.0.2@default:default"/>
@@ -160,7 +161,6 @@
         <setEntry value="org.apache.felix.gogo.runtime@default:default"/>
         <setEntry value="org.apache.felix.gogo.shell@default:default"/>
         <setEntry value="org.apache.felix.scr*2.2.12@2:true"/>
-        <setEntry value="org.apache.httpcomponents.client5.httpclient5-win@default:default"/>
         <setEntry value="org.apache.httpcomponents.client5.httpclient5@default:default"/>
         <setEntry value="org.apache.httpcomponents.core5.httpcore5-h2@default:default"/>
         <setEntry value="org.apache.httpcomponents.core5.httpcore5@default:default"/>
@@ -290,7 +290,6 @@
         <setEntry value="org.eclipse.core.expressions.nl_uk@default:false"/>
         <setEntry value="org.eclipse.core.expressions@default:default"/>
         <setEntry value="org.eclipse.core.jobs@default:default"/>
-        <setEntry value="org.eclipse.core.net.win32@default:false"/>
         <setEntry value="org.eclipse.core.net@default:default"/>
         <setEntry value="org.eclipse.core.runtime.nl_ar@default:false"/>
         <setEntry value="org.eclipse.core.runtime.nl_de@default:false"/>
@@ -493,7 +492,6 @@
         <setEntry value="org.eclipse.e4.ui.services.nl_tr@default:false"/>
         <setEntry value="org.eclipse.e4.ui.services.nl_uk@default:false"/>
         <setEntry value="org.eclipse.e4.ui.services@default:default"/>
-        <setEntry value="org.eclipse.e4.ui.swt.win32@default:false"/>
         <setEntry value="org.eclipse.e4.ui.widgets.nl_ar@default:false"/>
         <setEntry value="org.eclipse.e4.ui.widgets.nl_de@default:false"/>
         <setEntry value="org.eclipse.e4.ui.widgets.nl_el@default:false"/>
@@ -580,7 +578,6 @@
         <setEntry value="org.eclipse.e4.ui.workbench@default:default"/>
         <setEntry value="org.eclipse.ecf.filetransfer@default:default"/>
         <setEntry value="org.eclipse.ecf.identity@default:default"/>
-        <setEntry value="org.eclipse.ecf.provider.filetransfer.httpclient5.win32@default:default"/>
         <setEntry value="org.eclipse.ecf.provider.filetransfer.httpclient5@default:default"/>
         <setEntry value="org.eclipse.ecf.provider.filetransfer.ssl@default:false"/>
         <setEntry value="org.eclipse.ecf.provider.filetransfer@default:default"/>
@@ -628,7 +625,6 @@
         <setEntry value="org.eclipse.equinox.frameworkadmin.nl_tr@default:false"/>
         <setEntry value="org.eclipse.equinox.frameworkadmin.nl_uk@default:false"/>
         <setEntry value="org.eclipse.equinox.frameworkadmin@default:default"/>
-        <setEntry value="org.eclipse.equinox.launcher.win32.win32.x86_64@default:false"/>
         <setEntry value="org.eclipse.equinox.launcher@default:default"/>
         <setEntry value="org.eclipse.equinox.p2.artifact.repository@default:default"/>
         <setEntry value="org.eclipse.equinox.p2.core@default:default"/>
@@ -704,7 +700,6 @@
         <setEntry value="org.eclipse.equinox.p2.transport.ecf@default:default"/>
         <setEntry value="org.eclipse.equinox.preferences@2:default"/>
         <setEntry value="org.eclipse.equinox.registry@default:default"/>
-        <setEntry value="org.eclipse.equinox.security.win32.x86_64@default:false"/>
         <setEntry value="org.eclipse.equinox.security@default:default"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator.manipulator.nl_de@default:false"/>
         <setEntry value="org.eclipse.equinox.simpleconfigurator.manipulator@default:default"/>
@@ -760,9 +755,7 @@
         <setEntry value="org.eclipse.jface.notifications.nl_uk@default:false"/>
         <setEntry value="org.eclipse.jface.notifications@default:default"/>
         <setEntry value="org.eclipse.jface@default:default"/>
-        <setEntry value="org.eclipse.nebula.cwt*1.1.0.202402091246@default:default"/>
         <setEntry value="org.eclipse.nebula.jface.cdatetime@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.cdatetime*1.5.0.202402091246@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.cdatetime.css@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.formattedtext@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.nattable.core@default:default"/>
@@ -773,7 +766,6 @@
         <setEntry value="org.eclipse.nebula.widgets.opal.commons@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.opal.duallist@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.opal.multichoice@default:default"/>
-        <setEntry value="org.eclipse.nebula.widgets.passwordrevealer@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.pgroup@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.picture@default:default"/>
         <setEntry value="org.eclipse.nebula.widgets.radiogroup@default:default"/>
@@ -802,7 +794,6 @@
         <setEntry value="org.eclipse.swt.nl_sk@default:false"/>
         <setEntry value="org.eclipse.swt.nl_tr@default:false"/>
         <setEntry value="org.eclipse.swt.nl_uk@default:false"/>
-        <setEntry value="org.eclipse.swt.win32.win32.x86_64@default:false"/>
         <setEntry value="org.eclipse.swt@default:default"/>
         <setEntry value="org.eclipse.ui.forms@default:default"/>
         <setEntry value="org.eclipse.ui.themes@default:default"/>
@@ -848,7 +839,7 @@
         <setEntry value="org.w3c.dom.smil@default:default"/>
         <setEntry value="org.w3c.dom.svg@default:default"/>
         <setEntry value="org.yaml.snakeyaml@default:default"/>
-        <setEntry value="slf4j.api@default:default"/>
+        <setEntry value="slf4j.api*2.0.17@default:default"/>
         <setEntry value="wrapped.com.google.zxing.javase@default:default"/>
         <setEntry value="wrapped.com.squareup.okhttp3.okhttp@default:default"/>
         <setEntry value="wrapped.io.nayuki.qrcodegen@default:default"/>
