@@ -382,8 +382,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <plugin id="com.opcoach.e4.preferences" autoStart="true" startLevel="4" />
       <plugin id="jakarta.persistence-api" autoStart="true" startLevel="2" />
       <plugin id="jakarta.transaction-api" autoStart="true" startLevel="2" />
-      <plugin id="org.apache.aries.spifly.dynamic.bundle" autoStart="true" startLevel="1" />
-      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="1" />
+      <plugin id="org.apache.aries.spifly.dynamic.bundle" autoStart="true" startLevel="2" />
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.angus.mail" autoStart="true" startLevel="3" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />

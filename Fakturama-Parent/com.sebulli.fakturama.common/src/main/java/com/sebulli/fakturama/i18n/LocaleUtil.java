@@ -245,8 +245,19 @@ public class LocaleUtil implements ILocaleService {
             } else {
                 currencyLocale = getDefaultLocale();
             }
+            currencyLocale = ensureCountryForCurrency(currencyLocale, Locale.getDefault(Locale.Category.FORMAT));
         }
         return currencyLocale;
+    }
+
+    static Locale ensureCountryForCurrency(final Locale locale, final Locale fallbackLocale) {
+        if (locale != null && StringUtils.isNotBlank(locale.getCountry())) {
+            return locale;
+        }
+        if (fallbackLocale != null && StringUtils.isNotBlank(fallbackLocale.getCountry())) {
+            return fallbackLocale;
+        }
+        return Locale.US;
     }
 
     @Override
