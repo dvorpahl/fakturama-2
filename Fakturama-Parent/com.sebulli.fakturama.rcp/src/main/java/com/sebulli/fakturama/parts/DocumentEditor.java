@@ -419,16 +419,26 @@ public class DocumentEditor extends Editor<Document> {
 
                 // It's not the next free ID
                 if (result == ERROR_NOT_NEXT_ID) {
-                    // Display an error message
-                    MessageDialog.openError(top.getShell(),
+                    // Another client may have used the proposed number in the meantime.
+                    // Offer the current next number directly instead of forcing the user
+                    // to find and change the number range in the preferences.
+                    final String correctedNr = getNumberGenerator().getNextNr(getEditorID());
+
+                    final boolean useCorrectedNumber = MessageDialog.openQuestion(top.getShell(),
 
                             //T: Title of the dialog that appears if the document number is not valid.
                             msg.editorDocumentErrorDocnumberTitle,
 
-                            //T: Text of the dialog that appears if the customer number is not valid.
-                            MessageFormat.format(msg.editorDocumentErrorDocnumberNotnextfree, getNumberGenerator().getNextNr(getEditorID())) + "\n" +
-                            //T: Text of the dialog that appears if the number is not valid.
-                                    msg.editorContactHintSeepreferences);
+                            //T: Text asking whether the document number should be corrected to the current next free one.
+                            MessageFormat.format(msg.editorDocumentErrorDocnumberNotnextfree, correctedNr) + "\n" +
+                                    msg.editorDocumentQuestionUsenextfreenumber);
+
+                    if (useCorrectedNumber) {
+                        txtName.setText(correctedNr);
+                    }
+
+                    // Always stop this save attempt. If accepted, the corrected number
+                    // is validated normally when the user saves again.
                     return Boolean.FALSE;
                 }
             }
