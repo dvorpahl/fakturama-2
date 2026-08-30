@@ -327,6 +327,7 @@ public class Messages {
     public String editorDocumentDuedaysTooltip;
     public String editorDocumentErrorDocnumberNotnextfree;
     public String editorDocumentErrorDocnumberTitle;
+    public String editorDocumentQuestionUsenextfreenumber;
     public String editorDocumentErrorWrongcontactMsg;
     public String editorDocumentErrorWrongcontactTitle;
     public String editorDocumentFieldCommentTooltip;
