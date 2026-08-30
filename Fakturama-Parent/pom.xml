@@ -306,7 +306,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>linux</id>
+			<id>linux-x86_64</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -321,6 +321,32 @@
 									<ws>gtk</ws>
 									<arch>x86_64</arch>
 								</environment>
+							</environments>
+                            <!-- Use custom target platform -->
+							<target>
+								<artifact>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>org.fakturama.target</artifactId>
+									<version>${project.version}</version>
+								</artifact>
+							</target>
+							<pomDependencies>wrapAsBundle</pomDependencies>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>linux-aarch64</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.eclipse.tycho</groupId>
+						<artifactId>target-platform-configuration</artifactId>
+						<version>${tycho.version}</version>
+                        <!--Specify which environments your software should be built for (os/ws/arch)  -->
+						<configuration>
+							<environments>
 								<environment>
 									<os>linux</os>
 									<ws>gtk</ws>
