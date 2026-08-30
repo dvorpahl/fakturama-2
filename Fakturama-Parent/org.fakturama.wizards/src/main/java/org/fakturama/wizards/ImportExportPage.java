@@ -3,8 +3,12 @@ package org.fakturama.wizards;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.e4.core.contexts.ContextInjectionFactory;
+import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.ui.dialogs.filteredtree.FilteredTree;
 import org.eclipse.e4.ui.workbench.IWorkbench;
 import org.eclipse.jface.dialogs.Dialog;
@@ -33,7 +37,6 @@ import org.fakturama.wizards.internal.dialogs.WorkbenchWizardSelectionPage;
 import org.fakturama.wizards.internal.dialogs.model.WorkbenchLabelProvider;
 
 import com.sebulli.fakturama.ui.dialogs.WorkbenchMessages;
-import com.sebulli.fakturama.ui.dialogs.registry.IWorkbenchRegistryConstants;
 
 /**
  * Abstract wizard page class from which an import or export wizard can be chosen.
@@ -43,6 +46,9 @@ import com.sebulli.fakturama.ui.dialogs.registry.IWorkbenchRegistryConstants;
  */
 public abstract class ImportExportPage extends WorkbenchWizardSelectionPage{
     protected static final String DIALOG_SETTING_SECTION_NAME = "ImportExportPage."; //$NON-NLS-1$
+
+    @Inject
+    private IEclipseContext context;
 	
     /**
      * tree viewer of wizard selections
@@ -294,9 +300,9 @@ public abstract class ImportExportPage extends WorkbenchWizardSelectionPage{
 	    getWizard().getDialogSettings();
         return new AbstractWorkbenchWizardNode(this, element) {
             public IWorkbenchWizard createWizard() throws CoreException {
-            	String className = ((WorkbenchWizardElement)wizardElement).getConfigurationElement().getAttribute(IWorkbenchRegistryConstants.ATT_CLASS);
-            	return getImportExportService().createWizard(className);
-                //return wizardElement.createWizard();
+                IWorkbenchWizard wizard = wizardElement.createWizard();
+                ContextInjectionFactory.inject(wizard, context);
+                return wizard;
             }
         };
     }

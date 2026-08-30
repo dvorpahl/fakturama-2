@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.fakturama.wizards.importWizards">
+      <category
+            id="org.fakturama.addon.importWizards.database"
+            name="%wizard.category.database">
+      </category>
+      <wizard
+            category="org.fakturama.addon.importWizards.database"
+            class="org.fakturama.addon.purchaseorders.example.ui.PurchaseOrdersWizard"
+            id="org.fakturama.addon.purchaseorders.example.wizard"
+            name="%wizard.purchaseorders.name">
+         <description>%wizard.purchaseorders.description</description>
+      </wizard>
+   </extension>
+</plugin>

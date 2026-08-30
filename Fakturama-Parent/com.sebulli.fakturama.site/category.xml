@@ -3,5 +3,9 @@
    <feature url="features/com.sebulli.fakturama.feature_2.2.0.jar" id="com.sebulli.fakturama.feature" version="2.2.0">
       <category name="com.sebulli.fakturama"/>
    </feature>
+   <feature url="features/org.fakturama.addon.purchaseorders.example.feature_2.2.0.jar" id="org.fakturama.addon.purchaseorders.example.feature" version="2.2.0">
+      <category name="org.fakturama.addons"/>
+   </feature>
    <category-def name="com.sebulli.fakturama" label="Fakturama 2.0"/>
+   <category-def name="org.fakturama.addons" label="Fakturama Add-ons"/>
 </site>
