@@ -434,7 +434,7 @@
 			</dependency>
 		</dependencies>
 	</location>
-	<location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+	<location includeDependencyDepth="infinite" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		<dependencies>
 			<dependency>
 				<groupId>org.odftoolkit</groupId>
