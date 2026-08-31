@@ -101,6 +101,8 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -133,6 +135,7 @@ import com.sebulli.fakturama.dto.DocumentItemDTO;
 import com.sebulli.fakturama.dto.DocumentSummary;
 import com.sebulli.fakturama.dto.DocumentSummaryManager;
 import com.sebulli.fakturama.dto.DocumentSummaryParam;
+import com.sebulli.fakturama.dto.Transaction;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.handlers.CommandIds;
@@ -166,6 +169,8 @@ import com.sebulli.fakturama.parts.converter.EntityConverter;
 import com.sebulli.fakturama.parts.converter.StringToEntityConverter;
 import com.sebulli.fakturama.parts.itemlist.DocumentItemListTable;
 import com.sebulli.fakturama.parts.itemlist.ItemListBuilder;
+import com.sebulli.fakturama.parts.widget.CustomerSummaryComposite;
+import com.sebulli.fakturama.parts.widget.DocumentChainComposite;
 import com.sebulli.fakturama.parts.widget.contacttree.ContactTreeListTable;
 import com.sebulli.fakturama.parts.widget.contentprovider.EntityComboProvider;
 import com.sebulli.fakturama.parts.widget.contentprovider.HashMapContentProvider;
@@ -338,6 +343,7 @@ public class DocumentEditor extends Editor<Document> {
     private Label netWeight;
     private Label totalWeight;
     private SashForm sashForm;
+    private DocumentChainComposite documentChain;
     private final Map<Integer, ISideEffect> addressChangeSideEffect = new HashMap<>();
 
     /**
@@ -586,6 +592,8 @@ public class DocumentEditor extends Editor<Document> {
         }
 
         bindModel();
+
+        refreshDocumentChain();
 
         saveSashSettings();
 
@@ -1196,7 +1204,8 @@ public class DocumentEditor extends Editor<Document> {
         fillSelectedAddresses();
 
         if (BooleanUtils.isNotTrue(silentMode) && !newDocument) {
-            showOrderStatisticDialog(parent);
+            // Customer statistics are shown in the embedded CustomerSummary
+            // tile.  Do not open the legacy modal dialog on document load.
         }
 
         // Get some settings from the preference store
@@ -2079,10 +2088,21 @@ public class DocumentEditor extends Editor<Document> {
                 .create(upperObjects);
         invisible.setVisible(false);
 
-        // Add context help reference 
+        // Add context help reference
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.DOCUMENT_EDITOR);
+        final Composite documentHeader = new Composite(upperObjects, SWT.NONE);
+        GridLayoutFactory.fillDefaults().margins(6, 0).numColumns(2).equalWidth(true).spacing(16, 0).applyTo(documentHeader);
+        GridDataFactory.fillDefaults().grab(true, false).span(4, 1).applyTo(documentHeader);
+
+        // First row, left column: document type followed by document number.
+        final Composite headerPrimary = new Composite(documentHeader, SWT.NONE);
+        GridLayoutFactory.fillDefaults().numColumns(3).spacing(8, 0).applyTo(headerPrimary);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(headerPrimary);
+
+        createTitleAndIcon(headerPrimary);
+
         // Document number label
-        final Label labelName = LabelFactory.newLabel(SWT.NONE).create(upperObjects);
+        final Label labelName = LabelFactory.newLabel(SWT.NONE).create(headerPrimary);
 
         // for letters the "No." label has to be changed, see FAK-437
         if (document.getBillingType().isLETTER()) {
@@ -2095,34 +2115,40 @@ public class DocumentEditor extends Editor<Document> {
             labelName.setToolTipText(msg.editorDocumentRefnumberTooltip);
         }
 
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
-
-        // Container for the document number and the date
-        final Composite nrDateNetGrossComposite = new Composite(upperObjects, SWT.NONE);
-        GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(4).applyTo(nrDateNetGrossComposite);
-        GridDataFactory.fillDefaults().minSize(540, SWT.DEFAULT).align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(nrDateNetGrossComposite);
+        increaseFontSize(labelName, 2);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).indent(0, 4).applyTo(labelName);
 
         // The document number is the document name
         // but for letters it is the subject, see above
         if (document.getBillingType().isLETTER()) {
-            txtName = new Text(nrDateNetGrossComposite, SWT.BORDER);
+            txtName = new Text(headerPrimary, SWT.BORDER);
             txtName.setSize(400, SWT.DEFAULT);
         } else {
-            txtName = new Text(nrDateNetGrossComposite, SWT.BORDER);
+            txtName = new Text(headerPrimary, SWT.BORDER);
         }
         txtName.setToolTipText(labelName.getToolTipText());
-        GridDataFactory.swtDefaults().minSize(200, SWT.DEFAULT).grab(true, false).applyTo(txtName);
+        increaseFontSize(txtName, 2);
+        final int documentNameWidth = document.getBillingType().isLETTER() ? 400 : 240;
+        GridDataFactory.swtDefaults().hint(documentNameWidth, SWT.DEFAULT).align(SWT.LEFT, SWT.CENTER).indent(0, 4).applyTo(txtName);
+
+        // First row, right column: flexible spacer followed by date and net/gross.
+        final Composite headerSecondary = new Composite(documentHeader, SWT.NONE);
+        GridLayoutFactory.fillDefaults().numColumns(4).spacing(8, 0).applyTo(headerSecondary);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(headerSecondary);
+
+        final Composite headerSpacer = new Composite(headerSecondary, SWT.NONE);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(headerSpacer);
 
         // Document date
         //T: Document Editor
         //T: Label Document Date
-        final Label labelDate = new Label(nrDateNetGrossComposite, SWT.NONE);
+        final Label labelDate = new Label(headerSecondary, SWT.NONE);
         labelDate.setText(msg.commonFieldDate);
         labelDate.setToolTipText(msg.editorDocumentDateTooltip);
-        GridDataFactory.swtDefaults().indent(15, 0).align(SWT.END, SWT.CENTER).applyTo(labelDate);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDate);
 
         // Document date
-        dtDate = new CDateTime(nrDateNetGrossComposite, CDT.BORDER | CDT.DROP_DOWN);
+        dtDate = new CDateTime(headerSecondary, CDT.BORDER | CDT.DROP_DOWN);
         dtDate.setToolTipText(labelDate.getToolTipText());
         dtDate.setFormat(CDT.DATE_MEDIUM);
         dtDate.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
@@ -2132,9 +2158,18 @@ public class DocumentEditor extends Editor<Document> {
         }));
         GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(dtDate);
 
-        createComboNetGross(invisible, nrDateNetGrossComposite);
+        createComboNetGross(invisible, headerSecondary);
 
-        createTitleAndIcon(upperObjects);
+        // Second row: document navigation on the left, reserved direct links on the right.
+        final Composite chainSlot = new Composite(documentHeader, SWT.NONE);
+        GridLayoutFactory.fillDefaults().applyTo(chainSlot);
+        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 72).applyTo(chainSlot);
+        createDocumentChain(chainSlot);
+
+        final Composite directLinksSlot = new Composite(documentHeader, SWT.NONE);
+        GridLayoutFactory.fillDefaults().applyTo(directLinksSlot);
+        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 72).applyTo(directLinksSlot);
+        createCustomerSummary(directLinksSlot);
 
         final PGroup headerGroup = new PGroup(upperObjects, SWT.SMOOTH);
         headerGroup.setToggleRenderer(new TwisteToggleRenderer());
@@ -2684,8 +2719,14 @@ public class DocumentEditor extends Editor<Document> {
     private void createTitleAndIcon(final Composite upperObjects) {
         // The titleComposite contains the title and the document icon
         final Composite titleComposite = new Composite(upperObjects, SWT.NONE);
-        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(titleComposite);
-        GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.BOTTOM).span(2, 1).grab(true, false).applyTo(titleComposite);
+        GridLayoutFactory.fillDefaults().numColumns(2).spacing(8, 0).applyTo(titleComposite);
+        GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).applyTo(titleComposite);
+
+        // Set the document icon
+        final Label labelDocumentTypeIcon = new Label(titleComposite, SWT.NONE);
+        final Icon icon = createDocumentIcon();
+        labelDocumentTypeIcon.setImage(icon.getImage(IconSize.ToolbarIconSize));
+        GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).applyTo(labelDocumentTypeIcon);
 
         // Set the title in large letters
         final Label labelDocumentType = new Label(titleComposite, SWT.NONE);
@@ -2694,14 +2735,95 @@ public class DocumentEditor extends Editor<Document> {
             documentTypeString = MessageFormat.format("{0}. {1}", Integer.toString(dunningLevel), documentTypeString);
         }
         labelDocumentType.setText(documentTypeString);
-        makeLargeLabel(labelDocumentType);
-        GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).applyTo(labelDocumentType);
+        resizeLabel(labelDocumentType, 22);
+        GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).applyTo(labelDocumentType);
+    }
 
-        // Set the document icon
-        final Label labelDocumentTypeIcon = new Label(titleComposite, SWT.NONE);
-        final Icon icon = createDocumentIcon();
-        labelDocumentTypeIcon.setImage(icon.getImage(IconSize.ToolbarIconSize));
-        GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.TOP).grab(true, false).applyTo(labelDocumentTypeIcon);
+    private void createDocumentChain(final Composite parent) {
+        if (!isDocumentChainType(document.getBillingType())) {
+            return;
+        }
+        documentChain = new DocumentChainComposite(parent, SWT.NONE, msg, document, getTransactionDocuments(), this::openDocumentFromChain);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(documentChain);
+    }
+
+    private void createCustomerSummary(final Composite parent) {
+        final DocumentReceiver receiver = addressManager.getBillingAdress(document);
+        if (receiver == null || receiver.getOriginContactId() == null) {
+            return;
+        }
+        final Contact contact = contactDAO.findById(receiver.getOriginContactId());
+        if (contact == null || contact.getId() <= 0) {
+            return;
+        }
+
+        final CustomerStatistics statistics = ContextInjectionFactory.make(CustomerStatistics.class, context);
+        statistics.setContact(contact);
+        statistics.makeStatistics(true);
+        final CustomerSummaryComposite customerSummary = new CustomerSummaryComposite(parent, SWT.NONE, msg, contact,
+                statistics.getOrdersCount(), statistics.getOpenInvoicesCount(),
+                numberFormatterService.doubleToFormattedPrice(statistics.getTotal()),
+                numberFormatterService.doubleToFormattedPrice(statistics.getOpenTotal()), statistics.getLastOrderMonth(),
+                statistics.getTotal(), statistics.getOpenTotal(), this::openCustomerFromSummary);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.BEGINNING)
+                .hint(CustomerSummaryComposite.PREFERRED_WIDTH, CustomerSummaryComposite.PREFERRED_HEIGHT).applyTo(customerSummary);
+    }
+
+    private void increaseFontSize(final Control control, final int points) {
+        final FontData[] fontData = control.getFont().getFontData();
+        for (final FontData data : fontData) {
+            data.setHeight(data.getHeight() + points);
+        }
+        final Font font = new Font(control.getDisplay(), fontData);
+        control.setFont(font);
+        control.addDisposeListener(event -> font.dispose());
+    }
+
+    private List<Document> getTransactionDocuments() {
+        if (document == null || document.getTransactionId() == null || document.getTransactionId().intValue() == -1) {
+            return List.of();
+        }
+        final Transaction transaction = ContextInjectionFactory.make(Transaction.class, context).of(document);
+        return transaction != null && transaction.getDocuments() != null ? transaction.getDocuments() : List.of();
+    }
+
+    private void refreshDocumentChain() {
+        if (documentChain != null && !documentChain.isDisposed()) {
+            documentChain.setDocuments(document, getTransactionDocuments());
+        }
+    }
+
+    private void openDocumentFromChain(final Document targetDocument) {
+        if (targetDocument == null || targetDocument.getId() <= 0 || targetDocument.getId() == document.getId()) {
+            return;
+        }
+        final Map<String, Object> params = new HashMap<>();
+        params.put(CallEditor.PARAM_OBJ_ID, Long.toString(targetDocument.getId()));
+        params.put(CallEditor.PARAM_EDITOR_TYPE, DocumentEditor.ID);
+        params.put(CallEditor.PARAM_CATEGORY, targetDocument.getBillingType().getName());
+        context.getParent().get(ESelectionService.class).setSelection(null);
+        context.get(ESelectionService.class).setSelection(null);
+        final ParameterizedCommand command = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
+        handlerService.executeHandler(command);
+    }
+
+    private void openCustomerFromSummary(final Contact targetContact) {
+        if (targetContact == null || targetContact.getId() <= 0) {
+            return;
+        }
+        final Map<String, Object> params = new HashMap<>();
+        params.put(CallEditor.PARAM_OBJ_ID, Long.toString(targetContact.getId()));
+        params.put(CallEditor.PARAM_EDITOR_TYPE, ContactEditor.ID);
+        context.getParent().get(ESelectionService.class).setSelection(null);
+        context.get(ESelectionService.class).setSelection(null);
+        final ParameterizedCommand command = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
+        handlerService.executeHandler(command);
+    }
+
+    private static boolean isDocumentChainType(final BillingType billingType) {
+        return billingType == BillingType.OFFER || billingType == BillingType.ORDER || billingType == BillingType.CONFIRMATION
+                || billingType == BillingType.INVOICE || billingType == BillingType.DELIVERY
+                || billingType == BillingType.CREDIT;
     }
 
     private void createComboNetGross(final Composite invisible, final Composite nrDateNetGrossComposite) {
@@ -2719,7 +2841,7 @@ public class DocumentEditor extends Editor<Document> {
         comboNetGross.setContentProvider(new HashMapContentProvider<>());
         comboNetGross.setLabelProvider(new NumberLabelProvider<>(netGrossContent));
         comboNetGross.setInput(netGrossContent);
-        GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).indent(20, 0).minSize(80, SWT.DEFAULT).grab(true, false).applyTo(comboNetGross.getControl());
+        GridDataFactory.swtDefaults().hint(110, SWT.DEFAULT).align(SWT.END, SWT.CENTER).applyTo(comboNetGross.getControl());
 
         comboNetGross.getCombo().addSelectionListener(new SelectionListener() {
 

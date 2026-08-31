@@ -309,6 +309,8 @@ public class Messages {
     public String editorContactLabelAdditionaladdress;
     public String editorContactLabelMaintab;
     public String editorDocumentAdditemTooltip;
+    public String editorDocumentChainDirectorder;
+    public String editorDocumentChainWebshop;
     public String editorDocumentCopyitemTooltip;
     public String editorDocumentCheckboxPaidTooltip;
     public String editorDocumentCollectiveinvoiceTooltip;
