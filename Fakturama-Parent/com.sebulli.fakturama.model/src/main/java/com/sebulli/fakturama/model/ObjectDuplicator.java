@@ -4,6 +4,7 @@
 package com.sebulli.fakturama.model;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.texo.converter.ObjectCopier;
@@ -56,6 +57,13 @@ public class ObjectDuplicator {
              */
             // VAT, Shipment, Payment can be left unchanged
             if (clonedDocument != null) {
+                // every "fresh" timestamp on the clone uses this single instant,
+                // set directly (not left null for EntityListener#aboutToInsert to fill in)
+                // since dateAdded/validFrom are never null on a real document and we don't
+                // want to depend on whether persist() vs. merge() actually fires @PrePersist
+                // for these EMF-Texo-copied child entities
+                final Date now = Calendar.getInstance().getTime();
+
                 // reset some attributes
                 clonedDocument.getAdditionalInfo().setId(0);
                 clonedDocument.setInvoiceReference(null);
@@ -64,28 +72,27 @@ public class ObjectDuplicator {
                 clonedDocument.setVersion(Integer.valueOf(1));
 
                 // set DocumentReceiver to new; also clear the origin contact/address
-                // back-references and dateAdded/validFrom so they are freshly (re-)derived
-                // instead of silently keeping the copied-from document's values
-                // (EntityListener#aboutToInsert only fills dateAdded/validFrom when null)
+                // back-references so they are freshly (re-)derived instead of silently
+                // keeping the copied-from document's contact
                 clonedDocument.getReceiver().forEach(r -> {
                     r.setId(0);
                     r.setOriginContactId(null);
                     r.setOriginAddressId(null);
-                    r.setDateAdded(null);
-                    r.setValidFrom(null);
+                    r.setDateAdded(now);
+                    r.setValidFrom(now);
                 });
 
                 // set DocumentItems to new
                 clonedDocument.getItems().forEach(r -> {
                     r.setId(0);
-                    r.setDateAdded(null);
-                    r.setValidFrom(null);
+                    r.setDateAdded(now);
+                    r.setValidFrom(now);
                 });
 
                 // set date to actual date
-                clonedDocument.setDocumentDate(Calendar.getInstance().getTime());
-                clonedDocument.setServiceDate(Calendar.getInstance().getTime());
-                clonedDocument.setOrderDate(Calendar.getInstance().getTime());
+                clonedDocument.setDocumentDate(now);
+                clonedDocument.setServiceDate(now);
+                clonedDocument.setOrderDate(now);
 
                 // reset paid values, if any
                 clonedDocument.setPaid(Boolean.FALSE);
@@ -93,8 +100,8 @@ public class ObjectDuplicator {
                 clonedDocument.setPaidValue(null);
 
                 // the document itself must also get a fresh dateAdded/validFrom
-                clonedDocument.setDateAdded(null);
-                clonedDocument.setValidFrom(null);
+                clonedDocument.setDateAdded(now);
+                clonedDocument.setValidFrom(now);
 
                 // make the new object really "new" :-)
                 clonedDocument.setId(0);
