@@ -45,8 +45,9 @@ public class LocaleUtil implements ILocaleService {
      * with a language code.
      * 
      * @param lang
-     *            the language code to be used. If <code>null</code>, then
-     *            "en_US" is used.
+     *            the language code to be used. If no OSGi language is set,
+     *            the process locale (LC_ALL/LC_MESSAGES/LANG) and finally
+     *            {@link Locale#getDefault()} are used.
      * @return a {@link LocaleUtil} instance
      */
     @SuppressWarnings("restriction")
@@ -55,32 +56,74 @@ public class LocaleUtil implements ILocaleService {
         String lang = (Activator.getContext() == null ? System.getProperty(EclipseStarter.PROP_NL)
                 : Activator.getContext().getProperty(EclipseStarter.PROP_NL));
 
-        if (lang == null) {
-            initLocaleUtil("en_US");
+        // Product launchers commonly provide a language-only `-nl en`.
+        // In that case honour a regional OS locale (LANG/LC_*) so the UI and
+        // currency follow the user's desktop settings instead of the
+        // launcher's generic English default.
+        final String systemLang = systemLanguage();
+        if (StringUtils.isBlank(lang) || (lang.length() <= 2 && systemLang.matches(".*[_-].*"))) {
+            lang = systemLang;
         }
-        // We have to track different language settings (e.g., from command line) which
-        // aren't equal to the default locale.
-        if (lang != null && !getDefaultLocale().getLanguage().contentEquals(lang)) {
-            /*
-             * If a two-letter locale is given try to interpret it (because we need it later
-             * for determining currency etc.)
-             */
-            if (lang.length() < 3) {
-                List<Locale> countriesByLanguage = LocaleUtils.countriesByLanguage(lang);
-                // try to get the locale from language, use the first fitting country
-                if (!countriesByLanguage.isEmpty()) {
-                    Locale tmpLocale = countriesByLanguage.get(0);
-                    initLocaleUtil(String.format("%s_%s", tmpLocale.getLanguage(), tmpLocale.getCountry()));
-                } else {
-                    // if none found, try to guess it from country code (very uncertain!)
-                    initLocaleUtil(String.format("%s_%s", lang, lang.toUpperCase()));
-                }
+        lang = normalizeLanguage(lang);
+        if (StringUtils.isBlank(lang)) {
+            lang = "en_US";
+        }
+        // A language-only value (for example Eclipse's default NL=en) must be
+        // expanded to a region before it is used for currency formatting.
+        if (lang.length() < 3) {
+            final List<Locale> countriesByLanguage = LocaleUtils.countriesByLanguage(lang);
+            final Optional<Locale> regionalLocale = countriesByLanguage.stream()
+                    .filter(locale -> StringUtils.isNotBlank(locale.getCountry())).findFirst();
+            if (regionalLocale.isPresent()) {
+                final Locale tmpLocale = regionalLocale.get();
+                initLocaleUtil(String.format("%s_%s", tmpLocale.getLanguage(), tmpLocale.getCountry()));
             } else {
-                initLocaleUtil(lang);
+                initLocaleUtil(String.format("%s_%s", lang, lang.toUpperCase()));
             }
+        } else if (!getDefaultLocale().getLanguage().contentEquals(lang) || localeLookUp.isEmpty()) {
+            initLocaleUtil(lang);
+        }
+        // A language-only value such as "de" can equal the JVM default
+        // language and would otherwise skip initialization of the lookup maps.
+        if (localeLookUp.isEmpty()) {
+            initLocaleUtil(lang);
         }
         
         return this;
+    }
+
+    /** Resolve the conventional Unix locale variables when Eclipse was not
+     * started with an explicit -nl argument. */
+    private static String systemLanguage() {
+        final String[] candidates = { System.getenv("LC_ALL"), System.getenv("LC_MESSAGES"), System.getenv("LANG") };
+        for (final String candidate : candidates) {
+            if (StringUtils.isNotBlank(candidate) && !"C".equalsIgnoreCase(candidate) && !"POSIX".equalsIgnoreCase(candidate)) {
+                return candidate;
+            }
+        }
+        final Locale locale = Locale.getDefault();
+        if (locale != null && StringUtils.isNotBlank(locale.getLanguage())) {
+            return locale.getLanguage() + (StringUtils.isNotBlank(locale.getCountry()) ? "_" + locale.getCountry() : "");
+        }
+        return null;
+    }
+
+    /** Convert LANG-style values such as {@code de_DE.UTF-8} or
+     * {@code de-DE} to the underscore form used by the existing bundles. */
+    private static String normalizeLanguage(final String language) {
+        if (StringUtils.isBlank(language)) {
+            return null;
+        }
+        String normalized = language.trim().replace('-', '_');
+        final int encoding = normalized.indexOf('.');
+        if (encoding >= 0) {
+            normalized = normalized.substring(0, encoding);
+        }
+        final int modifier = normalized.indexOf('@');
+        if (modifier >= 0) {
+            normalized = normalized.substring(0, modifier);
+        }
+        return normalized;
     }
 
     @Override
@@ -88,6 +131,9 @@ public class LocaleUtil implements ILocaleService {
         // use OSGi service
         ServiceReference[] references = null;
         BundleContext bundleContext = Activator.getContext();
+        if (bundleContext == null) {
+            return Locale.getDefault();
+        }
         try {
             references = bundleContext.getAllServiceReferences(null, "(objectClass=" + LocaleProvider.class.getName() + ")");
         } catch (InvalidSyntaxException e) {
@@ -232,7 +278,12 @@ public class LocaleUtil implements ILocaleService {
         if (currencyLocale == null) {
             String localeString = Activator.getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
             if (localeString.isEmpty()) {
-                localeString = Locale.US.getDisplayCountry();
+                // Use a real locale identifier as fallback.  The former
+                // display-country value ("United States") could not be
+                // parsed and consequently returned the language-only JVM
+                // locale (for example "en"), which has no currency unit.
+                currencyLocale = Locale.US;
+                return currencyLocale;
 // Alternative:
 //              localeString = Locale.GERMAN.getCountry() + "/" + Locale.GERMAN.getLanguage();
             }

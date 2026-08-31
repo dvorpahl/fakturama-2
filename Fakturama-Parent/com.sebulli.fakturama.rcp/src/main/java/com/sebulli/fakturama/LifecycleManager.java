@@ -132,6 +132,7 @@ public class LifecycleManager {
     @PostContextCreate
     public void checksBeforeStartup(final ISplashService splashService, final IEventBroker eventBroker) {
         splashService.setSplashPluginId(Activator.PLUGIN_ID);
+        splashService.setSplashImagePath("splash-rcp.png");
         splashService.setTotalWork(40);
         splashService.open();
         splashService.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));

@@ -306,7 +306,8 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Invoice> criteria = cb.createQuery(Invoice.class);
         Root<Invoice> root = criteria.from(Invoice.class);
-        CriteriaQuery<Invoice> cq = criteria.where(cb.equal(root.<Boolean> get(Invoice_.paid), true));
+        CriteriaQuery<Invoice> cq = criteria.where(
+                cb.and(cb.equal(root.<Boolean> get(Invoice_.paid), true), cb.equal(root.<Boolean> get(Invoice_.deleted), false)));
         return getEntityManager().createQuery(cq).getResultList();
     }
 
@@ -341,6 +342,68 @@ public class DocumentsDAO extends AbstractDAO<Document> {
                         cb.equal(root.join(Invoice_.receiver).get(DocumentReceiver_.originContactId), contact.getId())));
         List<Invoice> resultList = getEntityManager().createQuery(cq).getResultList();
         return resultList;
+    }
+
+    /**
+     * Loads one deterministic page of visible documents.  The legacy
+     * {@link #findAll(boolean)} method intentionally keeps its original
+     * unbounded contract for existing callers; new list views should use this
+     * method so that a large document archive is not materialised at once.
+     *
+     * @param forceRead whether the persistence cache should be bypassed
+     * @param firstResult zero-based offset
+     * @param maxResults maximum number of documents to return
+     * @return a page ordered by document date and id
+     */
+    public List<Document> findPage(final boolean forceRead, final int firstResult, final int maxResults) {
+        if (firstResult < 0 || maxResults <= 0) {
+            throw new IllegalArgumentException("firstResult must be >= 0 and maxResults must be > 0");
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(getEntityClass());
+        final Root<Document> root = criteria.from(getEntityClass());
+        criteria.where(cb.notEqual(root.get(Document_.deleted), Boolean.TRUE));
+        criteria.orderBy(cb.desc(root.get(Document_.documentDate)), cb.desc(root.get(Document_.id)));
+        final TypedQuery<Document> query = getEntityManager().createQuery(criteria);
+        query.setFirstResult(firstResult);
+        query.setMaxResults(maxResults);
+        if (forceRead) {
+            query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
+            query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
+        }
+        return query.getResultList();
+    }
+
+    /** Returns the number of visible documents without loading entities. */
+    public long countVisible() {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Document> root = criteria.from(getEntityClass());
+        criteria.select(cb.count(root));
+        criteria.where(cb.notEqual(root.get(Document_.deleted), Boolean.TRUE));
+        return getEntityManager().createQuery(criteria).getSingleResult().longValue();
+    }
+
+    /**
+     * Finds all undeleted invoices for a given contact. The paid flag is left
+     * untouched so callers can distinguish completely paid, partially paid and
+     * unpaid invoices using the existing invoice fields.
+     *
+     * @param contact
+     *            contact whose invoices should be returned
+     * @return all undeleted invoices assigned to the contact
+     */
+    public List<Invoice> findInvoicesForContact(final Contact contact) {
+        if (contact == null) {
+            return Collections.emptyList();
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Invoice> criteria = cb.createQuery(Invoice.class);
+        final Root<Invoice> root = criteria.from(Invoice.class);
+        final CriteriaQuery<Invoice> query = criteria.distinct(true)
+                .where(cb.and(cb.equal(root.<Boolean> get(Invoice_.deleted), false),
+                        cb.equal(root.join(Invoice_.receiver).get(DocumentReceiver_.originContactId), contact.getId())));
+        return getEntityManager().createQuery(query).getResultList();
     }
 
     public void updateDunnings(final Document document) {

@@ -434,12 +434,12 @@
 			</dependency>
 		</dependencies>
 	</location>
-	<location includeDependencyDepth="infinite" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+	<location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		<dependencies>
 			<dependency>
 				<groupId>org.odftoolkit</groupId>
 				<artifactId>odfdom-java</artifactId>
-				<version>0.13.0</version>
+				<version>0.13.0-SNAPSHOT</version>
 				<type>jar</type>
 			</dependency>
 		</dependencies>
@@ -723,5 +723,5 @@
 		</dependencies>
 	</location>
 </locations>
-<targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"/>
+<targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21"/>
 </target>

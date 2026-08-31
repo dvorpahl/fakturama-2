@@ -68,6 +68,10 @@ public class CustomerStatistics {
 		}
     }
 
+    public void setContact(final Contact contact) {
+        this.contact = contact;
+    }
+
     /**
      * @param address the address to set
      */
@@ -80,6 +84,9 @@ public class CustomerStatistics {
 	
 	// How many orders
 	private Integer ordersCount = 0;
+
+	// How many invoices are not completely paid
+	private Integer openInvoicesCount = 0;
 	
 	// The last date
 	private Calendar lastOrderDate = null;
@@ -89,6 +96,9 @@ public class CustomerStatistics {
 	
 	// The total volume
 	private Double total = Double.valueOf(0.0);
+
+	// Remaining value of all invoices which are not completely paid
+	private Double openTotal = Double.valueOf(0.0);
 	
 	// Customer to test
 	private Contact contact = null;
@@ -136,11 +146,12 @@ public class CustomerStatistics {
 	 * 		     <code>false</code>: Compare also first line of address
 	 */
 	public void makeStatistics(boolean byID) {
+		resetStatistics();
 		// Get all undeleted documents
-		// Only paid invoiced from this customer will be used for the statistics
+		// Paid and open invoices are needed for the compact customer summary.
 	    // Compare the customer ID
-		List<Invoice> documents = byID ? documentsDAO.findPaidInvoicesForContact(contact) : documentsDAO.findPaidInvoices();
-		ContactUtil contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
+		List<Invoice> documents = byID ? documentsDAO.findInvoicesForContact(contact) : documentsDAO.findPaidInvoices();
+			ContactUtil contactUtil = byID ? null : ContextInjectionFactory.make(ContactUtil.class, context);
 
 		// Export the document data
 		for (Invoice document : documents) {
@@ -158,9 +169,17 @@ public class CustomerStatistics {
 				customerFound = true;
 			}
 			
-			if (customerFound) {
-				// It's a regular customer
-				isRegularCustomer = true;
+				if (customerFound) {
+					if (!Boolean.TRUE.equals(document.getPaid())) {
+						openInvoicesCount++;
+						final double invoiceTotal = document.getTotalValue() != null ? document.getTotalValue() : 0.0;
+						final double alreadyPaid = document.getPaidValue() != null ? document.getPaidValue() : 0.0;
+						openTotal += Math.max(0.0, invoiceTotal - alreadyPaid);
+						continue;
+					}
+
+					// It's a regular customer
+					isRegularCustomer = true;
 
 				// Add the invoice number to the list of invoices
 				// Add maximum 4 invoices
@@ -177,7 +196,7 @@ public class CustomerStatistics {
 				ordersCount ++;
 				
 				// Increase the total
-				total += document.getPaidValue();
+					total += document.getPaidValue() != null ? document.getPaidValue() : 0.0;
 				
 				// Get the date of the document and convert it to a
 				// GregorianCalendar object.
@@ -190,16 +209,23 @@ public class CustomerStatistics {
                 	documentDate.setTime(expenditureDateString);
 
                 	// Set the last order date
-                	if (lastOrderDate == null) {
-                		lastOrderDate = documentDate;
-                	} else {
-                		documentDate.after(lastOrderDate);
-                		lastOrderDate = documentDate;
-                	}
+	                	if (lastOrderDate == null || documentDate.after(lastOrderDate)) {
+	                		lastOrderDate = documentDate;
+	                	}
                 }
+				}
 			}
 		}
-	}
+
+		private void resetStatistics() {
+			isRegularCustomer = false;
+			ordersCount = 0;
+			openInvoicesCount = 0;
+			lastOrderDate = null;
+			invoices = "";
+			total = 0.0;
+			openTotal = 0.0;
+		}
 	
 	/**
 	 * Returns whether the customer has already paid invoices
@@ -220,6 +246,10 @@ public class CustomerStatistics {
 	public Integer getOrdersCount () {
 		return ordersCount;
 	}
+
+	public Integer getOpenInvoicesCount() {
+		return openInvoicesCount;
+	}
 	
 	/**
 	 * Returns the total value
@@ -229,6 +259,10 @@ public class CustomerStatistics {
 	 */
 	public Double getTotal () {
 		return total;
+	}
+
+	public Double getOpenTotal() {
+		return openTotal;
 	}
 	
 	/**
@@ -247,6 +281,14 @@ public class CustomerStatistics {
 		} else {
 			return "-";
 		}
+	}
+
+	public String getLastOrderMonth() {
+		if (lastOrderDate == null) {
+			return "-";
+		}
+		final LocalDate date = LocalDateTime.ofInstant(lastOrderDate.toInstant(), ZoneOffset.UTC).toLocalDate();
+		return date.format(DateTimeFormatter.ofPattern("MM/yyyy"));
 	}
 	
 	/**
