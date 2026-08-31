@@ -1287,8 +1287,21 @@ public class DocumentEditor extends Editor<Document> {
             retval.setDeposit(Boolean.FALSE);
 
         }
-        retval.setDueDays(parentPayment.getNetDays());
-        retval.setPayment(parentPayment);
+        if (parentPayment != null) {
+            retval.setDueDays(parentPayment.getNetDays());
+            retval.setPayment(parentPayment);
+        } else if (documentType.canBePaid()) {
+            // Offers and delivery notes may legitimately have no payment
+            // method.  A payable follow-up document still needs a valid
+            // payment reference, so use the configured default when
+            // available instead of dereferencing the missing parent value.
+            final long paymentId = defaultValuePrefs.getLong(Constants.DEFAULT_PAYMENT);
+            final Payment defaultPayment = paymentsDao.findById(paymentId);
+            retval.setPayment(defaultPayment);
+            if (defaultPayment != null) {
+                retval.setDueDays(defaultPayment.getNetDays());
+            }
+        }
 
         retval.setTotalValue(parentDoc.getTotalValue());
         if (parentDoc.getTransactionId() != null) {
