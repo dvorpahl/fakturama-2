@@ -39,8 +39,38 @@ public class ObjectDuplicator {
         System.out.println(feat);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Controls what happens to the customer/address link and the document-chain
+     * reference when a {@link Document} is duplicated via {@link #duplicateDocument}.
+     */
+    public enum DuplicateMode {
+        /**
+         * "Neues Angebot": the copy is treated as an unrelated, brand-new document -
+         * the customer/address back-references are cleared (the user has to
+         * (re-)pick an address) and no link to the source document is kept.
+         */
+        NEW_DOCUMENT,
+        /**
+         * "Zweites Angebot (gleicher Kunde)": the copy keeps the same
+         * customer/address and is linked back to the document it was duplicated
+         * from via {@link Document#setSourceDocument}, so it shows up together
+         * with it in the document chain.
+         */
+        SAME_CUSTOMER
+    }
+
+    /**
+     * Duplicates a document, always clearing the customer/address link (see
+     * {@link DuplicateMode#NEW_DOCUMENT}). Kept for backward compatibility.
+     *
+     * @see #duplicateDocument(Document, DuplicateMode)
+     */
     public <T extends Document> T duplicateDocument(final T document) {
+        return duplicateDocument(document, DuplicateMode.NEW_DOCUMENT);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Document> T duplicateDocument(final T document, final DuplicateMode mode) {
         T clonedDocument = null;
         if (document != null) {
             ObjectCopier objectCopier = new ObjectCopier();
@@ -63,21 +93,25 @@ public class ObjectDuplicator {
                 // want to depend on whether persist() vs. merge() actually fires @PrePersist
                 // for these EMF-Texo-copied child entities
                 final Date now = Calendar.getInstance().getTime();
+                final boolean keepCustomer = mode == DuplicateMode.SAME_CUSTOMER;
 
                 // reset some attributes
                 clonedDocument.getAdditionalInfo().setId(0);
                 clonedDocument.setInvoiceReference(null);
-                clonedDocument.setSourceDocument(null);
+                // link back to where this copy came from, unless it's meant to be
+                // a completely unrelated new document
+                clonedDocument.setSourceDocument(keepCustomer ? document : null);
                 clonedDocument.setTransactionId(null);
                 clonedDocument.setVersion(Integer.valueOf(1));
 
-                // set DocumentReceiver to new; also clear the origin contact/address
-                // back-references so they are freshly (re-)derived instead of silently
-                // keeping the copied-from document's contact
+                // set DocumentReceiver to new; clear the origin contact/address
+                // back-references unless the copy is meant to keep the same customer
                 clonedDocument.getReceiver().forEach(r -> {
                     r.setId(0);
-                    r.setOriginContactId(null);
-                    r.setOriginAddressId(null);
+                    if (!keepCustomer) {
+                        r.setOriginContactId(null);
+                        r.setOriginAddressId(null);
+                    }
                     r.setDateAdded(now);
                     r.setValidFrom(now);
                 });

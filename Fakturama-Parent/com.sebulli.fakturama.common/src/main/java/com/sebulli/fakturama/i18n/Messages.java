@@ -68,6 +68,10 @@ public class Messages {
     public String commandDocumentsMoveUpTooltip;
     public String commandDocumentsName;
     public String commandDocumentsTooltip;
+    public String commandDuplicateOfferMessage;
+    public String commandDuplicateOfferNewcustomer;
+    public String commandDuplicateOfferSamecustomer;
+    public String commandDuplicateOfferTitle;
     public String commandExpenditurevouchersName;
     public String commandExpenditurevouchersTooltip;
     public String commandListsName;

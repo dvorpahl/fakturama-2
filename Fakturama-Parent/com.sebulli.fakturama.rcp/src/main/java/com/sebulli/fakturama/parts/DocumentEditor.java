@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +34,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.money.CurrencyUnit;
 import javax.money.MonetaryAmount;
+
+import jakarta.persistence.NoResultException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -159,6 +163,7 @@ import com.sebulli.fakturama.model.Dunning;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
 import com.sebulli.fakturama.model.Invoice;
 import com.sebulli.fakturama.model.ObjectDuplicator;
+import com.sebulli.fakturama.model.ObjectDuplicator.DuplicateMode;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.model.Shipping;
@@ -1049,10 +1054,16 @@ public class DocumentEditor extends Editor<Document> {
                 // clone the product and use it as new one
                 switch (this.document.getBillingType()) {
                     case OFFER:
-                        this.document = new ObjectDuplicator().duplicateDocument(this.document);
+                        final DuplicateMode copyMode = parseDuplicateMode(
+                                (String) part.getTransientData().get(CallEditor.PARAM_COPY_MODE));
+                        final Document originalOffer = this.document;
+                        this.document = new ObjectDuplicator().duplicateDocument(this.document, copyMode);
 
-                        // Get the next document number
-                        document.setName(getNumberGenerator().getNextNr(getEditorID()));
+                        // "Zweites Angebot": derive NNN-2 (or -3, -4, ... if already taken)
+                        // from the original number instead of pulling a fresh one
+                        document.setName(copyMode == DuplicateMode.SAME_CUSTOMER
+                                ? buildDerivedOfferNumber(originalOffer.getName())
+                                : getNumberGenerator().getNextNr(getEditorID()));
 
                         // in this case the document is NOT a follow-up of another!
                         tmpDuplicate = Boolean.FALSE;
@@ -1248,6 +1259,55 @@ public class DocumentEditor extends Editor<Document> {
      */
     private void fillSelectedAddresses() {
         document.getReceiver().forEach(rcv -> selectedAddresses.put(rcv.getBillingType(), rcv));
+    }
+
+    private static final Pattern DERIVED_OFFER_NUMBER_SUFFIX = Pattern.compile("^(.*)-(\\d+)$");
+
+    /**
+     * Parses the {@link CallEditor#PARAM_COPY_MODE} transient-data value into a
+     * {@link DuplicateMode}. Unknown or missing values default to
+     * {@link DuplicateMode#NEW_DOCUMENT}, i.e. today's "blank copy" behaviour.
+     */
+    private DuplicateMode parseDuplicateMode(final String rawMode) {
+        try {
+            return rawMode != null ? DuplicateMode.valueOf(rawMode) : DuplicateMode.NEW_DOCUMENT;
+        } catch (final IllegalArgumentException e) {
+            return DuplicateMode.NEW_DOCUMENT;
+        }
+    }
+
+    /**
+     * Builds the document number for a "Zweites Angebot" (same-customer) copy:
+     * appends "-2" to the original number, or, if the original number already
+     * ends in "-&lt;n&gt;", increments that suffix instead (so a copy of a copy
+     * becomes "-3", not "-2-2"). Collisions with an already existing document
+     * number bump the suffix further until a free one is found.
+     */
+    private String buildDerivedOfferNumber(final String originalName) {
+        final Matcher matcher = DERIVED_OFFER_NUMBER_SUFFIX.matcher(originalName);
+        final String base;
+        int nextSuffix;
+        if (matcher.matches()) {
+            base = matcher.group(1);
+            nextSuffix = Integer.parseInt(matcher.group(2)) + 1;
+        } else {
+            base = originalName;
+            nextSuffix = 2;
+        }
+        String candidate;
+        do {
+            candidate = base + "-" + nextSuffix;
+            nextSuffix++;
+        } while (documentExists(candidate));
+        return candidate;
+    }
+
+    private boolean documentExists(final String name) {
+        try {
+            return documentsDAO.findByName(name) != null;
+        } catch (final NoResultException e) {
+            return false;
+        }
     }
 
     /**
