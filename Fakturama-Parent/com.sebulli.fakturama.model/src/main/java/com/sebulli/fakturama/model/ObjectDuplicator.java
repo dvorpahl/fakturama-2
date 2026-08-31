@@ -63,11 +63,24 @@ public class ObjectDuplicator {
                 clonedDocument.setTransactionId(null);
                 clonedDocument.setVersion(Integer.valueOf(1));
 
-                // set DocumentReceiver to new
-                clonedDocument.getReceiver().forEach(r -> r.setId(0));
+                // set DocumentReceiver to new; also clear the origin contact/address
+                // back-references and dateAdded/validFrom so they are freshly (re-)derived
+                // instead of silently keeping the copied-from document's values
+                // (EntityListener#aboutToInsert only fills dateAdded/validFrom when null)
+                clonedDocument.getReceiver().forEach(r -> {
+                    r.setId(0);
+                    r.setOriginContactId(null);
+                    r.setOriginAddressId(null);
+                    r.setDateAdded(null);
+                    r.setValidFrom(null);
+                });
 
                 // set DocumentItems to new
-                clonedDocument.getItems().forEach(r -> r.setId(0));
+                clonedDocument.getItems().forEach(r -> {
+                    r.setId(0);
+                    r.setDateAdded(null);
+                    r.setValidFrom(null);
+                });
 
                 // set date to actual date
                 clonedDocument.setDocumentDate(Calendar.getInstance().getTime());
@@ -78,6 +91,10 @@ public class ObjectDuplicator {
                 clonedDocument.setPaid(Boolean.FALSE);
                 clonedDocument.setPayDate(null);
                 clonedDocument.setPaidValue(null);
+
+                // the document itself must also get a fresh dateAdded/validFrom
+                clonedDocument.setDateAdded(null);
+                clonedDocument.setValidFrom(null);
 
                 // make the new object really "new" :-)
                 clonedDocument.setId(0);
