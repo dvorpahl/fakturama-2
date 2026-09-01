@@ -102,13 +102,6 @@ public class CallEditor {
     public static final String PARAM_COPY = "org.fakturama.document.copy";
 
     /**
-     * How a document copy (see {@link #PARAM_COPY}) should be created - one of
-     * {@link com.sebulli.fakturama.model.ObjectDuplicator.DuplicateMode}'s names.
-     * Optional; a missing/unknown value is treated as {@code NEW_DOCUMENT}.
-     */
-    public static final String PARAM_COPY_MODE = "org.fakturama.document.copymode";
-
-    /**
      * The type of the editor which has to be called.
      */
     public static final String PARAM_EDITOR_TYPE = "com.sebulli.fakturama.editors.editortype";
@@ -184,12 +177,11 @@ public class CallEditor {
 			@Optional @Named(PARAM_CATEGORY) String category,
             @Optional @Named(PARAM_FOLLOW_UP) Boolean isFollowUp,
             @Optional @Named(PARAM_COPY) Boolean isCopy,
-            @Optional @Named(PARAM_COPY_MODE) String copyMode,
             @Optional @Named(PARAM_CALLING_DOC) String callingDoc,
             @Optional @Named(PARAM_FORCE_NEW) Boolean isForceNew,
             final MApplication application
             ) throws ExecutionException {
-		
+
 			// If we had a selection lets open the editor
             MPartStack documentPartStack = (MPartStack) modelService.find(DETAIL_PARTSTACK_ID, application);
             // close other editors if set in preferences
@@ -223,7 +215,6 @@ public class CallEditor {
                 }
             	params.put(PARAM_CALLING_DOC, callingDoc);
             	params.put(PARAM_COPY, BooleanUtils.toStringTrueFalse(isCopy));
-            	params.put(PARAM_COPY_MODE, copyMode);
             }
             params.put(PARAM_CATEGORY, category);
             log.debug("PARAM_OBJ_ID: " + params.get(PARAM_OBJ_ID));

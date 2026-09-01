@@ -162,6 +162,7 @@ import com.sebulli.fakturama.model.DummyStringCategory;
 import com.sebulli.fakturama.model.Dunning;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
 import com.sebulli.fakturama.model.Invoice;
+import com.sebulli.fakturama.handlers.DuplicateObjectHandler;
 import com.sebulli.fakturama.model.ObjectDuplicator;
 import com.sebulli.fakturama.model.ObjectDuplicator.DuplicateMode;
 import com.sebulli.fakturama.model.Payment;
@@ -326,6 +327,12 @@ public class DocumentEditor extends Editor<Document> {
     // defines if the document is new created
     private boolean newDocument;
 
+    // "Zweites Angebot" deliberately assigns a derived NNN-2 number instead of the
+    // next free one from the number range; the save-time "is this the next free
+    // number" check (and the number-range consumption it triggers) must be skipped
+    // for it, see #doSave
+    private boolean skipNextFreeNumberCheck;
+
     // If the customer is changed and this document displays no payment text,
     // use this variable to store the payment and due days
     @Deprecated
@@ -423,7 +430,7 @@ public class DocumentEditor extends Editor<Document> {
             addressChangeSideEffect.get(addressAndIconComposite.getSelectionIndex()).runIfDirty();
         }
 
-        if (newDocument || document.getId() == 0) {
+        if ((newDocument || document.getId() == 0) && !skipNextFreeNumberCheck) {
             // Check if the document number is the next one
             if (!document.getBillingType().isLETTER()) {
                 final int result = getNumberGenerator().setNextFreeNumberInPrefStore(txtName.getText(), getEditorID());
@@ -1056,19 +1063,30 @@ public class DocumentEditor extends Editor<Document> {
                 final BillingType targetType = copyTargetCategory != null ? BillingType.get(copyTargetCategory) : sourceType;
 
                 if (sourceType == BillingType.OFFER && targetType == BillingType.OFFER) {
-                    // same-type Offer duplicate: "Zweites Angebot" keeps the customer and
-                    // links back to the original via sourceDocument, "Neues Angebot" starts
-                    // out blank (see ObjectDuplicator.DuplicateMode)
-                    final DuplicateMode copyMode = parseDuplicateMode(
-                            (String) part.getTransientData().get(CallEditor.PARAM_COPY_MODE));
+                    // same-type Offer duplicate: ask right here, now that this editor/document
+                    // actually exists and parent.getShell() is a live, stable Shell - "Zweites
+                    // Angebot" keeps the customer and links back to the original via
+                    // sourceDocument, "Neues Angebot" starts out blank (see
+                    // ObjectDuplicator.DuplicateMode). Cancelling the dialog falls back to
+                    // NEW_DOCUMENT rather than aborting, since a blank part/tab already exists
+                    // by this point and there is nothing sensible to roll back to.
+                    final DuplicateMode chosenMode = DuplicateObjectHandler.askDuplicateMode(parent.getShell(), msg);
+                    final DuplicateMode copyMode = chosenMode != null ? chosenMode : DuplicateMode.NEW_DOCUMENT;
                     final Document originalOffer = this.document;
                     this.document = new ObjectDuplicator().duplicateDocument(this.document, copyMode);
 
                     // "Zweites Angebot": derive NNN-2 (or -3, -4, ... if already taken)
-                    // from the original number instead of pulling a fresh one
-                    document.setName(copyMode == DuplicateMode.SAME_CUSTOMER
-                            ? buildDerivedOfferNumber(originalOffer.getName())
-                            : getNumberGenerator().getNextNr(getEditorID()));
+                    // from the original number instead of pulling a fresh one - and skip the
+                    // save-time "is this the next free number" check/consumption for it, since
+                    // it is deliberately not the next free number
+                    final String newName;
+                    if (copyMode == DuplicateMode.SAME_CUSTOMER) {
+                        newName = buildDerivedOfferNumber(originalOffer.getName());
+                        skipNextFreeNumberCheck = true;
+                    } else {
+                        newName = getNumberGenerator().getNextNr(getEditorID());
+                    }
+                    document.setName(newName);
 
                     // in this case the document is NOT a follow-up of another!
                     tmpDuplicate = Boolean.FALSE;
@@ -1270,19 +1288,6 @@ public class DocumentEditor extends Editor<Document> {
     }
 
     private static final Pattern DERIVED_OFFER_NUMBER_SUFFIX = Pattern.compile("^(.*)-(\\d+)$");
-
-    /**
-     * Parses the {@link CallEditor#PARAM_COPY_MODE} transient-data value into a
-     * {@link DuplicateMode}. Unknown or missing values default to
-     * {@link DuplicateMode#NEW_DOCUMENT}, i.e. today's "blank copy" behaviour.
-     */
-    private DuplicateMode parseDuplicateMode(final String rawMode) {
-        try {
-            return rawMode != null ? DuplicateMode.valueOf(rawMode) : DuplicateMode.NEW_DOCUMENT;
-        } catch (final IllegalArgumentException e) {
-            return DuplicateMode.NEW_DOCUMENT;
-        }
-    }
 
     /**
      * Builds the document number for a "Zweites Angebot" (same-customer) copy:

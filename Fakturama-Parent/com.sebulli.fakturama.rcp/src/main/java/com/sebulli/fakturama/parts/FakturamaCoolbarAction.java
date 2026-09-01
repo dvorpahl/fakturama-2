@@ -25,7 +25,6 @@ import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
-import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.services.IServiceConstants;
 import org.eclipse.e4.ui.workbench.modeling.EPartService;
@@ -37,10 +36,6 @@ import org.eclipse.swt.widgets.ToolBar;
 
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.handlers.CommandIds;
-import com.sebulli.fakturama.handlers.DuplicateObjectHandler;
-import com.sebulli.fakturama.i18n.Messages;
-import com.sebulli.fakturama.model.BillingType;
-import com.sebulli.fakturama.model.ObjectDuplicator.DuplicateMode;
 
 /**
  *
@@ -58,10 +53,6 @@ public class FakturamaCoolbarAction extends Action {
 
     @Inject
     private IEclipseContext ctx;
-
-    @Inject
-    @Translation
-    private Messages msg;
 
     private ParameterizedCommand pCmd;
 
@@ -93,7 +84,6 @@ public class FakturamaCoolbarAction extends Action {
 
     @Override
     public void runWithEvent(Event event) {
-
         ParameterizedCommand parameterizedCommand = pCmd;
         if (handlerService.canExecute(parameterizedCommand)) {
             final IEclipseContext staticContext = EclipseContextFactory.create("fakturama-static-context");
@@ -105,7 +95,12 @@ public class FakturamaCoolbarAction extends Action {
                     parameterizedCommand = cmdService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
             }
 
-            // if CTRL key is pressed then we try to duplicate the current editor into a new one
+            // if CTRL key is pressed then we try to duplicate the current editor into a new one.
+            // Note: this only decides *whether* a copy is requested at all - which kind of copy
+            // (same customer / blank / cross-type template) is decided later, inside
+            // DocumentEditor#init(), where the new part/document actually exists and a stable
+            // Shell is available. Doing that decision (and its dialog) here used to be fragile:
+            // it ran nested inside this click's event dispatch, before the target part existed.
             if ((event.stateMask & SWT.MOD1) == SWT.MOD1) {
                 // does only work under certain circumstances
                 ParameterizedCommand duplicateCmd = cmdService.createCommand(CommandIds.CMD_OBJECT_DUPLICATE);
@@ -115,28 +110,7 @@ public class FakturamaCoolbarAction extends Action {
                     if (activePart != null && activePart.getObject() instanceof Editor) {
                         String editorType = (String) parameterizedCommand.getParameterMap().get(CallEditor.PARAM_EDITOR_TYPE);
                         if (editorType != null && activePart.getElementId().equalsIgnoreCase(editorType)) {
-                            // the icon's own target type (e.g. clicking the "Angebot" icon
-                            // while a Rechnung is open still targets OFFER) - only a same-type
-                            // Offer copy asks "same customer or blank"; any other combination
-                            // (same-type non-Offer, or a type change) is handled by
-                            // DocumentEditor#init() as a blank document, so no dialog is needed
-                            DuplicateMode mode = DuplicateMode.NEW_DOCUMENT;
-                            if (activePart.getObject() instanceof DocumentEditor) {
-                                final DocumentEditor sourceEditor = (DocumentEditor) activePart.getObject();
-                                final BillingType sourceType = sourceEditor.getDocument().getBillingType();
-                                final String targetCategory = (String) parameterizedCommand.getParameterMap().get(CallEditor.PARAM_CATEGORY);
-                                final BillingType targetType = targetCategory != null ? BillingType.get(targetCategory) : sourceType;
-                                if (sourceType == BillingType.OFFER && targetType == BillingType.OFFER) {
-                                    final DuplicateMode chosen = DuplicateObjectHandler.askDuplicateMode(toolBar.getShell(), msg);
-                                    if (chosen == null) {
-                                        // user cancelled the dialog - don't duplicate at all
-                                        return;
-                                    }
-                                    mode = chosen;
-                                }
-                            }
                             staticContext.set(CallEditor.PARAM_COPY, Boolean.TRUE);
-                            staticContext.set(CallEditor.PARAM_COPY_MODE, mode.name());
                             staticContext.set(CallEditor.PARAM_FORCE_NEW, Boolean.FALSE);
                             staticContext.set(CallEditor.PARAM_OBJ_ID, activePart.getTransientData().get(CallEditor.PARAM_OBJ_ID));
                         }

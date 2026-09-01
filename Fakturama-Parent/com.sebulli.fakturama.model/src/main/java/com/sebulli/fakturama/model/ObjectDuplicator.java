@@ -45,9 +45,10 @@ public class ObjectDuplicator {
      */
     public enum DuplicateMode {
         /**
-         * "Neues Angebot": the copy is treated as an unrelated, brand-new document -
-         * the customer/address back-references are cleared (the user has to
-         * (re-)pick an address) and no link to the source document is kept.
+         * "Neuer Kunde, selbes Angebot": the copy is treated as an unrelated,
+         * brand-new document - the receiver (customer/address snapshot) is dropped
+         * entirely, so the user has to pick a fresh address, and no link to the
+         * source document is kept.
          */
         NEW_DOCUMENT,
         /**
@@ -104,17 +105,23 @@ public class ObjectDuplicator {
                 clonedDocument.setTransactionId(null);
                 clonedDocument.setVersion(Integer.valueOf(1));
 
-                // set DocumentReceiver to new; clear the origin contact/address
-                // back-references unless the copy is meant to keep the same customer
-                clonedDocument.getReceiver().forEach(r -> {
-                    r.setId(0);
-                    if (!keepCustomer) {
-                        r.setOriginContactId(null);
-                        r.setOriginAddressId(null);
-                    }
-                    r.setDateAdded(now);
-                    r.setValidFrom(now);
-                });
+                if (keepCustomer) {
+                    // set DocumentReceiver to new
+                    clonedDocument.getReceiver().forEach(r -> {
+                        r.setId(0);
+                        r.setDateAdded(now);
+                        r.setValidFrom(now);
+                    });
+                } else {
+                    // "Neuer Kunde": drop the receiver entirely rather than just clearing the
+                    // origin contact/address back-references - the address text fields (name,
+                    // street, city, ...) are a snapshot copy independent of those references
+                    // and would otherwise keep showing the old customer's address, just
+                    // silently unlinked from it. An empty receiver list is the same starting
+                    // state as any other brand-new document, forcing a fresh pick via the
+                    // address selector.
+                    clonedDocument.getReceiver().clear();
+                }
 
                 // set DocumentItems to new
                 clonedDocument.getItems().forEach(r -> {
