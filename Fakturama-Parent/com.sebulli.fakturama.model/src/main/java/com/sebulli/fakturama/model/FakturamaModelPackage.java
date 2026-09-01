@@ -2693,7 +2693,14 @@ public class FakturamaModelPackage extends ModelPackage {
 
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
-     * 
+     *
+     * @generated
+     */
+    public static final int PRODUCT_STOCKMANAGED_FEATURE_ID = 38;
+
+    /**
+     * <!-- begin-user-doc --> <!-- end-user-doc -->
+     *
      * @generated
      */
     public static final int PRODUCT_DESCRIPTION_FEATURE_ID = 8;
@@ -11584,6 +11591,19 @@ public class FakturamaModelPackage extends ModelPackage {
      */
     public EAttribute getProduct_Note() {
         return (EAttribute) getProductEClass().getEAllStructuralFeatures().get(PRODUCT_NOTE_FEATURE_ID);
+    }
+
+    /**
+     * Returns the {@link EStructuralFeature}
+     * '<em><b>Product.stockManaged</b></em>'. <!-- begin-user-doc --> <!--
+     * end-user-doc -->
+     *
+     * @return an instance of the {@link EStructuralFeature}:
+     *         '<em><b>Product.stockManaged</b></em>'.
+     * @generated
+     */
+    public EAttribute getProduct_StockManaged() {
+        return (EAttribute) getProductEClass().getEAllStructuralFeatures().get(PRODUCT_STOCKMANAGED_FEATURE_ID);
     }
 
     /**

@@ -65,10 +65,13 @@ import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -156,6 +159,7 @@ public class ProductEditor extends Editor<Product> {
     private Combo comboVat;
     private FormattedText textWeight;
     private FormattedText textQuantity;
+    private Button checkboxStockManaged;
     private FormattedText costPrice;
     private Text textQuantityUnit, allowance;
     private CCombo comboCategory;
@@ -742,15 +746,30 @@ public class ProductEditor extends Editor<Product> {
         labelQuantity.setText(msg.commonFieldQuantity);
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelQuantity);
+        Composite quantityComposite = new Composite(useQuantity ? productDescGroup : invisible, SWT.NONE);
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(quantityComposite);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(quantityComposite);
         if (useQuantity) {
             DoubleValueFormatter quantityFormatter = ContextInjectionFactory.make(DoubleValueFormatter.class, context);
-            textQuantity = new FormattedText(productDescGroup, SWT.BORDER);
+            textQuantity = new FormattedText(quantityComposite, SWT.BORDER);
             textQuantity.setFormatter(quantityFormatter);
             textQuantity.getControl().addKeyListener(new ReturnKeyAdapter(textQuantity.getControl()));
             textQuantity.getControl().setToolTipText(msg.commonFieldQuantityTooltip);
             nextWidget = textQuantityUnit;
+
+            // Track inventory: enables/disables the stock quantity field, without touching its value.
+            checkboxStockManaged = new Button(quantityComposite, SWT.CHECK);
+            checkboxStockManaged.setText(msg.editorProductFieldStockmanagedName);
+            checkboxStockManaged.setToolTipText(msg.editorProductFieldStockmanagedTooltip);
+            checkboxStockManaged.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(final SelectionEvent e) {
+                    textQuantity.getControl().setEnabled(checkboxStockManaged.getSelection());
+                }
+            });
         } else {
             textQuantity = new FormattedText(invisible, SWT.BORDER);
+            checkboxStockManaged = new Button(invisible, SWT.CHECK);
         }
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textQuantity.getControl());
 
@@ -892,6 +911,12 @@ public class ProductEditor extends Editor<Product> {
         fillAndBindVatCombo();
         bindModelValue(editorProduct, textWeight, Product_.weight.getName(), 16);
         bindModelValue(editorProduct, textQuantity, Product_.quantity.getName(), 0);
+        if (useQuantity) {
+            bindModelValue(editorProduct, checkboxStockManaged, Product_.stockManaged.getName());
+            // the checkbox binding above doesn't fire a widget SelectionEvent, so the
+            // quantity field's enabled state has to be synced explicitly after binding
+            textQuantity.getControl().setEnabled(checkboxStockManaged.getSelection());
+        }
         bindModelValue(editorProduct, udf01, Product_.cdf01.getName(), 64);
         bindModelValue(editorProduct, udf02, Product_.cdf02.getName(), 64);
         bindModelValue(editorProduct, udf03, Product_.cdf03.getName(), 64);

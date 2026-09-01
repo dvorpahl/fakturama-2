@@ -521,6 +521,9 @@ public class MigrationManager {
                     product.setPrice4(roundValue(oldProduct.getPrice4()));
                     product.setPrice5(roundValue(oldProduct.getPrice5()));
                     product.setQuantity(oldProduct.getQuantity());
+                    // legacy Fakturama 1.x has no nullable quantity to classify by (getQuantity()
+                    // is a primitive double, defaulting to 0.0), so stockManaged is left at its
+                    // default (true) here, same as any other newly created product
                     product.setQuantityUnit(oldProduct.getQunit());
                     product.setSellingUnit(oldProduct.getUnit());
                     //				product.setProductCode(oldProduct.gProductCode());

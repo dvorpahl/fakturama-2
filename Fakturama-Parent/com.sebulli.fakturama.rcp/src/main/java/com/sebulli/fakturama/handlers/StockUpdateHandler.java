@@ -172,8 +172,9 @@ public class StockUpdateHandler {
 		boolean needUpdate = false;
 		for (DocumentItem item : items) {
 			Product product = item.getProduct();
-			// only process if item is based on a real product and if quantity is given
-			if (product != null && product.getQuantity() != null) {
+			// only process if item is based on a real product, the product is stock-managed,
+			// and if a numeric quantity is given
+			if (product != null && Boolean.TRUE.equals(product.getStockManaged()) && product.getQuantity() != null) {
 				
 				/*
 				 * TODO Das muß nochmal korrigiert werden. Wenn man nämlich die Menge eines bereits bestehenden Dokumentes ändert, wird immer die

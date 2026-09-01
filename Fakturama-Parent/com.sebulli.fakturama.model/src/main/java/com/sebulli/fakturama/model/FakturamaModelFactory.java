@@ -4022,6 +4022,8 @@ public class FakturamaModelFactory implements ModelFactory {
                 return getTarget().getCdf03();
             case FakturamaModelPackage.PRODUCT_NOTE_FEATURE_ID:
                 return getTarget().getNote();
+            case FakturamaModelPackage.PRODUCT_STOCKMANAGED_FEATURE_ID:
+                return getTarget().getStockManaged();
             case FakturamaModelPackage.PRODUCT_DESCRIPTION_FEATURE_ID:
                 return getTarget().getDescription();
             case FakturamaModelPackage.PRODUCT_NAME_FEATURE_ID:
@@ -4139,6 +4141,9 @@ public class FakturamaModelFactory implements ModelFactory {
                 return;
             case FakturamaModelPackage.PRODUCT_NOTE_FEATURE_ID:
                 getTarget().setNote((String) value);
+                return;
+            case FakturamaModelPackage.PRODUCT_STOCKMANAGED_FEATURE_ID:
+                getTarget().setStockManaged((Boolean) value);
                 return;
             case FakturamaModelPackage.PRODUCT_DESCRIPTION_FEATURE_ID:
                 getTarget().setDescription((String) value);

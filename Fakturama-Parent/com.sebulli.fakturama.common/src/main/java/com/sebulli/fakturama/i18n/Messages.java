@@ -416,6 +416,8 @@ public class Messages {
     public String editorProductFieldQuantityunitName;
     public String editorProductFieldQuantityunitInvalid;
     public String editorProductFieldQuantityunitNameShort;
+    public String editorProductFieldStockmanagedName;
+    public String editorProductFieldStockmanagedTooltip;
     public String editorProductFieldSupplierItemnumber;
     public String editorProductFieldSupplierItemnumberTooltip;
     public String editorProductLabelFrom;

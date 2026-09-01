@@ -272,4 +272,32 @@ equality filters by several live DocumentsDAO methods:
         </createIndex>
     </changeSet>
 
+<!--
+Adds the explicit, product-level STOCKMANAGED flag (see Product.stockManaged).
+It replaces QUANTITY IS NULL as the indicator that a product isn't stock-managed.
+
+The column is added with a default of TRUE (so existing rows and any rows
+inserted concurrently start out stock-managed and the column is never NULL),
+then explicitly flipped to FALSE for the products that previously had no
+QUANTITY at all, matching the pre-existing behavior:
+
+  QUANTITY IS NOT NULL -> stockManaged = true
+  QUANTITY IS NULL      -> stockManaged = false
+-->
+
+    <changeSet author="dvorpahl" id="20260901-103" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addColumn tableName="FKT_PRODUCT">
+            <column name="STOCKMANAGED" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-104" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <update tableName="FKT_PRODUCT">
+            <column name="STOCKMANAGED" valueBoolean="false"/>
+            <where>QUANTITY IS NULL</where>
+        </update>
+    </changeSet>
+
 </databaseChangeLog>
