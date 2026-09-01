@@ -217,9 +217,9 @@ approach and unused by current code. Left untouched here on purpose (no drop).
 
     <changeSet author="dvorpahl" id="20260901-020" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
         <preConditions onFail="MARK_RAN">
-            <not><indexExists tableName="FKT_PRODUCT" indexName="idx_product_itemnumber_only"/></not>
+            <not><indexExists tableName="FKT_PRODUCT" indexName="IDX_PRODUCT_ITEMNUMBER"/></not>
         </preConditions>
-        <createIndex indexName="idx_product_itemnumber_only" tableName="FKT_PRODUCT">
+        <createIndex indexName="IDX_PRODUCT_ITEMNUMBER" tableName="FKT_PRODUCT">
             <column name="ITEMNUMBER"/>
         </createIndex>
     </changeSet>
