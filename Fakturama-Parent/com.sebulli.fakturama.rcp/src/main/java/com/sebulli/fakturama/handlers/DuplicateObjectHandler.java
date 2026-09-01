@@ -55,11 +55,11 @@ public class DuplicateObjectHandler {
 				retval = true;
 				break;
 			case DocumentEditor.ID:
-				// for documents we have to check if it's an Offer
-				Object currentObject = activePart.getObject();
-				if(currentObject != null && currentObject instanceof DocumentEditor) {
-					retval = DocumentType.OFFER.equals(((DocumentEditor)currentObject).getDocumentType());
-				}
+				// any open document may be used as a template (same-type duplication with
+				// the "Zweites Angebot/Neues Angebot" dialog is further restricted to Offers
+				// in #execute(); a different target type just creates a blank document with
+				// the source's items, see DocumentEditor#init())
+				retval = activePart.getObject() instanceof DocumentEditor;
 				break;
 			default:
 				break;
@@ -71,28 +71,19 @@ public class DuplicateObjectHandler {
 	@Execute
 	public void execute(@Optional @Active MPart activePart, @Optional @Named(IServiceConstants.ACTIVE_SHELL) Shell shell) {
 		DuplicateMode mode = DuplicateMode.NEW_DOCUMENT;
-		if (DocumentEditor.ID.equals(activePart.getElementId())) {
-			// only Offers can be duplicated (see canExecute); ask the user whether the
-			// copy should keep pointing to the same customer or start out blank
-			MessageDialog dialog = new MessageDialog(shell, msg.commandDuplicateOfferTitle, null, msg.commandDuplicateOfferMessage,
-					MessageDialog.QUESTION,
-					new String[] { msg.commandDuplicateOfferSamecustomer, msg.commandDuplicateOfferNewcustomer, IDialogConstants.CANCEL_LABEL },
-					0) {
-				@Override
-				protected void cancelPressed() {
-					// closing via Esc/[x] must not collide with a labeled button's index
-					// (Dialog#cancelPressed() otherwise sets the same return code as our
-					// "Neues Angebot" button at index 1)
-					setReturnCode(SWT.DEFAULT);
-					close();
-				}
-			};
-			int choice = dialog.open();
-			if (choice == 2 || choice == SWT.DEFAULT) {
-				// user cancelled (Cancel button, or Esc/[x])
+		final boolean isOpenOffer = activePart.getObject() instanceof DocumentEditor
+				&& DocumentType.OFFER.equals(((DocumentEditor) activePart.getObject()).getDocumentType());
+		if (isOpenOffer) {
+			// same-type Offer duplication: ask whether the copy should keep pointing to
+			// the same customer or start out blank. Any other document type just falls
+			// through as a plain PARAM_COPY request, which DocumentEditor#init() turns
+			// into a blank document of the target type with the source's items.
+			final DuplicateMode chosen = askDuplicateMode(shell, msg);
+			if (chosen == null) {
+				// user cancelled
 				return;
 			}
-			mode = choice == 0 ? DuplicateMode.SAME_CUSTOMER : DuplicateMode.NEW_DOCUMENT;
+			mode = chosen;
 		}
 
 		Map<String, Object> params = new HashMap<>();
@@ -104,6 +95,36 @@ public class DuplicateObjectHandler {
 		if (handlerService.canExecute(pCmdCopy)) {
 			handlerService.executeHandler(pCmdCopy);
 		}
+	}
+
+	/**
+	 * Asks the user whether an Offer-to-Offer copy should keep pointing to the
+	 * same customer or start out blank. Shared with {@link com.sebulli.fakturama.parts.FakturamaCoolbarAction},
+	 * which triggers the very same duplication via Ctrl+Click on a toolbar icon
+	 * instead of this handler's keybinding.
+	 *
+	 * @return the chosen {@link DuplicateMode}, or {@code null} if the user cancelled
+	 *         (Cancel button, or closing the dialog via Esc/[x])
+	 */
+	public static DuplicateMode askDuplicateMode(final Shell shell, final Messages msg) {
+		final MessageDialog dialog = new MessageDialog(shell, msg.commandDuplicateOfferTitle, null, msg.commandDuplicateOfferMessage,
+				MessageDialog.QUESTION,
+				new String[] { msg.commandDuplicateOfferSamecustomer, msg.commandDuplicateOfferNewcustomer, IDialogConstants.CANCEL_LABEL },
+				0) {
+			@Override
+			protected void cancelPressed() {
+				// closing via Esc/[x] must not collide with a labeled button's index
+				// (Dialog#cancelPressed() otherwise sets the same return code as our
+				// "Neues Angebot" button at index 1)
+				setReturnCode(SWT.DEFAULT);
+				close();
+			}
+		};
+		final int choice = dialog.open();
+		if (choice == 2 || choice == SWT.DEFAULT) {
+			return null;
+		}
+		return choice == 0 ? DuplicateMode.SAME_CUSTOMER : DuplicateMode.NEW_DOCUMENT;
 	}
 
 }

@@ -1051,26 +1051,34 @@ public class DocumentEditor extends Editor<Document> {
 
             // if a copy should be created, create one and take the objId as a "template"
             if (BooleanUtils.toBoolean((String) part.getTransientData().get(CallEditor.PARAM_COPY))) {
-                // clone the product and use it as new one
-                switch (this.document.getBillingType()) {
-                    case OFFER:
-                        final DuplicateMode copyMode = parseDuplicateMode(
-                                (String) part.getTransientData().get(CallEditor.PARAM_COPY_MODE));
-                        final Document originalOffer = this.document;
-                        this.document = new ObjectDuplicator().duplicateDocument(this.document, copyMode);
+                final String copyTargetCategory = (String) part.getTransientData().get(CallEditor.PARAM_CATEGORY);
+                final BillingType sourceType = this.document.getBillingType();
+                final BillingType targetType = copyTargetCategory != null ? BillingType.get(copyTargetCategory) : sourceType;
 
-                        // "Zweites Angebot": derive NNN-2 (or -3, -4, ... if already taken)
-                        // from the original number instead of pulling a fresh one
-                        document.setName(copyMode == DuplicateMode.SAME_CUSTOMER
-                                ? buildDerivedOfferNumber(originalOffer.getName())
-                                : getNumberGenerator().getNextNr(getEditorID()));
+                if (sourceType == BillingType.OFFER && targetType == BillingType.OFFER) {
+                    // same-type Offer duplicate: "Zweites Angebot" keeps the customer and
+                    // links back to the original via sourceDocument, "Neues Angebot" starts
+                    // out blank (see ObjectDuplicator.DuplicateMode)
+                    final DuplicateMode copyMode = parseDuplicateMode(
+                            (String) part.getTransientData().get(CallEditor.PARAM_COPY_MODE));
+                    final Document originalOffer = this.document;
+                    this.document = new ObjectDuplicator().duplicateDocument(this.document, copyMode);
 
-                        // in this case the document is NOT a follow-up of another!
-                        tmpDuplicate = Boolean.FALSE;
-                        break;
+                    // "Zweites Angebot": derive NNN-2 (or -3, -4, ... if already taken)
+                    // from the original number instead of pulling a fresh one
+                    document.setName(copyMode == DuplicateMode.SAME_CUSTOMER
+                            ? buildDerivedOfferNumber(originalOffer.getName())
+                            : getNumberGenerator().getNextNr(getEditorID()));
 
-                    default:
-                        break;
+                    // in this case the document is NOT a follow-up of another!
+                    tmpDuplicate = Boolean.FALSE;
+                } else if (sourceType != targetType) {
+                    // e.g. an Invoice is open and the user Ctrl+Clicks the "Angebot" icon:
+                    // build a blank document of the target type, carrying over only the
+                    // source's items as a template - no customer/address/payment/etc.
+                    this.document = createDocumentFromItemTemplate(this.document, targetType);
+                    document.setName(getNumberGenerator().getNextNr(getEditorID()));
+                    tmpDuplicate = Boolean.FALSE;
                 }
                 getMDirtyablePart().setDirty(true);
             }
@@ -1300,6 +1308,27 @@ public class DocumentEditor extends Editor<Document> {
             nextSuffix++;
         } while (documentExists(candidate));
         return candidate;
+    }
+
+    /**
+     * Builds a blank document of {@code targetType}, carrying over only the source
+     * document's items (as fresh copies). Used when Ctrl+Clicking a document-type
+     * icon that differs from the currently open document's type ("use as
+     * template") - no customer/address, payment, shipping or other reference is
+     * copied; those get the usual new-document defaults further down in
+     * {@link #init}.
+     */
+    private Document createDocumentFromItemTemplate(final Document source, final BillingType targetType) {
+        final Document result = DocumentTypeUtil.createDocumentByBillingType(targetType);
+        final Date now = Calendar.getInstance().getTime();
+        for (final DocumentItem item : source.getItems()) {
+            final DocumentItem newItem = item.clone();
+            newItem.setId(0);
+            newItem.setDateAdded(now);
+            newItem.setValidFrom(now);
+            result.addToItems(newItem);
+        }
+        return result;
     }
 
     private boolean documentExists(final String name) {
