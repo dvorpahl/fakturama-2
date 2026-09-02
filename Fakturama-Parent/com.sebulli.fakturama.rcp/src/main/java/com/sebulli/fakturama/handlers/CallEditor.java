@@ -102,6 +102,15 @@ public class CallEditor {
     public static final String PARAM_COPY = "org.fakturama.document.copy";
 
     /**
+     * Set together with {@link #PARAM_FOLLOW_UP} when creating a quote
+     * ("Kostenvoranschlag") from an as-yet-unconfirmed order: the new offer
+     * is meant to become the origin of the order's document chain, rather
+     * than a document derived from it. See
+     * DocumentEditor#precedingOfferForOrder.
+     */
+    public static final String PARAM_PRECEDING_OFFER = "org.fakturama.document.precedingoffer";
+
+    /**
      * The type of the editor which has to be called.
      */
     public static final String PARAM_EDITOR_TYPE = "com.sebulli.fakturama.editors.editortype";
@@ -179,6 +188,7 @@ public class CallEditor {
             @Optional @Named(PARAM_COPY) Boolean isCopy,
             @Optional @Named(PARAM_CALLING_DOC) String callingDoc,
             @Optional @Named(PARAM_FORCE_NEW) Boolean isForceNew,
+            @Optional @Named(PARAM_PRECEDING_OFFER) Boolean isPrecedingOffer,
             final MApplication application
             ) throws ExecutionException {
 
@@ -219,7 +229,7 @@ public class CallEditor {
             params.put(PARAM_CATEGORY, category);
             log.debug("PARAM_OBJ_ID: " + params.get(PARAM_OBJ_ID));
             // Define  the editor and try to open it
-			MPart editorPart = createEditorPart(editorType, documentPartStack, isFollowUp, isCopy, params);
+			MPart editorPart = createEditorPart(editorType, documentPartStack, isFollowUp, isCopy, isPrecedingOffer, params);
 			log.debug("PART: " + editorPart.getObject());
 			partService.showPart(editorPart, PartState.ACTIVATE);
 			
@@ -239,7 +249,7 @@ public class CallEditor {
 	 * @param params a {@link Map} of params which should be attached to the current command
 	 * @return new {@link MPart} or existing one (if it was previously created)
 	 */
-	private MPart createEditorPart(String type, MPartStack stack, Boolean isFollowUp, Boolean isCopy, Map<String, String> params) {
+	private MPart createEditorPart(String type, MPartStack stack, Boolean isFollowUp, Boolean isCopy, Boolean isPrecedingOffer, Map<String, String> params) {
 		MPart myPart = null;
 		IEclipseContext stackContext = null;
 		// search only if not duplicated! Skip if a copy should be created.
@@ -341,6 +351,7 @@ public class CallEditor {
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + DocumentEditor.class.getName());
                 myPart.setLabel(msg.getMessageFromKey(docType.getNewText()));
                 myPart.getTransientData().put(PARAM_FOLLOW_UP, isFollowUp);
+                myPart.getTransientData().put(PARAM_PRECEDING_OFFER, isPrecedingOffer);
                 break;
 			default:
 				myPart.setLabel("unknown");

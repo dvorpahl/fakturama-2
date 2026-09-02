@@ -706,6 +706,7 @@ public class Messages {
     public String mainMenuHelpSearch;
     public String mainMenuNew;
     public String mainMenuNewConfirmation;
+    public String mainMenuNewQuote;
     public String mainMenuNewContactName;
     public String mainMenuNewContactTooltip;
     public String mainMenuNewCredit;
@@ -999,6 +1000,7 @@ public class Messages {
     public String editorDocumentLetterSubjectTooltip;
     public String toolbarNewConfirmationName;
     public String toolbarNewConfirmationNameLong;
+    public String toolbarNewQuoteName;
     public String toolbarNewContactName;
     public String toolbarNewCreditName;
     public String toolbarNewDeliveryName;

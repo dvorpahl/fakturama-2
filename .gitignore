@@ -13,3 +13,5 @@
 **/bin/
 **/.vscode/
 **/bin/
+/sql-structure.sql
+**/build-packages.sh
