@@ -300,4 +300,162 @@ QUANTITY at all, matching the pre-existing behavior:
         </update>
     </changeSet>
 
+<!--
+Adds business-intelligence/KPI reporting views (VW_BI_* / VW_KPI_*) and a
+handful of additional performance indexes reverse-engineered from the live
+devsql database on 2026-09-02. The views are MySQL/MariaDB-specific (they use
+GROUP_CONCAT, window functions and TO_DAYS/DATE_FORMAT) and are not created on
+HSQLDB/H2 installs, hence the dbms restriction on each createView changeSet.
+-->
+
+    <changeSet author="dvorpahl" id="20260902-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_CATEGORY" indexName="IDX_CATEGORY_PARENT_LIST"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_CATEGORY_PARENT_LIST" tableName="FKT_CATEGORY">
+            <column name="FK_PARENT_CATEGORY"/>
+            <column name="DELETED"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-002" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENTRECEIVER" indexName="IDX_DOCRECEIVER_ORIGINADDRESS"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOCRECEIVER_ORIGINADDRESS" tableName="FKT_DOCUMENTRECEIVER">
+            <column name="ORIGINADDRESSID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-003" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCTBLOCKPRICE" indexName="IDX_PRODUCTBLOCKPRICE_PRODUCT_BLOCK"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCTBLOCKPRICE_PRODUCT_BLOCK" tableName="FKT_PRODUCTBLOCKPRICE">
+            <column name="FK_PRODUCT"/>
+            <column name="BLOCK"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-004" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCTOPTIONS" indexName="IDX_PRODUCTOPTIONS_PRODUCT_SEQ"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCTOPTIONS_PRODUCT_SEQ" tableName="FKT_PRODUCTOPTIONS">
+            <column name="FK_PRODUCT"/>
+            <column name="SEQUENCENUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-005" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_VOUCHERITEMS" indexName="IDX_VOUCHERITEMS_VOUCHER_POS"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_VOUCHERITEMS_VOUCHER_POS" tableName="FKT_VOUCHERITEMS">
+            <column name="FK_VOUCHER"/>
+            <column name="POSNR"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-006" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_WEBSHOPSTATEMAPPING" indexName="IDX_WEBSHOPSTATE_LOOKUP"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_WEBSHOPSTATE_LOOKUP" tableName="FKT_WEBSHOPSTATEMAPPING">
+            <column name="FK_WEBSHOP"/>
+            <column name="WEBSHOPSTATE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-007" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_BI_DOCUMENT" replaceIfExists="true">
+            select `d`.`ID` AS `document_id`,`d`.`DTYPE` AS `document_type`,`d`.`NAME` AS `document_number`,`d`.`DOCUMENTDATE` AS `document_date`,`d`.`ORDERDATE` AS `order_date`,`d`.`SERVICEDATE` AS `service_date`,cast(coalesce(`d`.`TOTALVALUE`,0) as decimal(15,2)) AS `total_value`,cast(coalesce(`d`.`PAIDVALUE`,0) as decimal(15,2)) AS `paid_value`,cast(coalesce(`d`.`SHIPPINGVALUE`,0) as decimal(15,2)) AS `shipping_value`,`d`.`PAID` AS `paid`,`d`.`PAYDATE` AS `pay_date`,`d`.`DUEDAYS` AS `due_days`,`d`.`FK_SRCDOCUMENT` AS `source_document_id`,`d`.`DOCUMENT_INVOICEREFERENCE` AS `invoice_reference_id`,`d`.`TRANSACTIONID` AS `transaction_id`,`d`.`WEBSHOPID` AS `webshop_id`,`d`.`WEBSHOPDATE` AS `webshop_date` from `FKT_DOCUMENT` `d` where coalesce(`d`.`DELETED`,0) = 0
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-008" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_BI_DOCUMENT_ITEM" replaceIfExists="true">
+            select `di`.`ID` AS `item_id`,`di`.`FK_DOCUMENT` AS `document_id`,`di`.`POSNR` AS `position_number`,case when `di`.`FK_PRODUCT` is not null then 'PRODUCT' else 'MANUAL' end AS `item_origin`,`di`.`ITEMTYPE` AS `item_type`,`di`.`FK_PRODUCT` AS `product_id`,`di`.`ITEMNUMBER` AS `item_number`,`di`.`SUPPLIERITEMNUMBER` AS `supplier_item_number`,`di`.`NAME` AS `item_name`,cast(coalesce(`di`.`PRICE`,0) as decimal(15,4)) AS `unit_price`,cast(coalesce(`di`.`QUANTITY`,0) as decimal(15,4)) AS `quantity`,cast(coalesce(`di`.`ITEMREBATE`,0) as decimal(9,4)) AS `item_rebate`,`di`.`FK_VAT` AS `vat_id`,`di`.`OPTIONAL` AS `optional_flag`,`di`.`NOVAT` AS `no_vat_flag`,cast(coalesce(`di`.`PRICE`,0) * coalesce(`di`.`QUANTITY`,0) as decimal(15,2)) AS `line_value_before_rebate` from `FKT_DOCUMENTITEM` `di` where coalesce(`di`.`DELETED`,0) = 0
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-009" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_BI_DOCUMENT_FLOW" replaceIfExists="true">
+            select `src`.`document_id` AS `source_document_id`,`src`.`document_type` AS `source_document_type`,`src`.`document_number` AS `source_document_number`,`src`.`document_date` AS `source_document_date`,`src`.`total_value` AS `source_value`,`dst`.`document_id` AS `target_document_id`,`dst`.`document_type` AS `target_document_type`,`dst`.`document_number` AS `target_document_number`,`dst`.`document_date` AS `target_document_date`,`dst`.`total_value` AS `target_value`,to_days(`dst`.`document_date`) - to_days(`src`.`document_date`) AS `conversion_days` from (`VW_BI_DOCUMENT` `dst` join `VW_BI_DOCUMENT` `src` on(`src`.`document_id` = `dst`.`source_document_id`))
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-010" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_BI_DOCUMENT_RECEIVER_STATS" replaceIfExists="true">
+            select `FKT_DOCUMENTRECEIVER`.`FK_DOCUMENT` AS `document_id`,count(0) AS `receiver_count`,group_concat(distinct `FKT_DOCUMENTRECEIVER`.`BILLINGTYPE` order by `FKT_DOCUMENTRECEIVER`.`BILLINGTYPE` ASC separator ',') AS `billing_types`,count(distinct `FKT_DOCUMENTRECEIVER`.`ORIGINCONTACTID`) AS `origin_contact_count`,count(distinct `FKT_DOCUMENTRECEIVER`.`ORIGINADDRESSID`) AS `origin_address_count` from `FKT_DOCUMENTRECEIVER` where `FKT_DOCUMENTRECEIVER`.`FK_DOCUMENT` is not null and coalesce(`FKT_DOCUMENTRECEIVER`.`DELETED`,0) = 0 group by `FKT_DOCUMENTRECEIVER`.`FK_DOCUMENT`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-011" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_BI_INVOICE" replaceIfExists="true">
+            select `x`.`invoice_id` AS `invoice_id`,`x`.`invoice_number` AS `invoice_number`,`x`.`document_date` AS `document_date`,`x`.`due_date` AS `due_date`,`x`.`due_days` AS `due_days`,`x`.`total_value` AS `total_value`,`x`.`paid_value` AS `paid_value`,`x`.`paid_flag` AS `paid_flag`,`x`.`pay_date` AS `pay_date`,`x`.`customer_reference` AS `customer_reference`,`x`.`payment_id` AS `payment_id`,`x`.`shipping_id` AS `shipping_id`,`x`.`webshop_id` AS `webshop_id`,`x`.`webshop_date` AS `webshop_date`,`x`.`transaction_id` AS `transaction_id`,cast(greatest(`x`.`total_value` - `x`.`paid_value`,0) as decimal(15,2)) AS `open_value`,case when `x`.`total_value` - `x`.`paid_value` &lt;= 0 then 'PAID' when `x`.`due_date` is not null and curdate() &gt; `x`.`due_date` then 'OVERDUE' else 'OPEN' end AS `payment_status`,case when `x`.`pay_date` is not null then to_days(`x`.`pay_date`) - to_days(`x`.`document_date`) end AS `days_to_payment`,case when `x`.`total_value` - `x`.`paid_value` &gt; 0 and `x`.`due_date` is not null then greatest(to_days(curdate()) - to_days(`x`.`due_date`),0) else 0 end AS `overdue_days` from (select `d`.`ID` AS `invoice_id`,`d`.`NAME` AS `invoice_number`,`d`.`DOCUMENTDATE` AS `document_date`,`d`.`DOCUMENTDATE` + interval coalesce(`d`.`DUEDAYS`,0) day AS `due_date`,`d`.`DUEDAYS` AS `due_days`,cast(coalesce(`d`.`TOTALVALUE`,0) as decimal(15,2)) AS `total_value`,cast(coalesce(`d`.`PAIDVALUE`,0) as decimal(15,2)) AS `paid_value`,`d`.`PAID` AS `paid_flag`,`d`.`PAYDATE` AS `pay_date`,`d`.`CUSTOMERREF` AS `customer_reference`,`d`.`FK_PAYMENT` AS `payment_id`,`d`.`FK_SHIPPING` AS `shipping_id`,`d`.`WEBSHOPID` AS `webshop_id`,`d`.`WEBSHOPDATE` AS `webshop_date`,`d`.`TRANSACTIONID` AS `transaction_id` from (`FKT_DOCUMENT` `d` join `FKT_INVOICE` `i` on(`i`.`INVOICE_PARENT_ID` = `d`.`ID`)) where coalesce(`d`.`DELETED`,0) = 0) `x`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-012" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_AR_AGING" replaceIfExists="true">
+            select `x`.`aging_order` AS `aging_order`,`x`.`aging_bucket` AS `aging_bucket`,count(0) AS `invoice_count`,cast(sum(`x`.`open_value`) as decimal(15,2)) AS `open_value` from (select `VW_BI_INVOICE`.`invoice_id` AS `invoice_id`,`VW_BI_INVOICE`.`open_value` AS `open_value`,case when `VW_BI_INVOICE`.`due_date` is null then 0 when curdate() &lt;= `VW_BI_INVOICE`.`due_date` then 1 when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 30 then 2 when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 60 then 3 when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 90 then 4 else 5 end AS `aging_order`,case when `VW_BI_INVOICE`.`due_date` is null then 'NO_DUE_DATE' when curdate() &lt;= `VW_BI_INVOICE`.`due_date` then 'NOT_DUE' when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 30 then '01_30_DAYS' when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 60 then '31_60_DAYS' when to_days(curdate()) - to_days(`VW_BI_INVOICE`.`due_date`) &lt;= 90 then '61_90_DAYS' else 'OVER_90_DAYS' end AS `aging_bucket` from `VW_BI_INVOICE` where `VW_BI_INVOICE`.`open_value` &gt; 0) `x` group by `x`.`aging_order`,`x`.`aging_bucket`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-013" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_AR_SUMMARY" replaceIfExists="true">
+            select count(0) AS `open_invoice_count`,cast(sum(`VW_BI_INVOICE`.`open_value`) as decimal(15,2)) AS `open_value`,sum(`VW_BI_INVOICE`.`due_date` &lt; curdate()) AS `overdue_invoice_count`,cast(sum(case when `VW_BI_INVOICE`.`due_date` &lt; curdate() then `VW_BI_INVOICE`.`open_value` else 0 end) as decimal(15,2)) AS `overdue_value`,cast(100 * sum(case when `VW_BI_INVOICE`.`due_date` &lt; curdate() then `VW_BI_INVOICE`.`open_value` else 0 end) / nullif(sum(`VW_BI_INVOICE`.`open_value`),0) as decimal(6,2)) AS `overdue_value_pct`,cast(avg(case when `VW_BI_INVOICE`.`due_date` &lt; curdate() then `VW_BI_INVOICE`.`overdue_days` end) as decimal(10,2)) AS `avg_overdue_days` from `VW_BI_INVOICE` where `VW_BI_INVOICE`.`open_value` &gt; 0
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-014" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_DOCUMENT_PIPELINE_MONTHLY" replaceIfExists="true">
+            select cast(date_format(`VW_BI_DOCUMENT`.`document_date`,'%Y-%m-01') as date) AS `month_start`,sum(`VW_BI_DOCUMENT`.`document_type` = 'Offer') AS `offers`,sum(`VW_BI_DOCUMENT`.`document_type` = 'Order') AS `orders`,sum(`VW_BI_DOCUMENT`.`document_type` = 'Confirmation') AS `confirmations`,sum(`VW_BI_DOCUMENT`.`document_type` = 'Delivery') AS `deliveries`,sum(`VW_BI_DOCUMENT`.`document_type` = 'Invoice') AS `invoices`,cast(sum(case when `VW_BI_DOCUMENT`.`document_type` = 'Offer' then `VW_BI_DOCUMENT`.`total_value` else 0 end) as decimal(15,2)) AS `offer_value`,cast(sum(case when `VW_BI_DOCUMENT`.`document_type` = 'Order' then `VW_BI_DOCUMENT`.`total_value` else 0 end) as decimal(15,2)) AS `order_value`,cast(sum(case when `VW_BI_DOCUMENT`.`document_type` = 'Invoice' then `VW_BI_DOCUMENT`.`total_value` else 0 end) as decimal(15,2)) AS `invoice_value` from `VW_BI_DOCUMENT` where `VW_BI_DOCUMENT`.`document_date` is not null group by cast(date_format(`VW_BI_DOCUMENT`.`document_date`,'%Y-%m-01') as date)
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-015" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_INVENTORY" replaceIfExists="true">
+            select `p`.`ID` AS `product_id`,`p`.`ITEMNUMBER` AS `item_number`,`p`.`NAME` AS `product_name`,cast(coalesce(`p`.`QUANTITY`,0) as decimal(15,4)) AS `stock_quantity`,cast(coalesce(`p`.`COSTPRICE`,0) as decimal(15,4)) AS `current_cost_price`,cast(coalesce(`p`.`QUANTITY`,0) * coalesce(`p`.`COSTPRICE`,0) as decimal(15,2)) AS `inventory_value`,`p`.`FK_CATEGORY` AS `category_id` from `FKT_PRODUCT` `p` where coalesce(`p`.`DELETED`,0) = 0
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-016" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_INVOICE_ITEM_ORIGIN" replaceIfExists="true">
+            select `i`.`item_origin` AS `item_origin`,count(0) AS `position_count`,count(distinct `i`.`document_id`) AS `invoice_count`,cast(sum(`i`.`line_value_before_rebate`) as decimal(15,2)) AS `line_value_before_rebate`,cast(100.0 * sum(`i`.`line_value_before_rebate`) / nullif(sum(sum(`i`.`line_value_before_rebate`)) over (),0) as decimal(6,2)) AS `line_value_pct` from (`VW_BI_DOCUMENT_ITEM` `i` join `VW_BI_DOCUMENT` `d` on(`d`.`document_id` = `i`.`document_id`)) where `d`.`document_type` = 'Invoice' and coalesce(`i`.`optional_flag`,0) = 0 group by `i`.`item_origin`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-017" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_ITEM_ORIGIN" replaceIfExists="true">
+            select `d`.`document_type` AS `document_type`,`i`.`item_origin` AS `item_origin`,count(0) AS `item_count`,count(distinct `i`.`document_id`) AS `document_count`,cast(sum(`i`.`line_value_before_rebate`) as decimal(15,2)) AS `line_value` from (`VW_BI_DOCUMENT_ITEM` `i` join `VW_BI_DOCUMENT` `d` on(`d`.`document_id` = `i`.`document_id`)) group by `d`.`document_type`,`i`.`item_origin`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-018" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_MANUAL_ITEM_SALES" replaceIfExists="true">
+            select coalesce(nullif(`i`.`item_number`,''),'&lt;NO_ITEMNUMBER&gt;') AS `item_number`,coalesce(nullif(`i`.`item_name`,''),'&lt;NO_NAME&gt;') AS `item_name`,count(0) AS `position_count`,count(distinct `i`.`document_id`) AS `invoice_count`,cast(sum(`i`.`quantity`) as decimal(15,4)) AS `quantity`,cast(sum(`i`.`line_value_before_rebate`) as decimal(15,2)) AS `line_value_before_rebate` from (`VW_BI_DOCUMENT_ITEM` `i` join `VW_BI_DOCUMENT` `d` on(`d`.`document_id` = `i`.`document_id`)) where `d`.`document_type` = 'Invoice' and `i`.`product_id` is null and coalesce(`i`.`optional_flag`,0) = 0 group by coalesce(nullif(`i`.`item_number`,''),'&lt;NO_ITEMNUMBER&gt;'),coalesce(nullif(`i`.`item_name`,''),'&lt;NO_NAME&gt;')
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-019" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_PAYMENT_BEHAVIOR" replaceIfExists="true">
+            select cast(date_format(`VW_BI_INVOICE`.`document_date`,'%Y-%m-01') as date) AS `invoice_month`,count(0) AS `paid_invoice_count`,cast(avg(`VW_BI_INVOICE`.`days_to_payment`) as decimal(10,2)) AS `avg_days_to_payment`,cast(avg(to_days(`VW_BI_INVOICE`.`pay_date`) - to_days(`VW_BI_INVOICE`.`due_date`)) as decimal(10,2)) AS `avg_days_vs_due_date`,cast(100.0 * sum(case when `VW_BI_INVOICE`.`pay_date` &lt;= `VW_BI_INVOICE`.`due_date` then 1 else 0 end) / nullif(count(0),0) as decimal(6,2)) AS `paid_on_time_pct` from `VW_BI_INVOICE` where `VW_BI_INVOICE`.`pay_date` is not null and `VW_BI_INVOICE`.`open_value` = 0 and `VW_BI_INVOICE`.`document_date` is not null group by cast(date_format(`VW_BI_INVOICE`.`document_date`,'%Y-%m-01') as date)
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-020" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_PRODUCT_SALES" replaceIfExists="true">
+            select `i`.`product_id` AS `product_id`,coalesce(`i`.`item_number`,`p`.`ITEMNUMBER`) AS `item_number`,coalesce(`i`.`item_name`,`p`.`NAME`) AS `product_name`,count(0) AS `position_count`,count(distinct `i`.`document_id`) AS `invoice_count`,cast(sum(`i`.`quantity`) as decimal(15,4)) AS `quantity_sold`,cast(sum(`i`.`line_value_before_rebate`) as decimal(15,2)) AS `line_value_before_rebate`,cast(sum(`i`.`line_value_before_rebate`) / nullif(sum(`i`.`quantity`),0) as decimal(15,4)) AS `weighted_avg_unit_price`,cast(`p`.`COSTPRICE` as decimal(15,4)) AS `current_cost_price`,cast(sum(`i`.`quantity`) * coalesce(`p`.`COSTPRICE`,0) as decimal(15,2)) AS `estimated_cogs_current_cost`,cast(sum(`i`.`line_value_before_rebate`) - sum(`i`.`quantity`) * coalesce(`p`.`COSTPRICE`,0) as decimal(15,2)) AS `estimated_margin_current_cost` from ((`VW_BI_DOCUMENT_ITEM` `i` join `VW_BI_DOCUMENT` `d` on(`d`.`document_id` = `i`.`document_id`)) left join `FKT_PRODUCT` `p` on(`p`.`ID` = `i`.`product_id`)) where `d`.`document_type` = 'Invoice' and `i`.`product_id` is not null and coalesce(`i`.`optional_flag`,0) = 0 group by `i`.`product_id`,coalesce(`i`.`item_number`,`p`.`ITEMNUMBER`),coalesce(`i`.`item_name`,`p`.`NAME`),`p`.`COSTPRICE`
+        </createView>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-021" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <createView viewName="VW_KPI_SALES_MONTHLY" replaceIfExists="true">
+            select cast(date_format(`VW_BI_INVOICE`.`document_date`,'%Y-%m-01') as date) AS `month_start`,count(0) AS `invoice_count`,sum(`VW_BI_INVOICE`.`total_value`) AS `invoiced_value`,avg(`VW_BI_INVOICE`.`total_value`) AS `avg_invoice_value`,sum(`VW_BI_INVOICE`.`paid_value`) AS `paid_value`,sum(`VW_BI_INVOICE`.`open_value`) AS `open_value` from `VW_BI_INVOICE` group by cast(date_format(`VW_BI_INVOICE`.`document_date`,'%Y-%m-01') as date)
+        </createView>
+    </changeSet>
+
 </databaseChangeLog>
