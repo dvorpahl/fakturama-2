@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: HSQL DB-Connector
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-SymbolicName: com.sebulli.fakturama.hsqlconnector;singleton:=true
-Bundle-Version: 2.2.0
+Bundle-Version: 2.2.1.rc
 Bundle-Vendor: Fakturama.org
 Service-Component: OSGI-INF/hsqlserveractivation.xml
 Bundle-ActivationPolicy: lazy

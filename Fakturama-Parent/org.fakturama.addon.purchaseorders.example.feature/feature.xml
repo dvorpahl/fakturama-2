@@ -2,7 +2,7 @@
 <feature
       id="org.fakturama.addon.purchaseorders.example.feature"
       label="Fakturama Purchase Orders Example Add-on"
-      version="2.2.0"
+      version="2.2.1.rc"
       provider-name="Fakturama.org">
 
    <description>

@@ -164,6 +164,16 @@ public class AboutDialogE4 extends TrayDialog {
 		// IWorkbenchHelpContextIds.ABOUT_DIALOG);
 	}
 
+	/*
+	 * Fixed size: the layout (logo + about text) looks distorted when the
+	 * dialog is dragged taller, so the resize/maximize handles are stripped
+	 * from the inherited TrayDialog shell style.
+	 */
+	@Override
+	protected int getShellStyle() {
+		return super.getShellStyle() & ~(SWT.RESIZE | SWT.MAX);
+	}
+
 	/**
 	 * Add buttons to the dialog's button bar.
 	 * 

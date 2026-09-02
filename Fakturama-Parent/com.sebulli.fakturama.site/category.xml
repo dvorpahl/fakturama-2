@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.sebulli.fakturama.feature_2.2.0.jar" id="com.sebulli.fakturama.feature" version="2.2.0">
+   <feature url="features/com.sebulli.fakturama.feature_2.2.1.rc.jar" id="com.sebulli.fakturama.feature" version="2.2.1.rc">
       <category name="com.sebulli.fakturama"/>
    </feature>
-   <feature url="features/org.fakturama.addon.purchaseorders.example.feature_2.2.0.jar" id="org.fakturama.addon.purchaseorders.example.feature" version="2.2.0">
+   <feature url="features/org.fakturama.addon.purchaseorders.example.feature_2.2.1.rc.jar" id="org.fakturama.addon.purchaseorders.example.feature" version="2.2.1.rc">
       <category name="org.fakturama.addons"/>
    </feature>
    <category-def name="com.sebulli.fakturama" label="Fakturama 2.0"/>

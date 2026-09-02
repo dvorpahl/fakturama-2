@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fakturama Connectors
 Bundle-SymbolicName: org.fakturama.connectors;singleton:=true
-Bundle-Version: 2.2.0
+Bundle-Version: 2.2.1.rc
 Bundle-ClassPath: .
 Bundle-Activator: org.fakturama.connectors.Activator
 Bundle-Vendor: Fakturama.org
