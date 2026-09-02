@@ -93,7 +93,8 @@ public class ProductExporter {
 					"\"webshopid\";"+
 					"\"qunit\";"+
 					"\"note\";"+
-					"\"costprice\""+
+					"\"costprice\";"+
+					"\"stockmanaged\""+
 					NEW_LINE);
 		
 			// Get all undeleted products
@@ -142,7 +143,8 @@ public class ProductExporter {
 					.append(product.getWebshopId() == null ? "" : product.getWebshopId()).append(";")
 					.append(ExporterHelper.inQuotes(product.getQuantityUnit())).append(";")
 					.append(ExporterHelper.inQuotes(product.getNote())).append(";")
-					.append(numberFormatterService.DoubleToDecimalFormatedValue(product.getCostPrice(),"0.00"))
+					.append(numberFormatterService.DoubleToDecimalFormatedValue(product.getCostPrice(),"0.00")).append(";")
+					.append(Boolean.TRUE.equals(product.getStockManaged()))
 					.append(NEW_LINE);
 				bos.write(stringBuffer.toString());
 			}

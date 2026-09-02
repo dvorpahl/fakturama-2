@@ -316,8 +316,19 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     private String note = null;
 
     /**
+     * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
+     * Indicates if the stock quantity of this product is actively tracked.
+     * <!-- end-model-doc -->
+     *
+     * @generated
+     */
+    @Basic()
+    @Column(name = "STOCKMANAGED")
+    private Boolean stockManaged = Boolean.TRUE;
+
+    /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
-     * 
+     *
      * @generated
      */
     @Basic()
@@ -508,6 +519,9 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
             if (note != null && other.getNote() != null) {
                 retval &= note.compareTo(other.getNote()) == 0;
             }
+            if (stockManaged != null && other.getStockManaged() != null) {
+                retval &= stockManaged.compareTo(other.getStockManaged()) == 0;
+            }
             if (description != null && other.getDescription() != null) {
                 retval &= description.compareTo(other.getDescription()) == 0;
             }
@@ -571,6 +585,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
         retval.setCdf02(this.getCdf02());
         retval.setCdf03(this.getCdf03());
         retval.setNote(this.getNote());
+        retval.setStockManaged(this.getStockManaged());
         retval.setDescription(this.getDescription());
         retval.setName(this.getName());
         retval.setDateAdded(this.getDateAdded());
@@ -1420,6 +1435,37 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     }
 
     /**
+     * Returns the value of '<em><b>stockManaged</b></em>' feature.
+     *
+     * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
+     * Indicates if the stock quantity of this product is actively tracked.
+     * <!-- end-model-doc -->
+     *
+     * @return the value of '<em><b>stockManaged</b></em>' feature
+     * @generated
+     */
+    public Boolean getStockManaged() {
+
+        return stockManaged;
+    }
+
+    /**
+     * Sets the '{@link Product#getStockManaged() <em>stockManaged</em>}' feature.
+     *
+     * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
+     * Indicates if the stock quantity of this product is actively tracked.
+     * <!-- end-model-doc -->
+     *
+     * @param newStockManaged
+     *            the new value of the '{@link Product#getStockManaged() stockManaged}' feature.
+     * @generated
+     */
+    public void setStockManaged(final Boolean newStockManaged) {
+        firePropertyChange("stockManaged", this.stockManaged, newStockManaged);
+        stockManaged = newStockManaged;
+    }
+
+    /**
      * Returns the value of '<em><b>description</b></em>' feature.
      *
      * <!-- begin-user-doc --> <!-- end-user-doc -->
@@ -1716,6 +1762,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
                 + " quantityUnit: [" + getQuantityUnit() + "]" + " sellingUnit: [" + getSellingUnit() + "]" + " webshopId: [" + getWebshopId() + "]"
                 + " weight: [" + getWeight() + "]" + " gtin: [" + getGtin() + "]" + " costPrice: [" + getCostPrice() + "]" + " allowance: [" + getAllowance()
                 + "]" + " cdf01: [" + getCdf01() + "]" + " cdf02: [" + getCdf02() + "]" + " cdf03: [" + getCdf03() + "]" + " note: [" + getNote() + "]"
+                + " stockManaged: [" + getStockManaged() + "]"
                 + " description: [" + getDescription() + "]" + " name: [" + getName() + "]" + " dateAdded: [" + getDateAdded() + "]" + " modifiedBy: ["
                 + getModifiedBy() + "]" + " modified: [" + getModified() + "]" + " id: [" + getId() + "]" + " deleted: [" + getDeleted() + "]" + " validFrom: ["
                 + getValidFrom() + "]" + " validTo: [" + getValidTo() + "]";
