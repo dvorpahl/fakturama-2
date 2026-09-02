@@ -458,4 +458,263 @@ HSQLDB/H2 installs, hence the dbms restriction on each createView changeSet.
         </createView>
     </changeSet>
 
+<!--
+Migrates DELETED (all tables) plus PRINTED/OPTIONAL/NOVAT (FKT_DOCUMENT/
+FKT_DOCUMENTITEM) from nullable to NOT NULL DEFAULT FALSE. These are pure
+soft-delete/flag columns where the Java model already defaults the field to
+Boolean.FALSE everywhere (verified against every generated model class), so
+the current app never intentionally writes NULL here - verified directly
+against devsql (2026-09-02): DELETED has zero actual NULL rows in every
+sampled table, PRINTED has 4 (of 9741). For 27 of these 28 columns this is
+therefore pure constraint-tightening with nothing to backfill, not a data
+cleanup - it locks in an invariant that already holds in practice.
+
+The real motivation is downstream SQL: reporting/tooling code (fakturama-tool)
+defensively wraps every soft-delete check as COALESCE(column, 0) = 0, which is
+not sargable - confirmed via EXPLAIN to force a full index/table scan instead
+of a ref lookup, regardless of whether the column ever actually holds NULL.
+Once these columns are NOT NULL, that code can be simplified to a plain
+"column = 0" predicate, which is sargable and uses the existing DELETED-leading
+indexes as intended.
+
+Each column gets two changesets: addNotNullConstraint (columnDataType pinned
+to BIT(1), matching the existing physical type exactly - leaving it at the
+Liquibase-generic "BOOLEAN" silently retypes the column to tinyint(1) on
+MySQL/MariaDB, confirmed via a real Liquibase dry run) followed by
+addDefaultValue (addNotNullConstraint on its own drops the existing
+DEFAULT b'0' clause).
+
+Deliberately NOT included here: PAID/DEPOSIT (FKT_DOCUMENT),
+USESALESEQUALIZATIONTAX/VATNUMBERVALID (FKT_CONTACT), DISCOUNTED/DONOTBOOK
+(FKT_VOUCHERS), T_GLOBAL (FKT_USERPROPERTY) - the Java model defaults these to
+null (not Boolean.FALSE), meaning NULL is very likely an intentional third
+state today (e.g. VATNUMBERVALID: "not yet checked" vs. checked true/false),
+not just data drift. Collapsing those into NOT NULL DEFAULT FALSE would be a
+behavior change, not just a schema tightening, and needs a separate decision.
+-->
+
+    <changeSet author="dvorpahl" id="20260902-022" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_ADDRESS" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-023" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_ADDRESS" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-024" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_BANKACCOUNT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-025" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_BANKACCOUNT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-026" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_CATEGORY" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-027" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_CATEGORY" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-028" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_CEFACTCODE" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-029" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_CEFACTCODE" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-030" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_CONTACT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-031" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_CONTACT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-032" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-033" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-034" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENT" columnName="PRINTED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-035" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENT" columnName="PRINTED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-036" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENTITEM" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-037" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENTITEM" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-038" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENTITEM" columnName="NOVAT" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-039" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENTITEM" columnName="NOVAT" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-040" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENTITEM" columnName="OPTIONAL" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-041" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENTITEM" columnName="OPTIONAL" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-042" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_DOCUMENTRECEIVER" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-043" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_DOCUMENTRECEIVER" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-044" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_INDIVIDUALDOCUMENTINFO" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-045" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_INDIVIDUALDOCUMENTINFO" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-046" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_ITEMACCOUNTTYPE" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-047" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_ITEMACCOUNTTYPE" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-048" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_PAYMENT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-049" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_PAYMENT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-050" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_PRODUCT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-051" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_PRODUCT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-052" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_PRODUCTBLOCKPRICE" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-053" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_PRODUCTBLOCKPRICE" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-054" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_PRODUCTOPTIONS" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-055" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_PRODUCTOPTIONS" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-056" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_ROLE" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-057" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_ROLE" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-058" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_SHIPPING" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-059" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_SHIPPING" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-060" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_TENANT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-061" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_TENANT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-062" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_TEXTMODULE" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-063" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_TEXTMODULE" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-064" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_USER" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-065" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_USER" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-066" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_USERPROPERTY" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-067" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_USERPROPERTY" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-068" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_VAT" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-069" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_VAT" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-070" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_VOUCHERITEMS" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-071" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_VOUCHERITEMS" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-072" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_VOUCHERS" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-073" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_VOUCHERS" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-074" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_WEBSHOP" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-075" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_WEBSHOP" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-076" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addNotNullConstraint tableName="FKT_WEBSHOPSTATEMAPPING" columnName="DELETED" columnDataType="BIT(1)" defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260902-077" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <addDefaultValue tableName="FKT_WEBSHOPSTATEMAPPING" columnName="DELETED" defaultValueBoolean="false"/>
+    </changeSet>
+
 </databaseChangeLog>
