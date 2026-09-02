@@ -42,7 +42,7 @@ import com.sebulli.fakturama.resources.core.IconSize;
  */
 public class CustomerSummaryComposite extends Composite {
 
-    public static final int PREFERRED_WIDTH = 360;
+    public static final int PREFERRED_WIDTH = 260;
     public static final int PREFERRED_HEIGHT = 58;
 
     private static final int ARC = 12;
@@ -53,6 +53,7 @@ public class CustomerSummaryComposite extends Composite {
     private final LocalResourceManager resourceManager;
     private final Image contactIcon;
     private final Contact contact;
+    private final String displayName;
     private final String statisticsText;
     private final String revenueText;
     private final String monthText;
@@ -60,16 +61,24 @@ public class CustomerSummaryComposite extends Composite {
     private final double openTotal;
     private boolean hovered;
 
-    public CustomerSummaryComposite(final Composite parent, final int style, final Messages messages, final Contact contact,
+    /**
+     * @param displayName
+     *            the name to show on the card - the contact's company name if
+     *            it has one, otherwise its last/first name, already formatted
+     *            per the user's configured contact name order (see
+     *            {@code Constants.PREFERENCES_CONTACT_NAME_FORMAT})
+     */
+    public CustomerSummaryComposite(final Composite parent, final int style, final Messages messages, final Contact contact, final String displayName,
             final int paidInvoices, final int openInvoices, final String revenueText, final String openAmountText, final String monthText,
             final double paidTotal, final double openTotal, final Consumer<Contact> contactOpener) {
         super(parent, style);
         this.contact = Objects.requireNonNull(contact);
+        this.displayName = Objects.requireNonNull(displayName);
         this.revenueText = Objects.requireNonNull(revenueText);
         this.monthText = Objects.requireNonNull(monthText);
         this.paidTotal = paidTotal;
         this.openTotal = openTotal;
-        this.statisticsText = paidInvoices + "/" + openInvoices + " | ";
+        this.statisticsText = paidInvoices + "/" + openInvoices + "  |  ";
         this.resourceManager = new LocalResourceManager(JFaceResources.getResources(), this);
 
         final Image source = Icon.COMMAND_CONTACT.getImage(IconSize.DefaultIconSize);
@@ -135,7 +144,7 @@ public class CustomerSummaryComposite extends Composite {
         final Font originalFont = gc.getFont();
         gc.setFont(JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
         gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-        gc.drawText(shorten(gc, contact.getName(), maximumWidth), textX, 7, true);
+        gc.drawText(shorten(gc, displayName, maximumWidth), textX, 7, true);
 
         gc.setFont(originalFont);
         final int textY = 7 + gc.getFontMetrics().getHeight() + 1;
@@ -148,7 +157,7 @@ public class CustomerSummaryComposite extends Composite {
         currentX += gc.textExtent(revenueText).x;
 
         gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-        gc.drawText(" | " + monthText, currentX, textY, true);
+        gc.drawText("  |  " + monthText, currentX, textY, true);
     }
 
     private Color revenueColor() {
@@ -159,7 +168,7 @@ public class CustomerSummaryComposite extends Composite {
     }
 
     private String createToolTip(final Messages messages, final int paidInvoices, final int openInvoices, final String openAmountText) {
-        return contact.getName() + '\n' + messages.documentOrderStatePaid + ": " + paidInvoices + " | " + messages.documentOrderStateOpen + ": "
+        return displayName + '\n' + messages.documentOrderStatePaid + ": " + paidInvoices + " | " + messages.documentOrderStateOpen + ": "
                 + openInvoices + '\n' + messages.exporterDataVolume + ": " + revenueText + " | " + messages.documentOrderStateOpen + ": "
                 + openAmountText;
     }

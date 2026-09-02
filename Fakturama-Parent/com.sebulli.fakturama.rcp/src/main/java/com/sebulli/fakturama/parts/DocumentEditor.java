@@ -333,6 +333,13 @@ public class DocumentEditor extends Editor<Document> {
     // for it, see #doSave
     private boolean skipNextFreeNumberCheck;
 
+    // Set when this editor's document is a quote ("Kostenvoranschlag") created from
+    // an as-yet-unconfirmed order, meant to become the origin of that order's
+    // document chain. Once this (new) offer has been saved and has a real id, doSave()
+    // retroactively points the order back at it (same transactionId, order's
+    // sourceDocument = this offer) and clears this field.
+    private Document precedingOfferForOrder;
+
     // If the customer is changed and this document displays no payment text,
     // use this variable to store the payment and due days
     @Deprecated
@@ -561,6 +568,14 @@ public class DocumentEditor extends Editor<Document> {
                 document = documentsDAO.save(document);
                 if (itemListTable != null) {
                     itemListTable.reloadItemList(document);
+                }
+                if (precedingOfferForOrder != null) {
+                    // retroactively insert this newly-saved offer as the origin of the
+                    // order's chain: same transactionId, order's sourceDocument -> offer
+                    precedingOfferForOrder.setTransactionId(document.getTransactionId());
+                    precedingOfferForOrder.setSourceDocument(document);
+                    documentsDAO.update(precedingOfferForOrder);
+                    precedingOfferForOrder = null;
                 }
             } catch (final FakturamaStoringException e) {
                 log.error(e);
@@ -1037,13 +1052,16 @@ public class DocumentEditor extends Editor<Document> {
     public void init(final Composite parent, @Optional @Named(PARAM_SILENT_MODE) final Boolean silentMode) {
         String tmpObjId;
         Boolean tmpDuplicate;
+        Boolean tmpPrecedingOffer;
         if (BooleanUtils.isTrue(silentMode)) {
             tmpObjId = (String) context.get(CallEditor.PARAM_OBJ_ID);
             tmpDuplicate = (Boolean) context.get(CallEditor.PARAM_FOLLOW_UP);
+            tmpPrecedingOffer = (Boolean) context.get(CallEditor.PARAM_PRECEDING_OFFER);
         } else {
             this.part = (MPart) parent.getData("modelElement");
             tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
             tmpDuplicate = (Boolean) part.getTransientData().get(CallEditor.PARAM_FOLLOW_UP);
+            tmpPrecedingOffer = (Boolean) part.getTransientData().get(CallEditor.PARAM_PRECEDING_OFFER);
         }
         this.documentItemUtil = ContextInjectionFactory.make(DocumentItemUtil.class, context);
         this.contactUtil = ContextInjectionFactory.make(ContactUtil.class, context);
@@ -1125,6 +1143,15 @@ public class DocumentEditor extends Editor<Document> {
             // if this document should be a copy of an existing document, create it
             if (duplicated) {
                 document = copyFromSourceDocument(parentDoc, billingType);
+                if (BooleanUtils.isTrue(tmpPrecedingOffer) && billingType == BillingType.OFFER) {
+                    // "Kostenvoranschlag": this offer is meant to become the origin of
+                    // parentDoc's (the order's) chain, not a document derived from it -
+                    // copyFromSourceDocument() set sourceDocument=parentDoc, which is
+                    // backwards for that; clear it and remember parentDoc so doSave() can
+                    // retroactively point the order back at this offer once it has an id.
+                    document.setSourceDocument(null);
+                    precedingOfferForOrder = parentDoc;
+                }
                 if (BooleanUtils.isNotTrue(silentMode)) {
                     setDirty(true);
                 }
@@ -2877,13 +2904,31 @@ public class DocumentEditor extends Editor<Document> {
         final CustomerStatistics statistics = ContextInjectionFactory.make(CustomerStatistics.class, context);
         statistics.setContact(contact);
         statistics.makeStatistics(true);
-        final CustomerSummaryComposite customerSummary = new CustomerSummaryComposite(parent, SWT.NONE, msg, contact,
+        final CustomerSummaryComposite customerSummary = new CustomerSummaryComposite(parent, SWT.NONE, msg, contact, getContactDisplayName(contact),
                 statistics.getOrdersCount(), statistics.getOpenInvoicesCount(),
                 numberFormatterService.doubleToFormattedPrice(statistics.getTotal()),
                 numberFormatterService.doubleToFormattedPrice(statistics.getOpenTotal()), statistics.getLastOrderMonth(),
                 statistics.getTotal(), statistics.getOpenTotal(), this::openCustomerFromSummary);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.BEGINNING)
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).indent(0, 4)
                 .hint(CustomerSummaryComposite.PREFERRED_WIDTH, CustomerSummaryComposite.PREFERRED_HEIGHT).applyTo(customerSummary);
+    }
+
+    /**
+     * The name to show for a contact on the customer summary card: the company
+     * name if it has one, otherwise first/last name in the user's configured
+     * order (see {@code Constants.PREFERENCES_CONTACT_NAME_FORMAT}).
+     */
+    private String getContactDisplayName(final Contact contact) {
+        if (StringUtils.isNotBlank(contact.getCompany())) {
+            return StringUtils.trim(contact.getCompany());
+        }
+        final String lastName = StringUtils.defaultString(contact.getName());
+        final String firstName = StringUtils.defaultString(contact.getFirstName());
+        final int contactFormat = defaultValuePrefs.getInt(Constants.PREFERENCES_CONTACT_NAME_FORMAT);
+        if (contactFormat == Constants.CONTACT_FORMAT_FIRSTNAME_LASTNAME) {
+            return StringUtils.trim(firstName + " " + lastName);
+        }
+        return StringUtils.isBlank(firstName) ? lastName : lastName + ", " + firstName;
     }
 
     private void increaseFontSize(final Control control, final int points) {
@@ -3065,6 +3110,14 @@ public class DocumentEditor extends Editor<Document> {
                         Icon.ICON_LETTER_NEW.getImage(IconSize.ToolbarIconSize), createCommandParams(DocumentType.PROFORMA));
                 break;
             case ORDER:
+                if (!hasConfirmationDocument()) {
+                    // "Kostenvoranschlag": lets the user retroactively insert a formal offer
+                    // as the origin of this order's chain, as long as it hasn't been
+                    // confirmed yet. See #precedingOfferForOrder / PARAM_PRECEDING_OFFER.
+                    createToolItem(toolBarDuplicateDocument, CommandIds.CMD_CALL_EDITOR, msg.toolbarNewQuoteName,
+                            tooltipPrefix + msg.mainMenuNewQuote, Icon.ICON_OFFER_NEW.getImage(IconSize.ToolbarIconSize),
+                            createCommandParams(DocumentType.OFFER, true));
+                }
                 createToolItem(toolBarDuplicateDocument, CommandIds.CMD_CALL_EDITOR, msg.toolbarNewConfirmationName,
                         tooltipPrefix + msg.mainMenuNewConfirmation, Icon.ICON_CONFIRMATION_NEW.getImage(IconSize.ToolbarIconSize),
                         createCommandParams(DocumentType.CONFIRMATION));
@@ -3406,6 +3459,29 @@ public class DocumentEditor extends Editor<Document> {
         params.put(CallEditor.PARAM_CATEGORY, docType.name());
         params.put(CallEditor.PARAM_FOLLOW_UP, Boolean.TRUE);
         return params;
+    }
+
+    /**
+     * @see #createCommandParams(DocumentType)
+     * @param precedingOffer
+     *            see {@link CallEditor#PARAM_PRECEDING_OFFER}
+     */
+    private Map<String, Object> createCommandParams(final DocumentType docType, final boolean precedingOffer) {
+        final Map<String, Object> params = createCommandParams(docType);
+        if (precedingOffer) {
+            params.put(CallEditor.PARAM_PRECEDING_OFFER, Boolean.TRUE);
+        }
+        return params;
+    }
+
+    /**
+     * @return {@code true} if an Auftragsbestätigung (order confirmation) already
+     *         exists for this order's transaction, i.e. it is no longer eligible
+     *         for a retroactively-inserted quote ("Kostenvoranschlag").
+     */
+    private boolean hasConfirmationDocument() {
+        return document.getTransactionId() != null
+                && documentsDAO.findExistingDocumentByTransactionIdAndBillingType(document.getTransactionId(), BillingType.CONFIRMATION) != null;
     }
 
     @Inject
