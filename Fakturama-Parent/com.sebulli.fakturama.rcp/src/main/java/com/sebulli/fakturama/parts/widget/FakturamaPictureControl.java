@@ -21,7 +21,9 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.nebula.widgets.picture.ImageFilterExtension;
 import org.eclipse.nebula.widgets.picture.PictureControl;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
 
@@ -68,8 +70,39 @@ public class FakturamaPictureControl extends PictureControl {
     public void init() {
         setModifyImageLinkText(msg.editorProductButtonChoosepicName);
         setDeleteImageLinkText(msg.mainMenuEditDeleteName);
-    
-    
+
+        // Hide the "Bild auswählen"/"löschen" links below the picture - editing the
+        // picture here would write straight to Product.getPicture(), which is no
+        // longer what anything displays (pictures now come from fakturama-tool's
+        // FKT_PRODUCTPICTURES via VW_PRODUCT_PICTURE, see
+        // ProductsDAO#findPictureBytesForItemNumber) - keeping these visible would
+        // just be a second, disconnected way to "set" a picture that nothing reads.
+        hideLink(getModifyImageLink());
+        hideLink(getDeleteImageLink());
+
+        // The picture area is now user-resizable (see ProductEditor's
+        // descriptionAndPictureSash) instead of a small fixed box, so start the
+        // preview 2.5x larger than the library default - the sash still lets the
+        // user shrink/grow it from there.
+        final Integer currentMaxWidth = getMaxImageWidth();
+        if (currentMaxWidth != null) {
+            setMaxImageWidth(Math.round(currentMaxWidth * 2.5f));
+        }
+        final Integer currentMaxHeight = getMaxImageHeight();
+        if (currentMaxHeight != null) {
+            setMaxImageHeight(Math.round(currentMaxHeight * 2.5f));
+        }
+    }
+
+    private void hideLink(final Control link) {
+        if (link == null) {
+            return;
+        }
+        link.setVisible(false);
+        final Object layoutData = link.getLayoutData();
+        if (layoutData instanceof GridData) {
+            ((GridData) layoutData).exclude = true;
+        }
     }
 
 //    @PreDestroy

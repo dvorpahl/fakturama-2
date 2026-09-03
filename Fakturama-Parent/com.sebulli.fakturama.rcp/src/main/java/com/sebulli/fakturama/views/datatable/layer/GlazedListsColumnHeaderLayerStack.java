@@ -14,6 +14,7 @@ import org.eclipse.nebula.widgets.nattable.layer.DataLayer;
 import org.eclipse.nebula.widgets.nattable.layer.ILayer;
 import org.eclipse.nebula.widgets.nattable.layer.stack.DefaultBodyLayerStack;
 import org.eclipse.nebula.widgets.nattable.selection.SelectionLayer;
+import org.eclipse.nebula.widgets.nattable.sort.ISortModel;
 import org.eclipse.nebula.widgets.nattable.sort.SortHeaderLayer;
 import org.eclipse.nebula.widgets.nattable.util.IClientAreaProvider;
 import org.eclipse.nebula.widgets.nattable.viewport.ViewportLayer;
@@ -63,9 +64,29 @@ public class GlazedListsColumnHeaderLayerStack<T extends IEntity> extends Abstra
 												false);
 
 		setUnderlyingLayer(sortHeaderLayer);
-	    
+
 	}
-	
+
+	/**
+	 * Variant taking a pre-built {@link ISortModel} (e.g. {@link ServerSortModel}) instead of
+	 * building a {@code GlazedListsSortModel} from {@code bodyLayerStack.getSortedList()} - used
+	 * for {@link PagedEntityEventList}-backed views, whose {@link BodyLayerStack} has no {@code
+	 * SortedList} to build one from in the first place.
+	 */
+	public GlazedListsColumnHeaderLayerStack(IDataProvider dataProvider,
+			IConfigRegistry configRegistry,
+			BodyLayerStack<T> bodyLayerStack,
+			ISortModel sortModel) {
+
+		this.dataProvider = dataProvider;
+		dataLayer = new DefaultColumnHeaderDataLayer(dataProvider);
+		columnHeaderLayer = new ColumnHeaderLayer(dataLayer, bodyLayerStack, bodyLayerStack.getSelectionLayer());
+
+		SortHeaderLayer<T> sortHeaderLayer = new SortHeaderLayer<T>(columnHeaderLayer, sortModel, false);
+
+		setUnderlyingLayer(sortHeaderLayer);
+	}
+
 	@Deprecated
 	public GlazedListsColumnHeaderLayerStack(IDataProvider dataProvider, 
 			SortedList<T> sortedList,

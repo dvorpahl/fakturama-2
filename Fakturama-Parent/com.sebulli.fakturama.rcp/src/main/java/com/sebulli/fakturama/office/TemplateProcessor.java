@@ -88,6 +88,7 @@ import com.sebulli.fakturama.converter.CommonConverter;
 import com.sebulli.fakturama.dao.AddressDAO;
 import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.dao.DocumentReceiverDAO;
+import com.sebulli.fakturama.dao.ProductsDAO;
 import com.sebulli.fakturama.dto.DocumentSummary;
 import com.sebulli.fakturama.dto.Price;
 import com.sebulli.fakturama.dto.Transaction;
@@ -137,6 +138,9 @@ public class TemplateProcessor {
 
     @Inject
     private AddressDAO addressDAO;
+
+    @Inject
+    private ProductsDAO productsDAO;
 
     @Inject
     private ILogger log;
@@ -1770,10 +1774,19 @@ public class TemplateProcessor {
         // Get product picture
         else if (key.startsWith("ITEM.PICTURE")) {
 
-            if (item.getPicture() != null) {
+            // DocumentItem.getPicture() is intentionally not read here anymore - it's a
+            // per-position snapshot that's no longer being populated (see the TODO at
+            // WebShopDataImporter#createOrderFromXMLOrderNode). The current picture is looked up by
+            // item number from VW_PRODUCT_PICTURE instead, so a print always shows the
+            // product's current picture rather than whatever was on hand when the
+            // position was created (and it's null on any DB where the view doesn't
+            // exist, e.g. HSQLDB dev installs).
+            final byte[] picture = productsDAO.findPictureBytesForItemNumber(item.getItemNumber());
 
-                final Pair<Integer, Integer> widthHeight = getCustomImageSize(item.getPicture(), cellPlaceholder);
-                final Path imageFile = createImageFile(item.getPicture(), "JPG");
+            if (picture != null) {
+
+                final Pair<Integer, Integer> widthHeight = getCustomImageSize(picture, cellPlaceholder);
+                final Path imageFile = createImageFile(picture, "JPG");
 
                 if (imageFile != null) {
                     // replace the placeholder

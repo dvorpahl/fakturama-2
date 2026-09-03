@@ -788,7 +788,21 @@ public class WebShopDataImporter implements IRunnableWithProgress {
             item.setQuantityUnit(StringUtils.isBlank(itemType.getQunit()) ? newOrExistingProduct.getQuantityUnit() : itemType.getQunit());
             item.setValidFrom(today);
             item.setProduct(newOrExistingProduct);
-            item.setPicture(newOrExistingProduct.getPicture());
+            // TODO ##################################################################
+            // Picture-into-position copy disabled on purpose. newOrExistingProduct.getPicture()
+            // is now always null (pictures were moved out of FKT_PRODUCT into
+            // fakturama-tool's own FKT_PRODUCTPICTURES table to stop FKT_PRODUCT from
+            // bloating), so this call was already a no-op - but DON'T re-enable it by
+            // wiring Product.getPicture() up to VW_PRODUCT_PICTURE either: that would
+            // snapshot-copy the full picture bytes into EVERY position of EVERY order,
+            // multiplying the original bloat per position instead of per product
+            // (FKT_DOCUMENTITEM already has 57k+ rows and growing). The print engine and
+            // the item list table now read the current picture directly via
+            // ProductsDAO#findPictureBytesForItemNumber(String) instead - see
+            // TemplateProcessor#fillItemTableWithData and DocumentItemListTable's
+            // PICTURE column accessor.
+            // item.setPicture(newOrExistingProduct.getPicture());
+            // ########################################################################
             item.setItemVat(vat);
             item.setItemType(com.sebulli.fakturama.model.ItemType.POSITION);
             item.setPrice(productUtil.getPriceByQuantity(newOrExistingProduct, item.getQuantity()));

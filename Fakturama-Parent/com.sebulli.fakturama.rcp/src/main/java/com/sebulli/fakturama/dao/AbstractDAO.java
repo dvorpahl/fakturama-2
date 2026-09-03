@@ -13,6 +13,7 @@ package com.sebulli.fakturama.dao;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.persistence.config.BatchWriting;
+import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.jpa.JpaHelper;
@@ -301,7 +303,16 @@ public abstract class AbstractDAO<T extends IEntity> {
             return null;
         }
 
-        T find = getEntityManager().find(getEntityClass(), id);
+        // EntityManager#find() doesn't go through a CriteriaQuery, so it never picks up
+        // INHERITANCE_OUTER_JOIN automatically. For entities using JOINED inheritance (e.g.
+        // Document/Invoice/Order/...) that meant every single find() by ID fired a second SELECT
+        // just to resolve the subclass-specific columns (InheritancePolicy#selectOneRowUsingMultipleTableSubclassRead)
+        // - one extra round trip per call, all over the app, anywhere something resolves a single
+        // Document by ID outside the already-fixed bulk queries in DocumentsDAO. Harmless no-op
+        // for entities without JOINED inheritance.
+        final Map<String, Object> hints = new HashMap<>();
+        hints.put(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        T find = getEntityManager().find(getEntityClass(), id, hints);
         if (forceReadFromDatabase) {
             getEntityManager().refresh(find);
         }

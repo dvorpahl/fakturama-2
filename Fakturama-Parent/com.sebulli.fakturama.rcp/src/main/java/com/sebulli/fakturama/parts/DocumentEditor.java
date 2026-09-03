@@ -428,7 +428,7 @@ public class DocumentEditor extends Editor<Document> {
 
         if (itemListTable != null) {
             // set items table silent
-            itemListTable.getNatTable().commitAndCloseActiveCellEditor();
+            ((org.eclipse.nebula.widgets.nattable.NatTable) itemListTable.getNatTable()).commitAndCloseActiveCellEditor();
         }
 
         // set focus outside of address tab

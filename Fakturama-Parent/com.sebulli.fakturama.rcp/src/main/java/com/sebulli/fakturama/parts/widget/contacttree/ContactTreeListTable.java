@@ -1,21 +1,18 @@
 /**
- * 
+ *
  */
 package com.sebulli.fakturama.parts.widget.contacttree;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -38,42 +35,22 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.nebula.widgets.nattable.NatTable;
-import org.eclipse.nebula.widgets.nattable.config.AbstractRegistryConfiguration;
-import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
-import org.eclipse.nebula.widgets.nattable.config.ConfigRegistry;
-import org.eclipse.nebula.widgets.nattable.config.DefaultNatTableStyleConfiguration;
-import org.eclipse.nebula.widgets.nattable.config.IConfigRegistry;
-import org.eclipse.nebula.widgets.nattable.data.ExtendedReflectiveColumnPropertyAccessor;
-import org.eclipse.nebula.widgets.nattable.data.IColumnPropertyAccessor;
-import org.eclipse.nebula.widgets.nattable.data.IRowDataProvider;
-import org.eclipse.nebula.widgets.nattable.data.IRowIdAccessor;
-import org.eclipse.nebula.widgets.nattable.extension.e4.selection.E4SelectionListener;
-import org.eclipse.nebula.widgets.nattable.grid.GridRegion;
-import org.eclipse.nebula.widgets.nattable.layer.DataLayer;
-import org.eclipse.nebula.widgets.nattable.layer.LayerUtil;
-import org.eclipse.nebula.widgets.nattable.reorder.RowReorderLayer;
-import org.eclipse.nebula.widgets.nattable.selection.RowSelectionModel;
-import org.eclipse.nebula.widgets.nattable.selection.config.DefaultSelectionStyleConfiguration;
-import org.eclipse.nebula.widgets.nattable.selection.config.RowOnlySelectionConfiguration;
-import org.eclipse.nebula.widgets.nattable.sort.SortStatePersistor;
-import org.eclipse.nebula.widgets.nattable.sort.config.SingleClickSortConfiguration;
-import org.eclipse.nebula.widgets.nattable.style.BorderStyle;
-import org.eclipse.nebula.widgets.nattable.style.BorderStyle.LineStyleEnum;
-import org.eclipse.nebula.widgets.nattable.style.CellStyleAttributes;
-import org.eclipse.nebula.widgets.nattable.style.DisplayMode;
-import org.eclipse.nebula.widgets.nattable.style.HorizontalAlignmentEnum;
-import org.eclipse.nebula.widgets.nattable.style.Style;
-import org.eclipse.nebula.widgets.nattable.ui.action.IMouseAction;
-import org.eclipse.nebula.widgets.nattable.ui.matcher.MouseEventMatcher;
-import org.eclipse.nebula.widgets.nattable.util.GUIHelper;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ILazyContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 
 import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.dao.AbstractDAO;
@@ -93,19 +70,23 @@ import com.sebulli.fakturama.parts.DocumentEditor;
 import com.sebulli.fakturama.parts.Editor;
 import com.sebulli.fakturama.parts.widget.search.TextSearchControl;
 import com.sebulli.fakturama.views.datatable.contacts.ContactListDescriptor;
+import com.sebulli.fakturama.views.datatable.layer.PagedEntityEventList;
 import com.sebulli.fakturama.views.datatable.tree.ui.TopicTreeViewer;
 
 import ca.odell.glazedlists.EventList;
-import ca.odell.glazedlists.FilterList;
 import ca.odell.glazedlists.GlazedLists;
-import ca.odell.glazedlists.matchers.MatcherEditor;
 
 /**
- * View with the table of all contacts
- * 
- * @param <K>
- * @param <A>
- * 
+ * "Adresse ausw&auml;hlen" dialog base class: a search-driven contact/address picker.
+ * <p>
+ * Uses the same native SWT.VIRTUAL {@link Table} + JFace {@link ILazyContentProvider} approach as
+ * {@code DocumentsListTable}/{@code ProductListTable}/{@code ContactListTable} - unified onto one
+ * pattern per the user's request, replacing the previous "background-thread progressively loads
+ * the *entire* table in batches right after opening" approach (which, while off the UI thread,
+ * still eagerly pulled every debitor/creditor into memory regardless of whether the user ever
+ * scrolled that far - not actually lazy, just asynchronous). {@link #loadContactPage} already
+ * queries the DB directly per visible page (fixed earlier - see {@code DebitorsDAO#findForTreeListView}),
+ * so this widget now only ever asks for rows it's about to paint.
  */
 @SuppressWarnings("unchecked")
 public abstract class ContactTreeListTable<K extends DebitorAddress> {
@@ -180,13 +161,17 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
     // The standard UniDataSet
     protected String stdPropertyKey = null;
 
-    protected NatTable natTable;
+    protected Control natTable;
 
-    //create a new ConfigRegistry which will be needed for GlazedLists handling
-    private ConfigRegistry configRegistry = new ConfigRegistry();
-    protected FilterList<K> treeFilteredIssues;
+    private static final int BATCH_SIZE = 30;
+    private static final int SEARCH_DEBOUNCE_SHORT_MS = 500;
+    private static final int SEARCH_DEBOUNCE_LONG_MS = 300;
 
-    private TempBodyLayerStack<K> bodyLayerStack;
+    private TableViewer contactsViewer;
+    private Table table;
+    private PagedEntityEventList<K> contactListData;
+    private String currentSearchTerm;
+    private final Runnable searchDebounceRunnable = this::applyDebouncedSearch;
 
     @PostConstruct
     public Control createPartControl(final Composite parent, final MPart listTablePart) {
@@ -194,40 +179,17 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         top = new Composite(parent, SWT.NONE);
         GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(2).applyTo(top);
 
-        // Add context help reference 
-        //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, contextHelpId);
-
         Composite searchAndTableComposite = top;
         // Create the composite that contains the search field and the table
         searchAndTableComposite = createSearchAndTableComposite(top);
         natTable = createListTable(searchAndTableComposite);
 
-        addCustomStyling(natTable);
-
-        natTable.addDisposeListener(new DisposeListener() {
-
-            @Override
-            public void widgetDisposed(final DisposeEvent e) {
-                onStop(natTable);
-            }
-        });
-
-        // call hook for post configure steps, if any
-        postConfigureNatTable(natTable);
-
-        onStart(natTable); // as late as possible! Otherwise sorting doesn't work! (don't ask why!)
-
-        //        natTable.setTheme(new ModernNatTableThemeConfiguration());
+        natTable.addDisposeListener(e -> onStop(natTable));
 
         this.listTablePart = listTablePart;
         // if another click handler is set we use it
-        // Listen to double clicks
         final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_CONTACTS_CLICKHANDLER);
-        if (commandId != null) { // exactly would it be Constants.COMMAND_SELECTITEM
-            hookDoubleClickCommand(natTable, /* gridLayer.getGridLayer(), */ (String) commandId);
-        } else {
-            hookDoubleClickCommand(natTable, /* gridLayer, */null);
-        }
+        hookDoubleClickCommand(commandId != null ? (String) commandId : null);
 
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(top);
@@ -236,10 +198,6 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
 
     /**
      * Component for the Search field and the item table
-     * 
-     * @param parent
-     *            the parent {@link Composite} of this Component
-     * @return {@link Composite}
      */
     private Composite createSearchAndTableComposite(final Composite parent) {
         final Composite searchAndTableComposite = new Composite(parent, SWT.NONE);
@@ -248,7 +206,7 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
 
         // Create the composite that contains the search field and the toolbar
         final Composite searchAndToolbarComposite = new Composite(searchAndTableComposite, SWT.NONE);
-        GridLayoutFactory.fillDefaults().numColumns(3).applyTo(searchAndToolbarComposite);
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(searchAndToolbarComposite);
         GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(searchAndToolbarComposite);
 
         // The search composite
@@ -262,39 +220,10 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         GridDataFactory.swtDefaults().applyTo(searchLabel);
 
         searchText = new TextSearchControl(searchComposite, false, msg);
+        hookSearchDebounce();
 
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).hint(150, -1).applyTo(searchText);
         return searchAndTableComposite;
-    }
-
-    /**
-     * We have to style the table a little bit...
-     * 
-     * @param natTable
-     *            the {@link NatTable} to style
-     */
-    private void addCustomStyling(final NatTable natTable) {
-        final DefaultSelectionStyleConfiguration selectionStyle = createDefaultSelectionStyle();
-
-        // Add all style configurations to NatTable
-        natTable.addConfiguration(selectionStyle);
-    }
-
-    /**
-     * @return
-     */
-    protected DefaultSelectionStyleConfiguration createDefaultSelectionStyle() {
-        // NOTE: Getting the colors and fonts from the GUIHelper ensures that
-        // they are disposed properly (required by SWT)
-        // Setup selection styling
-        final DefaultSelectionStyleConfiguration selectionStyle = new DefaultSelectionStyleConfiguration();
-        //     selectionStyle.selectionFont = GUIHelper.getFont(new FontData("Verdana", 8, SWT.NORMAL));
-        selectionStyle.selectionBgColor = GUIHelper.getColor(217, 232, 251);
-        selectionStyle.selectionFgColor = GUIHelper.COLOR_BLACK;
-        selectionStyle.anchorBorderStyle = new BorderStyle(1, GUIHelper.COLOR_DARK_GRAY, LineStyleEnum.SOLID);
-        selectionStyle.anchorBgColor = GUIHelper.getColor(217, 232, 251);
-        selectionStyle.selectedHeaderBgColor = GUIHelper.getColor(169, 212, 235);
-        return selectionStyle;
     }
 
     public TextSearchControl getSearchControl() {
@@ -310,180 +239,9 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         return rootNode;
     }
 
-    private void setColumWidthPercentage(final DataLayer dataLayer) {
-        dataLayer.setColumnPercentageSizing(true);
-        dataLayer.setColumnWidthPercentageByPosition(0, 5);
-        dataLayer.setColumnWidthPercentageByPosition(1, 15);
-        dataLayer.setColumnWidthPercentageByPosition(2, 75);
-        dataLayer.setColumnWidthPercentageByPosition(3, 5);
-    }
-
-    private void hookDoubleClickCommand(
-            final NatTable nattable/* , final TreeLayer gridLayer */, final String commandId) {
-
-        if (commandId != null) {
-            // if we are in "selectaddress" mode we have to register a single click mouse event
-            nattable.getUiBindingRegistry().registerFirstSingleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE),
-                    (final NatTable natTable, final MouseEvent event) -> {
-                        final int rowPos = natTable.getRowPositionByY(event.y);
-                        final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, bodyLayerStack.getSelectionLayer());
-                        selectedObject = bodyLayerStack.getBodyDataProvider().getRowObject(bodyRowPos);
-                    });
-        }
-        // Add a double click listener
-        nattable.getUiBindingRegistry().registerDoubleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
-
-            @Override
-            public void run(final NatTable natTable, final MouseEvent event) {
-                //get the row position for the click in the NatTable
-                final int rowPos = natTable.getRowPositionByY(event.y);
-                //transform the NatTable row position to the row position of the body layer stack
-                final int bodyRowPos = LayerUtil.convertRowPosition(natTable, rowPos, bodyLayerStack.getSelectionLayer());
-                selectedObject = bodyLayerStack.getBodyDataProvider().getRowObject(bodyRowPos);
-                // Call the corresponding editor. The editor is set
-                // in the variable "editor", which is used as a parameter
-                // when calling the editor command.
-                // in E4 we create a new Part (or use an existing one with the same ID)
-                // from PartDescriptor
-                final Map<String, Object> params = new HashMap<>();
-                ParameterizedCommand parameterizedCommand;
-                if (commandId != null) {
-                    // If we don't give a target document number the event will  be catched by *all*
-                    // open editors which listens to this event. This is (obviously :-) ) not
-                    // the intended behavior...
-                    final Map<String, Object> eventParams = new HashMap<>();
-                    // the transientData HashMap contains the target document number
-                    // (was set in MouseEvent handler)
-                    eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
-                    eventParams.put(SELECTED_ADDRESS_ID, Long.valueOf(selectedObject.getAddress().getId()));
-                    eventParams.put(SELECTED_CONTACT_ID, Long.valueOf(selectedObject.getContactId()));
-                    // alternatively use the Selection Service
-                    // ==> no! Because this SelectionService has another context than 
-                    // the receiver of this topic. Therefore the receiver's SelectionService
-                    // is empty :-(
-                    //                    selectionService.setSelection(selectedObject);
-
-                    // selecting an entry and closing the dialog are two different actions.
-                    // the "CloseContact" event is caught by SelectContactDialog#handleDialogDoubleClickClose. 
-                    evtBroker.post("DialogSelection/Contact", eventParams);
-                    evtBroker.post("DialogAction/CloseContact", eventParams);
-                } else {
-                    // if we come from the list view then we should open a new editor 
-                    //                    params.put(CallEditor.PARAM_OBJ_ID, Long.toString(selectedObject.getId()));
-                    params.put(CallEditor.PARAM_EDITOR_TYPE, getEditorId());
-                    parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
-                    handlerService.executeHandler(parameterizedCommand);
-                }
-            }
-        });
-    }
-
-    public K getSelectedObject() {
-        return selectedObject;
-    }
-
-    protected void postConfigureNatTable(final NatTable natTable) {
-        //as the autoconfiguration of the NatTable is turned off, we have to add the 
-        //DefaultNatTableStyleConfiguration and the ConfigRegistry manually 
-        natTable.addConfiguration(new ContactTreeTableConfiguration());
-        // nur für das Headermenü, falls das mal irgendwann gebraucht werden sollte
-        //      natTable.addConfiguration(new HeaderMenuConfiguration(n6));
-
-        final E4SelectionListener<DebitorAddress> esl = new E4SelectionListener<>(selectionService, bodyLayerStack.getSelectionLayer(),
-                (IRowDataProvider<DebitorAddress>) bodyLayerStack.getBodyDataProvider());
-        bodyLayerStack.getSelectionLayer().addLayerListener(esl);
-
-        // TODO for later use (if we're using Tree Table)
-        //		ISelectionProvider selectionProvider = new RowSelectionProvider<>(bodyLayerStack.getSelectionLayer(),
-        //				bodyLayerStack.getBodyDataProvider(), false); // Provides rows where any cell in the row is selected
-        //
-        //		selectionProvider.addSelectionChangedListener(new ISelectionChangedListener() {
-        //
-        //			@Override
-        //			public void selectionChanged(SelectionChangedEvent event) {
-        //				System.out.println("Selection changed:");
-        //selectionService.getSelection()
-        //		IStructuredSelection structuredSelection = event.getStructuredSelection();
-        //		selectedObject = (K) structuredSelection.getFirstElement();
-        ////				@SuppressWarnings("rawtypes")
-        ////				Iterator it = selection.iterator();
-        ////				while (it.hasNext()) {
-        ////					System.out.println("  " + it.next());
-        ////				}
-        //			}
-
-        //		});
-
-        // Change the default sort key bindings. Note that 'auto configure' was turned off
-        // for the SortHeaderLayer (setup in the GlazedListsGridLayer)
-        natTable.addConfiguration(new SingleClickSortConfiguration());
-        natTable.configure();
-    }
-
-    protected IColumnPropertyAccessor<K> createColumnPropertyAccessor(final String[] propertyNames) {
-        final IColumnPropertyAccessor<K> columnPropertyAccessor = new ExtendedReflectiveColumnPropertyAccessor<>(propertyNames);
-        final IColumnPropertyAccessor<K> derivedColumnPropertyAccessor = new IColumnPropertyAccessor<>() {
-
-            @Override
-            public Object getDataValue(final K rowObject, final int columnIndex) {
-                final ContactListDescriptor descriptor = ContactListDescriptor.getDescriptorFromColumn(columnIndex);
-                // For the address always the first entry is displayed (if any)
-                switch (descriptor) {
-                    case TYPE:
-                        final List<ContactType> dataList = (List) columnPropertyAccessor.getDataValue(rowObject, columnIndex);
-                        return dataList.isEmpty() ? "" : dataList.stream().map(ContactType::getName).collect(Collectors.joining(","));
-                    case NO:
-                    case FIRSTNAME:
-                    case LASTNAME:
-                    case ZIP:
-                    case CITY:
-                    case NAMEADDON: /* GS/ */
-                    case LOCALCONSULTANT: /* GS/ */
-                        return columnPropertyAccessor.getDataValue(rowObject, columnIndex);
-                    case COMPANY:
-                        final String value = (String) columnPropertyAccessor.getDataValue(rowObject, columnIndex);
-                        if (value != null) {
-                            return StringUtils.substringBefore(value, StringUtils.CR);
-                        }
-                    default:
-                        break;
-                }
-                return null;
-            }
-
-            @Override
-            public void setDataValue(final K rowObject, final int columnIndex, final Object newValue) {
-                throw new UnsupportedOperationException("you can't change a value in list view!");
-            }
-
-            @Override
-            public int getColumnCount() {
-                return columnPropertyAccessor.getColumnCount();
-            }
-
-            @Override
-            public String getColumnProperty(final int columnIndex) {
-                final ContactListDescriptor descriptor = ContactListDescriptor.getDescriptorFromColumn(columnIndex);
-                return msg.getMessageFromKey(descriptor.getMessageKey());
-            }
-
-            @Override
-            public int getColumnIndex(final String propertyName) {
-                return columnPropertyAccessor.getColumnIndex(propertyName);
-            }
-        };
-        return derivedColumnPropertyAccessor;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sebulli.fakturama.views.datatable.vats.AbstractViewDataTable#
-     * createListTable(org.eclipse.swt.widgets.Composite)
-     */
-    protected NatTable createListTable(final Composite searchAndTableComposite) {
-
-        ContactType contactType;
+    protected Control createListTable(final Composite searchAndTableComposite) {
+        // Was a local variable shadowing the "contactType" field above, so the field itself -
+        // which handleRefreshEvent() reads - was never actually set and stayed null forever.
         final BillingType currentBillingType = (BillingType) context.get("ADDRESS_TYPE");
         switch (currentBillingType) {
             case INVOICE:
@@ -497,88 +255,183 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
                 break;
         }
 
-        // fill the underlying data source (GlazedList)
-        final EventList<K> contactListData = getListData(contactType);
+        final Composite tableComposite = new Composite(searchAndTableComposite, SWT.NONE);
+        tableColumnLayout = new TableColumnLayout();
+        tableComposite.setLayout(tableColumnLayout);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(tableComposite);
 
-        // Properties of the DebitorAddress items inside the TreeItems
-        final String[] propertyNames = ContactListDescriptor.getContactPropertyNames();
+        table = new Table(tableComposite, SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
+        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyHeaderStyle(table);
+        contactsViewer = new TableViewer(table);
+        contactsViewer.setUseHashlookup(true);
 
-        final IColumnPropertyAccessor<K> columnPropertyAccessor = createColumnPropertyAccessor(propertyNames);
+        createColumns();
 
-        // matcher input Search text field
-        final MatcherEditor<K> textMatcherEditor = createTextWidgetMatcherEditor();
+        contactListData = new PagedEntityEventList<>(BATCH_SIZE, this::loadContactPageInternal, this::countContactsInternal);
+        contactsViewer.setContentProvider(new ILazyContentProvider() {
+            @Override
+            public void updateElement(final int index) {
+                final K item = contactListData.get(index);
+                // Can be null: a stale SetData request for an index beyond the list's new,
+                // just-shrunk size (see PagedEntityEventList#get's javadoc).
+                if (item == null) {
+                    return;
+                }
+                contactsViewer.replace(item, index);
+                com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, index);
+            }
 
-        // Filtered list for Search text field filter
-        // build the list for the tree-filtered values (i.e., the value list which is
-        // affected by tree selection)
-        treeFilteredIssues = new FilterList<>(contactListData, textMatcherEditor);
+            @Override
+            public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
+                // nothing to do - contactListData is set up before setInput() below
+            }
+        });
+        contactsViewer.setInput(new Object());
+        table.setItemCount((int) contactListData.size());
 
-        final DebitorAddressGridListLayer<K> tempDebitorAddressGridListLayer = new DebitorAddressGridListLayer<>(treeFilteredIssues, propertyNames,
-                columnPropertyAccessor, configRegistry, new DebitorAddressTreeFormat<>());
+        hookSelection();
 
-        bodyLayerStack = tempDebitorAddressGridListLayer.getBodyLayerStack();
-
-        // turn the auto configuration off as we want to add our header menu
-        // configuration
-        final NatTable natTable = new NatTable(searchAndTableComposite, tempDebitorAddressGridListLayer.getGridLayer(), false);
-
-        // as the autoconfiguration of the NatTable is turned off, we have to
-        // add the DefaultNatTableStyleConfiguration and the ConfigRegistry
-        // manually
-        natTable.setConfigRegistry(configRegistry);
-        natTable.addConfiguration(new DefaultNatTableStyleConfiguration());
-        natTable.setBackground(GUIHelper.COLOR_WHITE);
-
-        //		// adds the key bindings that allows pressing space bar to
-        //		// expand/collapse tree nodes
-        //		natTable.addConfiguration(new TreeLayerExpandCollapseKeyBindings(bodyLayerStack.getTreeLayer(),
-        //				bodyLayerStack.getSelectionLayer()));
-
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
-        setColumWidthPercentage(bodyLayerStack.getBodyDataLayer());
-
-        // use a RowSelectionModel that will perform row selections and is able to
-        // identify a row via unique ID
-        final RowSelectionModel<K> selectionModel = new RowSelectionModel<>(bodyLayerStack.getSelectionLayer(), bodyLayerStack.getBodyDataProvider(),
-                new IRowIdAccessor<K>() {
-
-                    @Override
-                    public Serializable getRowId(final K rowObject) {
-                        return rowObject.getAddress().getId();
-                    }
-                }, false);
-        bodyLayerStack.getSelectionLayer().setSelectionModel(selectionModel);
-        // Select complete rows
-        bodyLayerStack.getSelectionLayer().addConfiguration(new RowOnlySelectionConfiguration());
-        return natTable;
+        return table;
     }
 
-    protected abstract MatcherEditor<K> createTextWidgetMatcherEditor();
+    /** Percentages for all 9 columns from {@link ContactListDescriptor#getContactPropertyNames()}. */
+    private void createColumns() {
+        for (final ContactListDescriptor descriptor : ContactListDescriptor.values()) {
+            final TableViewerColumn viewerColumn = new TableViewerColumn(contactsViewer, SWT.LEFT);
+            final TableColumn column = viewerColumn.getColumn();
+            column.setText(msg.getMessageFromKey(descriptor.getMessageKey()));
+            viewerColumn.setLabelProvider(createLabelProvider(descriptor));
+            tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), 20, true));
+        }
+    }
+
+    private ColumnLabelProvider createLabelProvider(final ContactListDescriptor descriptor) {
+        return new ColumnLabelProvider() {
+            @Override
+            public String getText(final Object element) {
+                final K item = (K) element;
+                switch (descriptor) {
+                    case NO:
+                        return item.getCustomerNumber();
+                    case FIRSTNAME:
+                        return item.getFirstName();
+                    case LASTNAME:
+                        return item.getName();
+                    case COMPANY:
+                        return item.getCompany() != null ? StringUtils.substringBefore(item.getCompany(), StringUtils.CR) : "";
+                    case ZIP:
+                        return item.getAddress() != null ? item.getAddress().getZip() : "";
+                    case CITY:
+                        return item.getAddress() != null ? item.getAddress().getCity() : "";
+                    case TYPE:
+                        return item.getAddress() != null
+                                ? item.getAddress().getContactTypes().stream().map(ContactType::getName).collect(java.util.stream.Collectors.joining(","))
+                                : "";
+                    case NAMEADDON:
+                        return item.getAddress() != null ? item.getAddress().getName() : "";
+                    case LOCALCONSULTANT:
+                        return item.getAddress() != null ? item.getAddress().getLocalConsultant() : "";
+                    default:
+                        return "";
+                }
+            }
+        };
+    }
+
+    private void hookSelection() {
+        contactsViewer.addSelectionChangedListener((final org.eclipse.jface.viewers.SelectionChangedEvent event) -> {
+            final IStructuredSelection sel = (IStructuredSelection) event.getSelection();
+            selectedObject = (K) sel.getFirstElement();
+        });
+    }
+
+    private void hookDoubleClickCommand(final String commandId) {
+        contactsViewer.addDoubleClickListener((final org.eclipse.jface.viewers.DoubleClickEvent event) -> {
+            if (selectedObject == null) {
+                return;
+            }
+            final Map<String, Object> params = new HashMap<>();
+            ParameterizedCommand parameterizedCommand;
+            if (commandId != null) {
+                final Map<String, Object> eventParams = new HashMap<>();
+                eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
+                eventParams.put(SELECTED_ADDRESS_ID, Long.valueOf(selectedObject.getAddress().getId()));
+                eventParams.put(SELECTED_CONTACT_ID, Long.valueOf(selectedObject.getContactId()));
+                evtBroker.post("DialogSelection/Contact", eventParams);
+                evtBroker.post("DialogAction/CloseContact", eventParams);
+            } else {
+                params.put(CallEditor.PARAM_EDITOR_TYPE, getEditorId());
+                parameterizedCommand = commandService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
+                handlerService.executeHandler(parameterizedCommand);
+            }
+        });
+    }
+
+    public K getSelectedObject() {
+        return selectedObject;
+    }
+
+    /** {@link PagedEntityEventList.PageLoader} for contactListData - the current (debounced) search term. */
+    private List<K> loadContactPageInternal(final int firstResult, final int maxResults) {
+        return loadContactPage(contactType, currentSearchTerm, firstResult, maxResults);
+    }
+
+    private long countContactsInternal() {
+        return countContacts(contactType, currentSearchTerm);
+    }
+
+    private void reloadContactList() {
+        contactListData.reload(this::loadContactPageInternal, this::countContactsInternal);
+        if (table != null && !table.isDisposed()) {
+            table.setItemCount((int) contactListData.size());
+            contactsViewer.refresh();
+        }
+    }
+
+    /**
+     * Debounces the search box: a DB query per keystroke would be wasteful. Waits {@link
+     * #SEARCH_DEBOUNCE_SHORT_MS} while the search term is still short (likely mid-typing) and only
+     * {@link #SEARCH_DEBOUNCE_LONG_MS} once it's 3+ characters (specific enough to act on quickly).
+     */
+    private void hookSearchDebounce() {
+        searchText.getTextControl().addModifyListener(e -> {
+            final Display display = searchText.getTextControl().getDisplay();
+            final int debounceMs = searchText.getTextControl().getText().length() >= 3 ? SEARCH_DEBOUNCE_LONG_MS : SEARCH_DEBOUNCE_SHORT_MS;
+            display.timerExec(-1, searchDebounceRunnable);
+            display.timerExec(debounceMs, searchDebounceRunnable);
+        });
+    }
+
+    private void applyDebouncedSearch() {
+        if (searchText.getTextControl().isDisposed()) {
+            return;
+        }
+        currentSearchTerm = StringUtils.trimToNull(searchText.getTextControl().getText());
+        reloadContactList();
+    }
 
     protected abstract String getEditorTypeId();
 
-    protected abstract EventList<K> getListData(ContactType contactType);
+    /**
+     * One page of debitors/creditors matching {@code searchTerm} (or every one, if blank/null),
+     * ordered the same way the DAO's tree-view query does. A real {@code WHERE}/{@code LIMIT}
+     * query either way, never client-side filtering of an already-loaded list.
+     */
+    protected abstract List<K> loadContactPage(ContactType contactType, String searchTerm, int firstResult, int maxResults);
+
+    /** Row count for the same criteria as {@link #loadContactPage}, without loading entities. */
+    protected abstract long countContacts(ContactType contactType, String searchTerm);
 
     protected abstract Class<K> getEntityClass();
 
     protected abstract AbstractDAO<? extends Contact> getEntityDAO();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sebulli.fakturama.views.datatable.vats.AbstractViewDataTable#
-     * getTableId()
-     */
     public String getTableId() {
         return ID;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sebulli.fakturama.views.datatable.vats.AbstractViewDataTable#
-     * getEditorId()
-     */
     protected String getEditorId() {
         return DebitorEditor.ID;
     }
@@ -586,39 +439,28 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
     public void handleRefreshEvent(final String message) {
         if (StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
             sync.syncExec(() -> top.setRedraw(false));
-            // As the eventlist has a GlazedListsEventLayer this layer reacts on the change
-            GlazedLists.replaceAll(treeFilteredIssues, getListData(contactType), false);
+            reloadContactList();
             GlazedLists.replaceAll(categories, GlazedLists.eventList(contactCategoriesDAO.findAll(true)), false);
             sync.syncExec(() -> top.setRedraw(true));
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sebulli.fakturama.views.datatable.vats.AbstractViewDataTable#
-     * isHeaderLabelEnabled()
-     */
     protected boolean isHeaderLabelEnabled() {
         return false;
     }
 
     /**
      * Loads the table settings (layout and such stuff) from a properties file.
-     * 
-     * @param natTable
      */
-    public void onStart(final NatTable natTable) {
+    public void onStart(final Control control) {
         final Properties properties = new Properties();
         final String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
         final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
 
         try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile, StandardOpenOption.READ);) {
             properties.load(propertiesInputStream);
-            log.debug("Loading NatTable state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
-            natTable.loadState(getTableId(), properties);
+            log.debug("Loading state from " + Constants.VIEWTABLE_PREFERENCES_FILE);
         } catch (final IOException e) {
-            // No file found, oh well, move along
             log.warn(Constants.VIEWTABLE_PREFERENCES_FILE + " not found, skipping load");
             if (Files.notExists(propertiesFile)) {
                 try {
@@ -627,67 +469,15 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
                     log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
                 }
             }
-
         }
     }
 
     /**
-     * Before Nattable is disposed, all the settings for this table are stored
-     * in a properties file.
-     * 
-     * @param natTable
+     * Before the widget is disposed - kept as a no-op hook point (NatTable-specific column
+     * width/sort-state persistence no longer applies to a plain SWT Table).
      */
-    public void onStop(final NatTable natTable) {
-        final Properties properties = new Properties();
-        final String requestedWorkspace = getEclipsePrefs().getString(Constants.GENERAL_WORKSPACE);
-        final Path propertiesFile = Paths.get(requestedWorkspace, Constants.VIEWTABLE_PREFERENCES_FILE);
-        if (Files.notExists(propertiesFile)) {
-            try {
-                Files.createFile(propertiesFile);
-            } catch (final IOException ioex) {
-                log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be created.");
-            }
-        }
-        try (InputStream propertiesInputStream = Files.newInputStream(propertiesFile);) {
-            properties.load(propertiesInputStream);
-            natTable.saveState(getTableId(), properties);
-
-            // removing superfluous entries (i.e., count of rows)
-            final Iterator<Object> mapIter = properties.keySet().iterator();
-            final String[] prefixes = new String[] { getTableId() + "." + GridRegion.BODY + RowReorderLayer.PERSISTENCE_KEY_ROW_INDEX_ORDER,
-                    getTableId() + "." + GridRegion.COLUMN_HEADER + SortStatePersistor.PERSISTENCE_KEY_SORTING_STATE, };
-            String elem;
-            while (mapIter.hasNext()) {
-                elem = (String) mapIter.next();
-                if (StringUtils.containsAny(elem, prefixes)) {
-                    mapIter.remove();
-                }
-            }
-
-            log.info("Saving NatTable state to " + Constants.VIEWTABLE_PREFERENCES_FILE);
-            properties.store(Files.newOutputStream(propertiesFile, StandardOpenOption.CREATE), "NatTable state");
-        } catch (final IOException ioex) {
-            log.error(ioex, Constants.VIEWTABLE_PREFERENCES_FILE + " could not be written.");
-        }
-    }
-
-    class ContactTreeTableConfiguration extends AbstractRegistryConfiguration {
-
-        @Override
-        public void configureRegistry(final IConfigRegistry configRegistry) {
-            final Style styleLeftAligned = new Style();
-            styleLeftAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
-            final Style styleRightAligned = new Style();
-            styleRightAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.RIGHT);
-            final Style styleCentered = new Style();
-            styleCentered.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.CENTER);
-
-            // default style for the most of the cells
-            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, // attribute to apply
-                    styleLeftAligned, // value of the attribute
-                    DisplayMode.NORMAL, // apply during normal rendering i.e not during selection or edit
-                    GridRegion.BODY.toString()); // apply the above for all cells with this label
-        }
+    public void onStop(final Control control) {
+        // intentionally empty - see javadoc
     }
 
     protected String getPopupId() {
@@ -707,14 +497,6 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         if (natTable != null) {
             natTable.setFocus();
         }
-    }
-
-    protected ConfigRegistry getConfigRegistry() {
-        return configRegistry;
-    }
-
-    protected void setConfigRegistry(final ConfigRegistry configRegistry) {
-        this.configRegistry = configRegistry;
     }
 
     /**

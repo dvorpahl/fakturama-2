@@ -132,7 +132,7 @@ public class TextListTable extends AbstractViewDataTable<TextModule, TextCategor
        // Listen to double clicks
        Object commandId = this.listTablePart.getTransientData().get("fakturama.datatable.texts.clickhandler");
        if(commandId != null) { // exactly it would be "com.sebulli.fakturama.command.selectitem"
-           hookDoubleClickCommand(natTable, getGridLayer(), (String) commandId);
+           hookDoubleClickCommand((NatTable) natTable, getGridLayer(), (String) commandId);
        } else {
            hookDoubleClickCommand2(natTable, getGridLayer());
        }
@@ -400,8 +400,8 @@ public class TextListTable extends AbstractViewDataTable<TextModule, TextCategor
     }
 
     @Override
-    protected void hookDoubleClickCommand2(final NatTable nattable, final EntityGridListLayer<TextModule> gridLayer) {
-        hookDoubleClickCommand(nattable, gridLayer, null);
+    protected void hookDoubleClickCommand2(final Control listControl, final EntityGridListLayer<TextModule> gridLayer) {
+        hookDoubleClickCommand((NatTable) listControl, gridLayer, null);
     }
 
     /* (non-Javadoc)

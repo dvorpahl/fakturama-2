@@ -49,6 +49,7 @@ import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.workbench.UIEvents;
 import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.jface.databinding.fieldassist.ControlDecorationSupport;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -62,6 +63,7 @@ import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -148,6 +150,9 @@ public class ProductEditor extends Editor<Product> {
 
     @Inject
     protected IEclipseContext context;
+
+    @Inject
+    private IDialogSettings settings;
 
     // SWT widgets of the editor
     private Composite top;
@@ -502,8 +507,26 @@ public class ProductEditor extends Editor<Product> {
         // Add context help reference 
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.PRODUCT_EDITOR);
 
+        // Description and picture side by side, but as a SashForm instead of two
+        // fixed GridLayout columns - lets the user drag to give the (now much
+        // bigger, see FakturamaPictureControl#init) picture more or less room; the
+        // picture shrinks/grows with its pane since FakturamaPictureControl scales
+        // to its available width via setMaxImageWidth/-Height.
+        SashForm descriptionAndPictureSash = new SashForm(top, SWT.HORIZONTAL);
+        GridDataFactory.fillDefaults().grab(true, true).span(2, 1).applyTo(descriptionAndPictureSash);
+        // default.css styles every SashForm with a light blue background (#c1d5ef) -
+        // fine for the one that already used it, but this one sits directly behind
+        // the description/picture groups with nothing opaque covering the gutter/
+        // edges, so it bled through as an unwanted all-over blue tint. The CSS class
+        // wins even after the CSS engine re-styles (dynamic CSS is on, so a plain
+        // setBackground() call gets overridden again) - see .no-blue-sash in
+        // default.css. Also set directly for the first paint, before the engine has
+        // run at all - same idea as photoComposite's own setBackground() below.
+        descriptionAndPictureSash.setData("org.eclipse.e4.ui.css.CssClassName", "no-blue-sash");
+        descriptionAndPictureSash.setBackground(new Color(descriptionAndPictureSash.getDisplay(), 246, 245, 244));
+
         // Group: Product description
-        Group productDescGroup = new Group(top, SWT.NONE);
+        Group productDescGroup = new Group(descriptionAndPictureSash, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(productDescGroup);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(productDescGroup);
 
@@ -757,14 +780,35 @@ public class ProductEditor extends Editor<Product> {
             textQuantity.getControl().setToolTipText(msg.commonFieldQuantityTooltip);
             nextWidget = textQuantityUnit;
 
-            // Track inventory: enables/disables the stock quantity field, without touching its value.
+            // Track inventory: enables/disables the stock quantity field. Turning it
+            // off also clears a non-zero stock value (after confirming, since that's
+            // silently throwing away a real number) - a zero/null value is cleared
+            // straight away, nothing to confirm there.
             checkboxStockManaged = new Button(quantityComposite, SWT.CHECK);
             checkboxStockManaged.setText(msg.editorProductFieldStockmanagedName);
             checkboxStockManaged.setToolTipText(msg.editorProductFieldStockmanagedTooltip);
             checkboxStockManaged.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(final SelectionEvent e) {
-                    textQuantity.getControl().setEnabled(checkboxStockManaged.getSelection());
+                    final boolean nowManaged = checkboxStockManaged.getSelection();
+                    if (!nowManaged) {
+                        final Double currentQuantity = editorProduct.getQuantity();
+                        if (currentQuantity != null && currentQuantity != 0.0) {
+                            final NumberFormat quantityFormat = NumberFormat.getNumberInstance();
+                            quantityFormat.setMinimumFractionDigits(2);
+                            quantityFormat.setMaximumFractionDigits(2);
+                            final boolean clear = MessageDialog.openQuestion(top.getShell(), msg.editorProductFieldStockmanagedClearconfirmTitle,
+                                    msg.editorProductFieldStockmanagedClearconfirmMessage + " " + quantityFormat.format(currentQuantity));
+                            if (clear) {
+                                editorProduct.setQuantity(0.0);
+                                textQuantity.setValue(0.0);
+                            }
+                        } else {
+                            editorProduct.setQuantity(0.0);
+                            textQuantity.setValue(0.0);
+                        }
+                    }
+                    textQuantity.getControl().setEnabled(nowManaged);
                 }
             });
         } else {
@@ -802,10 +846,15 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.fillDefaults().grab(true, false).applyTo(udf03);
 
         // Group: Product picture
-        Group productPictureGroup = new Group(usePicture ? top : invisible, SWT.NONE);
+        Group productPictureGroup = new Group(usePicture ? descriptionAndPictureSash : invisible, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(1).applyTo(productPictureGroup);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(productPictureGroup);
         productPictureGroup.setText(msg.exporterDataPicture);
+
+        if (usePicture) {
+            restoreDescriptionPictureSashWeights(descriptionAndPictureSash);
+            descriptionAndPictureSash.addDisposeListener(e -> saveDescriptionPictureSashWeights(descriptionAndPictureSash));
+        }
 
         // The photo
         photoComposite = new Composite(productPictureGroup, SWT.BORDER);
@@ -1146,5 +1195,36 @@ public class ProductEditor extends Editor<Product> {
         public final SingularAttribute<Product, Double> getPrice() {
             return price;
         }
+    }
+
+    /**
+     * Restores the user's last chosen description/picture split, persisted via
+     * {@link #saveDescriptionPictureSashWeights(SashForm)}. Falls back to a 3:2
+     * ratio (a bit more room for the description form than the picture) the first
+     * time, or if the saved value doesn't match the current number of panes.
+     */
+    private void restoreDescriptionPictureSashWeights(final SashForm sashForm) {
+        final String[] saved = getDialogSettings("SASH").getArray("PRODUCT_DESCRIPTION_PICTURE_SASH");
+        int[] weights = new int[] { 3, 2 };
+        if (saved != null && saved.length == sashForm.getChildren().length) {
+            try {
+                weights = Arrays.stream(saved).mapToInt(Integer::parseInt).toArray();
+            } catch (final NumberFormatException e) {
+                weights = new int[] { 3, 2 };
+            }
+        }
+        sashForm.setWeights(weights);
+    }
+
+    private void saveDescriptionPictureSashWeights(final SashForm sashForm) {
+        final String[] weights = Arrays.stream(sashForm.getWeights()).mapToObj(Integer::toString).toArray(String[]::new);
+        getDialogSettings("SASH").put("PRODUCT_DESCRIPTION_PICTURE_SASH", weights);
+    }
+
+    private IDialogSettings getDialogSettings(final String section) {
+        if (settings.getSection(section) == null) {
+            settings.addNewSection(section);
+        }
+        return settings.getSection(section);
     }
 }

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +44,7 @@ import org.eclipse.e4.ui.model.application.ui.menu.MToolBarElement;
 import org.eclipse.e4.ui.model.application.ui.menu.impl.HandledToolItemImpl;
 import org.eclipse.e4.ui.services.EMenuService;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -61,9 +63,11 @@ import org.eclipse.nebula.widgets.nattable.ui.action.IMouseAction;
 import org.eclipse.nebula.widgets.nattable.ui.matcher.MouseEventMatcher;
 import org.eclipse.nebula.widgets.nattable.util.GUIHelper;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
@@ -150,8 +154,17 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     @Inject
     protected EMenuService menuService;
 
+    @Inject
+    protected IDialogSettings settings;
+
     //The top composite
     protected Composite top;
+
+    // Default split for the category tree / table SashForm - wide enough that a
+    // category label like "Auftragsbestätigung" doesn't get clipped, without
+    // costing too much table width. Only used until the user drags the sash for
+    // this particular list the first time - see restoreTreeTableSashWeights().
+    private static final int[] DEFAULT_TREE_TABLE_SASH_WEIGHTS = { 1, 3 };
 
     protected TableColumnLayout tableColumnLayout;
 
@@ -171,23 +184,37 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     // The standard UniDataSet
     protected String stdPropertyKey = null;
 
-    protected NatTable natTable;
+    // Control, not NatTable: most subclasses build a NatTable here, but DocumentsListTable builds
+    // a native SWT.VIRTUAL Table (see createListTable()'s javadoc for why) - every NatTable-
+    // specific call below (addCustomStyling/postConfigureNatTable/onStart/setTheme) is guarded
+    // with an instanceof check so those subclasses are unaffected.
+    protected Control natTable;
 
     /**
      * Creates the SWT controls for this workbench part.
      */
     public Control createPartControl(final Composite parent, final Class<?> elementClass, final boolean useFilter, final String contextHelpId) {
-        // Create the top composite
-        top = new Composite(parent, SWT.BORDER);
-        GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(2).applyTo(top);
-        //		GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).applyTo(top);
+        // Create the top composite as a SashForm (was a plain 2-column Composite/
+        // GridLayout before) so the category tree and the table can actually be
+        // resized against each other by dragging - the old GridLayout had no Sash
+        // widget at all, so the split just looked draggable without being it.
+        final SashForm topSashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.BORDER);
+        top = topSashForm;
+        // default.css styles every SashForm with a light blue background (#c1d5ef) -
+        // was invisible on the previous plain Composite, but now bleeds through
+        // wherever the tree/table panes don't fully cover it. The CSS class wins
+        // even after the CSS engine re-styles (dynamic CSS is on, so a plain
+        // setBackground() call gets overridden again) - see .no-blue-sash in
+        // default.css. Also set directly for the first paint, before the engine
+        // has run at all.
+        topSashForm.setData("org.eclipse.e4.ui.css.CssClassName", "no-blue-sash");
+        topSashForm.setBackground(new Color(topSashForm.getDisplay(), 246, 245, 244));
 
-        // Add context help reference 
+        // Add context help reference
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, contextHelpId);
 
         // Create the tree viewer
         topicTreeViewer = createCategoryTreeViewer(top);
-        //		GridDataFactory.swtDefaults().hint(10, -1).applyTo(topicTreeViewer.getTree());
 
         Composite searchAndTableComposite = top;
         if (useFilter) {
@@ -198,24 +225,38 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         }
         natTable = createListTable(searchAndTableComposite);
 
-        addCustomStyling(natTable);
+        if (natTable instanceof final NatTable nt) {
+            addCustomStyling(nt);
+        }
 
         // if(useFilter) {
         createDefaultContextMenu();
         //}
 
-        natTable.addDisposeListener(new DisposeListener() {
+        if (topicTreeViewer != null) {
+            // Only makes sense with two panes - createCategoryTreeViewer() can return
+            // null (see e.g. DocumentsListTable when opened as a picker), in which case
+            // topSashForm has just the one child and there's nothing to weigh/persist.
+            restoreTreeTableSashWeights(topSashForm);
+            topSashForm.addDisposeListener(e -> saveTreeTableSashWeights(topSashForm));
+        }
 
-            @Override
-            public void widgetDisposed(final DisposeEvent e) {
-                onStop(natTable);
-            }
-        });
+        if (natTable instanceof final NatTable nt) {
+            nt.addDisposeListener(new DisposeListener() {
 
-        // call hook for post configure steps, if any
-        postConfigureNatTable(natTable);
+                @Override
+                public void widgetDisposed(final DisposeEvent e) {
+                    onStop(nt);
+                }
+            });
 
-        onStart(natTable); // as late as possible! Otherwise sorting doesn't work! (don't ask why!)
+            // call hook for post configure steps, if any
+            postConfigureNatTable(nt);
+
+            onStart(nt); // as late as possible! Otherwise sorting doesn't work! (don't ask why!)
+
+            nt.setTheme(new ModernNatTableThemeConfiguration());
+        }
 
         // Workaround
         // At startup the browser editor is the active part of the workbench.
@@ -236,8 +277,6 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
         //				}
         //			}
         //		});
-
-        natTable.setTheme(new ModernNatTableThemeConfiguration());
 
         return top;
     }
@@ -325,13 +364,15 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     }
 
     /**
-     * Creates the concrete list table for a given view.
-     * 
+     * Creates the concrete list table for a given view. Most implementations build a
+     * {@link NatTable}; DocumentsListTable builds a native SWT.VIRTUAL {@code Table} instead (see
+     * its javadoc) - the return type is the common {@link Control} supertype so both fit here.
+     *
      * @param searchAndTableComposite
-     *            container for the {@link NatTable}
-     * @return {@link NatTable} which displays some items
+     *            container for the list control
+     * @return {@link Control} which displays some items
      */
-    abstract protected NatTable createListTable(Composite searchAndTableComposite);
+    abstract protected Control createListTable(Composite searchAndTableComposite);
 
     /**
      * Gets a unique identifier for the implementing table (for using in
@@ -411,12 +452,16 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     }
 
     /**
-     * On double click: open the corresponding editor
-     * 
-     * @param nattable
+     * On double click: open the corresponding editor. {@code listControl} is typed as
+     * {@link Control} to match the {@link #natTable} field (see its javadoc) - every current
+     * caller passes an actual {@link NatTable} (DocumentsListTable doesn't call this method at
+     * all, see its own double-click wiring).
+     *
+     * @param listControl
      * @param gridLayer
      */
-    protected void hookDoubleClickCommand2(final NatTable nattable, final EntityGridListLayer<T> gridLayer) {
+    protected void hookDoubleClickCommand2(final Control listControl, final EntityGridListLayer<T> gridLayer) {
+        final NatTable nattable = (NatTable) listControl;
         // Add a double click listener
         nattable.getUiBindingRegistry().registerDoubleClickBinding(MouseEventMatcher.bodyLeftClick(SWT.NONE), new IMouseAction() {
 
@@ -577,9 +622,10 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     //	}
 
     /**
-     * @return the natTable
+     * @return the list control - a {@link NatTable} for most views, or the native SWT.VIRTUAL
+     *         {@code Table} DocumentsListTable uses instead (see {@link #createListTable}).
      */
-    public NatTable getNatTable() {
+    public Control getNatTable() {
         return natTable;
     }
 
@@ -763,5 +809,41 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
             rootNode = splittedString[1];
         }
         return rootNode;
+    }
+
+    /**
+     * Restores the user's last chosen tree/table split for this concrete list view
+     * (e.g. "DocumentsListTable", "ProductListTable", ...) - each view remembers its
+     * own split independently, same idea as DocumentEditor's per-billing-type
+     * SASHWEIGHTS. Falls back to {@link #DEFAULT_TREE_TABLE_SASH_WEIGHTS} the first
+     * time, or if the saved value doesn't match the current number of panes.
+     */
+    private void restoreTreeTableSashWeights(final SashForm sashForm) {
+        final String[] saved = getDialogSettings("TREE_TABLE_SASH").getArray(getClass().getSimpleName());
+        int[] weights = DEFAULT_TREE_TABLE_SASH_WEIGHTS;
+        if (saved != null && saved.length == sashForm.getChildren().length) {
+            try {
+                weights = Arrays.stream(saved).mapToInt(Integer::parseInt).toArray();
+            } catch (final NumberFormatException e) {
+                weights = DEFAULT_TREE_TABLE_SASH_WEIGHTS;
+            }
+        }
+        sashForm.setWeights(weights);
+    }
+
+    /**
+     * Persists whatever split the user last dragged this SashForm to, so it survives
+     * closing/reopening the view (and app restarts).
+     */
+    private void saveTreeTableSashWeights(final SashForm sashForm) {
+        final String[] weights = Arrays.stream(sashForm.getWeights()).mapToObj(Integer::toString).toArray(String[]::new);
+        getDialogSettings("TREE_TABLE_SASH").put(getClass().getSimpleName(), weights);
+    }
+
+    private IDialogSettings getDialogSettings(final String section) {
+        if (settings.getSection(section) == null) {
+            settings.addNewSection(section);
+        }
+        return settings.getSection(section);
     }
 }

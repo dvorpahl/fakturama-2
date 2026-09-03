@@ -67,7 +67,13 @@
 			<!-- think about -DNODBUPDATE=true -->
 <!-- 			<property name="eclipselink.ddl-generation" value="create-or-extend-tables" /> -->
 			<property name="eclipselink.logging.level" value="INFO" />
-			
+
+			<!-- Makes outer-joined subclass reads the default for every read of Document (JOINED
+			     inheritance), not just the queries that remember to pass INHERITANCE_OUTER_JOIN -
+			     see InheritanceOuterJoinSessionCustomizer's javadoc for why that hint alone isn't
+			     enough (it doesn't cover nested Document-in-Document object graph construction). -->
+			<property name="eclipselink.session.customizer" value="com.sebulli.fakturama.dbconnector.InheritanceOuterJoinSessionCustomizer" />
+
 			<!-- suppress upper case for column names -->
 			<!--   <property name="eclipselink.jpa.uppercase-column-names" value="false"/> -->
 			

@@ -78,12 +78,4 @@
             </plugin>
         </plugins>
     </build>
-    <!-- To use the report goals in your POM or parent POM -->
-    <dependencies>
-        <dependency>
-            <groupId>com.sebulli.fakturama</groupId>
-            <artifactId>com.sebulli.fakturama.rcp</artifactId>
-            <version>2.2.1.rc</version>
-        </dependency>
-    </dependencies>
 </project>

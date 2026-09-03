@@ -117,6 +117,7 @@ import org.javamoney.moneta.Money;
 
 import com.sebulli.fakturama.dao.AbstractDAO;
 import com.sebulli.fakturama.dao.DocumentReceiverDAO;
+import com.sebulli.fakturama.dao.ProductsDAO;
 import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.dto.DocumentItemDTO;
 import com.sebulli.fakturama.dto.Price;
@@ -169,6 +170,9 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
     @Inject
     private VatsDAO vatsDAO;
+
+    @Inject
+    private ProductsDAO productsDAO;
 
     @Inject
     private ILocaleService localeUtil;
@@ -297,7 +301,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         };
 
         MenuManager menuManager = new MenuManager();
-        Menu retval = new PopupMenuBuilder(natTable, menuManager).withMenuItemProvider(CommandIds.CMD_MOVE_UP, moveEntryUpHandler)
+        Menu retval = new PopupMenuBuilder((NatTable) natTable, menuManager).withMenuItemProvider(CommandIds.CMD_MOVE_UP, moveEntryUpHandler)
                 .withMenuItemProvider(CommandIds.CMD_MOVE_DOWN, moveEntryDownHandler).withMenuItemProvider(CommandIds.CMD_DELETE_DATASET, deleteMenuItem)
                 .withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
 
@@ -333,13 +337,13 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
         // remove the menu reference from NatTable instance
         natTable.setMenu(null);
-        natTable.addConfiguration(new AbstractUiBindingConfiguration() {
+        ((NatTable) natTable).addConfiguration(new AbstractUiBindingConfiguration() {
 
             @Override
             public void configureUiBindings(final UiBindingRegistry uiBindingRegistry) {
                 // add NatTable menu items
                 // and register the DisposeListener
-                new PopupMenuBuilder(natTable, e4Menu).build();
+                new PopupMenuBuilder((NatTable) natTable, e4Menu).build();
 
                 // register the UI binding
                 uiBindingRegistry.registerMouseDownBinding(new MouseEventMatcher(SWT.NONE, GridRegion.BODY, MouseEventMatcher.RIGHT_BUTTON),
@@ -347,7 +351,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
             }
         });
 
-        retval = new PopupMenuBuilder(natTable, e4Menu).withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
+        retval = new PopupMenuBuilder((NatTable) natTable, e4Menu).withEnabledState(CommandIds.CMD_MOVE_UP, new IMenuItemState() {
 
             @Override
             public boolean isActive(final NatEventData natEventData) {
@@ -430,7 +434,11 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                         //                    } else {
                         //                        retval = null;
                         //                    }
-                        retval = rowObject.getDocumentItem().getPicture();
+                        // DocumentItem.getPicture() is intentionally not read here anymore - it's a
+                        // per-position snapshot that's no longer being populated (see the TODO at
+                        // WebShopDataImporter#createOrderFromXMLOrderNode). Looked up by item number from
+                        // VW_PRODUCT_PICTURE instead (null on any DB where that view doesn't exist).
+                        retval = productsDAO.findPictureBytesForItemNumber(rowObject.getDocumentItem().getItemNumber());
                         break;
                     case VAT:
                         retval = noVatReference != null ? noVatReference : (VAT) columnPropertyAccessor.getDataValue(rowObject.getDocumentItem(), columnIndex);
@@ -763,9 +771,15 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.ITEMNUMBER);
         }
 
-        if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE, false)) {
-            propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.PICTURE);
-        }
+        // TODO Picture column disabled for now. It renders whatever
+        // ProductsDAO#findPictureBytesForItemNumber(String) returns as a raw inline
+        // thumbnail, which is too cramped for the now much bigger picture size (see
+        // FakturamaPictureControl#init) and not what we want here long-term anyway -
+        // bring back as a single static "Bild" icon per row that opens the picture
+        // (dialog/preview/whatever) on click, instead of an inline image column.
+        // if (getEclipsePrefs().getBoolean(Constants.PREFERENCES_PRODUCT_USE_PICTURE, false)) {
+        //     propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.PICTURE);
+        // }
 
         if (getEclipsePrefs().getInt(Constants.PREFERENCES_DOCUMENT_USE_VESTINGPERIOD, 0) > 0) {
             propertyNamesList.put(columnIndex++, DocumentItemListDescriptor.VESTINGDATESTART);
@@ -808,7 +822,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     @Override
     protected void createDefaultContextMenu() {
 
-        natTable.addConfiguration(new AbstractUiBindingConfiguration() {
+        ((NatTable) natTable).addConfiguration(new AbstractUiBindingConfiguration() {
 
             private final Menu bodyMenu = createContextMenu();
 
@@ -987,8 +1001,8 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         if (selectedEntries != null && selectedEntries.size() > 0) {
 
             // at first, close an open cell editor, if any
-            if (natTable.getActiveCellEditor() != null) {
-                natTable.getActiveCellEditor().close();
+            if (((NatTable) natTable).getActiveCellEditor() != null) {
+                ((NatTable) natTable).getActiveCellEditor().close();
             }
 
             boolean isRemoved = documentItemsListData.removeAll(selectedEntries);
@@ -1016,8 +1030,8 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         if (selectedEntries != null && selectedEntries.size() > 0) {
 
             // at first, close an open cell editor, if any
-            if (natTable.getActiveCellEditor() != null) {
-                natTable.getActiveCellEditor().close();
+            if (((NatTable) natTable).getActiveCellEditor() != null) {
+                ((NatTable) natTable).getActiveCellEditor().close();
             }
 
             boolean isAdded = false;
@@ -1069,7 +1083,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     public void addNewItem(final DocumentItemDTO newItem) {
         newItem.getDocumentItem().setPosNr(documentItemsListData.size() + 1);
         documentItemsListData.add(newItem);
-        natTable.doCommand(new SelectRowsCommand(getGridLayer().getSelectionLayer(), 0, documentItemsListData.size() - 1, false, false));
+        ((NatTable) natTable).doCommand(new SelectRowsCommand(getGridLayer().getSelectionLayer(), 0, documentItemsListData.size() - 1, false, false));
         getContainer().setDirty(true);
     }
 
@@ -1092,7 +1106,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
      * If an external process wants to update the NatTable we use this method.
      */
     public void refresh() {
-        natTable.refresh();
+        ((NatTable) natTable).refresh();
     }
 
     class DocumentItemTableConfiguration extends AbstractRegistryConfiguration {

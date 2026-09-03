@@ -82,8 +82,50 @@ public class EntityGridListLayer<T extends IEntity> {
         // 5. build the grid layer
         gridLayer = new GridLayer(bodyLayerStack, columnHeaderLayer, rowHeaderLayer, cornerLayer);
     }
-    
-    public EntityGridListLayer(EventList<T> eventList, String[] propertyNames, IColumnPropertyAccessor<T> columnPropertyAccessor, 
+
+    /**
+     * Variant for {@link PagedEntityEventList}-backed views: builds the {@link BodyLayerStack} in
+     * server-sorted mode (no {@link ca.odell.glazedlists.SortedList}) and wires the given {@link
+     * ISortModel} (typically a {@link ServerSortModel}) into the column header instead of the
+     * default {@code GlazedListsSortModel}.
+     */
+    public EntityGridListLayer(EventList<T> eventList, String[] propertyNames, IColumnPropertyAccessor<T> columnPropertyAccessor,
+            IRowIdAccessor<T> rowIdAccessor, IConfigRegistry configRegistry, Messages msg, boolean withRowHeader,
+            org.eclipse.nebula.widgets.nattable.sort.ISortModel sortModel) {
+
+        // 1. create BodyLayerStack, server-sorted (ORDER BY comes from the DB query)
+        bodyLayerStack = new BodyLayerStack<T>(eventList, columnPropertyAccessor, rowIdAccessor, true);
+
+        // 2. build the column header layer, with the given ISortModel instead of GlazedListsSortModel
+        IDataProvider columnHeaderDataProvider = new ListViewColumnHeaderDataProvider<T>(propertyNames, columnPropertyAccessor);
+        GlazedListsColumnHeaderLayerStack<T> columnHeaderLayer = new GlazedListsColumnHeaderLayerStack<>(columnHeaderDataProvider, configRegistry,
+                bodyLayerStack, sortModel);
+
+        // 3. build the row header layer
+        IDataProvider rowHeaderDataProvider = new ListViewRowHeaderDataProvider(bodyLayerStack.getBodyDataProvider(), withRowHeader);
+        DataLayer rowHeaderDataLayer = new DefaultRowHeaderDataLayer(rowHeaderDataProvider);
+        ILayer rowHeaderLayer = new RowHeaderLayer(rowHeaderDataLayer, bodyLayerStack, bodyLayerStack.getSelectionLayer());
+
+        // 4. build the corner layer
+        IDataProvider cornerDataProvider;
+        if (withRowHeader) {
+            cornerDataProvider = new DefaultCornerDataProvider(columnHeaderDataProvider, rowHeaderDataProvider) {
+                @Override
+                public Object getDataValue(int columnIndex, int rowIndex) {
+                    return msg != null ? msg.editorDocumentFieldPosition : "Pos. No.";
+                }
+            };
+        } else {
+            cornerDataProvider = new DefaultCornerDataProvider(columnHeaderDataProvider, rowHeaderDataProvider);
+        }
+        DataLayer cornerDataLayer = new DataLayer(cornerDataProvider);
+        ILayer cornerLayer = new CornerLayer(cornerDataLayer, rowHeaderLayer, columnHeaderLayer);
+
+        // 5. build the grid layer
+        gridLayer = new GridLayer(bodyLayerStack, columnHeaderLayer, rowHeaderLayer, cornerLayer);
+    }
+
+    public EntityGridListLayer(EventList<T> eventList, String[] propertyNames, IColumnPropertyAccessor<T> columnPropertyAccessor,
             IRowIdAccessor<T> rowIdAccessor, IConfigRegistry configRegistry, boolean withRowHeader) {
     	this(eventList, propertyNames, columnPropertyAccessor, rowIdAccessor, configRegistry, null, withRowHeader);
     }
@@ -94,7 +136,7 @@ public class EntityGridListLayer<T extends IEntity> {
     }
 
     /**
-     * 
+     *
      */
     public EntityGridListLayer(EventList<T> eventList, String[] propertyNames, IColumnPropertyAccessor<T> columnPropertyAccessor, IConfigRegistry configRegistry) {
         this(eventList, propertyNames, columnPropertyAccessor, new IRowIdAccessor<T>() {
@@ -104,6 +146,21 @@ public class EntityGridListLayer<T extends IEntity> {
                 return rowObject.getId();
             }
         }, configRegistry);
+    }
+
+    /**
+     * Convenience form of the server-sorted (see {@link PagedEntityEventList}) constructor, with
+     * the default id-based {@link IRowIdAccessor} and no row header - mirrors the plain 4-arg
+     * constructor above.
+     */
+    public EntityGridListLayer(EventList<T> eventList, String[] propertyNames, IColumnPropertyAccessor<T> columnPropertyAccessor,
+            IConfigRegistry configRegistry, org.eclipse.nebula.widgets.nattable.sort.ISortModel sortModel) {
+        this(eventList, propertyNames, columnPropertyAccessor, new IRowIdAccessor<T>() {
+            @Override
+            public Serializable getRowId(T rowObject) {
+                return rowObject.getId();
+            }
+        }, configRegistry, null, false, sortModel);
     }
 
     /**

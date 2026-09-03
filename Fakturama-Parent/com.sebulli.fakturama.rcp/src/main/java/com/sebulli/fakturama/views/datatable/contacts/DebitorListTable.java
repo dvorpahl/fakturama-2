@@ -1,31 +1,25 @@
 /**
- * 
+ *
  */
 package com.sebulli.fakturama.views.datatable.contacts;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
-import org.eclipse.core.databinding.beans.typed.BeanProperties;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.ui.di.UIEventTopic;
 
 import com.sebulli.fakturama.dao.AbstractDAO;
 import com.sebulli.fakturama.dao.DebitorsDAO;
 import com.sebulli.fakturama.handlers.CommandIds;
-import com.sebulli.fakturama.model.Address;
-import com.sebulli.fakturama.model.Address_;
 import com.sebulli.fakturama.model.Debitor;
-import com.sebulli.fakturama.model.Debitor_;
 import com.sebulli.fakturama.parts.DebitorEditor;
-
-import ca.odell.glazedlists.EventList;
-import ca.odell.glazedlists.GlazedLists;
-import ca.odell.glazedlists.matchers.MatcherEditor;
-import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 /**
  * View with the table of all contacts
- * 
+ *
  */
 public class DebitorListTable extends ContactListTable<Debitor> {
 
@@ -34,77 +28,59 @@ public class DebitorListTable extends ContactListTable<Debitor> {
 
     private static final String POPUP_ID = "com.sebulli.fakturama.debitorlist.popup";
     public static final String SELECTED_CREDITOR_ID = "fakturama.debitorlist.selecteddebitorid";
-    
+
     @Inject
     private DebitorsDAO debitorDAO;
 
-    /* (non-Javadoc)
-     * @see com.sebulli.fakturama.views.datatable.vats.AbstractViewDataTable#getTableId()
-     */
     @Override
     public String getTableId() {
         return ID;
     }
-    
+
     @Override
     protected String getEditorTypeId() {
         return DebitorEditor.EDITOR_ID;
     }
-    
-    
-    @Inject @Optional
-    public void handleRefreshEvent(@UIEventTopic(DebitorEditor.EDITOR_ID) String message) {
-    	super.handleRefreshEvent(message);
+
+    @Inject
+    @Optional
+    public void handleRefreshEvent(@UIEventTopic(DebitorEditor.EDITOR_ID) final String message) {
+        super.handleRefreshEvent(message);
     }
 
+    @Override
     protected String getPopupId() {
         return POPUP_ID;
     }
-    
+
     @Override
     protected String getToolbarAddItemCommandId() {
         return CommandIds.LISTTOOLBAR_ADD_DEBTOR;
     }
 
     @Override
-    protected EventList<Debitor> getListData(boolean forceRead) {
-        return GlazedLists.eventList(debitorDAO.findForListView());
+    protected List<Debitor> loadContactPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final String orderByProperty, final boolean descending, final int firstResult, final int maxResults) {
+        return debitorDAO.findPage(searchTerm, categoryName, treeObjectType, orderByProperty, descending, firstResult, maxResults);
     }
-    
+
     @Override
-    protected MatcherEditor<Debitor> createTextWidgetMatcherEditor() {
-        /*
-        searchColumns[0] = "nr";
-        searchColumns[1] = "firstname";
-        searchColumns[2] = "name";
-        searchColumns[3] = "company";
-        searchColumns[4] = "zip";
-        searchColumns[5] = "city";
- */
-    	
-        return new TextWidgetMatcherEditor<Debitor>(searchText.getTextControl(), 
-                new ContactListFilterator<Debitor>( 
-                		BeanProperties.value(Debitor.class, Debitor_.customerNumber.getName()),
-                		BeanProperties.value(Debitor.class, Debitor_.firstName.getName()),
-                		BeanProperties.value(Debitor.class, Debitor_.name.getName()),
-                		BeanProperties.value(Debitor.class, Debitor_.company.getName()),
-                        BeanProperties.list(Debitor.class, Debitor_.addresses.getName(), Address.class).values(Address_.zip.getName()),
-                        BeanProperties.list(Debitor.class, Debitor_.addresses.getName(), Address.class).values(Address_.city.getName())
-                        ));
+    protected long countContacts(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType) {
+        return debitorDAO.countPage(searchTerm, categoryName, treeObjectType);
     }
 
     @Override
     protected AbstractDAO<Debitor> getEntityDAO() {
         return debitorDAO;
     }
-    
+
     @Override
     protected String getEditorId() {
-    	return DebitorEditor.ID;
+        return DebitorEditor.ID;
     }
-    
+
     @Override
     protected Class<Debitor> getEntityClass() {
-    	return Debitor.class;
+        return Debitor.class;
     }
 }

@@ -265,14 +265,14 @@
   </descriptors>
   <snippets xsi:type="advanced:Perspective" xmi:id="_RmPTpOtOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.perspective" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" label="Fakturama Perspective">
     <children xsi:type="basic:PartSashContainer" xmi:id="_RmPTpetOEeKo5Ms1QUgPTw" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="10000" horizontal="true">
-      <children xsi:type="basic:PartSashContainer" xmi:id="_OJDuMG0kEeSXL4Yk4alD9Q" elementId="com.sebulli.fakturama.rcp.partsashcontainer.0" containerData="2000">
+      <children xsi:type="basic:PartSashContainer" xmi:id="_OJDuMG0kEeSXL4Yk4alD9Q" elementId="com.sebulli.fakturama.rcp.partsashcontainer.0" containerData="1000">
         <children xsi:type="basic:Part" xmi:id="_RmPTp-tOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.navigationView" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="8000" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.views.NavigationView" label="Navigation View" tooltip=""/>
         <children xsi:type="basic:PartStack" xmi:id="_n4EDAG0kEeSXL4Yk4alD9Q" elementId="com.sebulli.fakturama.errorview.partstack" toBeRendered="false" visible="false" containerData="2000" selectedElement="_QYYFcG0kEeSXL4Yk4alD9Q">
           <children xsi:type="basic:Part" xmi:id="_QYYFcG0kEeSXL4Yk4alD9Q" elementId="part:com.sebulli.fakturama.views.errorView" containerData="2000" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.views.ErrorView" label="%view.errorlog.name" iconURI="icon://COMMAND_ERROR" tooltip="" closeable="true"/>
         </children>
       </children>
-      <children xsi:type="basic:PartSashContainer" xmi:id="_RmPTqOtOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.rcp.datapanel" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="8000" selectedElement="_VxkroOtOEeKo5Ms1QUgPTw">
-        <children xsi:type="basic:PartSashContainer" xmi:id="_VxkroOtOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.rcp.detaildata" containerData="10000" selectedElement="_RmPTqetOEeKo5Ms1QUgPTw" horizontal="true">
+      <children xsi:type="basic:PartSashContainer" xmi:id="_RmPTqOtOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.rcp.datapanel" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="9000" selectedElement="_VxkroOtOEeKo5Ms1QUgPTw">
+        <children xsi:type="basic:PartSashContainer" xmi:id="_VxkroOtOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.rcp.detaildata" containerData="13056" selectedElement="_RmPTqetOEeKo5Ms1QUgPTw" horizontal="true">
           <tags>documentWindow</tags>
           <tags>NoAutoCollapse</tags>
           <children xsi:type="basic:PartStack" xmi:id="_RmPTqetOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.rcp.detailpanel" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="17000" selectedElement="_RmPTqutOEeKo5Ms1QUgPTw">
@@ -286,7 +286,7 @@
             <children xsi:type="basic:Part" xmi:id="_Y1hk0OtOEeKo5Ms1QUgPTw" elementId="part:com.sebulli.fakturama.views.calculator" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.views.Calculator" label="%command.calculator.name" iconURI="icon://COMMAND_CALCULATOR" tooltip="" closeable="true"/>
           </children>
         </children>
-        <children xsi:type="basic:PartStack" xmi:id="_RmPTq-tOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.perspective.bottomFolder" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="7500" selectedElement="_RmPTrOtOEeKo5Ms1QUgPTw">
+        <children xsi:type="basic:PartStack" xmi:id="_RmPTq-tOEeKo5Ms1QUgPTw" elementId="com.sebulli.fakturama.perspective.bottomFolder" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" containerData="4444" selectedElement="_RmPTrOtOEeKo5Ms1QUgPTw">
           <tags>datalists</tags>
           <tags>NoAutoCollapse</tags>
           <children xsi:type="basic:Part" xmi:id="_RmPTrOtOEeKo5Ms1QUgPTw" elementId="fakturama.views.documentTable" contributorURI="platform:/plugin/com.sebulli.fakturama.rcp" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.views.datatable.documents.DocumentsListTable" label="%command.documents.name" iconURI="icon://COMMAND_LETTER" tooltip="" bindingContexts="_c7LSgGFOEeShb_NtiSSU9w" closeable="true">

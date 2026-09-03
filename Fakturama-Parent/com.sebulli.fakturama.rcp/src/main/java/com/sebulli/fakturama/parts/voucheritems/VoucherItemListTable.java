@@ -234,7 +234,7 @@ public class VoucherItemListTable extends AbstractViewDataTable<VoucherItemDTO, 
 		};
 		
 		MenuManager menuManager = new MenuManager();
-		Menu retval = new PopupMenuBuilder(natTable, menuManager)
+		Menu retval = new PopupMenuBuilder((NatTable) natTable, menuManager)
 				.withMenuItemProvider(CommandIds.CMD_MOVE_UP, moveEntryUpHandler)
 				.withMenuItemProvider(CommandIds.CMD_MOVE_DOWN, moveEntryDownHandler)
 				.withMenuItemProvider(CommandIds.CMD_DELETE_DATASET, deleteMenuItem)
@@ -486,7 +486,7 @@ public class VoucherItemListTable extends AbstractViewDataTable<VoucherItemDTO, 
 	@Override
 	protected void createDefaultContextMenu() {
 
-		natTable.addConfiguration(new AbstractUiBindingConfiguration() {
+		((NatTable) natTable).addConfiguration(new AbstractUiBindingConfiguration() {
 
 			private final Menu bodyMenu = createContextMenu();
 
@@ -841,8 +841,8 @@ public class VoucherItemListTable extends AbstractViewDataTable<VoucherItemDTO, 
 		List<VoucherItem> selectedEntries = (List<VoucherItem>) selectionService.getSelection();
 		if (selectedEntries != null) {
         	// at first, close an open cell editor, if any
-        	if(natTable.getActiveCellEditor() != null) {
-        		natTable.getActiveCellEditor().close();
+        	if(((NatTable) natTable).getActiveCellEditor() != null) {
+        		((NatTable) natTable).getActiveCellEditor().close();
         	}
 			
         	boolean isRemoved = getVoucherItemsListData().removeAll(selectedEntries);
@@ -879,7 +879,7 @@ public class VoucherItemListTable extends AbstractViewDataTable<VoucherItemDTO, 
         notifyChangeListener(false);
         getContainer().setDirty(true);
         ILayerCommand scrollToLastPositionCommand = new SelectRowsCommand(gridListLayer.getGridLayer(), 1, newItem.getVoucherItem().getPosNr(), false, false);
-		natTable.doCommand(scrollToLastPositionCommand);
+		((NatTable) natTable).doCommand(scrollToLastPositionCommand);
     }
     
     @Override

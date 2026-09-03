@@ -352,6 +352,11 @@ public class CallEditor {
                 myPart.setLabel(msg.getMessageFromKey(docType.getNewText()));
                 myPart.getTransientData().put(PARAM_FOLLOW_UP, isFollowUp);
                 myPart.getTransientData().put(PARAM_PRECEDING_OFFER, isPrecedingOffer);
+                // A CSS class per document type on the tab itself (Angebot/Auftrag/Rechnung/
+                // Mahnung/...) - matched in default.css against CTabItem. Uses MPart#getTags(),
+                // the same mechanism already used a few lines above for partDescriptor.getCategory()
+                // - the e4 CSS engine maps MPart tags onto the CTabItem's CSS class list.
+                myPart.getTags().add("doctype-" + docType.name().toLowerCase(java.util.Locale.ROOT));
                 break;
 			default:
 				myPart.setLabel("unknown");

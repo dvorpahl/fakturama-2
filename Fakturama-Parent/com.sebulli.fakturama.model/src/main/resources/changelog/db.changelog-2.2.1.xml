@@ -717,4 +717,40 @@ behavior change, not just a schema tightening, and needs a separate decision.
         <addDefaultValue tableName="FKT_WEBSHOPSTATEMAPPING" columnName="DELETED" defaultValueBoolean="false"/>
     </changeSet>
 
+<!--
+VW_PRODUCT_PICTURE: read-only view giving Fakturama Core a stable way to read a
+product's current picture by ITEMNUMBER, without depending on FKT_PRODUCT.PICTURE
+(emptied when pictures were moved out into fakturama-tool's own FKT_PRODUCTPICTURES
+table to stop FKT_PRODUCT from bloating - that table can run into the hundreds of MB)
+or on DocumentItem.PICTURE (a per-position snapshot copy, disabled - see the TODO at
+WebShopDataImporter#createOrderFromXMLOrderNode, and note this view must never be wired up to
+repopulate that copy, or the original bloat comes right back, multiplied per position
+instead of per product). One row per ITEMNUMBER - lowest PICTURE_PICTURES.ID with a
+non-null PICTURE wins for the rare duplicate ITEMNUMBER, same "lowest ID wins"
+convention fakturama-tool's own queries already use (review_item_by_item_number.sql).
+Guarded by a tableExists precondition: FKT_PRODUCTPICTURES is owned/created by
+fakturama-tool, not by this changelog, so an install that never ran fakturama-tool
+simply won't get this view instead of failing its whole migration run.
+-->
+
+    <changeSet author="dvorpahl" id="20260902-078" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="FKT_PRODUCTPICTURES"/>
+        </preConditions>
+        <createView viewName="VW_PRODUCT_PICTURE" replaceIfExists="true">
+            SELECT
+                pp.ITEMNUMBER AS ITEMNUMBER,
+                pp.PICTURE AS PICTURE,
+                pp.WIDTH AS WIDTH,
+                pp.HEIGHT AS HEIGHT,
+                pp.FORMAT AS FORMAT
+            FROM FKT_PRODUCTPICTURES AS pp
+            WHERE pp.PICTURE IS NOT NULL
+                AND pp.ID = (
+                    SELECT MIN(pp2.ID) FROM FKT_PRODUCTPICTURES AS pp2
+                    WHERE pp2.ITEMNUMBER = pp.ITEMNUMBER AND pp2.PICTURE IS NOT NULL
+                )
+        </createView>
+    </changeSet>
+
 </databaseChangeLog>

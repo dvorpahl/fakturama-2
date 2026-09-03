@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.e4.core.services.nls.Translation;
+import org.eclipse.persistence.config.CascadePolicy;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 
@@ -23,6 +25,7 @@ import com.sebulli.fakturama.dto.AccountEntry;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.misc.DocumentType;
+import com.sebulli.fakturama.misc.OrderState;
 import com.sebulli.fakturama.model.BillingType;
 import com.sebulli.fakturama.model.Confirmation;
 import com.sebulli.fakturama.model.Contact;
@@ -45,6 +48,8 @@ import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Payment_;
 import com.sebulli.fakturama.model.Proforma;
 import com.sebulli.fakturama.model.VoucherCategory;
+import com.sebulli.fakturama.views.datatable.documents.DocumentMatcher;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
@@ -54,6 +59,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -84,12 +90,25 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Document> criteria = cb.createQuery(getEntityClass());
         Root<Document> root = criteria.from(getEntityClass());
+        fetchDocumentRelations(root);
         CriteriaQuery<Document> cq = criteria.where(cb.notEqual(root.get(Document_.deleted), Boolean.TRUE));
         TypedQuery<Document> query = getEntityManager().createQuery(cq);
-        if (forceRead) {
-            query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
-            query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
-        }
+        // Document uses JOINED inheritance across many subclass tables (Invoice, Offer, Order, ...).
+        // Without this hint EclipseLink issues one extra SELECT per row to fetch the subclass-specific
+        // columns (InheritancePolicy#selectOneRowUsingMultipleTableSubclassRead) instead of a single
+        // outer-joined query, which turns findAll() into N+1 round trips and can look like a hang on
+        // a high-latency DB connection.
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        // Deliberately NOT using CACHE_STORE_MODE=REFRESH here, even though callers historically
+        // asked for it via forceRead: with fetchDocumentRelations()'s explicit fetch joins in
+        // place, REFRESH mode does not trust the joined-in relation data and independently
+        // re-queries every @ManyToOne relation one row at a time regardless - the exact N+1
+        // this method exists to avoid (verified: with REFRESH, a single ~2000-row page pull
+        // turned into ~14000 extra per-row SELECTs; without it, the fetch-joined main query is
+        // the only round trip). A plain query still always hits the DB for the primary rows -
+        // REFRESH only ever affected already-cached *related* entities, which this list view's
+        // columns never read from anyway (see fetchDocumentRelations' Javadoc).
+        query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
         try {
             resultList = query.getResultList();
         } catch (PersistenceException e) {
@@ -97,6 +116,73 @@ public class DocumentsDAO extends AbstractDAO<Document> {
             resultList = Collections.emptyList();
         }
         return resultList;
+    }
+
+    @Override
+    public Document findById(final Long id) {
+        return findById(id, false);
+    }
+
+    @Override
+    public Document findById(final Long id, final boolean forceReadFromDatabase) {
+        if (id == null) {
+            return null;
+        }
+        // Deliberately NOT using AbstractDAO's EntityManager#find() here: that path was still
+        // producing the classic JOINED-inheritance N+1 (InheritancePolicy#selectOneRowUsingMultipleTableSubclassRead)
+        // despite passing INHERITANCE_OUTER_JOIN via find()'s properties map - that hint is only
+        // honored on a real Query/CriteriaQuery, not on the find()-by-id fast path. Confirmed via
+        // SQL log: switching the document list to "Lieferscheine" alone fired ~2100 of these
+        // comma-style "FROM FKT_DOCUMENT t0, FKT_ORDER t1 WHERE (t0.ID = ?) AND ..." lookups in
+        // under 20 seconds - one per document whose transaction/reference chain got walked - which
+        // is exactly the "always blocking" behaviour reported when switching to that category.
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
+        final Root<Document> root = criteria.from(Document.class);
+        fetchDocumentRelations(root);
+        criteria.where(cb.equal(root.get(Document_.id), id));
+        final TypedQuery<Document> query = getEntityManager().createQuery(criteria);
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        Document result;
+        try {
+            result = query.getSingleResult();
+        } catch (NoResultException e) {
+            result = null;
+        }
+        if (forceReadFromDatabase && result != null) {
+            getEntityManager().refresh(result);
+        }
+        return result;
+    }
+
+    /**
+     * Explicitly fetch-joins {@link Document}'s eager, non-self-referencing {@code @ManyToOne}
+     * relations ({@code additionalInfo}, {@code payment}, {@code shipping}, {@code noVatReference})
+     * into the same query, instead of letting EclipseLink resolve each one lazily with its own
+     * round trip per row. None of these mappings can be made truly {@code LAZY} - weaving isn't
+     * enabled in this OSGi launch (see the "Reverting the lazy setting" startup warning for
+     * {@code additionalInfo}), so EclipseLink always resolves them eagerly one way or another; the
+     * only way to keep that to a single query instead of one-per-row is to fetch-join explicitly.
+     * <p>
+     * Deliberately NOT fetch-joining {@code sourceDocument}/{@code invoiceReference} here: both
+     * are self-referencing ({@code Document -> Document}), so fetch-joining them doesn't just add
+     * one more join - it makes EclipseLink fully build the *referenced* Document too, which (since
+     * that nested build also can't use LAZY, same reason as above) resolves *its* additionalInfo/
+     * payment/shipping/sourceDocument/invoiceReference as a synchronous, un-joined single-row read
+     * each. For a document at the end of a long reference chain (collective invoices covering many
+     * delivery notes, multi-hop order->delivery->invoice chains) this cascades into thousands of
+     * one-row-at-a-time reads while building a single page - confirmed via thread dump mid-burst
+     * (nested ReadObjectQuery -> NoIndirectionPolicy -> ObjectBuilder.buildObject, several levels
+     * deep, all inside one findPage() row). Leaving these two lazy-on-access instead is cheap now
+     * that InheritanceOuterJoinSessionCustomizer makes every such access properly outer-joined
+     * (one query, not two) - and most callers (e.g. the status-icon column) only need a null check
+     * or a single field, not this row's full transaction chain built eagerly.
+     */
+    private void fetchDocumentRelations(final Root<Document> root) {
+        root.fetch(Document_.additionalInfo, JoinType.LEFT);
+        root.fetch(Document_.payment, JoinType.LEFT);
+        root.fetch(Document_.shipping, JoinType.LEFT);
+        root.fetch(Document_.noVatReference, JoinType.LEFT);
     }
 
     /**
@@ -362,15 +448,26 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Document> criteria = cb.createQuery(getEntityClass());
         final Root<Document> root = criteria.from(getEntityClass());
+        fetchDocumentRelations(root);
         criteria.where(cb.notEqual(root.get(Document_.deleted), Boolean.TRUE));
         criteria.orderBy(cb.desc(root.get(Document_.documentDate)), cb.desc(root.get(Document_.id)));
         final TypedQuery<Document> query = getEntityManager().createQuery(criteria);
         query.setFirstResult(firstResult);
         query.setMaxResults(maxResults);
-        if (forceRead) {
-            query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
-            query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
-        }
+        // Document uses JOINED inheritance across many subclass tables - without this hint
+        // EclipseLink issues one extra SELECT per row to fetch the subclass-specific columns
+        // instead of a single outer-joined query (see DocumentsDAO#findAll for the full story).
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        // Deliberately NOT using CACHE_STORE_MODE=REFRESH here, even though callers historically
+        // asked for it via forceRead: with fetchDocumentRelations()'s explicit fetch joins in
+        // place, REFRESH mode does not trust the joined-in relation data and independently
+        // re-queries every @ManyToOne relation one row at a time regardless - the exact N+1
+        // this method exists to avoid (verified: with REFRESH, a single ~2000-row page pull
+        // turned into ~14000 extra per-row SELECTs; without it, the fetch-joined main query is
+        // the only round trip). A plain query still always hits the DB for the primary rows -
+        // REFRESH only ever affected already-cached *related* entities, which this list view's
+        // columns never read from anyway (see fetchDocumentRelations' Javadoc).
+        query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
         return query.getResultList();
     }
 
@@ -382,6 +479,183 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         criteria.select(cb.count(root));
         criteria.where(cb.notEqual(root.get(Document_.deleted), Boolean.TRUE));
         return getEntityManager().createQuery(criteria).getSingleResult().longValue();
+    }
+
+    /**
+     * Loads one page of documents, restricted to a free-text search term and/or the same
+     * category selection the document-type tree in {@code DocumentsListTable} offers
+     * (document type + paid/shipped/has-invoice state, or the special "this contact"/"this
+     * transaction" root nodes) - the DB-side equivalent of what {@code DocumentMatcher} used
+     * to check in memory, and the free-text equivalent of what the old
+     * {@code TextWidgetMatcherEditor} filtered in memory over {@code name}/{@code
+     * addressFirstLine}/{@code customerRef}.
+     *
+     * @param forceRead whether the persistence cache should be bypassed
+     * @param searchTerm free-text search term, or blank/null for no text filter
+     * @param categoryName the selected tree node's filter string (may be null - same contract as
+     *            {@link DocumentMatcher}/{@code AbstractViewDataTable#setCategoryFilter})
+     * @param treeObjectType the kind of node {@code categoryName} refers to
+     * @param orderByProperty a {@code Document} attribute name to sort by, or null for the default
+     *            (document date desc, id desc)
+     * @param descending sort direction for {@code orderByProperty} (ignored if null)
+     * @param firstResult zero-based offset
+     * @param maxResults maximum number of documents to return
+     * @return a page of documents matching the given search/category criteria
+     */
+    public List<Document> findPage(final boolean forceRead, final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final String orderByProperty, final boolean descending, final int firstResult, final int maxResults) {
+        if (firstResult < 0 || maxResults <= 0) {
+            throw new IllegalArgumentException("firstResult must be >= 0 and maxResults must be > 0");
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(getEntityClass());
+        final Root<Document> root = criteria.from(getEntityClass());
+        fetchDocumentRelations(root);
+        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        if (StringUtils.isNotBlank(orderByProperty)) {
+            final jakarta.persistence.criteria.Order order = descending ? cb.desc(root.get(orderByProperty)) : cb.asc(root.get(orderByProperty));
+            criteria.orderBy(order, cb.desc(root.get(Document_.id)));
+        } else {
+            criteria.orderBy(cb.desc(root.get(Document_.documentDate)), cb.desc(root.get(Document_.id)));
+        }
+        final TypedQuery<Document> query = getEntityManager().createQuery(criteria);
+        query.setFirstResult(firstResult);
+        query.setMaxResults(maxResults);
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        // Deliberately NOT using CACHE_STORE_MODE=REFRESH here, even though callers historically
+        // asked for it via forceRead: with fetchDocumentRelations()'s explicit fetch joins in
+        // place, REFRESH mode does not trust the joined-in relation data and independently
+        // re-queries every @ManyToOne relation one row at a time regardless - the exact N+1
+        // this method exists to avoid (verified: with REFRESH, a single ~2000-row page pull
+        // turned into ~14000 extra per-row SELECTs; without it, the fetch-joined main query is
+        // the only round trip). A plain query still always hits the DB for the primary rows -
+        // REFRESH only ever affected already-cached *related* entities, which this list view's
+        // columns never read from anyway (see fetchDocumentRelations' Javadoc).
+        query.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
+        return query.getResultList();
+    }
+
+    /** Counts documents matching the same search/category criteria as {@link #findPage}. */
+    public long countPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType) {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Document> root = criteria.from(getEntityClass());
+        criteria.select(cb.count(root));
+        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        return getEntityManager().createQuery(criteria).getSingleResult().longValue();
+    }
+
+    /** {@code deleted != TRUE}, AND-ed with the search predicate and the category predicate (either may be absent). */
+    private Predicate buildVisiblePredicate(final CriteriaBuilder cb, final Root<Document> root, final String searchTerm, final String categoryName,
+            final TreeObjectType treeObjectType) {
+        Predicate predicate = cb.notEqual(root.get(Document_.deleted), Boolean.TRUE);
+        final Predicate searchPredicate = buildSearchPredicate(cb, root, searchTerm);
+        if (searchPredicate != null) {
+            predicate = cb.and(predicate, searchPredicate);
+        }
+        final Predicate categoryPredicate = buildCategoryPredicate(cb, root, categoryName, treeObjectType);
+        if (categoryPredicate != null) {
+            predicate = cb.and(predicate, categoryPredicate);
+        }
+        return predicate;
+    }
+
+    /**
+     * Free-text search across the same fields the old in-memory
+     * {@code GlazedLists.textFilterator(Document.class, name, addressFirstLine, customerRef)}
+     * matched against.
+     */
+    private Predicate buildSearchPredicate(final CriteriaBuilder cb, final Root<Document> root, final String searchTerm) {
+        if (StringUtils.isBlank(searchTerm)) {
+            return null;
+        }
+        final String likeTerm = "%" + searchTerm.toLowerCase(Locale.ROOT) + "%";
+        return cb.or(cb.like(cb.lower(root.get(Document_.name)), likeTerm), cb.like(cb.lower(root.get(Document_.addressFirstLine)), likeTerm),
+                cb.like(cb.lower(root.get(Document_.customerRef)), likeTerm));
+    }
+
+    /**
+     * DB-side equivalent of {@link DocumentMatcher#matches(Document)} - translates the tree
+     * selection (document type + paid/shipped/has-invoice state, or one of the two special root
+     * nodes) into a query predicate instead of checking each already-loaded {@link Document} in
+     * memory. Returns {@code null} when nothing should be filtered (root/"all" node, or the
+     * "/---" no-selection sentinel {@code DocumentMatcher} also treats as "match everything").
+     */
+    private Predicate buildCategoryPredicate(final CriteriaBuilder cb, final Root<Document> root, final String categoryName,
+            final TreeObjectType treeObjectType) {
+        if (treeObjectType == null || treeObjectType == TreeObjectType.ALL_NODE || treeObjectType == TreeObjectType.ROOT_NODE
+                || StringUtils.isBlank(categoryName) || "/---".equals(categoryName)) {
+            return null;
+        }
+        if (treeObjectType == TreeObjectType.TRANSACTIONS_ROOTNODE) {
+            final int transactionId = StringUtils.isNumeric(categoryName) ? Integer.parseInt(categoryName) : 0;
+            return cb.equal(root.get(Document_.transactionId), transactionId);
+        }
+        if (treeObjectType == TreeObjectType.CONTACTS_ROOTNODE) {
+            return cb.equal(root.get(Document_.addressFirstLine), categoryName);
+        }
+
+        // Document-type tree: categoryName is "/<TypePlural>" or "/<TypePlural>/<State>", built
+        // the same way DocumentMatcher#getCategory() builds it for comparison.
+        final String normalized = StringUtils.prependIfMissing(categoryName, "/", "/");
+        for (final DocumentType docType : DocumentType.values()) {
+            if (docType == DocumentType.NONE) {
+                continue;
+            }
+            final String typePath = "/" + msg.getMessageFromKey(DocumentType.getPluralString(docType));
+            if (!normalized.startsWith(typePath)) {
+                continue;
+            }
+            final Predicate typePredicate = cb.equal(root.get(Document_.billingType), BillingType.getByName(docType.name()));
+            if (normalized.equals(typePath)) {
+                // just the type node itself - both states included, mirrors the startsWith() match
+                return typePredicate;
+            }
+            final Predicate statePredicate = buildStatePredicate(cb, root, docType, typePath, normalized);
+            return statePredicate != null ? cb.and(typePredicate, statePredicate) : typePredicate;
+        }
+        // categoryName didn't match any known type path - fail safe (match nothing) rather than
+        // silently showing the unfiltered table.
+        return cb.disjunction();
+    }
+
+    /** The paid/shipped/has-invoice sub-node predicate for a document-type node, or null if none matched. */
+    private Predicate buildStatePredicate(final CriteriaBuilder cb, final Root<Document> root, final DocumentType docType, final String typePath,
+            final String normalized) {
+        switch (docType) {
+            case INVOICE:
+            case CREDIT:
+            case DUNNING:
+                if (normalized.equals(typePath + "/" + msg.documentOrderStatePaid)) {
+                    return cb.and(cb.isNotNull(root.get(Document_.payDate)), cb.isTrue(root.get(Document_.paid)));
+                }
+                if (normalized.equals(typePath + "/" + msg.documentOrderStateUnpaid)) {
+                    return cb.not(cb.and(cb.isNotNull(root.get(Document_.payDate)), cb.isTrue(root.get(Document_.paid))));
+                }
+                break;
+            case DELIVERY:
+                final Predicate hasInvoice = cb.and(cb.isNotNull(root.get(Document_.invoiceReference)),
+                        cb.equal(root.get(Document_.invoiceReference).get(Document_.billingType), BillingType.INVOICE));
+                if (normalized.equals(typePath + "/" + msg.documentDeliveryStateHasinvoice)) {
+                    return hasInvoice;
+                }
+                if (normalized.equals(typePath + "/" + msg.documentDeliveryStateHasnoinvoice)) {
+                    return cb.not(hasInvoice);
+                }
+                break;
+            case ORDER:
+                final Predicate shipped = root.get(Document_.progress).in(OrderState.SHIPPED.getState(), OrderState.COMPLETED.getState());
+                if (normalized.equals(typePath + "/" + msg.documentOrderStateShipped)) {
+                    return shipped;
+                }
+                if (normalized.equals(typePath + "/" + msg.documentOrderStateNotshipped)) {
+                    return cb.not(shipped);
+                }
+                break;
+            default:
+                break;
+        }
+        return null;
     }
 
     /**
@@ -613,29 +887,39 @@ public class DocumentsDAO extends AbstractDAO<Document> {
      * @return
      */
     public List<Document> findByTransactionId(final Integer transaction) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
-        Root<Document> root = criteria.from(Document.class);
-        CriteriaQuery<Document> cq = criteria.where(cb.equal(root.<Integer> get(Document_.transactionId), transaction));
-        return getEntityManager().createQuery(cq).getResultList();
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
+        final Root<Document> root = criteria.from(Document.class);
+        fetchDocumentRelations(root);
+        final CriteriaQuery<Document> cq = criteria.where(cb.equal(root.<Integer> get(Document_.transactionId), transaction));
+        final TypedQuery<Document> query = getEntityManager().createQuery(cq);
+        // A transaction's document chain (Order -> Invoice -> ...) is exactly what
+        // DocumentEditor's breadcrumb calls this for on every open - same N+1-per-row risk as
+        // findAll()/findPage() without this hint, just triggered once per document opened instead
+        // of once per list load.
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        return query.getResultList();
     }
 
     /**
      * Returns a string with all documents with the same transaction
-     * 
+     *
      * @param docType
      *            Only those documents will be returned
      * @return String with the document names
      */
     public String getReference(final Integer transaction, final DocumentType docType) {
-        BillingType billingType = BillingType.get(docType.getKey());
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
-        Root<Document> root = criteria.from(Document.class);
-        CriteriaQuery<Document> cq = criteria.where(cb.and(cb.not(root.get(Document_.deleted)),
+        final BillingType billingType = BillingType.get(docType.getKey());
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
+        final Root<Document> root = criteria.from(Document.class);
+        fetchDocumentRelations(root);
+        final CriteriaQuery<Document> cq = criteria.where(cb.and(cb.not(root.get(Document_.deleted)),
                 cb.equal(root.<BillingType> get(Document_.billingType), billingType), cb.equal(root.<Integer> get(Document_.transactionId), transaction)));
-        List<Document> resultList = getEntityManager().createQuery(cq).getResultList();
-        List<String> stringList = resultList.stream().map(d -> d.getName()).collect(Collectors.toList());
+        final TypedQuery<Document> query = getEntityManager().createQuery(cq);
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        final List<Document> resultList = query.getResultList();
+        final List<String> stringList = resultList.stream().map(d -> d.getName()).collect(Collectors.toList());
         return StringUtils.join(stringList, ", ");
     }
 
