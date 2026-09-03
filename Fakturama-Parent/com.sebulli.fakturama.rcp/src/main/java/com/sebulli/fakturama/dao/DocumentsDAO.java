@@ -186,6 +186,24 @@ public class DocumentsDAO extends AbstractDAO<Document> {
     }
 
     /**
+     * Like {@link #fetchDocumentRelations(Root)}, but also fetch-joins {@code sourceDocument}/
+     * {@code invoiceReference} - safe here specifically because {@link #findByTransactionId(Integer)}
+     * only ever returns the flat, finite set of documents belonging to ONE transaction, so
+     * fetch-joining these two self-referencing relations cannot recurse into an unrelated,
+     * unbounded chain the way it could for {@link #findById(Long)}/{@link #findPage} (see the
+     * Javadoc above for why those two deliberately don't call this). Fixes DocumentEditor's
+     * document-chain breadcrumb (every editor open calls findByTransactionId once) firing one
+     * extra un-joined single-row read per document in the transaction for each of these two
+     * fields - confirmed via SQL log: opening one invoice in a 166-document transaction fired 166
+     * such reads (~6s against a remote DB) before this fetch join was added.
+     */
+    private void fetchDocumentRelationsWithChainReferences(final Root<? extends Document> root) {
+        fetchDocumentRelations(root);
+        root.fetch(Document_.sourceDocument, JoinType.LEFT);
+        root.fetch(Document_.invoiceReference, JoinType.LEFT);
+    }
+
+    /**
      * Finds Documents having a given account. Only {@link BillingType#INVOICE}
      * and {@link BillingType#CREDIT} are considered. An account is a
      * {@link VoucherCategory} from a {@link Payment}.
@@ -908,7 +926,7 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
         final Root<Document> root = criteria.from(Document.class);
-        fetchDocumentRelations(root);
+        fetchDocumentRelationsWithChainReferences(root);
         final CriteriaQuery<Document> cq = criteria.where(cb.equal(root.<Integer> get(Document_.transactionId), transaction));
         final TypedQuery<Document> query = getEntityManager().createQuery(cq);
         // A transaction's document chain (Order -> Invoice -> ...) is exactly what
