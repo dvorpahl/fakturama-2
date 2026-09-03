@@ -178,7 +178,7 @@ public class DocumentsDAO extends AbstractDAO<Document> {
      * (one query, not two) - and most callers (e.g. the status-icon column) only need a null check
      * or a single field, not this row's full transaction chain built eagerly.
      */
-    private void fetchDocumentRelations(final Root<Document> root) {
+    private void fetchDocumentRelations(final Root<? extends Document> root) {
         root.fetch(Document_.additionalInfo, JoinType.LEFT);
         root.fetch(Document_.payment, JoinType.LEFT);
         root.fetch(Document_.shipping, JoinType.LEFT);
@@ -392,9 +392,16 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Invoice> criteria = cb.createQuery(Invoice.class);
         Root<Invoice> root = criteria.from(Invoice.class);
+        // See fetchDocumentRelations()'s javadoc: without the fetch joins + inheritance hint,
+        // every row returned here triggers its own extra per-row SELECTs once callers read
+        // additionalInfo/payment/shipping - and this method can return every paid invoice in
+        // the database.
+        fetchDocumentRelations(root);
         CriteriaQuery<Invoice> cq = criteria.where(
                 cb.and(cb.equal(root.<Boolean> get(Invoice_.paid), true), cb.equal(root.<Boolean> get(Invoice_.deleted), false)));
-        return getEntityManager().createQuery(cq).getResultList();
+        TypedQuery<Invoice> query = getEntityManager().createQuery(cq);
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        return query.getResultList();
     }
 
     /**
@@ -411,6 +418,9 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Invoice> criteria = cb.createQuery(Invoice.class);
         Root<Invoice> root = criteria.from(Invoice.class);
+        // See fetchDocumentRelations()'s javadoc: avoids one extra per-row SELECT per invoice
+        // once callers read additionalInfo/payment/shipping.
+        fetchDocumentRelations(root);
 
         /*
          *  SELECT distinct d.name
@@ -426,8 +436,9 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         CriteriaQuery<Invoice> cq = criteria.distinct(true)
                 .where(cb.and(cb.equal(root.<Boolean> get(Invoice_.paid), true), cb.equal(root.<Boolean> get(Invoice_.deleted), false),
                         cb.equal(root.join(Invoice_.receiver).get(DocumentReceiver_.originContactId), contact.getId())));
-        List<Invoice> resultList = getEntityManager().createQuery(cq).getResultList();
-        return resultList;
+        TypedQuery<Invoice> query = getEntityManager().createQuery(cq);
+        query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        return query.getResultList();
     }
 
     /**
@@ -674,10 +685,17 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Invoice> criteria = cb.createQuery(Invoice.class);
         final Root<Invoice> root = criteria.from(Invoice.class);
+        // See fetchDocumentRelations()'s javadoc: this powers the document editor's customer
+        // summary, called on every editor open - without the fetch joins + inheritance hint,
+        // every invoice for that contact triggers its own extra per-row SELECTs once
+        // CustomerStatistics reads additionalInfo/payment/shipping off each one.
+        fetchDocumentRelations(root);
         final CriteriaQuery<Invoice> query = criteria.distinct(true)
                 .where(cb.and(cb.equal(root.<Boolean> get(Invoice_.deleted), false),
                         cb.equal(root.join(Invoice_.receiver).get(DocumentReceiver_.originContactId), contact.getId())));
-        return getEntityManager().createQuery(query).getResultList();
+        final TypedQuery<Invoice> typedQuery = getEntityManager().createQuery(query);
+        typedQuery.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
+        return typedQuery.getResultList();
     }
 
     public void updateDunnings(final Document document) {
@@ -899,6 +917,31 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         // of once per list load.
         query.setHint(QueryHints.INHERITANCE_OUTER_JOIN, HintValues.TRUE);
         return query.getResultList();
+    }
+
+    /**
+     * For a set of Document ids, returns the subset that have a non-null {@code invoiceReference}
+     * (i.e. delivery notes already covered by an invoice). Deliberately a plain {@code IS NOT NULL}
+     * check on the FK column via a WHERE predicate rather than {@code doc.getInvoiceReference() !=
+     * null} on each row - the latter resolves (builds) the full referenced Invoice one row at a
+     * time, since invoiceReference can't be truly LAZY (weaving disabled - see
+     * fetchDocumentRelations' javadoc) and is deliberately not fetch-joined either (self-referencing
+     * Document -&gt; Document). Confirmed via SQL log: the document list's status column was firing
+     * one such resolve per visible delivery-note row, on every scroll/reload.
+     *
+     * @param ids document ids to check (typically the ids of one loaded page)
+     * @return the subset of {@code ids} whose invoiceReference is set
+     */
+    public java.util.Set<Long> findIdsWithInvoiceReference(final java.util.Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Collections.emptySet();
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Document> root = criteria.from(Document.class);
+        criteria.select(root.get(Document_.id))
+                .where(cb.and(root.get(Document_.id).in(ids), cb.isNotNull(root.get(Document_.invoiceReference))));
+        return new java.util.HashSet<>(getEntityManager().createQuery(criteria).getResultList());
     }
 
     /**

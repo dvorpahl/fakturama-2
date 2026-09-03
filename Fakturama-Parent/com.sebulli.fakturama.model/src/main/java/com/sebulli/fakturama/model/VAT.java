@@ -54,7 +54,10 @@ public class VAT extends ModelObject implements Serializable, IDescribableEntity
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+    // No REFRESH cascade: VAT is static reference data, referenced from DocumentItem/Product -
+    // REFRESH here would re-fetch the category (and its whole parent chain) every time any of
+    // those referencing rows gets refreshed.
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
     @JoinColumns({ @JoinColumn(name = "FK_CATEGORY") })
     private VATCategory category = null;
 

@@ -92,8 +92,8 @@
 <!-- 			<property name="eclipselink.id-validation" value="NULL"/> -->
 			
 			<!--  if you want to show the generated SQL commands and their parameter substitution -->
-<!-- 			<property name="eclipselink.logging.level.sql" value="FINE"/> -->
-<!-- 			<property name="eclipselink.logging.parameters" value="true"/> -->
+			<property name="eclipselink.logging.level.sql" value="FINE"/>
+			<property name="eclipselink.logging.parameters" value="true"/>
 			
 			<!--  This is the real performance boost! Setting this property the internal connection pool is
 			      used. This prevents the database layer from permanently reconnecting. -->

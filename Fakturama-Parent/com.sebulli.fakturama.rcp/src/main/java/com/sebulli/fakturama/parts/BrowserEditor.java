@@ -98,8 +98,11 @@ public class BrowserEditor {
     // Button, to go home to fakturama.com
     private Composite homeButtonComposite;
 
-    // The URL textbox 
+    // The URL textbox
     private Text urlText = null;
+
+    // The FKT.* JS bridge, installed on the browser widget once it's created.
+    private FktBridge fktBridge;
 
     /**
      * Creates the content of the editor
@@ -302,9 +305,15 @@ public class BrowserEditor {
             browser.setBackground(browserColor);
             browserColor.dispose();
 
+            // window.FKT.* JS bridge - see FktBridge for what's exposed.
+            fktBridge = new FktBridge(browser, ctx, part, log);
+
             browser.addProgressListener(new ProgressListener() {
                 @Override
                 public void completed(final ProgressEvent event) {
+                    // window.FKT does not survive navigation - reinstall it on every page load.
+                    fktBridge.injectNamespace(browser);
+
                     String browserURL = browser.getUrl();
                     boolean isValidURL = browserURL.startsWith("http://") || browserURL.startsWith("https://") || browserURL.startsWith("file://");
                     if (showURLbar) {
@@ -330,6 +339,11 @@ public class BrowserEditor {
                 // If the website has changes, add a "go back" button
                 @Override
                 public void changed(final ProgressEvent event) {
+
+                    // Re-install window.FKT as early as possible: "changed" fires repeatedly
+                    // while the page is still loading, long before "completed" (which only
+                    // fires once every subresource is done) - see FktBridge#injectNamespace.
+                    fktBridge.injectNamespace(browser);
 
                     String browserURL = browser.getUrl();
                     boolean isValidURL = browserURL.startsWith("http://") || browserURL.startsWith("https://") || browserURL.startsWith("file://");

@@ -26,7 +26,13 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <logger name="com.sebulli.fakturama" level="ERROR"/>
+    <!-- DEBUG (not ERROR): ILogger goes through the OSGi LogService -> LogbackAdapter, which logs
+         by the calling bundle's symbolic name (e.g. "com.sebulli.fakturama.rcp"), not by Java
+         package - so a narrower per-package logger below this one has no effect. This is what
+         makes the FKT.* JS bridge (BrowserEditor/FktBridge, see its log.debug() calls) traceable:
+         a call that silently returns false to the web page (untrusted origin, no matching
+         product/document, ...) still leaves a line here instead of no trace at all. -->
+    <logger name="com.sebulli.fakturama" level="DEBUG"/>
     <logger name="org.fakturama" level="ERROR"/>
     <logger name="org.mariadb.jdbc" level="ERROR"/>
     <logger name="org.mariadb.jdbc.impl" level="ERROR"/>

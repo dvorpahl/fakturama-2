@@ -70,8 +70,14 @@ public class BrowserPreferencePage extends FieldEditorPreferencePage implements 
 //		addField(new ComboFieldEditor(Constants.PREFERENCES_BROWSER_TYPE, msg.preferencesBrowserType, new String[][] { { "---", "0" }, { "WebKit", "1" }, { "Mozilla", "2" }
 //			 }, getFieldEditorParent()));
 		
-		//T: Preference page "Webbrowser" 
+		//T: Preference page "Webbrowser"
 		addField(new BooleanFieldEditor(Constants.PREFERENCES_BROWSER_SHOW_URL_BAR, msg.preferencesBrowserShowaddressbar, getFieldEditorParent()));
+
+		//T: Preference page "Webbrowser" - only takes effect on Linux/GTK and only after a restart (see LifecycleManager)
+		addField(new BooleanFieldEditor(Constants.PREFERENCES_BROWSER_ALLOW_INVALID_CERTS, msg.preferencesBrowserAllowinvalidcerts, getFieldEditorParent()));
+
+		//T: Preference page "Webbrowser" - must match APP_FKT_SHARED_SECRET on the web app side
+		addField(new StringFieldEditor(Constants.PREFERENCES_BROWSER_FKT_SHARED_SECRET, msg.preferencesBrowserFktsharedsecret, getFieldEditorParent()));
 
 	}
 
@@ -93,7 +99,9 @@ public class BrowserPreferencePage extends FieldEditorPreferencePage implements 
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_GENERAL_WEBBROWSER_URL, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_BROWSER_TYPE, write);
 		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_BROWSER_SHOW_URL_BAR, write);
-		
+		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_BROWSER_ALLOW_INVALID_CERTS, write);
+		preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_BROWSER_FKT_SHARED_SECRET, write);
+
 	}
 
 	@Override
@@ -115,5 +123,7 @@ public class BrowserPreferencePage extends FieldEditorPreferencePage implements 
 	    node.setDefault(Constants.PREFERENCES_GENERAL_WEBBROWSER_URL, "");
 	    node.setDefault(Constants.PREFERENCES_BROWSER_TYPE, "0");
 	    node.setDefault(Constants.PREFERENCES_BROWSER_SHOW_URL_BAR, true);
+	    node.setDefault(Constants.PREFERENCES_BROWSER_ALLOW_INVALID_CERTS, false);
+	    node.setDefault(Constants.PREFERENCES_BROWSER_FKT_SHARED_SECRET, "");
 	}
 }

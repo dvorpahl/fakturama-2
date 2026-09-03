@@ -1,0 +1,233 @@
+Fakturama 2.2.1 - Log & Planned
+================================
+(Laufendes Änderungs-/Planungsprotokoll für den Release-Branch release/2.2.1.
+ Nicht zu verwechseln mit dem DB-Changelog unter
+ com.sebulli.fakturama.model/src/main/resources/changelog/db.changelog-2.2.1.xml
+ - dort stehen nur Liquibase-Schemaänderungen.)
+
+LOG
+---
+
+2026-09-03  build-demo.sh
+    Neues Skript com.sebulli.fakturama.site/install/build-demo.sh: baut ein
+    einziges selbstauspackendes Demo-Skript (App + JRE angehängt) aus dem
+    bereits gebauten Linux-Produkt + der von install4j gecachten JRE. Bei
+    jedem Start: frisches Temp-Verzeichnis, Entpacken, DB-Passwort per
+    zenity/kdialog/Terminal-Prompt abfragen, gegen konfigurierte Test-DB
+    starten, danach alles wieder löschen.
+    Fix: --warning=no-unknown-keyword bei den tar-Extracts (Zeilen 61-62),
+    da das App-Archiv mit libarchive/bsdtar-Style-Pax-Headern
+    (LIBARCHIVE.creationtime) gebaut wird, die GNU tar nicht kennt und sonst
+    pro Datei eine Warnung ausgibt.
+    Seither extern erweitert (nicht von hier aus): WEBBROWSER_URL (Default
+    https://devtest.vorpahl.online/?fakview=true) + BROWSER_ALLOW_INVALID_CERTS=true
+    werden jetzt in die generierte com.sebulli.fakturama.rcp.prefs geschrieben
+    (devtest.vorpahl.online-Zertifikat wird vom eingebetteten WebKitGTK-Browser
+    sonst als "not yet valid" abgelehnt - Systemuhrzeit-bedingt).
+    Dazu von hier aus ergänzt: FKT_SHARED_SECRET (Default leer, override per
+    FKT_SHARED_SECRET=... ./build-demo.sh) -> BROWSER_FKT_SHARED_SECRET in der
+    generierten Prefs, Gegenstück zu APP_FKT_SHARED_SECRET auf der
+    devtest.vorpahl.online-Seite (siehe FKT.getAuthToken()-Eintrag weiter unten).
+    Muss dort separat gesetzt werden - dieses Skript hat keinen Zugriff auf den
+    Server. Ohne gesetztes Secret bleibt der Passwort-Login einfach aktiv.
+
+2026-09-03  WebView-Bridge: window.FKT-Namespace
+    Neuer JS-Namespace window.FKT auf dem Browser-Widget in BrowserEditor
+    (com.sebulli.fakturama.rcp/.../parts/). SWT BrowserFunction registriert
+    nur einzelne globale Funktionen, kein verschachteltes Objekt - deshalb
+    laufen intern __fkt_*-Funktionen, die per injiziertem Script (bei jedem
+    ProgressListener.completed(), da window.FKT eine Navigation nicht
+    übersteht) zu window.FKT.* zusammengebaut werden. Siehe FktBridge.java
+    für die Übersicht, je eine eigene Datei pro Funktion:
+
+    - FKT.version / FKT.getVersion()
+      Laufende App-Version (Platform.getProduct().getDefiningBundle()...).
+    - FKT.getEnvironmentInfo()
+      JSON mit Version, Produktname, konfigurierten Firmendaten (YOURCOMPANY_*
+      Preferences - Fakturama hat kein Login/User-Konzept, das ist das
+      nächstliegende Äquivalent zu "wem gehört diese Installation"),
+      OS-Username (nur Audit, kein Login), OS/Java/Locale, Workspace-Pfad.
+      Explizit NIEMALS DB-Verbindungsdaten (Host/Port/DB-Name/User/Passwort) -
+      das hat in einer Webseite nichts verloren.
+    - FKT.openProduct(itemNumber) / FKT.openProductById(id)
+      Erste Variante per Artikelnummer (ProductsDAO.findByItemNumber),
+      zweite direkt per echter DB-ID (ProductsDAO.findById). Beide über
+      denselben CallEditor-Command (CommandIds.CMD_CALL_EDITOR), den auch
+      der Doppelklick in der Produktliste auslöst.
+    - FKT.openDocument(name) / FKT.openDocumentById(id)
+      Analog für Dokumente (DocumentsDAO.findByName/findById,
+      DocumentEditor.ID).
+    - FKT.updatedObject(id, dtype)
+      Meldet Fakturama, dass ein Objekt von außen geändert wurde (z.B. ein
+      externes System, das direkt in die geteilte DB schreibt), damit
+      offene Listenansichten sich neu laden (z.B. offene Angebote/Aufträge).
+      dtype aktuell "product" oder "document" -> postet auf den jeweiligen
+      IEventBroker-Topic (XxxEditor.EDITOR_ID) mit Payload Editor.UPDATE_EVENT
+      - exakt der Mechanismus, den auch ProductEditor.save()/
+      DocumentEditor.save() und WebShopImportManager nach einem Import
+      schon nutzen. id wird aktuell nicht ausgewertet (Reload ist immer ein
+      voller Re-Query, kein gezieltes Patchen einer Zeile).
+    - FKT.identify(userName, hostName)
+      Gegenstück zu getEnvironmentInfo(): die Seite meldet sich bei
+      Fakturama ("ich bin User X an Rechner Y"). Wird geloggt (ILogger.info)
+      und als Tooltip des Browser-Editor-Parts angezeigt - also direkt im
+      Fenster der Anwendung sichtbar, nicht nur im Log.
+
+    Alle Rückgabewerte sind bool (gefunden/erfolgreich) oder ein JSON-String
+    (getEnvironmentInfo) - BrowserFunction kann von JS nach Java nur
+    null/boolean/double/String/Arrays davon reichen, kein natives JS-Objekt.
+
+    Bekannte Einschränkungen:
+    - Nur in BrowserEditor verdrahtet, nicht in ParcelServiceBrowserEditor.
+    - Nur Produkte + Dokumente. Weitere Entitäten (Kontakte, ...) bräuchten
+      je eine weitere FktXxxFunction nach demselben Muster + Eintrag in
+      FktUpdatedObjectFunction.editorIdForType().
+
+2026-09-03  WebView-Bridge: Zugriffsschutz + ungültige Zertifikate zulassen
+    Zugriffsschutz für FKT.*:
+    Neue Basisklasse AbstractFktBrowserFunction (com.sebulli.fakturama.rcp/.../parts/).
+    Alle FktXxxFunction-Klassen (außer FktIdentifyFunction, siehe unten) erben
+    jetzt davon statt direkt von BrowserFunction und implementieren
+    doFunction(Object[]) statt function(Object[]) - die Basisklasse prüft vorher
+    die Origin der aktuell geladenen Seite:
+    - file://-Inhalte (Fakturamas eigene lokale Start-/Vorlagenseiten) sind
+      immer vertrauenswürdig.
+    - http(s)-Seiten sind nur vertrauenswürdig, wenn ihre Origin (Schema+Host
+      +Port) exakt der konfigurierten GENERAL_WEBBROWSER_URL entspricht. Ist
+      diese Preference leer, bekommt keine Remote-Seite FKT-Zugriff.
+    - Ist die Seite nicht vertrauenswürdig, liefert jede FKT.*-Funktion einfach
+      false zurück (kein Exception/Crash).
+    FKT.identify() bleibt bewusst außen vor (bleibt bei BrowserFunction direkt) -
+    die Funktion exponiert nichts Sensibles und soll gerade auch von einer noch
+    nicht vertrauenswürdigen Seite aus funktionieren (z.B. zum Debuggen, warum
+    andere FKT.*-Aufrufe abgelehnt werden).
+    Das ist eine "gleicher Desktop-User"-Komfortgrenze, keine gehärtete Sandbox
+    (Fakturama hat kein Login/Sandboxing-Konzept) - siehe PLANNED.
+
+    Ungültige/selbstsignierte Zertifikate zulassen:
+    Neue Preference Constants.PREFERENCES_BROWSER_ALLOW_INVALID_CERTS
+    ("BROWSER_ALLOW_INVALID_CERTS", Default false), neue Checkbox in
+    BrowserPreferencePage.java direkt unter "Adressleiste zeigen"/"URL der
+    Startseite" (com.sebulli.fakturama.rcp/.../preferences/). Neue
+    Übersetzungs-Keys preferences.browser.allowinvalidcerts in
+    OSGI-INF/l10n/bundle.properties (EN) und bundle_de.properties (DE) +
+    Feld Messages.preferencesBrowserAllowinvalidcerts.
+    Wirkung: LifecycleManager.checksBeforeStartup() (@PostContextCreate, läuft
+    vor jedem UI-Fenster/Browser) setzt bei aktivierter Preference die JVM-
+    System-Property org.eclipse.swt.internal.webkitgtk.ignoretlserrors=true.
+    SWTs WebKit-Klasse liest diese Property einmalig in einem statischen
+    Initializer und ruft dann webkit_web_context_set_tls_errors_policy(...,
+    IGNORE) auf.
+    WICHTIGE EINSCHRÄNKUNGEN (unbedingt beachten):
+    - Nur GTK/Linux (WebKitGTK). Windows (Edge WebView2) / macOS (WKWebView)
+      haben kein Äquivalent geprüft/verifiziert - dort hat die Preference
+      vermutlich keine Wirkung.
+    - JVM-weit, nicht pro Browser-Instanz: gilt für JEDEN eingebetteten
+      Browser der laufenden Anwendung (auch ParcelServiceBrowserEditor),
+      nicht nur für den einen mit devtest.vorpahl.online.
+    - Wirkt erst nach Neustart der Anwendung (statischer Initializer wird nur
+      beim ersten Laden der WebKit-Klasse ausgeführt - danach zu spät).
+    - Nur für Entwicklungszwecke gedacht (SWT gibt dazu selbst eine Warnung
+      auf stdout aus).
+
+2026-09-03  FKT.getAuthToken() + Gegenstück in fakturama-tool (kein Passwort mehr nötig)
+    Fakturama-Seite:
+    Neue Preference Constants.PREFERENCES_BROWSER_FKT_SHARED_SECRET
+    ("BROWSER_FKT_SHARED_SECRET", Default ""), neues Textfeld in
+    BrowserPreferencePage.java. Neue Bridge-Funktion FKT.getAuthToken()
+    (FktGetAuthTokenFunction.java, erbt von AbstractFktBrowserFunction -
+    Origin-Check greift also auch hier) liefert das konfigurierte Secret an
+    die vertrauenswürdige Seite, leerer String wenn nichts konfiguriert ist.
+
+    fakturama-tool-Seite (~/Workspace/fakturama-tool/src):
+    - auth.py: AuthSettings.fkt_shared_secret (aus Env APP_FKT_SHARED_SECRET,
+      min. 32 Zeichen falls gesetzt, sonst Feature aus). Neuer Endpoint
+      POST /login/fkt (AuthRoute.login_fkt): nimmt {"token": "..."} als JSON,
+      vergleicht per hmac.compare_digest gegen fkt_shared_secret, setzt bei
+      Treffer denselben signierten Session-Cookie wie der normale
+      Formular-Login (create_session_token). /login/fkt selbst ist in
+      path_requires_auth() von der Auth-Pflicht ausgenommen (wie /login,
+      /logout), sonst würde der Guard den Call selbst schon abblocken.
+    - templates/auth/login.html: neues <script> am Ende von <body>. Prüft
+      window.FKT (existiert nur im eingebetteten Fakturama-Browser, in jedem
+      normalen Browser-Tab bleibt es undefined), holt FKT.getAuthToken(),
+      POSTet an /login/fkt, leitet bei Erfolg auf den vorhandenen "next"-Wert
+      um (aus dem schon vorhandenen hidden input im Formular gelesen). Bei
+      jedem Fehlschlag (kein FKT, kein Secret, Mismatch, Netzwerkfehler)
+      bleibt das normale Benutzername/Passwort-Formular unverändert nutzbar.
+
+    Sicherheitsmodell: gleiche Vertrauensstufe wie das bestehende feste
+    Passwort (ein geteiltes Secret, HMAC-verglichen, nie in URL/Logs), kein
+    Klartext-Passwort im Spiel, kein Downgrade der Session-Cookie-Logik -
+    nur ein zweiter, Origin-gebundener Anmeldeweg. Kein Ablauf-/Replay-Schutz
+    für das Secret selbst (anders als bei einem Einmal-Code) - bei Bedarf
+    einfach in beiden .env-Dateien (Fakturama-Preference + fakturama-tool
+    APP_FKT_SHARED_SECRET) rotieren.
+
+    WICHTIG - noch zu erledigen (nicht von hier aus gemacht, da .env-Dateien
+    absichtlich nicht angefasst wurden):
+    - In Fakturamas Preferences (Webbrowser-Seite) ein zufälliges Secret
+      (>= 32 Zeichen) eintragen.
+    - Denselben Wert als APP_FKT_SHARED_SECRET in der passenden .env-Datei
+      von fakturama-tool eintragen (.env / .env.local / .env.staging /
+      .env.production - je nachdem, gegen welche Instanz devtest.vorpahl.online
+      läuft) und den Server neu starten.
+
+    Vorrecherche zum Thema (relevant für künftige Erweiterungen):
+    - Kein bestehender BrowserFunction-Einsatz im Projekt vorher (SWT Browser
+      wird sonst nur mit browser.execute()/evaluate() als reine
+      String-Einwegkommunikation genutzt, z.B. in ParcelServiceFormFiller
+      fürs Ausfüllen von Paketdienst-Webformularen).
+    - Paketdienst-Platzhaltermechanismus (Placeholder-Enum +
+      TemplateProcessor.getDocumentInfoByPlaceholder()) ist rein outbound:
+      kein Rückweg, um z.B. eine Sendungsnummer aus dem Formular
+      zurückzulesen. Neue Paketdienste selbst brauchen keinen Code (nur eine
+      .txt-Vorlage in Vorlagen/Paketdienst/), ein neuer Platzhalter-Typ
+      dagegen schon (Enum-Konstante + Resolver-Branch).
+    - IEventBroker-Refresh-Idiom im gesamten Projekt: Topic = <XxxEditor>.EDITOR_ID
+      (Klartext-String, kein OSGi-Dotted-Name), Payload = Editor.UPDATE_EVENT
+      ("update"). Jede *ListTable hat eine @UIEventTopic-Methode, die darauf
+      neu lädt. Publisher u.a. alle Editor.save()-Methoden,
+      AbstractViewDataTable nach Zeilen-Löschung, WebShopImportManager nach
+      Import (postet an mehrere Topics auf einmal), StockUpdateHandler nach
+      Lagerbestandsänderung.
+
+
+PLANNED
+-------
+
+- [ ] Entscheiden, ob/wie das Demo-Skript an Heinz übergeben wird
+      (Kanal noch offen: E-Mail, Share, USB-Stick, ...).
+- [x] FKT.getAuthToken()-Secret ist auf beiden Seiten gesetzt (localhost:8001
+      UND devtest.vorpahl.online sind dieselbe fakturama-tool-Instanz auf
+      diesem Rechner, kein separates Ansible-Staging-Deployment - Korrektur
+      einer falschen Annahme von mir weiter oben in diesem Log):
+      APP_FKT_SHARED_SECRET in fakturama-tool/.env.local, BROWSER_FKT_SHARED_SECRET
+      in der lokalen com.sebulli.fakturama.rcp.prefs, und die Demo ist mit
+      FKT_SHARED_SECRET=<gleicher Wert> ./build-demo.sh neu gebaut worden -
+      alle drei mit demselben Secret.
+      (deploy_staging_playbook.yml/.env.staging betreffen ein separates,
+      per Ansible verwaltetes Deployment - hat mit devtest.vorpahl.online
+      nichts zu tun, dort unverändert gelassen.)
+- [ ] FKT-Auth: kein Ablauf-/Replay-Schutz für das Secret selbst (statisch,
+      kein Einmal-Code). Falls das mal zu schwach wird: Umstieg auf
+      kurzlebigen Nonce, den Fakturama per direktem HTTP-Call an
+      fakturama-tool registriert, bevor der Browser überhaupt navigiert.
+- [ ] FKT-Namespace auf weitere Entitäten ausweiten (Kontakte, ...) -
+      je eine FktOpenXxx(ById)Function + Eintrag in
+      FktUpdatedObjectFunction.editorIdForType().
+- [ ] FKT-Namespace ggf. auch in ParcelServiceBrowserEditor verdrahten.
+- [ ] FKT.updatedObject(id, dtype): id derzeit ungenutzt (immer voller
+      Reload). Falls gezieltes Nachladen einzelner Zeilen gewünscht ist,
+      müsste das Payload-Format der IEventBroker-Topics erweitert werden
+      (Map/Event statt reinem String) - betrifft dann alle
+      @UIEventTopic-Handler, nicht nur den neuen Code.
+- [ ] Zugriffsschutz FKT.*: aktuell reine Origin-Prüfung ohne Login/Sandboxing
+      (Fakturama hat kein Nutzerkonto-Konzept). Falls mehr Härtung nötig wird
+      (z.B. Multi-User-Szenario), müsste hier nachgeschärft werden.
+- [ ] Zertifikats-Preference: Windows/macOS-Äquivalent zu
+      webkit_web_context_set_tls_errors_policy noch nicht recherchiert/
+      verifiziert - aktuell nur auf Linux/GTK bestätigt wirksam.
+- [ ] Ggf. Rückkanal für Paketdienst-Sendungsnummern (browser.evaluate() nach
+      Formular-Submit + neuer Placeholder SHIPPING.TRACKINGNUMBER + Resolver-
+      Branch in TemplateProcessor + Modellfeld/DB-Migration), falls benötigt.

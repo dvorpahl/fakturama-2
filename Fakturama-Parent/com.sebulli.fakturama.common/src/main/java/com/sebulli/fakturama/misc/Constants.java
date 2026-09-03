@@ -366,7 +366,20 @@ public class Constants {
     public static final String PREFERENCES_GENERAL_WEBBROWSER_URL = "GENERAL_WEBBROWSER_URL";
 
     /**
-     * 
+     * Allow invalid/self-signed TLS certificates in the embedded browser. Only takes effect on
+     * GTK/Linux (WebKitGTK) and only at application startup, see LifecycleManager.
+     */
+    public static final String PREFERENCES_BROWSER_ALLOW_INVALID_CERTS = "BROWSER_ALLOW_INVALID_CERTS";
+
+    /**
+     * Shared secret handed to the trusted web app (GENERAL_WEBBROWSER_URL) via
+     * {@code FKT.getAuthToken()} so it can log itself in without asking for a password. Must
+     * match the APP_FKT_SHARED_SECRET the web app is configured with.
+     */
+    public static final String PREFERENCES_BROWSER_FKT_SHARED_SECRET = "BROWSER_FKT_SHARED_SECRET";
+
+    /**
+     *
      */
     public static final String PREFERENCES_CONTACT_USE_COUNTRY = "CONTACT_USE_COUNTRY";
 

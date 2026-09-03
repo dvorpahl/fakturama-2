@@ -264,6 +264,7 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
         com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyHeaderStyle(table);
+        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyFixedRowHeight(table, 1.7f);
         contactsViewer = new TableViewer(table);
         contactsViewer.setUseHashlookup(true);
 

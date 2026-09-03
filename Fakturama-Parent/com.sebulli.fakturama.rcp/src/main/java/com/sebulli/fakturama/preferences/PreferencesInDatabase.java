@@ -16,6 +16,7 @@ package com.sebulli.fakturama.preferences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -50,26 +51,43 @@ public class PreferencesInDatabase {
     private IEclipseContext context;
 
     /**
+     * Snapshot of every stored property, loaded once per {@link #loadOrSavePreferencesFromOrInDatabase}
+     * read pass so {@link #loadPreferenceValue(String)} doesn't hit the database once per key (~15
+     * preference pages x ~10 keys each = ~145 individual SELECTs otherwise). {@code null} outside
+     * such a pass (e.g. a direct {@link #syncWithPreferencesFromDatabase} call), in which case
+     * {@link #loadPreferenceValue(String)} falls back to the original per-key lookup.
+     */
+    private Map<String, String> cachedPropertyValues;
+
+    /**
      * Load one preference from the data base
-     * 
+     *
      * @param key
      *            The key of the preference value
      */
     private void loadPreferenceValue(final String key) {
-        final Optional<String> property = propertiesDAO.findPropertyValue(key);
-        if (property.isPresent()) {
-            preferences.setValue(key, property.get());
-            pref.put(key, property.get());
+        final String value = cachedPropertyValues != null ? cachedPropertyValues.get(key) : propertiesDAO.findPropertyValue(key).orElse(null);
+        if (value != null) {
+            preferences.setValue(key, value);
+            pref.put(key, value);
         }
     }
 
     /**
      * Save one preference to the data base
-     * 
+     *
      * @param key
      *            The key of the preference value
      */
     private void savePreferenceValue(final String key) {
+        // A demo run (see run-demo.sh / -Dfakturama.demoMode=true) points at a shared,
+        // reused-by-everyone test database - writing local preference edits (table settings,
+        // number ranges, company data, ...) back into it would bleed from one demo session into
+        // the next. Every write path (this batch sync AND a preference page's own performOk())
+        // funnels through this one method, so gating it here covers all of them.
+        if (Boolean.getBoolean("fakturama.demoMode")) {
+            return;
+        }
         final String s = preferences.getString(key);
         if (s != null && propertiesDAO != null) {
             propertiesDAO.setProperty(key, s);
@@ -115,10 +133,17 @@ public class PreferencesInDatabase {
         classesToInit.add(BrowserPreferencePage.class);
 
         context.set(LOAD_OR_SAVE_PREFERENCES_FROM_OR_IN_DATABASE, save);
-        // Initialize every single preference page
-        for (final Class<? extends IInitializablePreference> clazz : classesToInit) {
-            final IInitializablePreference p = ContextInjectionFactory.make(clazz, context);
-            ContextInjectionFactory.invoke(p, Synchronize.class, context);
+        if (!save) {
+            cachedPropertyValues = propertiesDAO.findAllPropertyValues();
+        }
+        try {
+            // Initialize every single preference page
+            for (final Class<? extends IInitializablePreference> clazz : classesToInit) {
+                final IInitializablePreference p = ContextInjectionFactory.make(clazz, context);
+                ContextInjectionFactory.invoke(p, Synchronize.class, context);
+            }
+        } finally {
+            cachedPropertyValues = null;
         }
     }
 

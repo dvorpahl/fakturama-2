@@ -177,7 +177,14 @@ public class TopicTreeViewer<T extends AbstractCategory> {
 						selectedItem = treeObject;
 
 						// Update the category, transaction and contact filter
-						categoryFilter = treeObject.getFullPathName();
+						// omitRootNodeName=true: for USE_ALL trees, real categories are parented
+						// under the synthetic "All" node, not the (also synthetic) empty-named
+						// root - without this, its localized label (e.g. "Alle") ends up baked
+						// into the path as an extra segment, so it never matches a real
+						// category's own path (CommonConverter.getCategoryName, which only ever
+						// walks real category parents) and the category filter silently matches
+						// everything instead of the selected category.
+						categoryFilter = treeObject.getFullPathName(true);
 
 						transactionFilter = treeObject.getTransactionId();
 						contactFilter = treeObject.getContactId();

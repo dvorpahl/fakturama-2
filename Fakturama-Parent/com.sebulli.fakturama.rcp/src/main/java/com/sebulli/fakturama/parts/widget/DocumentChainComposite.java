@@ -57,7 +57,7 @@ import com.sebulli.fakturama.util.DocumentTypeUtil;
  */
 public class DocumentChainComposite extends Composite {
 
-    private static final int MINIMUM_HEIGHT = 72;
+    private static final int MINIMUM_HEIGHT = 64;
     private static final int CARD_WIDTH = 190;
     private static final int CARD_HEIGHT = 58;
     private static final int CARD_ARC = 12;
@@ -106,7 +106,7 @@ public class DocumentChainComposite extends Composite {
         chainContent = new Composite(scroller, SWT.NONE);
         final GridLayout layout = new GridLayout(Math.max(1, chainDocuments.size() * 2 - 1), false);
         layout.marginWidth = 8;
-        layout.marginHeight = 5;
+        layout.marginHeight = 3;
         layout.horizontalSpacing = 7;
         chainContent.setLayout(layout);
 

@@ -779,6 +779,8 @@ public class Messages {
     public String parcelserviceFormfillerDialogTitle;
     public String partdescDocview;
     public String pathsDocumentsName;
+    public String preferencesBrowserAllowinvalidcerts;
+    public String preferencesBrowserFktsharedsecret;
     public String preferencesBrowserShowaddressbar;
     public String preferencesBrowserType;
     public String preferencesBrowserUrl;

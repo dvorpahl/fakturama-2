@@ -45,7 +45,11 @@ public abstract class AbstractCategory implements IEntity, Serializable {
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+    // No REFRESH cascade here on purpose: categories are static reference data, and this
+    // self-reference means REFRESH would otherwise walk the entire parent chain on every
+    // refresh of anything that references a category (see Product.categories, VAT.category) -
+    // multiplied by every row that references any category in that chain.
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
     @JoinColumns({ @JoinColumn(name = "FK_PARENT_CATEGORY") })
     private AbstractCategory parent = null;
 

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.lang.Boolean;
 import java.util.Date;
 import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -77,7 +76,13 @@ public class DocumentItem extends ModelObject implements Serializable, IDescriba
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.REFRESH })
+    // No REFRESH cascade: Product is static reference data, not part of what
+    // DocumentEditor#init's forced findById(id, true) needs to guard against (unsaved edits to
+    // *this document's own* items) - but em.refresh() always re-hits the DB regardless of
+    // whether the entity is already cached, so REFRESH here means every document reopen also
+    // re-fetches every line item's product (and, via Product's own REFRESH-less associations
+    // below, would otherwise cascade into its category chain and VAT too).
+    @ManyToOne()
     @JoinColumns({ @JoinColumn(name = "FK_PRODUCT") })
     private Product product = null;
 
@@ -151,7 +156,8 @@ public class DocumentItem extends ModelObject implements Serializable, IDescriba
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.REFRESH })
+    // No REFRESH cascade: see the note on product above - VAT is static reference data too.
+    @ManyToOne()
     @JoinColumns({ @JoinColumn(name = "FK_VAT") })
     private VAT itemVat = null;
 

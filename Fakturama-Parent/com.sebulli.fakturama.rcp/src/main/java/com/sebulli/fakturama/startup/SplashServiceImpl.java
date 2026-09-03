@@ -138,8 +138,8 @@ public class SplashServiceImpl implements ISplashService {
 		// TODO Set the position and style of the text from outside to make the service reusable
 		textLabel = createTextLabel(shell);
 		if (textRect == null) {
-			textRect = new Rectangle(10, imageBounds.height - 50,
-					imageBounds.width - 40, 40);
+			textRect = new Rectangle(10, imageBounds.height - 35,
+					imageBounds.width - 40, 25);
 		}
 		textLabel.setBounds(textRect);
 

@@ -67,6 +67,7 @@ public class DbUpdateService implements IDbUpdateService {
     private static final String SYS_PROP_DATABASE_PORT = "hsql.database.port";
     private IPreferenceStore preferenceStore;
     private IActivateDbServer currentDbServer;
+    private volatile Throwable lastError;
 
     /* (non-Javadoc)
      * @see com.sebulli.fakturama.dbservice.IDbUpdateService#updateDatabase()
@@ -74,6 +75,7 @@ public class DbUpdateService implements IDbUpdateService {
     @Override
     public boolean updateDatabase() {
         boolean retval = true;
+        lastError = null;
 
         // get the preferences for this application
         final Bundle bundle = FrameworkUtil.getBundle(DbUpdateService.class);
@@ -121,6 +123,7 @@ public class DbUpdateService implements IDbUpdateService {
             //            liquibase.update(new Contexts());
         } catch (LiquibaseException | SQLException | NullPointerException ex) {
             System.err.println("Failed to create the database connection: " + ex);
+            lastError = ex;
             retval = false;
         } finally {
             if (liquibase != null) {
@@ -231,10 +234,20 @@ public class DbUpdateService implements IDbUpdateService {
             System.err.println("SQLException: " + ex.getMessage());
             System.err.println("SQLState: " + ex.getSQLState());
             System.err.println("VendorError: " + ex.getErrorCode());
+            lastError = ex;
         } catch (final InvalidSyntaxException e) {
             System.err.println("Invalid syntax: " + e.getMessage());
+            lastError = e;
         }
         return conn;
+    }
+
+    /* (non-Javadoc)
+     * @see com.sebulli.fakturama.dbservice.IDbUpdateService#getLastError()
+     */
+    @Override
+    public Throwable getLastError() {
+        return lastError;
     }
 
     @Override

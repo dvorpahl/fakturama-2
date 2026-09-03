@@ -75,7 +75,11 @@ public class CreditorsDAO extends AbstractDAO<Creditor> {
         Predicate predicate = buildTreeListPredicate(cb, root, searchTerm);
         final Set<Long> categoryIds = resolveCategoryIds(categoryName, treeObjectType);
         if (categoryIds != null) {
-            predicate = cb.and(predicate, root.get(Creditor_.categories).get("id").in(categoryIds));
+            // An empty IN(...) is not "no restriction" here - EclipseLink can compile it as an
+            // unrestricted predicate instead of "always false", which would silently show
+            // everything for a category selection that (for whatever reason) resolved to no
+            // matching categories. Make that case explicitly match nothing instead.
+            predicate = cb.and(predicate, categoryIds.isEmpty() ? cb.disjunction() : root.get(Creditor_.categories).get("id").in(categoryIds));
         }
         return predicate;
     }

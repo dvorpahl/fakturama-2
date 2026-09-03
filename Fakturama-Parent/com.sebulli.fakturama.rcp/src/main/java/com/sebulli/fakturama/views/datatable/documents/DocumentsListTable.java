@@ -7,10 +7,13 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -145,6 +148,12 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     @Inject
     private DocumentsDAO documentsDAO;
 
+    // Ids of the DELIVERY-type documents in the currently loaded page that have a non-null
+    // invoiceReference - batch-loaded per page in loadDocumentPage() via a WHERE IS NOT NULL
+    // predicate, so stateIconFor()/stateText() don't each trigger a full-entity resolve of the
+    // (non-LAZY, non-fetch-joined) invoiceReference relation for every visible row.
+    private Set<Long> deliveriesWithInvoiceReference = Collections.emptySet();
+
     @Inject
     private DocumentReceiverDAO contactsDAO;
 
@@ -220,6 +229,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
         com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyHeaderStyle(table);
+        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyFixedRowHeight(table, 1.7f);
         documentsViewer = new TableViewer(table);
         documentsViewer.setUseHashlookup(true);
 
@@ -403,7 +413,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             case CREDIT:
                 return doc.getPayDate() != null && BooleanUtils.toBoolean(doc.getPaid()) ? Icon.COMMAND_CHECKED : Icon.COMMAND_ERROR;
             case DELIVERY:
-                return doc.getInvoiceReference() != null ? Icon.COMMAND_INVOICE : null;
+                return deliveriesWithInvoiceReference.contains(doc.getId()) ? Icon.COMMAND_INVOICE : null;
             case DUNNING:
                 return doc.getPayDate() != null ? Icon.COMMAND_CHECKED : Icon.COMMAND_ERROR;
             case ORDER:
@@ -456,7 +466,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                         return msg.documentOrderStateOpen;
                 }
             case DELIVERY:
-                return doc.getInvoiceReference() != null ? msg.documentDeliveryStateHasinvoice : msg.documentDeliveryStateHasnoinvoice;
+                return deliveriesWithInvoiceReference.contains(doc.getId()) ? msg.documentDeliveryStateHasinvoice : msg.documentDeliveryStateHasnoinvoice;
             default:
                 return "";
         }
@@ -515,8 +525,19 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
     /** {@link PagedEntityEventList.PageLoader} for documentListData - current search/category/sort criteria. */
     private List<Document> loadDocumentPage(final int firstResult, final int maxResults) {
-        return documentsDAO.findPage(true, currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty, currentSortDescending,
-                firstResult, maxResults);
+        final List<Document> page = documentsDAO.findPage(true, currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty,
+                currentSortDescending, firstResult, maxResults);
+        // Merge (not replace) - other already-loaded pages may still be on screen and rely on
+        // their own ids still being present in this set.
+        final List<Long> deliveryIds = page.stream().filter(doc -> DocumentTypeUtil.findByBillingType(doc.getBillingType()) == DocumentType.DELIVERY)
+                .map(Document::getId).collect(Collectors.toList());
+        if (!deliveryIds.isEmpty()) {
+            if (deliveriesWithInvoiceReference.isEmpty()) {
+                deliveriesWithInvoiceReference = new java.util.HashSet<>();
+            }
+            deliveriesWithInvoiceReference.addAll(documentsDAO.findIdsWithInvoiceReference(deliveryIds));
+        }
+        return page;
     }
 
     /** Row count for the same criteria as {@link #loadDocumentPage(int, int)}. */

@@ -93,7 +93,10 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+    // No REFRESH cascade: category is static reference data, reached from DocumentItem.product -
+    // REFRESH here would re-fetch the whole category parent chain per document item on every
+    // document reopen (see DocumentEditor#init's forced findById(id, true)).
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
     @JoinColumns({ @JoinColumn(name = "FK_CATEGORY") })
     private ProductCategory categories = null;
 
@@ -215,7 +218,9 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.REFRESH })
+    // No REFRESH cascade: VAT is static reference data, reached from DocumentItem.product - see
+    // the note on categories above for why REFRESH here is expensive.
+    @ManyToOne()
     @JoinColumns({ @JoinColumn(name = "FK_VAT") })
     private VAT vat = null;
 

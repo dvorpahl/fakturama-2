@@ -31,6 +31,13 @@ public interface IDbUpdateService {
      */
     boolean updateDatabase();
 
+    /**
+     * The cause of the most recent failed {@link #updateDatabase()} call, if any.
+     *
+     * @return the underlying exception, or <code>null</code> if the last update succeeded (or none ran yet).
+     */
+    Throwable getLastError();
+
     void shutDownDb();
 
     /**

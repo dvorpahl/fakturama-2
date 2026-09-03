@@ -2235,7 +2235,7 @@ public class DocumentEditor extends Editor<Document> {
         // Add context help reference
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.DOCUMENT_EDITOR);
         final Composite documentHeader = new Composite(upperObjects, SWT.NONE);
-        GridLayoutFactory.fillDefaults().margins(6, 0).numColumns(2).equalWidth(true).spacing(16, 0).applyTo(documentHeader);
+        GridLayoutFactory.fillDefaults().margins(12, 0).numColumns(2).equalWidth(true).spacing(16, 0).applyTo(documentHeader);
         GridDataFactory.fillDefaults().grab(true, false).span(4, 1).applyTo(documentHeader);
 
         // First row, left column: document type followed by document number.
@@ -2307,12 +2307,12 @@ public class DocumentEditor extends Editor<Document> {
         // Second row: document navigation on the left, reserved direct links on the right.
         final Composite chainSlot = new Composite(documentHeader, SWT.NONE);
         GridLayoutFactory.fillDefaults().applyTo(chainSlot);
-        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 72).applyTo(chainSlot);
+        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 64).applyTo(chainSlot);
         createDocumentChain(chainSlot);
 
         final Composite directLinksSlot = new Composite(documentHeader, SWT.NONE);
         GridLayoutFactory.fillDefaults().applyTo(directLinksSlot);
-        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 72).applyTo(directLinksSlot);
+        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 64).applyTo(directLinksSlot);
         createCustomerSummary(directLinksSlot);
 
         final PGroup headerGroup = new PGroup(upperObjects, SWT.SMOOTH);
@@ -2658,10 +2658,19 @@ public class DocumentEditor extends Editor<Document> {
          */
 
         // finally calculate and set required size
-        scrollcomposite.setMinSize(upperObjects.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         scrollcomposite.setContent(upperObjects);
         scrollcomposite.setExpandHorizontal(true);
         scrollcomposite.setExpandVertical(true);
+        // Recompute against the actual current viewport width whenever the ScrolledComposite is
+        // resized (window resize, sash drag). A one-shot computeSize(SWT.DEFAULT, SWT.DEFAULT) used
+        // the natural/unconstrained width, which could go stale once a scrollbar appeared or the
+        // window was resized, so full-width children (e.g. the "allgemeine Angaben" header and the
+        // item table) ended up laid out slightly wider than what's actually visible and bled a sliver
+        // of their background past the right edge of the window.
+        final Listener recalculateMinSize = event -> scrollcomposite
+                .setMinSize(upperObjects.computeSize(scrollcomposite.getClientArea().width, SWT.DEFAULT));
+        scrollcomposite.addListener(SWT.Resize, recalculateMinSize);
+        recalculateMinSize.handleEvent(null);
 
         final ScrolledComposite sc2 = new ScrolledComposite(sashForm, SWT.H_SCROLL | SWT.V_SCROLL);
         final Composite bottomObjects = new Composite(sc2, SWT.NONE);

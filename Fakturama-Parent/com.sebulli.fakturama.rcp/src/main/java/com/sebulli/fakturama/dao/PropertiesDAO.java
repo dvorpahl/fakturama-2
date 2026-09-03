@@ -1,6 +1,8 @@
 package com.sebulli.fakturama.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
@@ -81,6 +83,31 @@ public class PropertiesDAO extends AbstractDAO<UserProperty> {
             result = query.getResultList().get(0);
         }
         return result != null ? Optional.ofNullable(result.getValue()) : Optional.empty();
+    }
+
+    /**
+     * Finds the current value of every user property in one query, instead of one query per name
+     * (as {@link #findPropertyValue(String)} does). Used by {@code PreferencesInDatabase} at
+     * startup, which used to call {@code findPropertyValue} once per preference key across ~15
+     * preference pages (~145 individual, unindexed SELECTs on this small table). Reproduces
+     * {@code findPropertyValue}'s "most recently added row wins" semantics for duplicate names by
+     * ordering ascending on {@code dateAdded} and letting later rows overwrite earlier ones in the
+     * map, instead of a per-name ORDER BY + take-first.
+     *
+     * @return a name-to-value map of every stored property
+     */
+    public Map<String, String> findAllPropertyValues() {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<UserProperty> criteria = cb.createQuery(getEntityClass());
+        final Root<UserProperty> root = criteria.from(UserProperty.class);
+        criteria.orderBy(cb.asc(root.get(UserProperty_.dateAdded)));
+        final TypedQuery<UserProperty> query = getEntityManager().createQuery(criteria);
+        query.setHint(QueryHints.CACHE_STORE_MODE, "REFRESH");
+        final Map<String, String> values = new HashMap<>();
+        for (final UserProperty property : query.getResultList()) {
+            values.put(property.getName(), property.getValue());
+        }
+        return values;
     }
 
     /**

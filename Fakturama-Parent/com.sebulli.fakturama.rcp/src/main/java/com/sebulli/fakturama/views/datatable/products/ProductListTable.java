@@ -52,6 +52,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
 import com.sebulli.fakturama.dao.AbstractDAO;
 import com.sebulli.fakturama.dao.ProductCategoriesDAO;
@@ -189,6 +190,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
         com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyHeaderStyle(table);
+        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyFixedRowHeight(table, 1.7f);
         productsViewer = new TableViewer(table);
         productsViewer.setUseHashlookup(true);
 
@@ -257,6 +259,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
      */
     private void createColumns() {
         final String[] visibleProperties = productsDAO.getVisibleProperties();
+        int descriptionColumnIndex = -1;
+        int columnIndex = 0;
         for (final String propertyName : visibleProperties) {
             final ProductListDescriptor descriptor = ProductListDescriptor.getDescriptorForProperty(propertyName).orElse(null);
             if (descriptor == null) {
@@ -275,6 +279,21 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 }
             });
             tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), 30, true));
+            if (descriptor == ProductListDescriptor.DESCRIPTION) {
+                descriptionColumnIndex = columnIndex;
+            }
+            columnIndex++;
+        }
+        if (descriptionColumnIndex >= 0) {
+            // The description column is exactly what applyFixedRowHeight() clips - let a click on
+            // it show the full text in a sticky popup instead of only ever seeing a cut-off first
+            // line and a bit of the second.
+            final int finalDescriptionColumnIndex = descriptionColumnIndex;
+            com.sebulli.fakturama.views.datatable.common.ModernTableStyle.addStickyCellPopover(table, finalDescriptionColumnIndex, row -> {
+                final TableItem item = table.getItem(row);
+                final Object data = item.getData();
+                return data instanceof Product product ? product.getDescription() : null;
+            });
         }
     }
 
@@ -302,7 +321,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                     case NAME:
                         return product.getName();
                     case DESCRIPTION:
-                        return product.getDescription();
+                        return com.sebulli.fakturama.views.datatable.common.ModernTableStyle.singleLineSummary(product.getDescription());
                     case QUANTITY:
                         return product.getQuantity() != null ? numberFormatterService.doubleToFormattedQuantity(product.getQuantity()) : "";
                     case PRICE:

@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -55,6 +56,7 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
@@ -131,11 +133,18 @@ public class LifecycleManager {
 
     @PostContextCreate
     public void checksBeforeStartup(final ISplashService splashService, final IEventBroker eventBroker) {
+        // Must happen before the first org.eclipse.swt.browser.Browser is created anywhere
+        // (e.g. BrowserEditor) - WebKitGTK reads this JVM system property once, in a static
+        // initializer. GTK/Linux only; for development use only (self-signed dev servers).
+        if (eclipsePrefs.getBoolean(Constants.PREFERENCES_BROWSER_ALLOW_INVALID_CERTS, false)) {
+            System.setProperty("org.eclipse.swt.internal.webkitgtk.ignoretlserrors", "true");
+        }
+
         splashService.setSplashPluginId(Activator.PLUGIN_ID);
         splashService.setSplashImagePath("splash-rcp.png");
         splashService.setTotalWork(40);
         splashService.open();
-        splashService.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
+        splashService.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
         splashService.setMessage("Loading Application...");
 
         // There should be a better way to close the Splash
@@ -166,7 +175,8 @@ public class LifecycleManager {
             final boolean dbupdate = dbUpdateService.updateDatabase();
             if (!dbupdate) {
                 log.error("couldn't create or update database!");
-                MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
+                MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError,
+                        withDetail(msg.startErrorNodatabase, dbUpdateService.getLastError()));
                 System.exit(1);
             }
 
@@ -194,7 +204,8 @@ public class LifecycleManager {
                         return Status.OK_STATUS;
                     } catch (final PersistenceException e) {
                         log.error(e, "Datenbank kann nicht gestartet werden. Anwendung wird beendet.");
-                        MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
+                        MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError,
+                                withDetail(msg.startErrorNodatabase, e));
                         return Status.CANCEL_STATUS;
                     }
                 }
@@ -241,6 +252,29 @@ public class LifecycleManager {
      * @param splashService
      * @throws FakturamaStoringException
      */
+    /**
+     * Appends an item to a running, comma-separated splash progress message (e.g. "Preparing data: VAT, Shipping")
+     * and pushes the updated text to the splash screen. Used for a burst of short-lived sub-steps that would
+     * otherwise flash by too fast to read as separate messages.
+     */
+    private String appendProgress(final ISplashService splashService, final String progress, final String item) {
+        final String updated = progress.endsWith(": ") ? progress + item : progress + ", " + item;
+        splashService.setMessage(updated);
+        return updated;
+    }
+
+    /**
+     * Appends the root cause's message to a user-facing error text, so a technical hint (connection refused,
+     * access denied, lock wait timeout, ...) is shown alongside the friendly explanation instead of leaving the
+     * user with only a generic guess as to what went wrong.
+     */
+    private String withDetail(final String message, final Throwable cause) {
+        if (cause == null) {
+            return message;
+        }
+        return message + "\n\n" + ExceptionUtils.getRootCauseMessage(cause);
+    }
+
     private void fillWithInitialData(final ISplashService splashService) throws FakturamaStoringException {
         // wait some seconds until dbInitJob is finished.
         // else you get a NPE!!!
@@ -250,6 +284,8 @@ public class LifecycleManager {
             log.info("ready to go ahead and looking for default values in db.");
         }
 
+        String dataProgress = "Preparing data: ";
+        splashService.setMessage(dataProgress);
         splashService.worked(1);
 
         final FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
@@ -262,7 +298,8 @@ public class LifecycleManager {
         try {
             vatsDAO = context.get(VatsDAO.class);
         } catch (final NullPointerException npe) {
-            MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError, msg.startErrorNodatabase);
+            MessageDialog.openError(splashService.getSplashShell(), msg.dialogMessageboxTitleError,
+                    withDetail(msg.startErrorNodatabase, npe));
             System.exit(1);
         }
 
@@ -294,6 +331,7 @@ public class LifecycleManager {
 
         // Set the default values to this entries
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_VAT, Long.valueOf(0)) == 0L) {
+            dataProgress = appendProgress(splashService, dataProgress, "VAT");
             VAT defaultVat = modelFactory.createVAT();
             defaultVat.setName(msg.dataDefaultVat);
             defaultVat.setDescription(msg.dataDefaultVatDescription);
@@ -307,6 +345,7 @@ public class LifecycleManager {
         splashService.worked(1);
 
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_SHIPPING, Long.valueOf(0)) == 0L) {
+            dataProgress = appendProgress(splashService, dataProgress, "Shipping");
             Shipping defaultShipping = modelFactory.createShipping();
             defaultShipping.setName(msg.dataDefaultShipping);
             defaultShipping.setDescription(msg.dataDefaultShippingDescription);
@@ -321,6 +360,7 @@ public class LifecycleManager {
         splashService.worked(1);
 
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_PAYMENT, Long.valueOf(0)) == 0L) {
+            dataProgress = appendProgress(splashService, dataProgress, "Payment");
             Payment defaultPayment = modelFactory.createPayment();
             // defaultPayment.setCode(Constants.TAX_DEFAULT_CODE);
             defaultPayment.setName(msg.dataDefaultPayment);
@@ -339,6 +379,7 @@ public class LifecycleManager {
         }
 
         // store current program version
+        splashService.setMessage("Saving program version...");
         final UserProperty userProp = new UserProperty();
         userProp.setName(Constants.CURRENT_PROGRAM_VERSION);
         userProp.setValue(Platform.getProduct().getDefiningBundle().getVersion().toString());
@@ -382,6 +423,7 @@ public class LifecycleManager {
         // the DefaultPreferences gets initialized through the calling extension
         // point (which is defined in META-INF).
         // here we have to restore the preference values from database
+        splashService.setMessage("Loading preferences...");
         final PreferencesInDatabase preferencesInDatabase = ContextInjectionFactory.make(PreferencesInDatabase.class, context);
         context.set(PreferencesInDatabase.class, preferencesInDatabase);
         preferencesInDatabase.loadPreferencesFromDatabase();
@@ -521,6 +563,27 @@ public class LifecycleManager {
 
         final MTrimmedWindow mainMTrimmedWindow = (MTrimmedWindow) modelService.find("com.sebulli.fakturama.application", app);
         mainMTrimmedWindow.setLabel(msg.applicationName + " - " + eclipsePrefs.get(Constants.GENERAL_WORKSPACE, null));
+
+        // see run-demo.sh / -Dfakturama.demoMode=true: a demo run should always open full-screen
+        // rather than whatever size the (freshly created, so never-before-persisted) window state
+        // would otherwise default to. A plain asyncExec() here fires too early - something later
+        // in startup still restores/sets the window bounds and stomps on it - so wait for
+        // APP_STARTUP_COMPLETE (the same "the app is now truly up" signal used just above for the
+        // workspace-restart handlers), and even then give the bounds-restoration a moment to
+        // finish first via a short timerExec before maximizing.
+        if (Boolean.getBoolean("fakturama.demoMode")) {
+            eventBroker.subscribe(UIEvents.UILifeCycle.APP_STARTUP_COMPLETE, new EventHandler() {
+                @Override
+                public void handleEvent(final Event event) {
+                    eventBroker.unsubscribe(this);
+                    Display.getDefault().timerExec(300, () -> {
+                        if (mainMTrimmedWindow.getWidget() instanceof final Shell shell) {
+                            shell.setMaximized(true);
+                        }
+                    });
+                }
+            });
+        }
 
         initDialogSettings(instanceLocation);
         splashService.worked(2);
