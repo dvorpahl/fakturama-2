@@ -283,9 +283,19 @@ QUANTITY at all, matching the pre-existing behavior:
 
   QUANTITY IS NOT NULL -> stockManaged = true
   QUANTITY IS NULL      -> stockManaged = false
+
+The addColumn changeSet is guarded by a columnExists precondition (unlike when
+this was first written) - every other structural changeSet in this file
+already does this, and without it a DB where STOCKMANAGED was added
+out-of-band (e.g. manually, to unblock testing before this changeSet existed)
+makes Liquibase abort the whole migration run with "Duplicate column" instead
+of just marking this one ran and moving on.
 -->
 
     <changeSet author="dvorpahl" id="20260901-103" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="FKT_PRODUCT" columnName="STOCKMANAGED"/></not>
+        </preConditions>
         <addColumn tableName="FKT_PRODUCT">
             <column name="STOCKMANAGED" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
@@ -751,6 +761,87 @@ simply won't get this view instead of failing its whole migration run.
                     WHERE pp2.ITEMNUMBER = pp.ITEMNUMBER AND pp2.PICTURE IS NOT NULL
                 )
         </createView>
+    </changeSet>
+
+<!--
+Index cleanup for the d36cfefa data-fetching rewrite (ProductsDAO/DocumentsDAO/
+Debitors-/CreditorsDAO#findPage): DAO methods that used to load a whole table
+into memory now page and sort server-side via ORDER BY + setFirstResult/
+setMaxResults, so the indexes backing that ORDER BY actually matter now.
+Checked against a live schema dump (fakturama2_test, 2026-09-03) rather than
+just this file, since previous entries here already show the two can drift
+apart.
+
+- idx_product_itemnumber_only is a byte-for-byte duplicate of
+  IDX_PRODUCT_ITEMNUMBER (20260901-020): leftover from the 9e7a74ff rename,
+  which changed the name used here but never dropped the physical index
+  still sitting under the old name on any DB that had already run the
+  original (pre-rename) changeset. Pure write-overhead, safe to drop.
+
+- IDX_DOC_LIST_DATE / IDX_DOC_LIST_NAME (20260901-010/011) are anchored on
+  DTYPE, the JOINED-inheritance discriminator. DocumentsDAO#findPage()'s new
+  buildCategoryPredicate() filters document type via the flat BILLINGTYPE
+  column instead, so DTYPE is never constrained by the new query and a
+  MariaDB index can't use an unconstrained middle column to serve
+  DOCUMENTDATE/NAME ordering - both indexes are dead weight against the
+  rewritten code. Replaced with DELETED-anchored equivalents matching what
+  findPage() actually filters/sorts by. Not folding BILLINGTYPE into these
+  (as a three-column index) on purpose: the unfiltered default view (no
+  document-type node selected, just DELETED + ORDER BY DOCUMENTDATE) is the
+  most common load and needs DOCUMENTDATE right after DELETED to avoid a
+  filesort - putting BILLINGTYPE in between would only serve the
+  type-filtered case, which IDX_DOC_BILLINGTYPE_DELETED (20260901-0xx,
+  further above) already covers on its own for the filter side.
+
+Deliberately NOT touched: FKT_PRODUCT.description/quantity/price1/vat and
+FKT_DOCUMENT.addressFirstLine/customerRef/totalValue are also reachable via
+findPage()'s orderByProperty parameter, but at current table sizes
+(FKT_PRODUCT ~3.5k, FKT_DOCUMENT ~9.7k rows) a filesort on any of them costs
+low single-digit milliseconds - not worth the extra write-side index
+maintenance yet. FKT_CONTACT was reviewed too: IDX_CONTACT_CUSTOMERNUMBER
+already matches Debitors-/CreditorsDAO#findPage's default sort exactly, no
+change needed.
+-->
+
+    <changeSet author="dvorpahl" id="20260903-079" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="FKT_PRODUCT" indexName="idx_product_itemnumber_only"/>
+        </preConditions>
+        <dropIndex indexName="idx_product_itemnumber_only" tableName="FKT_PRODUCT"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260903-080" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_LIST_DATE"/>
+        </preConditions>
+        <dropIndex indexName="IDX_DOC_LIST_DATE" tableName="FKT_DOCUMENT"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260903-081" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_DELETED_DATE"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_DELETED_DATE" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="DOCUMENTDATE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260903-082" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_LIST_NAME"/>
+        </preConditions>
+        <dropIndex indexName="IDX_DOC_LIST_NAME" tableName="FKT_DOCUMENT"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260903-083" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_DELETED_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_DELETED_NAME" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="NAME"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>
