@@ -56,8 +56,12 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
         } else {
             criteria.orderBy(cb.asc(root.get(Debitor_.customerNumber)));
         }
-        // Fetch joins MUST be added before createQuery() - see findForListView()'s comment.
+        // Fetch joins MUST be added before createQuery() - see findForListView()'s comment. Also
+        // fetch-joins addresses, same as every other Debitor query below - findPage() was the one
+        // caller still missing it (confirmed via SQL log: browsing a customer category fired one
+        // per-row FKT_ADDRESS SELECT per visible debitor instead of the one join below).
         fetchContactRelations(root);
+        root.fetch(Debitor_.addresses, JoinType.LEFT);
         final TypedQuery<Debitor> query = getEntityManager().createQuery(criteria);
         query.setFirstResult(firstResult);
         query.setMaxResults(maxResults);

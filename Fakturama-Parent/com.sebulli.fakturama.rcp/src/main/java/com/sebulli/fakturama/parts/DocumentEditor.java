@@ -1073,6 +1073,10 @@ public class DocumentEditor extends Editor<Document> {
             final Long objId = Long.valueOf(tmpObjId);
             // Set the editor's data set to the editor's input
             this.document = documentsDAO.findById(objId, true);
+            // One batched query for all of this document's items' products/categories, so the
+            // item list building right below doesn't fire one lazy Product (+ one ProductCategory)
+            // read per row - see the method's Javadoc for why that's not otherwise avoidable here.
+            documentsDAO.warmItemProductCache(this.document);
 
             // if a copy should be created, create one and take the objId as a "template"
             if (BooleanUtils.toBoolean((String) part.getTransientData().get(CallEditor.PARAM_COPY))) {

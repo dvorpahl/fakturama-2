@@ -822,7 +822,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -843,6 +843,28 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
       <jreBundle usePack200="false" />
+    </linuxDeb>
+    <linuxDeb name="Linux Deb Archive (x64, NO JRE)" id="900" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+      <excludedLaunchers>
+        <launcher id="44" />
+        <launcher id="537" />
+      </excludedLaunchers>
+      <exclude>
+        <entry defaultFileset="true" />
+        <entry filesetId="32" />
+        <entry filesetId="41" />
+        <entry filesetId="547" />
+        <entry filesetId="568" />
+      </exclude>
+      <preInstallScript>echo "removing old configuration from /usr/share/fakturama2/configuration"
+sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
+      <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
+sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo chmod 755 /usr/share/fakturama2/Fakturama
+sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
+      <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
+      <jreBundle usePack200="false" jreBundleSource="none" />
     </linuxDeb>
     <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
       <excludedLaunchers>

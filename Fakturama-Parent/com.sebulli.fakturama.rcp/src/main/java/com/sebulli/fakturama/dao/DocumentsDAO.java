@@ -33,6 +33,7 @@ import com.sebulli.fakturama.model.Credit;
 import com.sebulli.fakturama.model.Delivery;
 import com.sebulli.fakturama.model.Delivery_;
 import com.sebulli.fakturama.model.Document;
+import com.sebulli.fakturama.model.DocumentItem_;
 import com.sebulli.fakturama.model.DocumentReceiver_;
 import com.sebulli.fakturama.model.Document_;
 import com.sebulli.fakturama.model.DummyStringCategory;
@@ -46,6 +47,7 @@ import com.sebulli.fakturama.model.Offer;
 import com.sebulli.fakturama.model.Order;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Payment_;
+import com.sebulli.fakturama.model.Product_;
 import com.sebulli.fakturama.model.Proforma;
 import com.sebulli.fakturama.model.VoucherCategory;
 import com.sebulli.fakturama.views.datatable.documents.DocumentMatcher;
@@ -960,6 +962,38 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         criteria.select(root.get(Document_.id))
                 .where(cb.and(root.get(Document_.id).in(ids), cb.isNotNull(root.get(Document_.invoiceReference))));
         return new java.util.HashSet<>(getEntityManager().createQuery(criteria).getResultList());
+    }
+
+    /**
+     * Pre-loads a document's items together with their {@code Product} and each product's
+     * {@code categories} in a single outer-joined query, so that the item list's normal per-row
+     * access ({@code DocumentItem#getProduct()}, used e.g. by {@code DocumentItemListTable}'s label
+     * provider) finds an already-managed instance in the persistence context instead of firing its
+     * own lazy single-row SELECT. Same rationale as {@link #fetchDocumentRelations(Root)}'s
+     * Javadoc: weaving isn't enabled in this OSGi launch, so a "lazy" relation access is never
+     * actually free - the only way to keep it to one round trip is to resolve it eagerly, in bulk,
+     * before anything touches it row by row. Confirmed via SQL log: opening an invoice with 20 items
+     * fired 20 individual Product reads plus one ProductCategory read per distinct product,
+     * back-to-back, while the item table populated - a single call to this method up front replaces
+     * all of them with one query.
+     * <p>
+     * The result is discarded on purpose - this method is called purely for its side effect of
+     * populating the shared persistence context (the same {@link jakarta.persistence.EntityManager}
+     * {@code document} itself was loaded through), not for its return value.
+     *
+     * @param document the document whose items' products should be warmed; a no-op for {@code null}
+     *            or a document that isn't yet persisted
+     */
+    public void warmItemProductCache(final Document document) {
+        if (document == null) {
+            return;
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<Document> criteria = cb.createQuery(Document.class);
+        final Root<Document> root = criteria.from(Document.class);
+        root.fetch(Document_.items, JoinType.LEFT).fetch(DocumentItem_.product, JoinType.LEFT).fetch(Product_.categories, JoinType.LEFT);
+        criteria.where(cb.equal(root.get(Document_.id), document.getId()));
+        getEntityManager().createQuery(criteria).getResultList();
     }
 
     /**

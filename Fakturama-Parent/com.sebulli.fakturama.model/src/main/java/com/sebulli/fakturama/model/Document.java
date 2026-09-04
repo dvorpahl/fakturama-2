@@ -132,7 +132,14 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+    // FetchType.LAZY only takes effect with weaving enabled (see model/pom.xml's static-weave
+    // execution) - without it EclipseLink always resolves this eagerly regardless of this
+    // annotation. Without LAZY, every findPage()/findById() row for a Document with a non-null
+    // invoiceReference fires its own extra single-row SELECT while the row is being built, since
+    // this self-referencing relation is deliberately not fetch-joined (see
+    // DocumentsDAO#fetchDocumentRelations' Javadoc) - confirmed via thread dump: 138 such reads for
+    // one findPage() page in the demo dataset.
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "DOCUMENT_INVOICEREFERENCE") })
     private Invoice invoiceReference = null;
 
@@ -374,7 +381,8 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.REFRESH })
+    // See invoiceReference's comment above - same reasoning, same fix.
+    @ManyToOne(cascade = { CascadeType.REFRESH }, fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "FK_SRCDOCUMENT") })
     private Document sourceDocument = null;
 

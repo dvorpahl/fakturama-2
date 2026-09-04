@@ -844,4 +844,40 @@ change needed.
         </createIndex>
     </changeSet>
 
+<!--
+IDX_DOC_OPEN_INVOICES (20260901-012) missed the same DTYPE-vs-BILLINGTYPE bug the
+20260903-079..083 changesets above already fixed for IDX_DOC_LIST_DATE/NAME - the
+comment at 20260901-1xx even asserted it was "already covered", which was wrong.
+Confirmed live (2026-09-04 SQL trace of the "unpaid invoices" default tree selection):
+DocumentsListTable's category predicate for this node filters
+
+  WHERE (DELETED <> ?) AND (BILLINGTYPE = ?) AND NOT (PAYDATE IS NOT NULL AND PAID = ?)
+  ORDER BY DOCUMENTDATE DESC, ID DESC
+
+- i.e. BILLINGTYPE, not DTYPE (the JPA joined-inheritance discriminator IDX_DOC_OPEN_INVOICES
+was actually anchored on). The index degrades to a DELETED-only range scan for this query;
+its DTYPE/PAID columns are never used. Replaced with a DELETED+BILLINGTYPE+DOCUMENTDATE
+index matching what the query actually filters/sorts by (PAID/PAYDATE stay unindexed - a
+NOT(...) compound condition on them isn't sargable either way, same reasoning as the
+20260903 fixes above).
+-->
+
+    <changeSet author="dvorpahl" id="20260904-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_OPEN_INVOICES"/>
+        </preConditions>
+        <dropIndex indexName="IDX_DOC_OPEN_INVOICES" tableName="FKT_DOCUMENT"/>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260904-002" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_BILLINGTYPE_DATE"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_BILLINGTYPE_DATE" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="BILLINGTYPE"/>
+            <column name="DOCUMENTDATE"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

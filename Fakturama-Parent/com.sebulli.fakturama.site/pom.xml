@@ -45,6 +45,40 @@
 						<goals>
 							<goal>archive-products</goal>
 						</goals>
+						<!-- Moved from the default "package" phase (same as materialize-products) to run
+						     strictly after weave-model-bundle below, which needs the materialized product
+						     directories but must itself finish before the archives are built from them. -->
+						<phase>pre-integration-test</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<!-- Runs after materialize-products (same "package" phase, declared later in this
+						     file - Maven executes same-phase executions in POM order) and before
+						     archive-products (explicitly moved to pre-integration-test above), so the
+						     archived products ship com.sebulli.fakturama.model already statically woven.
+						     See weave-model-bundle.sh's own comment for why this is needed at all: without
+						     weaving, persistence.xml's lazy fetch mappings on self-referencing Document
+						     fields (sourceDocument/invoiceReference) are silently ignored at runtime and
+						     resolved eagerly for every row instead - confirmed to cause ~140 extra one-row
+						     SELECTs opening the default document list on a real dataset. -->
+						<id>weave-model-bundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>bash</executable>
+							<arguments>
+								<argument>${project.basedir}/weave-model-bundle.sh</argument>
+								<argument>${project.build.directory}/products</argument>
+							</arguments>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

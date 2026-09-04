@@ -50,10 +50,13 @@ public class CreditorsDAO extends AbstractDAO<Creditor> {
         } else {
             criteria.orderBy(cb.asc(root.get(Creditor_.customerNumber)));
         }
-        // Fetch joins MUST be added before createQuery() - see findAll(boolean)'s comment.
+        // Fetch joins MUST be added before createQuery() - see findAll(boolean)'s comment. Also
+        // fetch-joins addresses, same as every other Creditor query below - findPage() was the one
+        // caller still missing it (see DebitorsDAO#findPage's identical fix/comment).
         root.fetch(Creditor_.categories, JoinType.LEFT);
         root.fetch(Creditor_.payment, JoinType.LEFT);
         root.fetch(Creditor_.bankAccount, JoinType.LEFT);
+        root.fetch(Creditor_.addresses, JoinType.LEFT);
         final TypedQuery<Creditor> query = getEntityManager().createQuery(criteria);
         query.setFirstResult(firstResult);
         query.setMaxResults(maxResults);
