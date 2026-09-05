@@ -127,6 +127,12 @@ public class LifecycleManager {
 
     private IDialogSettings dialogSettings;
 
+    // Accumulated, comma-separated splash progress text (see appendProgress()'s Javadoc) - a
+    // plain instance field rather than a parameter threaded through checksBeforeStartup() and
+    // fillWithInitialData() so every setMessage() call site in both methods can append to the
+    // same running list without changing method signatures.
+    private String splashProgress = "";
+
     private static final boolean RESTART_APPLICATION = true;
 
     private Job dbInitJob;
@@ -145,7 +151,7 @@ public class LifecycleManager {
         splashService.setTotalWork(40);
         splashService.open();
         splashService.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-        splashService.setMessage("Loading Application...");
+        appendProgress(splashService, "Loading Application");
 
         // There should be a better way to close the Splash
         // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=376821
@@ -170,7 +176,7 @@ public class LifecycleManager {
             // EclipseLink
             // (but don't forget to enable it in persistence.xml)
 
-            splashService.setMessage("checking database...");
+            appendProgress(splashService, "checking database");
 
             final boolean dbupdate = dbUpdateService.updateDatabase();
             if (!dbupdate) {
@@ -182,7 +188,7 @@ public class LifecycleManager {
 
             splashService.worked(15);
 
-            splashService.setMessage("initialize classes...");
+            appendProgress(splashService, "initialize classes");
             dbInitJob = new Job("initDb") {
 
                 @Override
@@ -253,14 +259,62 @@ public class LifecycleManager {
      * @throws FakturamaStoringException
      */
     /**
-     * Appends an item to a running, comma-separated splash progress message (e.g. "Preparing data: VAT, Shipping")
-     * and pushes the updated text to the splash screen. Used for a burst of short-lived sub-steps that would
-     * otherwise flash by too fast to read as separate messages.
+     * Appends an item to a running, comma-separated splash progress message (e.g. "Loading
+     * Application, checking database, initialize classes") and pushes the updated text to the
+     * splash screen, instead of replacing it outright like a plain setMessage() call would.
+     * <p>
+     * Originally only used for the VAT/Shipping/Payment sub-steps inside fillWithInitialData()
+     * (which only run on a fresh/reinit database) - every *other* step in
+     * checksBeforeStartup()/fillWithInitialData() still called setMessage() directly, so on a
+     * normal (non-reinit) start the whole sequence from "Loading Application" onward replaces
+     * itself several times within well under a second, and a user only ever perceives whichever
+     * message happened to be showing at the one moment their eyes actually caught the splash -
+     * in practice always the last one ("Loading preferences...") since that is also the one
+     * showing right before the splash closes. Now used for every step in both methods, so the
+     * splash instead accumulates a readable history of what happened, however fast it happened.
+     * <p>
+     * Also holds each update visible for a minimum dwell time (see MIN_STEP_DWELL_MILLIS) - the
+     * accumulating text alone guarantees the *final* frame shows the full history, but on a fast
+     * (typically local/demo) database the individual steps still replace each other faster than a
+     * human can consciously read them appearing one at a time.
+     * <p>
+     * A first attempt paused with a plain Thread.sleep() here, which made no visible difference
+     * at all (confirmed: still only the final accumulated string ever appeared, even across
+     * several distinct steps that should each have been visible for 150ms). checksBeforeStartup()
+     * runs on the UI thread itself, and Shell#update() (called inside setMessage()) only flushes
+     * *already pending, already-mapped* paint requests - it does not pump the display's event
+     * queue, which is what actually lets the window manager map/expose an SWT.TOOL splash shell
+     * for the first time and process each subsequent repaint. A plain sleep on this thread blocks
+     * that pumping entirely for its whole duration, so the shell likely never got shown - or
+     * re-painted - at all until something *else* later in startup finally ran a real event loop,
+     * by which point every queued text change had long since been overwritten by the next one.
+     * Spending the dwell time in Display#readAndDispatch() instead keeps the event queue moving,
+     * so the window can actually be mapped and each intermediate frame actually painted.
      */
-    private String appendProgress(final ISplashService splashService, final String progress, final String item) {
-        final String updated = progress.endsWith(": ") ? progress + item : progress + ", " + item;
-        splashService.setMessage(updated);
-        return updated;
+    private static final int MIN_STEP_DWELL_MILLIS = 150;
+
+    private void appendProgress(final ISplashService splashService, final String item) {
+        splashProgress = splashProgress.isEmpty() ? item : splashProgress + ", " + item;
+        splashService.setMessage(splashProgress);
+
+        final Shell splashShell = splashService.getSplashShell();
+        if (splashShell == null || splashShell.isDisposed()) {
+            return;
+        }
+        final Display display = splashShell.getDisplay();
+        final long deadline = System.currentTimeMillis() + MIN_STEP_DWELL_MILLIS;
+        while (System.currentTimeMillis() < deadline) {
+            if (!display.readAndDispatch()) {
+                // Nothing queued right now - a short real sleep (not a busy-loop) until the
+                // deadline, or until dispatch() has something to do again, whichever is sooner.
+                try {
+                    Thread.sleep(10);
+                } catch (final InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -284,8 +338,7 @@ public class LifecycleManager {
             log.info("ready to go ahead and looking for default values in db.");
         }
 
-        String dataProgress = "Preparing data: ";
-        splashService.setMessage(dataProgress);
+        appendProgress(splashService, "preparing data");
         splashService.worked(1);
 
         final FakturamaModelFactory modelFactory = FakturamaModelPackage.MODELFACTORY;
@@ -331,7 +384,7 @@ public class LifecycleManager {
 
         // Set the default values to this entries
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_VAT, Long.valueOf(0)) == 0L) {
-            dataProgress = appendProgress(splashService, dataProgress, "VAT");
+            appendProgress(splashService, "VAT");
             VAT defaultVat = modelFactory.createVAT();
             defaultVat.setName(msg.dataDefaultVat);
             defaultVat.setDescription(msg.dataDefaultVatDescription);
@@ -345,7 +398,7 @@ public class LifecycleManager {
         splashService.worked(1);
 
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_SHIPPING, Long.valueOf(0)) == 0L) {
-            dataProgress = appendProgress(splashService, dataProgress, "Shipping");
+            appendProgress(splashService, "Shipping");
             Shipping defaultShipping = modelFactory.createShipping();
             defaultShipping.setName(msg.dataDefaultShipping);
             defaultShipping.setDescription(msg.dataDefaultShippingDescription);
@@ -360,7 +413,7 @@ public class LifecycleManager {
         splashService.worked(1);
 
         if (eclipsePrefs.getBoolean("isreinit", false) || eclipsePrefs.getLong(Constants.DEFAULT_PAYMENT, Long.valueOf(0)) == 0L) {
-            dataProgress = appendProgress(splashService, dataProgress, "Payment");
+            appendProgress(splashService, "Payment");
             Payment defaultPayment = modelFactory.createPayment();
             // defaultPayment.setCode(Constants.TAX_DEFAULT_CODE);
             defaultPayment.setName(msg.dataDefaultPayment);
@@ -379,7 +432,7 @@ public class LifecycleManager {
         }
 
         // store current program version
-        splashService.setMessage("Saving program version...");
+        appendProgress(splashService, "saving program version");
         final UserProperty userProp = new UserProperty();
         userProp.setName(Constants.CURRENT_PROGRAM_VERSION);
         userProp.setValue(Platform.getProduct().getDefiningBundle().getVersion().toString());
@@ -423,7 +476,7 @@ public class LifecycleManager {
         // the DefaultPreferences gets initialized through the calling extension
         // point (which is defined in META-INF).
         // here we have to restore the preference values from database
-        splashService.setMessage("Loading preferences...");
+        appendProgress(splashService, "loading preferences");
         final PreferencesInDatabase preferencesInDatabase = ContextInjectionFactory.make(PreferencesInDatabase.class, context);
         context.set(PreferencesInDatabase.class, preferencesInDatabase);
         preferencesInDatabase.loadPreferencesFromDatabase();

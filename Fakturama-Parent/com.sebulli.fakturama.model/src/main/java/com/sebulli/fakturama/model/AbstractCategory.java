@@ -9,6 +9,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -49,7 +50,11 @@ public abstract class AbstractCategory implements IEntity, Serializable {
     // self-reference means REFRESH would otherwise walk the entire parent chain on every
     // refresh of anything that references a category (see Product.categories, VAT.category) -
     // multiplied by every row that references any category in that chain.
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
+    // FetchType.LAZY only takes effect with weaving enabled (see model/pom.xml's static-weave
+    // execution) - same reasoning as Product.categories' comment: without it, every category
+    // access resolves this self-referencing parent chain eagerly, one row at a time, regardless
+    // of whether anything ever reads it.
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "FK_PARENT_CATEGORY") })
     private AbstractCategory parent = null;
 

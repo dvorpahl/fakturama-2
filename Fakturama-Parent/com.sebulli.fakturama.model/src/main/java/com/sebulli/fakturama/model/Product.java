@@ -96,7 +96,10 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     // No REFRESH cascade: category is static reference data, reached from DocumentItem.product -
     // REFRESH here would re-fetch the whole category parent chain per document item on every
     // document reopen (see DocumentEditor#init's forced findById(id, true)).
-    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
+    // FetchType.LAZY only takes effect with weaving enabled (see model/pom.xml's static-weave
+    // execution) and DocumentItem.product's identical comment for why EAGER here still meant one
+    // extra FKT_CATEGORY read per document item regardless of any fetch-join elsewhere.
+    @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "FK_CATEGORY") })
     private ProductCategory categories = null;
 

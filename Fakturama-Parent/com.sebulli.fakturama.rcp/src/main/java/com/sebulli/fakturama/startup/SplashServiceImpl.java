@@ -138,8 +138,14 @@ public class SplashServiceImpl implements ISplashService {
 		// TODO Set the position and style of the text from outside to make the service reusable
 		textLabel = createTextLabel(shell);
 		if (textRect == null) {
-			textRect = new Rectangle(10, imageBounds.height - 35,
-					imageBounds.width - 40, 25);
+			// 2 lines tall (was 1): LifecycleManager now accumulates every startup step into one
+			// growing, comma-separated message (see its appendProgress() Javadoc) instead of
+			// replacing it - a single line was too short to show more than the first ~15-20
+			// characters of that combined text without SWT.WRAP silently clipping the rest at
+			// the label's bottom edge. Kept anchored to the same bottom edge as before (only
+			// grown upward) so it still doesn't encroach on the progress bar area below it.
+			textRect = new Rectangle(10, imageBounds.height - 55,
+					imageBounds.width - 40, 45);
 		}
 		textLabel.setBounds(textRect);
 

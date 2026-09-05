@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -82,7 +83,14 @@ public class DocumentItem extends ModelObject implements Serializable, IDescriba
     // whether the entity is already cached, so REFRESH here means every document reopen also
     // re-fetches every line item's product (and, via Product's own REFRESH-less associations
     // below, would otherwise cascade into its category chain and VAT too).
-    @ManyToOne()
+    // FetchType.LAZY only takes effect with weaving enabled (see model/pom.xml's static-weave
+    // execution). Without it, EclipseLink resolves this eagerly on every row regardless of the
+    // annotation - which is exactly what still happened here even after DocumentsDAO's
+    // warmItemProductCache() pre-fetch: that pre-fetch populates the cache, but an EAGER mapping
+    // still gets independently re-resolved, one row at a time, whenever document.getItems() is
+    // read afterward (confirmed via SQL log: ~40 individual FKT_PRODUCT/FKT_CATEGORY reads
+    // opening one invoice, even with the pre-fetch in place).
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "FK_PRODUCT") })
     private Product product = null;
 
