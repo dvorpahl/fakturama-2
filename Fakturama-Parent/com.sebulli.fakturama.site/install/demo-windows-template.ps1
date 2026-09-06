@@ -25,6 +25,12 @@ $DB_NAME = "__DB_NAME__"
 $DB_USER = "__DB_USER__"
 $WEBBROWSER_URL = "__WEBBROWSER_URL__"
 $FKT_SHARED_SECRET = "__FKT_SHARED_SECRET__"
+# SHA-256 des Payload-ZIPs (roh, vor Base64), von build-demo-windows.sh zum Build-
+# Zeitpunkt berechnet - Pruefsumme, um eine auf dem Transportweg beschaedigte Datei
+# (grosser Base64-Block in einer ~300 MB-Textdatei ist anfaellig fuer kaputte
+# Downloads/Antiviren-Eingriffe) mit einer klaren Meldung statt einer kryptischen
+# .NET-Fehlermeldung zu erkennen.
+$PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"
 
 # Passwort-Dialog (maskiertes Eingabefeld, kein Klartext im Fenster) - das
 # Windows-Pendant zu zenity --password auf der Linux-Seite (Assemblies bereits
@@ -99,7 +105,22 @@ try {
     }
     $payloadStart = $scriptContent.IndexOf("`n", $markerIndex) + 1
     $base64Payload = $scriptContent.Substring($payloadStart).Trim()
-    $zipBytes = [Convert]::FromBase64String($base64Payload)
+    # Diese Datei ist ~300 MB gross und besteht praktisch nur aus diesem einen
+    # Base64-Block - genau das faellt manchen Antiviren-/Download-Pfaden auf und
+    # wird gelegentlich unterwegs beschaedigt. FromBase64String meldet das nur mit
+    # einer kryptischen .NET-Fehlermeldung, deshalb hier abfangen und klar sagen,
+    # was los ist (Heinz soll das direkt verstehen, ohne Screenshot an Danilo).
+    try {
+        $zipBytes = [Convert]::FromBase64String($base64Payload)
+    } catch {
+        throw "Die Datei fakturama-demo.ps1 ist beschaedigt (ungueltiges Base64) - vermutlich beim Herunterladen/Kopieren kaputtgegangen. Bitte die Datei neu von Danilo besorgen (am besten per USB-Stick statt Download) und Danilo kurz Bescheid geben."
+    }
+    if ($PAYLOAD_SHA256 -and $PAYLOAD_SHA256 -ne "__PAYLOAD_SHA256__") {
+        $actualHash = (Get-FileHash -InputStream ([System.IO.MemoryStream]::new($zipBytes)) -Algorithm SHA256).Hash
+        if ($actualHash -ne $PAYLOAD_SHA256) {
+            throw "Die Datei fakturama-demo.ps1 ist beschaedigt (Pruefsumme stimmt nicht) - vermutlich beim Herunterladen/Kopieren kaputtgegangen. Bitte die Datei neu von Danilo besorgen (am besten per USB-Stick statt Download) und Danilo kurz Bescheid geben."
+        }
+    }
     $zipPath = Join-Path $workDir "payload.zip"
     [System.IO.File]::WriteAllBytes($zipPath, $zipBytes)
     Expand-Archive -LiteralPath $zipPath -DestinationPath $workDir -Force

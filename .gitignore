@@ -15,3 +15,5 @@
 **/bin/
 /sql-structure.sql
 **/build-packages.sh
+*.audit
+*.result

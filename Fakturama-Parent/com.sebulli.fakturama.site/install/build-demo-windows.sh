@@ -83,6 +83,12 @@ tar -xzf "$JRE_ARCHIVE" -C "$BUILD_DIR/payload/jre"
 PAYLOAD_ZIP="$BUILD_DIR/payload.zip"
 ( cd "$BUILD_DIR/payload" && zip -q -r "$PAYLOAD_ZIP" app jre )
 
+# Pruefsumme des rohen (noch unkodierten) Payload-ZIPs - das generierte .ps1 prueft
+# damit nach dem Base64-Decode, ob die ~300 MB grosse Datei auf dem Transportweg
+# (Download/Kopie zu Heinz) unversehrt angekommen ist, statt bei Beschaedigung nur
+# eine kryptische .NET-Fehlermeldung zu zeigen.
+PAYLOAD_SHA256="$(sha256sum "$PAYLOAD_ZIP" | cut -d' ' -f1)"
+
 HEADER="$BUILD_DIR/header.ps1"
 cp "$TEMPLATE" "$HEADER"
 
@@ -96,6 +102,7 @@ sed -i \
     -e "s|__DB_USER__|${DB_USER}|g" \
     -e "s|__WEBBROWSER_URL__|${WEBBROWSER_URL}|g" \
     -e "s|__FKT_SHARED_SECRET__|${FKT_SHARED_SECRET}|g" \
+    -e "s|__PAYLOAD_SHA256__|${PAYLOAD_SHA256}|g" \
     "$HEADER"
 
 # PowerShell-Skripte muessen sauberer Text bleiben - das Payload-ZIP wird deshalb
@@ -108,5 +115,6 @@ cat "$HEADER" "$PAYLOAD_B64" > "$OUTPUT"
 printf '\n' >> "$OUTPUT"
 
 echo "Fertig: $OUTPUT ($(du -h "$OUTPUT" | cut -f1))"
+echo "Payload-SHA256: $PAYLOAD_SHA256"
 echo "Hinweis: dies ist ungetestet auf echtem Windows - vor Weitergabe einmal selbst starten:"
 echo "  powershell.exe -ExecutionPolicy Bypass -File fakturama-demo.ps1"

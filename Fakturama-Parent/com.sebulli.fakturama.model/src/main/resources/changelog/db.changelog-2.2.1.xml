@@ -880,4 +880,74 @@ NOT(...) compound condition on them isn't sargable either way, same reasoning as
         </createIndex>
     </changeSet>
 
+<!--
+New table FKT_PRODUCTWEBSHOP: one optional row per Product, holding only the
+webshop "Bewegungsdaten" that may legitimately diverge from the Fakturama
+values (price/stock), plus delivery time and sync bookkeeping for the
+upcoming WooCommerce REST sync client that is meant to replace the old
+neos-connector-for-fakturama WordPress plugin. Master data (name,
+description, categories) stays shop-managed and is intentionally not part of
+this table. Every column is scoped to what WooCommerce 11 actually supports
+natively (verified against a live product/meta_data dump), except
+DELIVERYTIME which is a Germanized-plugin field kept in scope because it's
+actively maintained per-product in prod today.
+
+FK_PRODUCT carries a unique index (IDX_PRODUCTWEBSHOP_PRODUCT) instead of a
+JPA @OneToOne, so this is a de-facto 1:1 extension of FKT_PRODUCT enforced at
+the DB level - see ProductWebshop.java for the ManyToOne mapping, matching
+this codebase's existing FKT_PRODUCTBLOCKPRICE/FKT_PRODUCTOPTIONS convention
+of a plain @ManyToOne on the child side rather than a bidirectional relation
+on Product.
+-->
+
+    <changeSet author="dvorpahl" id="20260905-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="FKT_PRODUCTWEBSHOP"/></not>
+        </preConditions>
+        <createTable tableName="FKT_PRODUCTWEBSHOP">
+            <column autoIncrement="true" name="ID" startWith="1" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="FK_PRODUCT" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SHOPPRICE" type="DOUBLE"/>
+            <column name="SHOPSALEPRICE" type="DOUBLE"/>
+            <column name="SHOPSALEFROM" type="date"/>
+            <column name="SHOPSALETO" type="date"/>
+            <column name="SHOPSTOCKQUANTITY" type="DOUBLE"/>
+            <column name="SHOPSTOCKSTATUS" type="VARCHAR(255)"/>
+            <column name="SHOPBACKORDERS" type="VARCHAR(255)"/>
+            <column name="SHOPLOWSTOCKAMOUNT" type="INT"/>
+            <column name="DELIVERYTIME" type="VARCHAR(255)"/>
+            <column name="LASTSYNCAT" type="datetime"/>
+            <column name="LASTSYNCSTATUS" type="VARCHAR(255)"/>
+            <column name="LASTSYNCERROR" type="LONGTEXT"/>
+            <column name="SYNCHASH" type="VARCHAR(255)"/>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="DATEADDED" type="date"/>
+            <column defaultValueNumeric="0" name="DELETED" type="BIT"/>
+            <column name="MODIFIED" type="date"/>
+            <column name="MODIFIEDBY" type="VARCHAR(255)"/>
+            <column name="VALIDFROM" type="date"/>
+            <column name="VALIDTO" type="date"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260905-002" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCTWEBSHOP" indexName="IDX_PRODUCTWEBSHOP_PRODUCT"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCTWEBSHOP_PRODUCT" tableName="FKT_PRODUCTWEBSHOP" unique="true">
+            <column name="FK_PRODUCT"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260905-003" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyTableName="FKT_PRODUCTWEBSHOP" foreignKeyName="FK_FKT_PRODUCT"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="FK_PRODUCT" baseTableName="FKT_PRODUCTWEBSHOP" constraintName="FK_FKT_PRODUCT" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="FKT_PRODUCT"/>
+    </changeSet>
+
 </databaseChangeLog>

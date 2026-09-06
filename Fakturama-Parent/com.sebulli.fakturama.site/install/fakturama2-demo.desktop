@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Fakturama2 Demo
+Comment=Fakturama2 Test-/Demo-Version - verbindet sich mit einer Test-Datenbank, kein Rueckstand nach dem Beenden
+Exec=/usr/bin/fakturama2-demo
+Icon=/opt/fakturama2-demo/icon.svg
+Terminal=true
+Categories=Office;Finance;

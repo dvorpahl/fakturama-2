@@ -59,6 +59,8 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.nebula.widgets.cdatetime.CDT;
+import org.eclipse.nebula.widgets.cdatetime.CDateTime;
 import org.eclipse.nebula.widgets.formattedtext.DoubleFormatter;
 import org.eclipse.nebula.widgets.formattedtext.FormattedText;
 import org.eclipse.swt.SWT;
@@ -86,6 +88,7 @@ import org.osgi.service.event.Event;
 
 import com.sebulli.fakturama.converter.CommonConverter;
 import com.sebulli.fakturama.dao.ProductCategoriesDAO;
+import com.sebulli.fakturama.dao.ProductWebshopDAO;
 import com.sebulli.fakturama.dao.ProductsDAO;
 import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
@@ -96,6 +99,8 @@ import com.sebulli.fakturama.model.CategoryComparator;
 import com.sebulli.fakturama.model.ObjectDuplicator;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.model.ProductCategory;
+import com.sebulli.fakturama.model.ProductWebshop;
+import com.sebulli.fakturama.model.ProductWebshop_;
 import com.sebulli.fakturama.model.Product_;
 import com.sebulli.fakturama.model.VAT;
 import com.sebulli.fakturama.parts.converter.CategoryConverter;
@@ -149,6 +154,9 @@ public class ProductEditor extends Editor<Product> {
     private ProductsDAO productsDAO;
 
     @Inject
+    private ProductWebshopDAO productWebshopDAO;
+
+    @Inject
     protected IEclipseContext context;
 
     @Inject
@@ -172,6 +180,18 @@ public class ProductEditor extends Editor<Product> {
     private FakturamaPictureControl labelProductPicture;
     private Composite photoComposite;
     private Text note;
+
+    // Webshop overlay (FKT_PRODUCTWEBSHOP) - the "im Shop" checkbox and its fields
+    private ProductWebshop editorProductWebshop;
+    // whether a persisted, non-deleted ProductWebshop row existed for this product when the
+    // editor was opened - needed at save time to tell "never had shop data, still doesn't" (skip
+    // saving anything) apart from "had shop data, user just unchecked it" (soft-delete the row)
+    private boolean productHadWebshopData;
+    private Button checkboxInShop;
+    private Composite webshopFieldsComposite;
+    private Text textShopPrice, textShopSalePrice, textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
+    private CDateTime dtShopSaleFrom, dtShopSaleTo;
+    private Combo comboShopStockStatus, comboShopBackorders;
 
     // Widgets (and variables) for the scaled price.
     private Label[] labelBlock = new Label[MAX_NUMBER_OF_PRICES];
@@ -308,6 +328,22 @@ public class ProductEditor extends Editor<Product> {
             return Boolean.FALSE;
         }
 
+        // Webshop overlay: only persist something if it's currently checked, or a row already
+        // existed and now needs to be soft-deleted (user unchecked it) - most products never get
+        // a FKT_PRODUCTWEBSHOP row at all, and this avoids creating an empty "deleted" one for them.
+        final boolean inShop = checkboxInShop.getSelection();
+        if (inShop || productHadWebshopData) {
+            try {
+                editorProductWebshop.setProduct(editorProduct);
+                editorProductWebshop.setDeleted(!inShop);
+                editorProductWebshop = productWebshopDAO.save(editorProductWebshop);
+                productHadWebshopData = inShop;
+            } catch (FakturamaStoringException e) {
+                log.error(e);
+                return Boolean.FALSE;
+            }
+        }
+
         // Set the Editor's name to the product name...
         this.part.setLabel(editorProduct.getName());
 
@@ -406,6 +442,15 @@ public class ProductEditor extends Editor<Product> {
 
             // Set the Editor's name to the product name.
             part.setLabel(editorProduct.getName());
+        }
+
+        // Load the webshop overlay for this product, if one exists - most products won't have
+        // one, since "im Shop" is opt-in per article.
+        editorProductWebshop = newProduct ? null : productWebshopDAO.findByProduct(editorProduct);
+        productHadWebshopData = (editorProductWebshop != null);
+        if (editorProductWebshop == null) {
+            editorProductWebshop = new ProductWebshop();
+            editorProductWebshop.setProduct(editorProduct);
         }
 
         createPartControl(parent);
@@ -896,9 +941,116 @@ public class ProductEditor extends Editor<Product> {
         note.addKeyListener(new ReturnKeyAdapter(note));
         GridDataFactory.fillDefaults().grab(true, true).applyTo(note);
 
+        createWebshopGroup(top);
+
         oldCat = editorProduct.getCategories();
 
         bindModel();
+    }
+
+    /**
+     * Creates the "Webshop" group: an "im Shop" checkbox plus the
+     * FKT_PRODUCTWEBSHOP fields (shop price/stock, sale window, delivery
+     * time). The fields are only meaningful while the checkbox is checked,
+     * so they're grouped into their own composite that gets enabled/disabled
+     * together with it (see {@link #setWebshopFieldsEnabled(boolean)}).
+     */
+    private void createWebshopGroup(final Composite parent) {
+        Group webshopGroup = new Group(parent, SWT.NONE);
+        webshopGroup.setText(msg.editorProductLabelWebshop);
+        GridLayoutFactory.swtDefaults().numColumns(1).applyTo(webshopGroup);
+        GridDataFactory.fillDefaults().span(2, 1).grab(true, false).applyTo(webshopGroup);
+
+        checkboxInShop = new Button(webshopGroup, SWT.CHECK);
+        checkboxInShop.setText(msg.editorProductFieldInshopName);
+        checkboxInShop.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent e) {
+                setWebshopFieldsEnabled(checkboxInShop.getSelection());
+            }
+        });
+
+        webshopFieldsComposite = new Composite(webshopGroup, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(2).margins(0, 0).applyTo(webshopFieldsComposite);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(webshopFieldsComposite);
+
+        Label labelShopPrice = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopPrice.setText(msg.editorProductFieldShoppriceName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
+        textShopPrice = new Text(webshopFieldsComposite, SWT.BORDER);
+        textShopPrice.addKeyListener(new ReturnKeyAdapter(textShopPrice));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice);
+
+        Label labelShopSalePrice = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopSalePrice.setText(msg.editorProductFieldShopsalepriceName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSalePrice);
+        textShopSalePrice = new Text(webshopFieldsComposite, SWT.BORDER);
+        textShopSalePrice.addKeyListener(new ReturnKeyAdapter(textShopSalePrice));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopSalePrice);
+
+        Label labelShopSaleFrom = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopSaleFrom.setText(msg.editorProductFieldShopsalefromName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleFrom);
+        dtShopSaleFrom = new CDateTime(webshopFieldsComposite, CDT.BORDER | CDT.DROP_DOWN);
+        dtShopSaleFrom.setFormat(CDT.DATE_MEDIUM);
+        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(dtShopSaleFrom);
+
+        Label labelShopSaleTo = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopSaleTo.setText(msg.editorProductFieldShopsaletoName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleTo);
+        dtShopSaleTo = new CDateTime(webshopFieldsComposite, CDT.BORDER | CDT.DROP_DOWN);
+        dtShopSaleTo.setFormat(CDT.DATE_MEDIUM);
+        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(dtShopSaleTo);
+
+        Label labelShopStockQuantity = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopStockQuantity.setText(msg.editorProductFieldShopstockquantityName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockQuantity);
+        textShopStockQuantity = new Text(webshopFieldsComposite, SWT.BORDER);
+        textShopStockQuantity.addKeyListener(new ReturnKeyAdapter(textShopStockQuantity));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopStockQuantity);
+
+        Label labelShopStockStatus = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopStockStatus.setText(msg.editorProductFieldShopstockstatusName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockStatus);
+        comboShopStockStatus = new Combo(webshopFieldsComposite, SWT.BORDER | SWT.READ_ONLY);
+        // WooCommerce's own fixed vocabulary for stock_status, kept untranslated since these are
+        // exactly the values sent/received over the REST API - a blank first entry means "not set".
+        comboShopStockStatus.setItems(new String[] { "", "instock", "outofstock", "onbackorder" });
+        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(comboShopStockStatus);
+
+        Label labelShopBackorders = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopBackorders.setText(msg.editorProductFieldShopbackordersName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopBackorders);
+        comboShopBackorders = new Combo(webshopFieldsComposite, SWT.BORDER | SWT.READ_ONLY);
+        // WooCommerce's own fixed vocabulary for backorders - see comboShopStockStatus above.
+        comboShopBackorders.setItems(new String[] { "", "no", "notify", "yes" });
+        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(comboShopBackorders);
+
+        Label labelShopLowStockAmount = new Label(webshopFieldsComposite, SWT.NONE);
+        labelShopLowStockAmount.setText(msg.editorProductFieldShoplowstockamountName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopLowStockAmount);
+        textShopLowStockAmount = new Text(webshopFieldsComposite, SWT.BORDER);
+        textShopLowStockAmount.addKeyListener(new ReturnKeyAdapter(textShopLowStockAmount));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopLowStockAmount);
+
+        Label labelDeliveryTime = new Label(webshopFieldsComposite, SWT.NONE);
+        labelDeliveryTime.setText(msg.editorProductFieldDeliverytimeName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDeliveryTime);
+        textDeliveryTime = new Text(webshopFieldsComposite, SWT.BORDER);
+        textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
+    }
+
+    /**
+     * Enables/disables every field in {@link #webshopFieldsComposite} at
+     * once, following the "im Shop" checkbox - mirrors how
+     * {@code checkboxStockManaged} above toggles {@code textQuantity}, just
+     * for a whole group of controls instead of one.
+     */
+    private void setWebshopFieldsEnabled(final boolean enabled) {
+        for (final Control child : webshopFieldsComposite.getChildren()) {
+            child.setEnabled(enabled);
+        }
     }
 
     private Map<Integer, PriceBlock> createPriceBlocks() {
@@ -970,11 +1122,45 @@ public class ProductEditor extends Editor<Product> {
         bindModelValue(editorProduct, udf02, Product_.cdf02.getName(), 64);
         bindModelValue(editorProduct, udf03, Product_.cdf03.getName(), 64);
         bindModelValue(editorProduct, note, Product_.note.getName(), 2048);
-             
+
         // TODO das sollte perspektivisch über binding abgehandelt werden!
         // bindModelValue(editorProduct, labelProductPicture, Product_.picture.getName(), null,null);
-        
+
+        bindWebshopFields();
+
         part.getTransientData().remove(BIND_MODE_INDICATOR);
+    }
+
+    /**
+     * Binds the "Webshop" group's controls to {@link #editorProductWebshop} -
+     * a different entity than the rest of this editor's fields, which is
+     * fine since {@code bindModelValue}'s generic overloads key off the
+     * passed-in target's own class (only its {@code FormattedText} overload
+     * hardcodes {@code getModelClass()}==Product, which is why none of these
+     * fields use {@code FormattedText}).
+     */
+    private void bindWebshopFields() {
+        checkboxInShop.setSelection(productHadWebshopData);
+        setWebshopFieldsEnabled(productHadWebshopData);
+
+        final NumberFormat doubleFormat = NumberFormat.getNumberInstance();
+        final UpdateValueStrategy<Object, String> doubleToStringStrategy = UpdateValueStrategy.create(NumberToStringConverter.fromDouble(doubleFormat, false));
+        final UpdateValueStrategy<Object, Double> stringToDoubleStrategy = UpdateValueStrategy.create(StringToNumberConverter.toDouble(false));
+        final UpdateValueStrategy<Object, String> intToStringStrategy = UpdateValueStrategy.create(NumberToStringConverter.fromInteger(doubleFormat, false));
+        final UpdateValueStrategy<Object, Integer> stringToIntStrategy = UpdateValueStrategy.create(StringToNumberConverter.toInteger(false));
+
+        bindModelValue(editorProductWebshop, textShopPrice, ProductWebshop_.shopPrice.getName(), 16, stringToDoubleStrategy, doubleToStringStrategy);
+        bindModelValue(editorProductWebshop, textShopSalePrice, ProductWebshop_.shopSalePrice.getName(), 16, stringToDoubleStrategy, doubleToStringStrategy);
+        bindModelValue(editorProductWebshop, textShopStockQuantity, ProductWebshop_.shopStockQuantity.getName(), 16, stringToDoubleStrategy,
+                doubleToStringStrategy);
+        bindModelValue(editorProductWebshop, textShopLowStockAmount, ProductWebshop_.shopLowStockAmount.getName(), 8, stringToIntStrategy, intToStringStrategy);
+        bindModelValue(editorProductWebshop, textDeliveryTime, ProductWebshop_.deliveryTime.getName(), 255);
+
+        bindModelValue(editorProductWebshop, dtShopSaleFrom, ProductWebshop_.shopSaleFrom.getName());
+        bindModelValue(editorProductWebshop, dtShopSaleTo, ProductWebshop_.shopSaleTo.getName());
+
+        bindModelValue(editorProductWebshop, comboShopStockStatus, ProductWebshop_.shopStockStatus.getName());
+        bindModelValue(editorProductWebshop, comboShopBackorders, ProductWebshop_.shopBackorders.getName());
     }
 
     /**

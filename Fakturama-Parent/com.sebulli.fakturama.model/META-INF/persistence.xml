@@ -39,6 +39,7 @@
 			<class>com.sebulli.fakturama.model.ProductCategory</class>
 			<class>com.sebulli.fakturama.model.ProductOptions</class>
 			<class>com.sebulli.fakturama.model.ProductBlockPrice</class>
+			<class>com.sebulli.fakturama.model.ProductWebshop</class>
 			
 			<class>com.sebulli.fakturama.model.Shipping</class>
 			<class>com.sebulli.fakturama.model.ShippingCategory</class>

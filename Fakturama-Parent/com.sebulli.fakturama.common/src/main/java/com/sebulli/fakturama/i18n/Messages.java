@@ -422,6 +422,17 @@ public class Messages {
     public String editorProductFieldStockmanagedClearconfirmMessage;
     public String editorProductFieldSupplierItemnumber;
     public String editorProductFieldSupplierItemnumberTooltip;
+    public String editorProductLabelWebshop;
+    public String editorProductFieldInshopName;
+    public String editorProductFieldShoppriceName;
+    public String editorProductFieldShopsalepriceName;
+    public String editorProductFieldShopsalefromName;
+    public String editorProductFieldShopsaletoName;
+    public String editorProductFieldShopstockquantityName;
+    public String editorProductFieldShopstockstatusName;
+    public String editorProductFieldShopbackordersName;
+    public String editorProductFieldShoplowstockamountName;
+    public String editorProductFieldDeliverytimeName;
     public String editorProductLabelFrom;
     public String editorProductNameTooltip;
     public String editorProductVatName;

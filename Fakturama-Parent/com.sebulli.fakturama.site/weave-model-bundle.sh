@@ -49,6 +49,14 @@ while IFS= read -r -d '' plugins_dir; do
     cp="$(cat "$cp_file")"
     rm -f "$cp_file"
 
+    # Preserved and re-applied after the mv below - mktemp creates its output with mode 600
+    # (owner-only), and mv onto model_jar makes that jar inherit the temp file's restrictive
+    # mode instead of keeping the original (Tycho-materialized, group/world-readable) one. That
+    # silently broke every packaged product: the app runs as a normal user, not root/the build
+    # user, so it could no longer even open this one jar - FileNotFoundException (Permission
+    # denied) cascading into com.sebulli.fakturama.model failing to load at all.
+    model_jar_mode="$(stat -c '%a' "$model_jar")"
+
     out_jar="$(mktemp --suffix=.jar)"
     argfile="$(mktemp)"
     {
@@ -67,6 +75,7 @@ while IFS= read -r -d '' plugins_dir; do
 
     java "@$argfile"
     mv "$out_jar" "$model_jar"
+    chmod "$model_jar_mode" "$model_jar"
     rm -f "$argfile"
     WOVEN_ANY=true
     echo "weave-model-bundle.sh: done: $model_jar"
