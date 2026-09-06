@@ -433,7 +433,11 @@ public class Messages {
     public String editorProductFieldShopbackordersName;
     public String editorProductFieldShoplowstockamountName;
     public String editorProductFieldDeliverytimeName;
+    public String editorProductLabelAdditionaldata;
     public String editorProductLabelFrom;
+    public String editorProductLabelMasterdata;
+    public String editorProductLabelPricing;
+    public String editorProductLabelStockshipping;
     public String editorProductNameTooltip;
     public String editorProductVatName;
     public String editorProductWarningDuplicatearticle;

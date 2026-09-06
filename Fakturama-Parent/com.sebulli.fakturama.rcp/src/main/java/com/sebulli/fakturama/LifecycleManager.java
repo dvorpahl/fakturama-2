@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -22,15 +24,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.e4.core.commands.ECommandService;
-import org.eclipse.e4.core.commands.EHandlerService;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
@@ -39,6 +38,9 @@ import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.internal.workbench.E4Workbench;
 import org.eclipse.e4.ui.model.application.MApplication;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.basic.MPartStack;
+import org.eclipse.e4.ui.model.application.ui.basic.MStackElement;
 import org.eclipse.e4.ui.model.application.ui.basic.MTrimmedWindow;
 import org.eclipse.e4.ui.workbench.IWorkbench;
 import org.eclipse.e4.ui.workbench.UIEvents;
@@ -46,6 +48,7 @@ import org.eclipse.e4.ui.workbench.lifecycle.PostContextCreate;
 import org.eclipse.e4.ui.workbench.lifecycle.PreSave;
 import org.eclipse.e4.ui.workbench.lifecycle.ProcessAdditions;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.e4.ui.workbench.modeling.ISaveHandler;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.jface.dialogs.DialogSettings;
@@ -74,6 +77,7 @@ import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.dbservice.IDbUpdateService;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.SaveHandler;
+import com.sebulli.fakturama.parts.BrowserEditor;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
 import com.sebulli.fakturama.misc.Constants;
@@ -151,7 +155,11 @@ public class LifecycleManager {
         splashService.setTotalWork(40);
         splashService.open();
         splashService.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-        appendProgress(splashService, "Loading Application");
+        // Same version string already used for the "About" dialog/saved program version
+        // (see fillWithInitialData() below) and the FKT bridge - shows the actual running
+        // build (e.g. "2.2.1.rc") instead of a generic, unchanging label.
+        final String appVersion = Platform.getProduct().getDefiningBundle().getVersion().toString();
+        appendProgress(splashService, "Loading v" + appVersion);
 
         // There should be a better way to close the Splash
         // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=376821
@@ -243,12 +251,40 @@ public class LifecycleManager {
         }
     }
 
+    /**
+     * Used to always call the "closeAll" command (see {@link com.sebulli.fakturama.handlers.CloseAllHandler})
+     * here, which - after prompting to save any dirty document - hides *and removes* every open
+     * document editor from the model, no matter whether it was dirty or not. That's fine for the
+     * user manually invoking "close all", but here, right before the model gets serialized for the
+     * next launch, it meant every document tab was gone from workbench.xmi, dirty or not - so
+     * "reopen the same product/invoice I had open" could never work, independent of the
+     * transientData vs. persistedState issue fixed in CallEditor#createEditorPart().
+     * <p>
+     * Now only dirty documents get the same prompt-then-close treatment (unsaved edits still
+     * shouldn't silently survive as a half-finished, un-reconstructable editor state - restoring
+     * in-progress unsaved field values across a restart is out of scope). Already-saved (clean)
+     * documents are left untouched in the model, so they - and, since CallEditor mirrors their
+     * record id into persistedState, their actual content too - are still there next launch.
+     */
     @PreSave
     public final void closeAndSaveEditors(final IEclipseContext context2) {
-        final EHandlerService handlerService = context.get(EHandlerService.class);
-        final ECommandService commandService = context.get(ECommandService.class);
-        final ParameterizedCommand command = commandService.createCommand("org.eclipse.ui.file.closeAll", null);
-        handlerService.executeHandler(command);
+        final EModelService modelService = context.get(EModelService.class);
+        final EPartService partService = context.get(EPartService.class);
+        final MApplication application = context.get(MApplication.class);
+        final MPartStack documentPartStack = (MPartStack) modelService.find(Constants.DETAILPANEL_ID, application);
+        if (documentPartStack == null) {
+            return;
+        }
+        final List<MStackElement> stackElements = documentPartStack.getChildren().stream()
+                .filter(elem -> !elem.getElementId().equals(BrowserEditor.ID) && elem.getTags().contains("documentWindow"))
+                .collect(Collectors.toList());
+        for (final MStackElement stackElement : stackElements) {
+            final MPart documentPart = (MPart) stackElement;
+            if (documentPart.getContext() != null && documentPart.isDirty()) {
+                partService.savePart(documentPart, true);
+                partService.hidePart(documentPart, true);
+            }
+        }
     }
 
     /**

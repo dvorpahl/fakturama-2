@@ -111,6 +111,20 @@ public class CallEditor {
     public static final String PARAM_PRECEDING_OFFER = "org.fakturama.document.precedingoffer";
 
     /**
+     * Returns a param an editor part was opened with, checking transientData first (the value set
+     * within the running session that created/found the part - see {@link #createEditorPart}) and
+     * falling back to persistedState (the same value, but mirrored there specifically so it
+     * survives an application restart, when transientData is empty again). Use this instead of a
+     * plain {@code part.getTransientData().get(...)} in any editor's @PostConstruct that needs to
+     * still find its record after a restart (currently {@link #PARAM_OBJ_ID}, {@link
+     * #PARAM_CATEGORY}, {@link #PARAM_VOUCHERTYPE} and {@link #PARAM_EDITOR_TYPE} are mirrored).
+     */
+    public static String resolveParam(final MPart part, final String key) {
+        final String transientValue = (String) part.getTransientData().get(key);
+        return transientValue != null ? transientValue : part.getPersistedState().get(key);
+    }
+
+    /**
      * The type of the editor which has to be called.
      */
     public static final String PARAM_EDITOR_TYPE = "com.sebulli.fakturama.editors.editortype";
@@ -266,7 +280,11 @@ public class CallEditor {
 	            	 */
 	            	
 	    			if (StringUtils.equalsIgnoreCase(mPart.getElementId(), type)/* && mPart.getContext() != null*/) {
-	    				String object = (String) mPart.getTransientData().get(PARAM_OBJ_ID);
+	    				// A part restored from a previous session (see persistedState above) still
+	    				// has an empty transientData until its own @PostConstruct runs, so fall back
+	    				// to persistedState here too - else re-opening the very record whose tab was
+	    				// restored on startup would open a duplicate tab instead of reusing it.
+	    				String object = resolveParam(mPart, PARAM_OBJ_ID);
 	    				if (StringUtils.equalsIgnoreCase(object, params.get(PARAM_OBJ_ID))) {
 //        log.debug("MYPART: " + (mPart != null? mPart.getObject() : "null") + "; obj: " + object);
 	    					myPart = mPart;
@@ -287,6 +305,22 @@ public class CallEditor {
 			myPart.getTags().add(partDescriptor.getCategory());
 
 			myPart.getTransientData().putAll(params);
+			// Also mirror the record id (and category, for a not-yet-persisted new record) into
+			// persistedState, which - unlike transientData - IS written to workbench.xmi and thus
+			// survives an application restart; see the various editors' @PostConstruct methods,
+			// which fall back to persistedState when transientData is empty (e.g. right after
+			// restart). Must happen here, before the part is added to the model tree below - doing
+			// this same put() later, once the part is live (e.g. from an editor's save() method),
+			// throws "IllegalArgumentException: A StringToStringMap that was NOT
+			// MApplicationElement.persistedState changed" (see VatEditor#save()'s comment) - so a
+			// record's id only starts surviving a restart once the record - and therefore this part
+			// - has been reopened at least once after being saved for the first time.
+			if (params.get(PARAM_OBJ_ID) != null) {
+				myPart.getPersistedState().put(PARAM_OBJ_ID, params.get(PARAM_OBJ_ID));
+			}
+			if (params.get(PARAM_CATEGORY) != null) {
+				myPart.getPersistedState().put(PARAM_CATEGORY, params.get(PARAM_CATEGORY));
+			}
 			stack.getChildren().add(myPart);
 			// we have to distinguish the different editors here
 			switch (type) {
@@ -310,12 +344,14 @@ public class CallEditor {
                 myPart.setLabel(msg.commandExpenditurevouchersName);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + ExpenditureVoucherEditor.class.getName());
                 myPart.getTransientData().put(PARAM_VOUCHERTYPE, VoucherType.EXPENDITURE.getName());
+                myPart.getPersistedState().put(PARAM_VOUCHERTYPE, VoucherType.EXPENDITURE.getName());
                 break;
 			case ReceiptVoucherEditor.ID:
 			case ReceiptVoucherListTable.ID:
                 myPart.setLabel(msg.commandReceiptvouchersName);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + ReceiptVoucherEditor.class.getName());
                 myPart.getTransientData().put(PARAM_VOUCHERTYPE, VoucherType.RECEIPTVOUCHER.getName());
+                myPart.getPersistedState().put(PARAM_VOUCHERTYPE, VoucherType.RECEIPTVOUCHER.getName());
                 break;
 			case ListEditor.ID:
 			case ItemAccountTypeListTable.ID:
@@ -338,11 +374,13 @@ public class CallEditor {
                 myPart.setLabel(msg.pageContacts);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + DebitorEditor.class.getName());
                 myPart.getTransientData().put(PARAM_EDITOR_TYPE, type);
+                myPart.getPersistedState().put(PARAM_EDITOR_TYPE, type);
                 break;
             case CreditorEditor.ID:
                 myPart.setLabel(msg.pageContacts);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + CreditorEditor.class.getName());
                 myPart.getTransientData().put(PARAM_EDITOR_TYPE, type);
+                myPart.getPersistedState().put(PARAM_EDITOR_TYPE, type);
                 break;
             case DocumentsListTable.ID:
             case DocumentEditor.ID:

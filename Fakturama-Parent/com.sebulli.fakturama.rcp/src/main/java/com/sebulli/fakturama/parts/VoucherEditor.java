@@ -466,13 +466,13 @@ public abstract class VoucherEditor extends Editor<Voucher> {
         this.part.setIconURI(getEditorIconURI());
         this.currencyUnit = DataUtils.getInstance().getDefaultCurrencyUnit();
 
-        String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+        String tmpObjId = CallEditor.resolveParam(part, CallEditor.PARAM_OBJ_ID);
         if (StringUtils.isNumeric(tmpObjId)) {
             Long objId = Long.valueOf(tmpObjId);
             // Set the editor's data set to the editor's input
             this.voucher = getModelRepository().findById(objId);
         }
-        String tmpVoucherType = (String) part.getTransientData().get(CallEditor.PARAM_VOUCHERTYPE);
+        String tmpVoucherType = CallEditor.resolveParam(part, CallEditor.PARAM_VOUCHERTYPE);
         if (tmpVoucherType != null) {
             voucherType = VoucherType.getByName(tmpVoucherType);
         }

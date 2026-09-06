@@ -200,7 +200,7 @@ public class PaymentEditor extends Editor<Payment> {
         long stdID = 1L;
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_PAYMENT.getIconURI());
-        final String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+        final String tmpObjId = CallEditor.resolveParam(part, CallEditor.PARAM_OBJ_ID);
         if (StringUtils.isNumeric(tmpObjId)) {
             objId = Long.valueOf(tmpObjId);
             // Set the editor's data set to the editor's input

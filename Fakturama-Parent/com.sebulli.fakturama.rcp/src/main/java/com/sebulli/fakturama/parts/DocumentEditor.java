@@ -1059,7 +1059,7 @@ public class DocumentEditor extends Editor<Document> {
             tmpPrecedingOffer = (Boolean) context.get(CallEditor.PARAM_PRECEDING_OFFER);
         } else {
             this.part = (MPart) parent.getData("modelElement");
-            tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+            tmpObjId = CallEditor.resolveParam(part, CallEditor.PARAM_OBJ_ID);
             tmpDuplicate = (Boolean) part.getTransientData().get(CallEditor.PARAM_FOLLOW_UP);
             tmpPrecedingOffer = (Boolean) part.getTransientData().get(CallEditor.PARAM_PRECEDING_OFFER);
         }

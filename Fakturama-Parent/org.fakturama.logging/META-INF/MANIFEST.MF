@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.fakturama.logging
 Fragment-Host: slf4j.api;bundle-version="2.0.17"
 Bundle-Name: Logging
-Bundle-Version: 2.2.1.rc
+Bundle-Version: 2.2.1.PREVIEW
 Require-Bundle: ch.qos.logback.classic;bundle-version="1.5.18";visibility:=reexport,
  ch.qos.logback.core;bundle-version="1.5.18";visibility:=reexport,
  org.apache.aries.spifly.dynamic.bundle;bundle-version="1.3.6";visibility:=reexport,

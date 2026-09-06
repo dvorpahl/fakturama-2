@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Model Test
 Bundle-SymbolicName: com.sebulli.fakturama.model.test
-Bundle-Version: 2.2.1.rc
+Bundle-Version: 2.2.1.PREVIEW
 Bundle-Vendor: Fakturama.org
 Fragment-Host: com.sebulli.fakturama.model
 Automatic-Module-Name: com.sebulli.fakturama.model.test

@@ -67,6 +67,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -74,6 +75,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -82,6 +84,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Text;
 import org.javamoney.moneta.Money;
 import org.osgi.service.event.Event;
@@ -188,7 +191,6 @@ public class ProductEditor extends Editor<Product> {
     // saving anything) apart from "had shop data, user just unchecked it" (soft-delete the row)
     private boolean productHadWebshopData;
     private Button checkboxInShop;
-    private Composite webshopFieldsComposite;
     private Text textShopPrice, textShopSalePrice, textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
     private CDateTime dtShopSaleFrom, dtShopSaleTo;
     private Combo comboShopStockStatus, comboShopBackorders;
@@ -388,7 +390,7 @@ public class ProductEditor extends Editor<Product> {
         this.part = (MPart) parent.getData("modelElement");
         this.part.setIconURI(Icon.COMMAND_PRODUCT.getIconURI());
 
-        String tmpObjId = (String) part.getTransientData().get(CallEditor.PARAM_OBJ_ID);
+        String tmpObjId = CallEditor.resolveParam(part, CallEditor.PARAM_OBJ_ID);
         if (StringUtils.isNumeric(tmpObjId)) {
             Long objId = Long.valueOf(tmpObjId);
 
@@ -465,8 +467,9 @@ public class ProductEditor extends Editor<Product> {
 		// Display the picture, if a product picture is set.
 		if (editorProduct.getPicture() != null) {
 
-			// Load the image, based on the picture name, save to image registry
-			labelProductPicture.setMaxImageWidth(250);
+			// Load the image, based on the picture name, save to image registry.
+			// Max size is governed dynamically by photoComposite's resize listener
+			// (see createPartControl) rather than a fixed size here.
 			image = JFaceResources.getImageRegistry().get("prodimg_" + editorProduct.getItemNumber());
 			if (image == null) {
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
@@ -533,130 +536,250 @@ public class ProductEditor extends Editor<Product> {
         // Create the ScrolledComposite to scroll horizontally and vertically
         ScrolledComposite scrollcomposite = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 
-        // Create the top Composite
-        top = new Composite(scrollcomposite, SWT.SCROLLBAR_OVERLAY | SWT.NONE); //was parent before 
-        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(top);
+        // Create the top Composite - just a plain single-column wrapper now;
+        // the actual layout lives in the nested SashForms below.
+        top = new Composite(scrollcomposite, SWT.SCROLLBAR_OVERLAY | SWT.NONE); //was parent before
+        GridLayoutFactory.swtDefaults().numColumns(1).margins(0, 0).applyTo(top);
 
         scrollcomposite.setContent(top);
-        scrollcomposite.setMinSize(1000, 600); // 2nd entry should be adjusted to higher value when new fields will be added to composite 
+        scrollcomposite.setMinSize(1000, 600); // 2nd entry should be adjusted to higher value when new fields will be added to composite
         scrollcomposite.setExpandHorizontal(true);
         scrollcomposite.setExpandVertical(true);
         scrollcomposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
 
-        // Create an invisible container for all hidden components
+        // Create an invisible container for all hidden components - deliberately NOT a
+        // child of any SashForm below (a SashForm treats every direct child as a pane
+        // needing its own sash, which this must not become).
         Composite invisible = new Composite(top, SWT.NONE);
         invisible.setVisible(false);
-        GridDataFactory.fillDefaults().hint(0, 0).span(2, 1).applyTo(invisible);
+        GridDataFactory.fillDefaults().hint(0, 0).applyTo(invisible);
         GridLayoutFactory.swtDefaults().margins(0, 0).applyTo(invisible);
 
-        // Add context help reference 
+        // Add context help reference
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.PRODUCT_EDITOR);
 
-        // Description and picture side by side, but as a SashForm instead of two
-        // fixed GridLayout columns - lets the user drag to give the (now much
-        // bigger, see FakturamaPictureControl#init) picture more or less room; the
-        // picture shrinks/grows with its pane since FakturamaPictureControl scales
-        // to its available width via setMaxImageWidth/-Height.
-        SashForm descriptionAndPictureSash = new SashForm(top, SWT.HORIZONTAL);
-        GridDataFactory.fillDefaults().grab(true, true).span(2, 1).applyTo(descriptionAndPictureSash);
-        // default.css styles every SashForm with a light blue background (#c1d5ef) -
-        // fine for the one that already used it, but this one sits directly behind
-        // the description/picture groups with nothing opaque covering the gutter/
-        // edges, so it bled through as an unwanted all-over blue tint. The CSS class
-        // wins even after the CSS engine re-styles (dynamic CSS is on, so a plain
-        // setBackground() call gets overridden again) - see .no-blue-sash in
-        // default.css. Also set directly for the first paint, before the engine has
-        // run at all - same idea as photoComposite's own setBackground() below.
-        descriptionAndPictureSash.setData("org.eclipse.e4.ui.css.CssClassName", "no-blue-sash");
-        descriptionAndPictureSash.setBackground(new Color(descriptionAndPictureSash.getDisplay(), 246, 245, 244));
+        // User-resizable layout: everything down through Zusatzdaten sits at its
+        // natural/minimum height in a plain (non-sash) grid; a single sash below
+        // that lets the user trade some of that fixed block's height for more
+        // room in Notiz, which absorbs all the slack by default.
+        SashForm rowsAndNoteSash = new SashForm(top, SWT.VERTICAL);
+        styleSash(rowsAndNoteSash);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(rowsAndNoteSash);
 
-        // Group: Product description
-        Group productDescGroup = new Group(descriptionAndPictureSash, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(productDescGroup);
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(productDescGroup);
+        Composite topBlock = new Composite(rowsAndNoteSash, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(3).applyTo(topBlock);
 
-        productDescGroup.setText(msg.commonFieldDescription);
+        // Group: Stammdaten
+        Group stammdatenGroup = new Group(topBlock, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(4).applyTo(stammdatenGroup);
+        GridDataFactory.fillDefaults().span(2, 1).grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(stammdatenGroup);
+        stammdatenGroup.setText("\u00A0\u00A0" + msg.editorProductLabelMasterdata);
 
-        // Item number
-        Label labelItemNr = new Label(useItemNr ? productDescGroup : invisible, SWT.NONE);
+        // Left column (top to bottom): Artikelnummer, Name, Kategorie
+        // Right column (top to bottom): GTIN, Art.-Nr. Lieferant, Einheit
+
+        // Row: Artikelnummer | GTIN
+        Label labelItemNr = new Label(useItemNr ? stammdatenGroup : invisible, SWT.NONE);
         labelItemNr.setText(msg.exporterDataItemnumber);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelItemNr);
-        textItemNr = new Text(useItemNr ? productDescGroup : invisible, SWT.BORDER);
+        textItemNr = new Text(useItemNr ? stammdatenGroup : invisible, SWT.BORDER);
         textItemNr.addKeyListener(new ReturnKeyAdapter(textItemNr));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textItemNr);
+        if (!useItemNr) {
+            // filler: keep this row's left-hand cells occupied even when
+            // Artikelnummer is hidden, so "GTIN" doesn't slide into its place
+            new Label(stammdatenGroup, SWT.NONE);
+            new Label(stammdatenGroup, SWT.NONE);
+        }
 
-        // Product name
-        Label labelName = new Label(productDescGroup, SWT.NONE);
+        Label labelGtin = new Label(stammdatenGroup, SWT.NONE);
+        labelGtin.setText(msg.editorProductFieldGtin);
+        //		labelGtin.setToolTipText(msg.editorProductFieldGtinTooltip);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelGtin);
+        textGtin = new Text(stammdatenGroup, SWT.BORDER);
+        textGtin.addKeyListener(new ReturnKeyAdapter(textGtin));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textGtin);
+
+        // Row: Name | Art.-Nr. Lieferant
+        Label labelName = new Label(stammdatenGroup, SWT.NONE);
         labelName.setText(msg.commonFieldName);
         labelName.setToolTipText(msg.editorProductNameTooltip);
-
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelName);
-        textName = new Text(productDescGroup, SWT.BORDER);
+        textName = new Text(stammdatenGroup, SWT.BORDER);
         textName.setToolTipText(labelName.getToolTipText());
         textName.addKeyListener(new ReturnKeyAdapter(textName));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textName);
 
-        // Product category
-        Label labelCategory = new Label(productDescGroup, SWT.NONE);
-        labelCategory.setText(msg.commonFieldCategory);
-        labelCategory.setToolTipText(msg.editorProductCategoryTooltip);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
-
-        comboCategory = new CCombo(productDescGroup, SWT.BORDER);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
-
-        // GTIN
-        Label labelGtin = new Label(productDescGroup, SWT.NONE);
-        labelGtin.setText(msg.editorProductFieldGtin);
-        //		labelGtin.setToolTipText(msg.editorProductFieldGtinTooltip);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelGtin);
-
-        textGtin = new Text(productDescGroup, SWT.BORDER);
-        textGtin.addKeyListener(new ReturnKeyAdapter(textGtin));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textGtin);
-
-        // supplier's product number
-        Label labelSupplierItemNumber = new Label(productDescGroup, SWT.NONE);
+        Label labelSupplierItemNumber = new Label(stammdatenGroup, SWT.NONE);
         labelSupplierItemNumber.setText(msg.editorProductFieldSupplierItemnumber);
         labelSupplierItemNumber.setToolTipText(msg.editorProductFieldSupplierItemnumberTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelSupplierItemNumber);
-
-        textSupplierItemNumber = new Text(productDescGroup, SWT.BORDER);
+        textSupplierItemNumber = new Text(stammdatenGroup, SWT.BORDER);
         textSupplierItemNumber.addKeyListener(new ReturnKeyAdapter(textSupplierItemNumber));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textSupplierItemNumber);
 
         // for correct tab-order (see FAK-465)
         Control nextWidget = null;
 
-        // Product description
-        Label labelDescription = new Label(useDescription ? productDescGroup : invisible, SWT.NONE);
-        labelDescription.setText(msg.commonFieldDescription);
-        //T: Tool Tip Text
-        labelDescription.setToolTipText(msg.editorProductAdddescriptionTooltip);
+        // Row: Kategorie | Einheit
+        Label labelCategory = new Label(stammdatenGroup, SWT.NONE);
+        labelCategory.setText(msg.commonFieldCategory);
+        labelCategory.setToolTipText(msg.editorProductCategoryTooltip);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
+        comboCategory = new CCombo(stammdatenGroup, SWT.BORDER);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
 
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDescription);
-        textDescription = new Text(useDescription ? productDescGroup : invisible, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-        //		textDescription.setText(DataUtils.makeOSLineFeeds(editorProduct.getStringValueByKey("description")));
-        textDescription.setToolTipText(labelDescription.getToolTipText());
-        GridDataFactory.fillDefaults().hint(10, 80).grab(true, false).applyTo(textDescription);
-
-        // Product quantity
-        Label labelQuantityUnit = new Label(useQuantityUnit ? productDescGroup : invisible, SWT.NONE);
+        Label labelQuantityUnit = new Label(useQuantityUnit ? stammdatenGroup : invisible, SWT.NONE);
         //T: Product Editor - Label Product quantity unit
         labelQuantityUnit.setText(msg.editorProductFieldQuantityunitName);
         GridDataFactory.defaultsFor(labelQuantityUnit).indent(-20, 0).align(SWT.END, SWT.CENTER).applyTo(labelQuantityUnit);
 
         if (useQuantityUnit) {
-            textQuantityUnit = new Text(productDescGroup, SWT.BORDER);
+            textQuantityUnit = new Text(stammdatenGroup, SWT.BORDER);
             textQuantityUnit.addKeyListener(new ReturnKeyAdapter(textQuantityUnit));
             nextWidget = textQuantityUnit;
         } else {
             textQuantityUnit = new Text(invisible, SWT.BORDER);
+            // filler: keep this row's cell count at 4 even when Einheit is
+            // hidden, so "Beschreibung" below doesn't slide into its place
+            new Label(stammdatenGroup, SWT.NONE);
+            new Label(stammdatenGroup, SWT.NONE);
         }
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textQuantityUnit);
 
-        // Product price
-        Label labelPrice = new Label(productDescGroup, SWT.NONE);
+        // Row: Beschreibung, spanning the group's full width - kept fairly
+        // short (it can still grow if the window does), the picture preview
+        // below matches whatever height this row ends up with
+        Label labelDescription = new Label(useDescription ? stammdatenGroup : invisible, SWT.NONE);
+        labelDescription.setText(msg.commonFieldDescription);
+        //T: Tool Tip Text
+        labelDescription.setToolTipText(msg.editorProductAdddescriptionTooltip);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDescription);
+        textDescription = new Text(useDescription ? stammdatenGroup : invisible, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+        //		textDescription.setText(DataUtils.makeOSLineFeeds(editorProduct.getStringValueByKey("description")));
+        textDescription.setToolTipText(labelDescription.getToolTipText());
+        GridDataFactory.fillDefaults().span(3, 1).hint(10, 50).grab(true, true).applyTo(textDescription);
+
+        // Group: Produktbild - beside Stammdaten
+        Group productPictureGroup = new Group(usePicture ? topBlock : invisible, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(1).applyTo(productPictureGroup);
+        GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(productPictureGroup);
+        productPictureGroup.setText("\u00A0\u00A0" + msg.exporterDataPicture);
+        if (!usePicture) {
+            // filler: keep row 1 at 3 columns even when Produktbild is hidden
+            new Label(topBlock, SWT.NONE);
+        }
+
+        // The photo - proportional/centered via FakturamaPictureControl's own scaling,
+        // filling whatever space Produktbild actually has (grows with it, see
+        // stammdatenGroup/productPictureGroup's grab(true, true) above) rather than
+        // floating at a fixed natural size in the middle of a bigger box.
+        photoComposite = new Composite(productPictureGroup, SWT.BORDER);
+        GridLayoutFactory.swtDefaults().margins(10, 10).numColumns(1).applyTo(photoComposite);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(photoComposite);
+        photoComposite.setBackground(new Color(null, 255, 255, 255));
+
+        // The picture name label
+        labelProductPicture = new FakturamaPictureControl(photoComposite);
+        ContextInjectionFactory.inject(labelProductPicture, context);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(labelProductPicture);
+        createAndSetDefaultImage();
+        setPicture();
+
+        // getMaxImageWidth/-Height are fixed pixel caps, not tied to the container's
+        // actual size - grab(true, true) above lets photoComposite itself grow/shrink
+        // with the sash, but the picture control still only ever renders up to
+        // whatever those caps say. Recompute them from photoComposite's real size on
+        // every resize so the image actually fills the space instead of sitting
+        // undersized in the middle of it once that space exceeds the old cap.
+        // Only touches the max-size properties and re-layouts (never setPicture(),
+        // which would reassign the image bytes and risk feeding back into another
+        // resize - it doesn't need to change here, only how large it's allowed to
+        // render) - and skips applying anything when the size hasn't actually
+        // changed, since a layout pass can itself report a spurious resize.
+        final int[] lastAppliedSize = { -1, -1 };
+        photoComposite.addControlListener(ControlListener.controlResizedAdapter(e -> {
+            final Rectangle area = photoComposite.getClientArea();
+            final int margin = 10; // matches photoComposite's own GridLayout margins above
+            final int newWidth = area.width - 2 * margin;
+            final int newHeight = area.height - 2 * margin;
+            if (newWidth > 0 && newHeight > 0 && (newWidth != lastAppliedSize[0] || newHeight != lastAppliedSize[1])) {
+                lastAppliedSize[0] = newWidth;
+                lastAppliedSize[1] = newHeight;
+                labelProductPicture.setMaxImageWidth(newWidth);
+                labelProductPicture.setMaxImageHeight(newHeight);
+                photoComposite.layout(true, true);
+            }
+        }));
+
+        labelProductPicture.addPropertyChangeListener(FakturamaPictureControl.IMAGE_BYTEARRAY_PROPERTY, new PropertyChangeListener() {
+            @Override
+            public void propertyChange(final PropertyChangeEvent event) {
+                byte[] newImage = (byte[]) event.getNewValue();
+                final String imageKey = "prodimg_" + Objects.toString(editorProduct.getItemNumber(), Long.toString(editorProduct.getId()));
+                JFaceResources.getImageRegistry().remove(imageKey);
+                // if image was deleted we use the default image
+                editorProduct.setPicture(newImage);
+                if (newImage != null) {
+                    Display display = Display.getCurrent();
+                    ByteArrayInputStream bais = new ByteArrayInputStream(newImage);
+                    Image image = new Image(display, bais);
+                    JFaceResources.getImageRegistry().put(imageKey, image);
+                }
+                getMDirtyablePart().setDirty(true);
+            }
+        });
+
+        // ========= Row 2: Preise & Steuer (col 1) | Lager & Versand (col 2) | Webshop (col 3) =========
+
+        // Group: Preise & Steuer
+        Group pricingGroup = new Group(topBlock, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(4).applyTo(pricingGroup);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(pricingGroup);
+        pricingGroup.setText("\u00A0\u00A0" + msg.editorProductLabelPricing);
+
+        // Row: Einkaufspreis (netto) | MwSt.
+        Label labelCostPrice = new Label(pricingGroup, SWT.NONE);
+        labelCostPrice.setText(msg.editorProductFieldCostprice);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCostPrice);
+        costPrice = new FormattedText(pricingGroup, SWT.BORDER);
+        MoneyFormatter costPriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
+        costPrice.setFormatter(costPriceFormatter);
+        costPrice.getControl().addKeyListener(new ReturnKeyAdapter(costPrice.getControl()));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(costPrice.getControl());
+
+        Label labelVat = new Label(useVat ? pricingGroup : invisible, SWT.NONE);
+        labelVat.setText(msg.commonFieldVat);
+        labelVat.setToolTipText(msg.editorProductVatName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelVat);
+        comboVat = new Combo(useVat ? pricingGroup : invisible, SWT.BORDER | SWT.READ_ONLY);
+        comboVat.setToolTipText(labelVat.getToolTipText());
+        if (!useVat) {
+            // filler: keep this row's cell count at 4 even when MwSt is hidden,
+            // so "Zuschlag" below doesn't slide into its place
+            new Label(invisible, SWT.NONE);
+            new Label(invisible, SWT.NONE);
+        }
+
+        // Row: Zuschlag | Webshop-Normalpreis
+        Label labelAllowance = new Label(pricingGroup, SWT.NONE);
+        labelAllowance.setText(msg.editorProductFieldAllowance);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelAllowance);
+        allowance = new Text(pricingGroup, SWT.BORDER);
+        allowance.addKeyListener(new ReturnKeyAdapter(allowance));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(allowance);
+
+        Label labelShopPrice = new Label(pricingGroup, SWT.NONE);
+        labelShopPrice.setText(msg.editorProductFieldShoppriceName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
+        textShopPrice = new Text(pricingGroup, SWT.BORDER);
+        textShopPrice.addKeyListener(new ReturnKeyAdapter(textShopPrice));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice);
+
+        // Row: Staffelpreise - the existing scaled-price control (label plus a
+        // per-tier "ab <qty> -> price" table), unchanged internally, just
+        // relocated here.
+        Label labelPrice = new Label(pricingGroup, SWT.NONE);
 
         // Use net or gross price
         if (useNet && useGross) {
@@ -673,8 +796,9 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelPrice);
 
         // Create a container composite for the scaled price
-        Composite pricetable = new Composite(productDescGroup, SWT.NONE);
+        Composite pricetable = new Composite(pricingGroup, SWT.NONE);
         GridLayoutFactory.swtDefaults().margins(0, 0).numColumns((scaledPrices > 1) ? (useNet && !useGross) ? 3 : 4 : 2).applyTo(pricetable);
+        GridDataFactory.fillDefaults().span(3, 1).grab(true, false).applyTo(pricetable);
 
         // If there is a net and gross column, and 2 columns for the quantity
         // there are 2 cells in the top left corner, that are empty
@@ -761,65 +885,26 @@ public class ProductEditor extends Editor<Product> {
         // Set the tab order
         setTabOrder(textDescription, nextWidget);
 
-        // cost price (ALWAYS a net price!)
-        Label labelCostPrice = new Label(productDescGroup, SWT.NONE);
-        labelCostPrice.setText(msg.editorProductFieldCostprice);
+        // Group: Lager & Versand
+        Group stockShippingGroup = new Group(topBlock, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(stockShippingGroup);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(stockShippingGroup);
+        stockShippingGroup.setText("\u00A0\u00A0" + msg.editorProductLabelStockshipping);
 
-        Composite costAndAllowance = new Composite(productDescGroup, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(3).margins(0, 0).applyTo(costAndAllowance);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(costAndAllowance);
+        // Row: Bestand führen (checkbox alone, spanning both columns)
+        checkboxStockManaged = new Button(useQuantity ? stockShippingGroup : invisible, SWT.CHECK);
+        checkboxStockManaged.setText(msg.editorProductFieldStockmanagedName);
+        checkboxStockManaged.setToolTipText(msg.editorProductFieldStockmanagedTooltip);
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxStockManaged);
 
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCostPrice);
-        costPrice = new FormattedText(costAndAllowance, SWT.BORDER);
-        MoneyFormatter costPriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
-        costPrice.setFormatter(costPriceFormatter);
-        costPrice.getControl().addKeyListener(new ReturnKeyAdapter(costPrice.getControl()));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(costPrice.getControl());
-
-        // cost price (ALWAYS a net price!)
-        Label labelAllowance = new Label(costAndAllowance, SWT.NONE);
-        labelAllowance.setText(msg.editorProductFieldAllowance);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelAllowance);
-
-        allowance = new Text(costAndAllowance, SWT.BORDER);
-        allowance.addKeyListener(new ReturnKeyAdapter(allowance));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(allowance);
-
-        // product VAT
-        Label labelVat = new Label(useVat ? productDescGroup : invisible, SWT.NONE);
-        labelVat.setText(msg.commonFieldVat);
-        labelVat.setToolTipText(msg.editorProductVatName);
-
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelVat);
-        //		
-        // VAT combo list
-        comboVat = new Combo(useVat ? productDescGroup : invisible, SWT.BORDER | SWT.READ_ONLY);
-        comboVat.setToolTipText(labelVat.getToolTipText());
-        //		GridDataFactory.swtDefaults().grab(true, false).applyTo(comboVat);
-
-        // Product weight
-        Label labelWeight = new Label(useWeight ? productDescGroup : invisible, SWT.NONE);
-        //T: Product Editor - Label Product Weight with unit (kg)
-        labelWeight.setText(msg.exporterDataWeight);
-
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelWeight);
-        textWeight = new FormattedText(useWeight ? productDescGroup : invisible, SWT.BORDER);
-        textWeight.setFormatter(new DoubleFormatter());
-        textWeight.getControl().addKeyListener(new ReturnKeyAdapter(textWeight.getControl()));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textWeight.getControl());
-
-        // Product quantity
-        Label labelQuantity = new Label(useQuantity ? productDescGroup : invisible, SWT.NONE);
+        // Row: Lagerbestand
+        Label labelQuantity = new Label(useQuantity ? stockShippingGroup : invisible, SWT.NONE);
         //T: Product Editor - Label Product quantity
         labelQuantity.setText(msg.commonFieldQuantity);
-
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelQuantity);
-        Composite quantityComposite = new Composite(useQuantity ? productDescGroup : invisible, SWT.NONE);
-        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(quantityComposite);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(quantityComposite);
         if (useQuantity) {
             DoubleValueFormatter quantityFormatter = ContextInjectionFactory.make(DoubleValueFormatter.class, context);
-            textQuantity = new FormattedText(quantityComposite, SWT.BORDER);
+            textQuantity = new FormattedText(stockShippingGroup, SWT.BORDER);
             textQuantity.setFormatter(quantityFormatter);
             textQuantity.getControl().addKeyListener(new ReturnKeyAdapter(textQuantity.getControl()));
             textQuantity.getControl().setToolTipText(msg.commonFieldQuantityTooltip);
@@ -829,9 +914,6 @@ public class ProductEditor extends Editor<Product> {
             // off also clears a non-zero stock value (after confirming, since that's
             // silently throwing away a real number) - a zero/null value is cleared
             // straight away, nothing to confirm there.
-            checkboxStockManaged = new Button(quantityComposite, SWT.CHECK);
-            checkboxStockManaged.setText(msg.editorProductFieldStockmanagedName);
-            checkboxStockManaged.setToolTipText(msg.editorProductFieldStockmanagedTooltip);
             checkboxStockManaged.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(final SelectionEvent e) {
@@ -858,90 +940,100 @@ public class ProductEditor extends Editor<Product> {
             });
         } else {
             textQuantity = new FormattedText(invisible, SWT.BORDER);
-            checkboxStockManaged = new Button(invisible, SWT.CHECK);
         }
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textQuantity.getControl());
 
-        // user defined fields
-        // #1
-        Label udf01Lbl = new Label(productDescGroup, SWT.NONE);
-        udf01Lbl.setText(msg.editorProductFieldUdf01);
+        // Row: Gewicht (kg)
+        Label labelWeight = new Label(useWeight ? stockShippingGroup : invisible, SWT.NONE);
+        //T: Product Editor - Label Product Weight with unit (kg)
+        labelWeight.setText(msg.exporterDataWeight);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelWeight);
+        textWeight = new FormattedText(useWeight ? stockShippingGroup : invisible, SWT.BORDER);
+        textWeight.setFormatter(new DoubleFormatter());
+        textWeight.getControl().addKeyListener(new ReturnKeyAdapter(textWeight.getControl()));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textWeight.getControl());
 
+        // Row: Lieferzeit
+        Label labelDeliveryTime = new Label(stockShippingGroup, SWT.NONE);
+        labelDeliveryTime.setText(msg.editorProductFieldDeliverytimeName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDeliveryTime);
+        textDeliveryTime = new Text(stockShippingGroup, SWT.BORDER);
+        textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
+
+        // Row: Shop-Lagerbestand
+        Label labelShopStockQuantity = new Label(stockShippingGroup, SWT.NONE);
+        labelShopStockQuantity.setText(msg.editorProductFieldShopstockquantityName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockQuantity);
+        textShopStockQuantity = new Text(stockShippingGroup, SWT.BORDER);
+        textShopStockQuantity.addKeyListener(new ReturnKeyAdapter(textShopStockQuantity));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopStockQuantity);
+
+        // Row: Meldebestand (Shop)
+        Label labelShopLowStockAmount = new Label(stockShippingGroup, SWT.NONE);
+        labelShopLowStockAmount.setText(msg.editorProductFieldShoplowstockamountName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopLowStockAmount);
+        textShopLowStockAmount = new Text(stockShippingGroup, SWT.BORDER);
+        textShopLowStockAmount.addKeyListener(new ReturnKeyAdapter(textShopLowStockAmount));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopLowStockAmount);
+
+        // Group: Webshop (below Produktbild)
+        createWebshopGroup(topBlock);
+
+        // ================= Zusatzdaten + Notiz, below the one sash =================
+        // Zusatzdaten stays at its natural height like everything in topBlock above;
+        // Notiz is the only thing that actually grows, absorbing all the slack.
+
+        Composite bottomBlock = new Composite(rowsAndNoteSash, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(1).margins(0, 0).applyTo(bottomBlock);
+
+        Group additionalDataGroup = new Group(bottomBlock, SWT.NONE);
+        GridLayoutFactory.swtDefaults().numColumns(6).applyTo(additionalDataGroup);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(additionalDataGroup);
+        additionalDataGroup.setText("\u00A0\u00A0" + msg.editorProductLabelAdditionaldata);
+
+        Label udf01Lbl = new Label(additionalDataGroup, SWT.NONE);
+        udf01Lbl.setText(msg.editorProductFieldUdf01);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(udf01Lbl);
-        udf01 = new Text(productDescGroup, SWT.BORDER);
+        udf01 = new Text(additionalDataGroup, SWT.BORDER);
         udf01.addKeyListener(new ReturnKeyAdapter(udf01));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(udf01);
 
-        // #2
-        Label udf02Lbl = new Label(productDescGroup, SWT.NONE);
+        Label udf02Lbl = new Label(additionalDataGroup, SWT.NONE);
         udf02Lbl.setText(msg.editorProductFieldUdf02);
-
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(udf02Lbl);
-        udf02 = new Text(productDescGroup, SWT.BORDER);
+        udf02 = new Text(additionalDataGroup, SWT.BORDER);
         udf02.addKeyListener(new ReturnKeyAdapter(udf02));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(udf02);
 
-        // #3
-        Label udf03Lbl = new Label(productDescGroup, SWT.NONE);
+        Label udf03Lbl = new Label(additionalDataGroup, SWT.NONE);
         udf03Lbl.setText(msg.editorProductFieldUdf03);
-
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(udf03Lbl);
-        udf03 = new Text(productDescGroup, SWT.BORDER);
+        udf03 = new Text(additionalDataGroup, SWT.BORDER);
         udf03.addKeyListener(new ReturnKeyAdapter(udf03));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(udf03);
 
-        // Group: Product picture
-        Group productPictureGroup = new Group(usePicture ? descriptionAndPictureSash : invisible, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(1).applyTo(productPictureGroup);
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(productPictureGroup);
-        productPictureGroup.setText(msg.exporterDataPicture);
+        // ================= Notiz - the one thing that actually grows =================
 
-        if (usePicture) {
-            restoreDescriptionPictureSashWeights(descriptionAndPictureSash);
-            descriptionAndPictureSash.addDisposeListener(e -> saveDescriptionPictureSashWeights(descriptionAndPictureSash));
-        }
-
-        // The photo
-        photoComposite = new Composite(productPictureGroup, SWT.BORDER);
-        GridLayoutFactory.swtDefaults().margins(10, 10).numColumns(1).applyTo(photoComposite);
-        GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).grab(true, false).applyTo(photoComposite);
-        photoComposite.setBackground(new Color(null, 255, 255, 255));
-
-        // The picture name label
-        labelProductPicture = new FakturamaPictureControl(photoComposite);
-        createAndSetDefaultImage();
-        ContextInjectionFactory.inject(labelProductPicture, context);
-        setPicture();
-
-        labelProductPicture.addPropertyChangeListener(FakturamaPictureControl.IMAGE_BYTEARRAY_PROPERTY, new PropertyChangeListener() {
-            @Override
-            public void propertyChange(final PropertyChangeEvent event) {
-                byte[] newImage = (byte[]) event.getNewValue();
-                final String imageKey = "prodimg_" + Objects.toString(editorProduct.getItemNumber(), Long.toString(editorProduct.getId()));
-                JFaceResources.getImageRegistry().remove(imageKey);
-                // if image was deleted we use the default image
-                editorProduct.setPicture(newImage);
-                if (newImage != null) {
-                    Display display = Display.getCurrent();
-                    ByteArrayInputStream bais = new ByteArrayInputStream(newImage);
-                    Image image = new Image(display, bais);	
-                    JFaceResources.getImageRegistry().put(imageKey, image);
-                }
-                getMDirtyablePart().setDirty(true);
-            }
-        });
-
-        // Product note
-        Group noteGroup = new Group(top, SWT.NONE);
-        noteGroup.setText(msg.editorContactLabelNotice);
+        Group noteGroup = new Group(bottomBlock, SWT.NONE);
+        noteGroup.setText("\u00A0\u00A0" + msg.editorContactLabelNotice);
         GridLayoutFactory.swtDefaults().applyTo(noteGroup);
-        GridDataFactory.fillDefaults().span(2, 1).grab(true, true).applyTo(noteGroup);
+        GridDataFactory.fillDefaults().grab(true, true).applyTo(noteGroup);
 
         note = new Text(noteGroup, SWT.BORDER | SWT.MULTI);
         note.addKeyListener(new ReturnKeyAdapter(note));
         GridDataFactory.fillDefaults().grab(true, true).applyTo(note);
 
-        createWebshopGroup(top);
+        // Give topBlock a weight that approximates its own natural/minimum height on
+        // a typical window (constrainSash below is what actually enforces the floor
+        // on a tall one) and let Notiz have the rest - unless the user already dragged
+        // it somewhere else in a previous session (see persistSashWeights below).
+        rowsAndNoteSash.setWeights(loadSashWeights(new int[] { 25, 75 }));
+
+        // Keep the drag from squeezing topBlock below what it needs to show
+        // everything, or Notiz down to nothing.
+        constrainSash(rowsAndNoteSash, 600, 130);
+        persistSashWeights(rowsAndNoteSash);
 
         oldCat = editorProduct.getCategories();
 
@@ -949,107 +1041,223 @@ public class ProductEditor extends Editor<Product> {
     }
 
     /**
-     * Creates the "Webshop" group: an "im Shop" checkbox plus the
-     * FKT_PRODUCTWEBSHOP fields (shop price/stock, sale window, delivery
-     * time). The fields are only meaningful while the checkbox is checked,
-     * so they're grouped into their own composite that gets enabled/disabled
-     * together with it (see {@link #setWebshopFieldsEnabled(boolean)}).
+     * Widens the sash (default 3px is a fiddly drag target) and neutralizes
+     * default.css's blanket light-blue SashForm background (#c1d5ef) - fine
+     * for the one place that already wanted it, but here it just bleeds
+     * across every pane. Same fix as {@code AbstractViewDataTable}'s
+     * category-tree/table split and {@code DocumentEditor}'s equivalent -
+     * see their identical {@code no-blue-sash} usage. A plain
+     * {@code setBackground()} alone isn't enough: dynamic CSS is on, so the
+     * CSS engine re-applies the class's rule after every re-style; the class
+     * has to opt out via {@code .no-blue-sash} in default.css instead.
+     */
+    private void styleSash(final SashForm sashForm) {
+        sashForm.SASH_WIDTH = 6;
+        sashForm.setData("org.eclipse.e4.ui.css.CssClassName", "no-blue-sash");
+        sashForm.setBackground(new Color(sashForm.getDisplay(), 246, 245, 244));
+    }
+
+    /**
+     * Clamps a two-pane {@link SashForm}'s drag range so neither pane can be
+     * resized below a sensible minimum - SWT's Sash fires a plain
+     * {@code SWT.Selection} with the proposed new position in {@code event.x}/
+     * {@code event.y}, which this adjusts in place before the SashForm applies
+     * it. There's no public API for this on SashForm itself; finding the
+     * {@link Sash} among its children and listening there is the standard
+     * approach (used by JFace's own JDT UI for the same reason).
+     *
+     * @param sashForm
+     *            the two-pane form to constrain
+     * @param minFirstPane
+     *            minimum size (px) of the pane before the sash
+     * @param minSecondPane
+     *            minimum size (px) of the pane after the sash
+     */
+    private void constrainSash(final SashForm sashForm, final int minFirstPane, final int minSecondPane) {
+        final boolean vertical = (sashForm.getOrientation() == SWT.VERTICAL);
+        for (final Control control : sashForm.getChildren()) {
+            if (control instanceof Sash) {
+                final Sash sash = (Sash) control;
+                sash.addListener(SWT.Selection, event -> {
+                    final Rectangle area = sashForm.getClientArea();
+                    final int total = vertical ? area.height : area.width;
+                    final int sashSize = vertical ? sash.getBounds().height : sash.getBounds().width;
+                    final int proposed = vertical ? event.y : event.x;
+                    final int clamped = Math.max(minFirstPane, Math.min(proposed, total - sashSize - minSecondPane));
+                    if (vertical) {
+                        event.y = clamped;
+                    } else {
+                        event.x = clamped;
+                    }
+                });
+            }
+        }
+    }
+
+    private static final String SASH_SETTINGS_SECTION = "ProductEditorSash";
+    private static final String SASH_WEIGHTS_KEY = "rowsAndNoteWeights";
+
+    /**
+     * A single, global (not per-product) remembered split position for
+     * {@code rowsAndNoteSash}, the same way {@code DocumentEditor} remembers its
+     * own sash per billing type - stored via the shared "Workbench" IDialogSettings,
+     * one section per widget rather than per opened record.
+     */
+    private IDialogSettings getDialogSettings(final String section) {
+        if (settings.getSection(section) == null) {
+            settings.addNewSection(section);
+        }
+        return settings.getSection(section);
+    }
+
+    private int[] loadSashWeights(final int[] defaultWeights) {
+        final String[] saved = getDialogSettings(SASH_SETTINGS_SECTION).getArray(SASH_WEIGHTS_KEY);
+        if (saved == null || saved.length != defaultWeights.length) {
+            return defaultWeights;
+        }
+        try {
+            return Arrays.stream(saved).mapToInt(Integer::parseInt).toArray();
+        } catch (final NumberFormatException e) {
+            return defaultWeights;
+        }
+    }
+
+    private void saveSashWeights(final SashForm sashForm) {
+        final String[] asStrings = Arrays.stream(sashForm.getWeights()).mapToObj(Integer::toString).toArray(String[]::new);
+        getDialogSettings(SASH_SETTINGS_SECTION).put(SASH_WEIGHTS_KEY, asStrings);
+    }
+
+    /**
+     * Saves the sash's weights every time the user finishes dragging it. The drag itself is
+     * handled by the SashForm's own listener (registered when the Sash was created, before this
+     * one) and by {@link #constrainSash}'s clamping listener - both already ran by the time this
+     * fires, but {@link SashForm#getWeights()} only reflects the new layout once SWT has finished
+     * processing this same event, hence the asyncExec rather than reading it inline here.
+     */
+    private void persistSashWeights(final SashForm sashForm) {
+        for (final Control control : sashForm.getChildren()) {
+            if (control instanceof Sash) {
+                control.addListener(SWT.Selection, event -> Display.getDefault().asyncExec(() -> saveSashWeights(sashForm)));
+            }
+        }
+    }
+
+    /**
+     * Creates the "Webshop" group: an "im Shop anbieten" checkbox plus the
+     * sale-window and status-override fields from FKT_PRODUCTWEBSHOP. The
+     * regular shop price ("Webshop-Normalpreis"), shop stock quantity and low
+     * stock threshold moved into "Preise & Steuer" resp. "Lager & Versand"
+     * instead (see caller) - they're still enabled/disabled together with
+     * this group's checkbox, just laid out elsewhere (see
+     * {@link #setWebshopFieldsEnabled(boolean)}).
      */
     private void createWebshopGroup(final Composite parent) {
         Group webshopGroup = new Group(parent, SWT.NONE);
-        webshopGroup.setText(msg.editorProductLabelWebshop);
-        GridLayoutFactory.swtDefaults().numColumns(1).applyTo(webshopGroup);
-        GridDataFactory.fillDefaults().span(2, 1).grab(true, false).applyTo(webshopGroup);
+        webshopGroup.setText("\u00A0\u00A0" + msg.editorProductLabelWebshop);
+        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(webshopGroup);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(webshopGroup);
 
         checkboxInShop = new Button(webshopGroup, SWT.CHECK);
         checkboxInShop.setText(msg.editorProductFieldInshopName);
         checkboxInShop.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent e) {
-                setWebshopFieldsEnabled(checkboxInShop.getSelection());
+                final boolean nowInShop = checkboxInShop.getSelection();
+                setWebshopFieldsEnabled(nowInShop);
+                if (nowInShop && !productHadWebshopData) {
+                    prefillWebshopDefaults();
+                }
+                // Not bound via bindModelValue (its checked state is derived from
+                // productHadWebshopData/deleted, not a single model property - see
+                // doSave()), so toggling it doesn't trip data-binding's own dirty
+                // tracking the way every other field here does; set it explicitly,
+                // same as the picture picker below.
+                getMDirtyablePart().setDirty(true);
             }
         });
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxInShop);
 
-        webshopFieldsComposite = new Composite(webshopGroup, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(2).margins(0, 0).applyTo(webshopFieldsComposite);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(webshopFieldsComposite);
-
-        Label labelShopPrice = new Label(webshopFieldsComposite, SWT.NONE);
-        labelShopPrice.setText(msg.editorProductFieldShoppriceName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
-        textShopPrice = new Text(webshopFieldsComposite, SWT.BORDER);
-        textShopPrice.addKeyListener(new ReturnKeyAdapter(textShopPrice));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice);
-
-        Label labelShopSalePrice = new Label(webshopFieldsComposite, SWT.NONE);
+        Label labelShopSalePrice = new Label(webshopGroup, SWT.NONE);
         labelShopSalePrice.setText(msg.editorProductFieldShopsalepriceName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSalePrice);
-        textShopSalePrice = new Text(webshopFieldsComposite, SWT.BORDER);
+        textShopSalePrice = new Text(webshopGroup, SWT.BORDER);
         textShopSalePrice.addKeyListener(new ReturnKeyAdapter(textShopSalePrice));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopSalePrice);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopSalePrice);
 
-        Label labelShopSaleFrom = new Label(webshopFieldsComposite, SWT.NONE);
+        Label labelShopSaleFrom = new Label(webshopGroup, SWT.NONE);
         labelShopSaleFrom.setText(msg.editorProductFieldShopsalefromName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleFrom);
-        dtShopSaleFrom = new CDateTime(webshopFieldsComposite, CDT.BORDER | CDT.DROP_DOWN);
+        dtShopSaleFrom = new CDateTime(webshopGroup, CDT.BORDER | CDT.DROP_DOWN);
         dtShopSaleFrom.setFormat(CDT.DATE_MEDIUM);
-        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(dtShopSaleFrom);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(dtShopSaleFrom);
 
-        Label labelShopSaleTo = new Label(webshopFieldsComposite, SWT.NONE);
+        Label labelShopSaleTo = new Label(webshopGroup, SWT.NONE);
         labelShopSaleTo.setText(msg.editorProductFieldShopsaletoName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleTo);
-        dtShopSaleTo = new CDateTime(webshopFieldsComposite, CDT.BORDER | CDT.DROP_DOWN);
+        dtShopSaleTo = new CDateTime(webshopGroup, CDT.BORDER | CDT.DROP_DOWN);
         dtShopSaleTo.setFormat(CDT.DATE_MEDIUM);
-        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(dtShopSaleTo);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(dtShopSaleTo);
 
-        Label labelShopStockQuantity = new Label(webshopFieldsComposite, SWT.NONE);
-        labelShopStockQuantity.setText(msg.editorProductFieldShopstockquantityName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockQuantity);
-        textShopStockQuantity = new Text(webshopFieldsComposite, SWT.BORDER);
-        textShopStockQuantity.addKeyListener(new ReturnKeyAdapter(textShopStockQuantity));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopStockQuantity);
-
-        Label labelShopStockStatus = new Label(webshopFieldsComposite, SWT.NONE);
+        Label labelShopStockStatus = new Label(webshopGroup, SWT.NONE);
         labelShopStockStatus.setText(msg.editorProductFieldShopstockstatusName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockStatus);
-        comboShopStockStatus = new Combo(webshopFieldsComposite, SWT.BORDER | SWT.READ_ONLY);
+        comboShopStockStatus = new Combo(webshopGroup, SWT.BORDER | SWT.READ_ONLY);
         // WooCommerce's own fixed vocabulary for stock_status, kept untranslated since these are
         // exactly the values sent/received over the REST API - a blank first entry means "not set".
         comboShopStockStatus.setItems(new String[] { "", "instock", "outofstock", "onbackorder" });
-        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(comboShopStockStatus);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboShopStockStatus);
 
-        Label labelShopBackorders = new Label(webshopFieldsComposite, SWT.NONE);
+        Label labelShopBackorders = new Label(webshopGroup, SWT.NONE);
         labelShopBackorders.setText(msg.editorProductFieldShopbackordersName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopBackorders);
-        comboShopBackorders = new Combo(webshopFieldsComposite, SWT.BORDER | SWT.READ_ONLY);
+        comboShopBackorders = new Combo(webshopGroup, SWT.BORDER | SWT.READ_ONLY);
         // WooCommerce's own fixed vocabulary for backorders - see comboShopStockStatus above.
         comboShopBackorders.setItems(new String[] { "", "no", "notify", "yes" });
-        GridDataFactory.swtDefaults().hint(150, SWT.DEFAULT).applyTo(comboShopBackorders);
-
-        Label labelShopLowStockAmount = new Label(webshopFieldsComposite, SWT.NONE);
-        labelShopLowStockAmount.setText(msg.editorProductFieldShoplowstockamountName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopLowStockAmount);
-        textShopLowStockAmount = new Text(webshopFieldsComposite, SWT.BORDER);
-        textShopLowStockAmount.addKeyListener(new ReturnKeyAdapter(textShopLowStockAmount));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopLowStockAmount);
-
-        Label labelDeliveryTime = new Label(webshopFieldsComposite, SWT.NONE);
-        labelDeliveryTime.setText(msg.editorProductFieldDeliverytimeName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDeliveryTime);
-        textDeliveryTime = new Text(webshopFieldsComposite, SWT.BORDER);
-        textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboShopBackorders);
     }
 
     /**
-     * Enables/disables every field in {@link #webshopFieldsComposite} at
-     * once, following the "im Shop" checkbox - mirrors how
+     * Enables/disables every FKT_PRODUCTWEBSHOP-bound field at once,
+     * following the "im Shop anbieten" checkbox - mirrors how
      * {@code checkboxStockManaged} above toggles {@code textQuantity}, just
-     * for a whole group of controls instead of one.
+     * for the whole set of webshop fields. These now live spread across three
+     * different groups (Preise & Steuer, Lager & Versand, Webshop - see
+     * {@link #createPartControl(Composite)}), so they're listed explicitly
+     * instead of iterating one shared container's children.
      */
     private void setWebshopFieldsEnabled(final boolean enabled) {
-        for (final Control child : webshopFieldsComposite.getChildren()) {
-            child.setEnabled(enabled);
+        textShopPrice.setEnabled(enabled);
+        textShopSalePrice.setEnabled(enabled);
+        dtShopSaleFrom.setEnabled(enabled);
+        dtShopSaleTo.setEnabled(enabled);
+        textShopStockQuantity.setEnabled(enabled);
+        comboShopStockStatus.setEnabled(enabled);
+        comboShopBackorders.setEnabled(enabled);
+        textShopLowStockAmount.setEnabled(enabled);
+        textDeliveryTime.setEnabled(enabled);
+    }
+
+    /**
+     * The first time a product is offered in the shop (no {@link ProductWebshop}
+     * row existed yet when this editor opened), seed a few webshop fields from
+     * the product's own data instead of leaving them blank - the regular price
+     * and current stock are the obvious starting point for what the shop
+     * should show. Mutates {@link #editorProductWebshop} directly rather than
+     * the widgets: it's already bound (see {@link #bindWebshopFields()}), so
+     * the bidirectional binding reflects the new values in the UI itself.
+     * Only touches fields that are still empty, so re-checking the box later
+     * in the same session never clobbers something the user already typed.
+     */
+    private void prefillWebshopDefaults() {
+        if (editorProductWebshop.getShopPrice() == null && editorProduct.getPrice1() != null) {
+            editorProductWebshop.setShopPrice(editorProduct.getPrice1());
+        }
+        if (editorProductWebshop.getShopStockQuantity() == null && editorProduct.getQuantity() != null) {
+            editorProductWebshop.setShopStockQuantity(editorProduct.getQuantity());
+        }
+        if (StringUtils.isBlank(editorProductWebshop.getShopStockStatus())) {
+            final boolean inStock = editorProduct.getQuantity() != null && editorProduct.getQuantity() > 0;
+            editorProductWebshop.setShopStockStatus(inStock ? "instock" : "outofstock");
         }
     }
 
@@ -1383,34 +1591,4 @@ public class ProductEditor extends Editor<Product> {
         }
     }
 
-    /**
-     * Restores the user's last chosen description/picture split, persisted via
-     * {@link #saveDescriptionPictureSashWeights(SashForm)}. Falls back to a 3:2
-     * ratio (a bit more room for the description form than the picture) the first
-     * time, or if the saved value doesn't match the current number of panes.
-     */
-    private void restoreDescriptionPictureSashWeights(final SashForm sashForm) {
-        final String[] saved = getDialogSettings("SASH").getArray("PRODUCT_DESCRIPTION_PICTURE_SASH");
-        int[] weights = new int[] { 3, 2 };
-        if (saved != null && saved.length == sashForm.getChildren().length) {
-            try {
-                weights = Arrays.stream(saved).mapToInt(Integer::parseInt).toArray();
-            } catch (final NumberFormatException e) {
-                weights = new int[] { 3, 2 };
-            }
-        }
-        sashForm.setWeights(weights);
-    }
-
-    private void saveDescriptionPictureSashWeights(final SashForm sashForm) {
-        final String[] weights = Arrays.stream(sashForm.getWeights()).mapToObj(Integer::toString).toArray(String[]::new);
-        getDialogSettings("SASH").put("PRODUCT_DESCRIPTION_PICTURE_SASH", weights);
-    }
-
-    private IDialogSettings getDialogSettings(final String section) {
-        if (settings.getSection(section) == null) {
-            settings.addNewSection(section);
-        }
-        return settings.getSection(section);
-    }
 }
