@@ -75,6 +75,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -1032,8 +1033,13 @@ public class ProductEditor extends Editor<Product> {
 
         // Keep the drag from squeezing topBlock below what it needs to show
         // everything, or Notiz down to nothing.
-        constrainSash(rowsAndNoteSash, 600, 130);
+        constrainSash(rowsAndNoteSash, topBlock, 130);
         persistSashWeights(rowsAndNoteSash);
+        // constrainSash only clamps a live drag - it does nothing for the weights just applied
+        // above, whether that's the hardcoded default or a restored-but-now-stale value (e.g. from
+        // a previously bigger window). Enforce the same content-derived floor here too, both once
+        // up front and on every subsequent resize.
+        enforceMinimumFirstPane(rowsAndNoteSash, topBlock, 130);
 
         oldCat = editorProduct.getCategories();
 
@@ -1058,6 +1064,22 @@ public class ProductEditor extends Editor<Product> {
     }
 
     /**
+     * The pane before the sash (topBlock: Stammdaten/Produktbild/Preise/Lager/Webshop) must never
+     * be squeezed below what its own groups actually need to show every field - a fixed pixel
+     * guess drifts wrong under a different font, DPI or locale (translated labels are wider/
+     * narrower), so this asks the content itself via {@link Composite#computeSize} instead, at
+     * its current width (groups wrap their rows to whatever width they're given, so height is
+     * still meaningfully width-dependent).
+     */
+    private int computeMinFirstPane(final SashForm sashForm, final Composite topBlockContent) {
+        final boolean vertical = (sashForm.getOrientation() == SWT.VERTICAL);
+        final Rectangle area = sashForm.getClientArea();
+        final Point pref = vertical ? topBlockContent.computeSize(area.width, SWT.DEFAULT)
+                : topBlockContent.computeSize(SWT.DEFAULT, area.height);
+        return vertical ? pref.y : pref.x;
+    }
+
+    /**
      * Clamps a two-pane {@link SashForm}'s drag range so neither pane can be
      * resized below a sensible minimum - SWT's Sash fires a plain
      * {@code SWT.Selection} with the proposed new position in {@code event.x}/
@@ -1068,12 +1090,13 @@ public class ProductEditor extends Editor<Product> {
      *
      * @param sashForm
      *            the two-pane form to constrain
-     * @param minFirstPane
-     *            minimum size (px) of the pane before the sash
+     * @param topBlockContent
+     *            the pane before the sash - its own {@link Composite#computeSize} is the minimum,
+     *            see {@link #computeMinFirstPane}
      * @param minSecondPane
      *            minimum size (px) of the pane after the sash
      */
-    private void constrainSash(final SashForm sashForm, final int minFirstPane, final int minSecondPane) {
+    private void constrainSash(final SashForm sashForm, final Composite topBlockContent, final int minSecondPane) {
         final boolean vertical = (sashForm.getOrientation() == SWT.VERTICAL);
         for (final Control control : sashForm.getChildren()) {
             if (control instanceof Sash) {
@@ -1083,6 +1106,7 @@ public class ProductEditor extends Editor<Product> {
                     final int total = vertical ? area.height : area.width;
                     final int sashSize = vertical ? sash.getBounds().height : sash.getBounds().width;
                     final int proposed = vertical ? event.y : event.x;
+                    final int minFirstPane = computeMinFirstPane(sashForm, topBlockContent);
                     final int clamped = Math.max(minFirstPane, Math.min(proposed, total - sashSize - minSecondPane));
                     if (vertical) {
                         event.y = clamped;
@@ -1092,6 +1116,43 @@ public class ProductEditor extends Editor<Product> {
                 });
             }
         }
+    }
+
+    /**
+     * Unlike {@link #constrainSash}, which only clamps a live drag, this enforces the same
+     * content-derived floor (see {@link #computeMinFirstPane}) on whatever weights are in effect
+     * right now - the hardcoded default, a value just restored from a previous, possibly
+     * differently-sized window (see {@link #loadSashWeights}), or a later window resize that would
+     * otherwise squeeze the top pane below it. Registered both as a one-off (via {@code
+     * asyncExec}, since the SashForm has no real pixel size yet at part-creation time) and as an
+     * ongoing resize listener; safe to call repeatedly since a correction that already satisfies
+     * the floor is a no-op, and {@link SashForm#setWeights} resizes the SashForm's children, not
+     * the SashForm control itself, so it cannot re-trigger this same listener.
+     */
+    private void enforceMinimumFirstPane(final SashForm sashForm, final Composite topBlockContent, final int minSecondPane) {
+        final boolean vertical = (sashForm.getOrientation() == SWT.VERTICAL);
+        final Runnable clamp = () -> {
+            if (sashForm.isDisposed()) {
+                return;
+            }
+            final Rectangle area = sashForm.getClientArea();
+            final int total = vertical ? area.height : area.width;
+            final int minFirstPane = computeMinFirstPane(sashForm, topBlockContent);
+            if (total < minFirstPane + minSecondPane) {
+                return;
+            }
+            final int[] weights = sashForm.getWeights();
+            final int sum = Arrays.stream(weights).sum();
+            if (sum <= 0) {
+                return;
+            }
+            final int firstPanePx = (int) ((long) weights[0] * total / sum);
+            if (firstPanePx < minFirstPane) {
+                sashForm.setWeights(new int[] { minFirstPane, total - minFirstPane });
+            }
+        };
+        sashForm.getDisplay().asyncExec(clamp);
+        sashForm.addControlListener(ControlListener.controlResizedAdapter(e -> clamp.run()));
     }
 
     private static final String SASH_SETTINGS_SECTION = "ProductEditorSash";

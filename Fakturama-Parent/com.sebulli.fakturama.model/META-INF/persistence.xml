@@ -92,9 +92,11 @@
 			<!--  define which primary key components values are considered invalid. -->
 <!-- 			<property name="eclipselink.id-validation" value="NULL"/> -->
 			
-			<!--  if you want to show the generated SQL commands and their parameter substitution -->
-			<property name="eclipselink.logging.level.sql" value="FINE"/>
-			<property name="eclipselink.logging.parameters" value="true"/>
+			<!--  if you want to show the generated SQL commands and their parameter substitution,
+			      switch these back to FINE/true for local debugging - left at the quieter default
+			      for a final build so the console isn't flooded with every SQL statement. -->
+			<property name="eclipselink.logging.level.sql" value="INFO"/>
+			<property name="eclipselink.logging.parameters" value="false"/>
 			
 			<!--  This is the real performance boost! Setting this property the internal connection pool is
 			      used. This prevents the database layer from permanently reconnecting. -->

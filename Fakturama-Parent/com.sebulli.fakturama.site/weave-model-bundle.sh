@@ -28,6 +28,12 @@ WOVEN_ANY=false
 
 # One directory per materialized product/os/ws/arch combination (there's exactly one for the
 # win/linux-x86_64/linux-aarch64 profiles this project documents, two for macos's x86_64+aarch64).
+#
+# No fixed -mindepth/-maxdepth here: win/linux materialize straight to
+# products/Fakturama.ID/<os>/<ws>/<arch>/plugins (depth 5), but macOS wraps that in an app
+# bundle - products/Fakturama.ID/macosx/cocoa/<arch>/Fakturama2.app/Contents/Eclipse/plugins
+# (depth 8) - so a fixed depth silently found nothing there ("nothing woven", exit 1, before this
+# fix) instead of actually weaving the mac product's model bundle.
 while IFS= read -r -d '' plugins_dir; do
     model_jar=$(find "$plugins_dir" -maxdepth 1 -iname "com.sebulli.fakturama.model_*.jar" | head -1)
     if [ -z "$model_jar" ]; then
@@ -79,7 +85,7 @@ while IFS= read -r -d '' plugins_dir; do
     rm -f "$argfile"
     WOVEN_ANY=true
     echo "weave-model-bundle.sh: done: $model_jar"
-done < <(find "$PRODUCTS_DIR" -mindepth 5 -maxdepth 5 -type d -iname plugins -print0)
+done < <(find "$PRODUCTS_DIR" -type d -iname plugins -print0)
 
 if [ "$WOVEN_ANY" != "true" ]; then
     echo "weave-model-bundle.sh: no materialized product plugins directory with a model bundle found under $PRODUCTS_DIR - nothing woven." >&2
