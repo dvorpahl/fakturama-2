@@ -287,17 +287,17 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
             final TableColumn column = viewerColumn.getColumn();
             column.setText(msg.getMessageFromKey(descriptor.getMessageKey()));
             viewerColumn.setLabelProvider(createLabelProvider(descriptor));
-            if (descriptor != ProductListDescriptor.WEBSHOP_PRICE) {
-                // Not sortable: its propertyName ("webshopPrice") isn't a real Product/JPA
-                // attribute (see the enum's javadoc), so onColumnSelected()'s
-                // root.get(orderByProperty) would throw for it.
-                column.addSelectionListener(new SelectionAdapter() {
-                    @Override
-                    public void widgetSelected(final SelectionEvent e) {
-                        onColumnSelected(descriptor, column);
-                    }
-                });
-            }
+            // webshopPrice isn't a real Product/JPA attribute, so onColumnSelected() can't sort
+            // it via the generic root.get(orderByProperty) path used for every other column -
+            // ProductsDAO#findPage() special-cases this exact propertyName with a correlated
+            // subquery instead, grouping every webshop-flagged product above the non-webshop
+            // ones (see its javadoc for why).
+            column.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(final SelectionEvent e) {
+                    onColumnSelected(descriptor, column);
+                }
+            });
             tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), 30, true));
             if (descriptor == ProductListDescriptor.DESCRIPTION) {
                 descriptionColumnIndex = columnIndex;

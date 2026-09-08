@@ -950,4 +950,37 @@ on Product.
         <addForeignKeyConstraint baseColumnNames="FK_PRODUCT" baseTableName="FKT_PRODUCTWEBSHOP" constraintName="FK_FKT_PRODUCT" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="FKT_PRODUCT"/>
     </changeSet>
 
+<!--
+Extends VW_PRODUCT_PICTURE (20260902-078) with two presence flags for the ProductEditor's
+"+Shop +HiRes" badge next to the picture preview - whether the SAME row already picked as
+"the" picture (lowest FKT_PRODUCTPICTURES.ID with a non-null PICTURE, per that view's own
+WHERE clause) also has a PICTURE_SHOP/PICTURE_HIRES variant. A fresh replaceIfExists
+changeset rather than editing 20260902-078 in place - editing an already-applied changeset's
+body changes its checksum and breaks Liquibase's validation on every existing install that
+already ran it (db.changelog-2.1.xml's 20190915-052/053 upgrade regression is the exact
+class of bug that causes, see validCheckSum there).
+-->
+
+    <changeSet author="dvorpahl" id="20260908-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS" dbms="mysql,mariadb">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="FKT_PRODUCTPICTURES"/>
+        </preConditions>
+        <createView viewName="VW_PRODUCT_PICTURE" replaceIfExists="true">
+            SELECT
+                pp.ITEMNUMBER AS ITEMNUMBER,
+                pp.PICTURE AS PICTURE,
+                pp.WIDTH AS WIDTH,
+                pp.HEIGHT AS HEIGHT,
+                pp.FORMAT AS FORMAT,
+                (pp.PICTURE_SHOP IS NOT NULL) AS HAS_SHOP_PICTURE,
+                (pp.PICTURE_HIRES IS NOT NULL) AS HAS_HIRES_PICTURE
+            FROM FKT_PRODUCTPICTURES AS pp
+            WHERE pp.PICTURE IS NOT NULL
+                AND pp.ID = (
+                    SELECT MIN(pp2.ID) FROM FKT_PRODUCTPICTURES AS pp2
+                    WHERE pp2.ITEMNUMBER = pp.ITEMNUMBER AND pp2.PICTURE IS NOT NULL
+                )
+        </createView>
+    </changeSet>
+
 </databaseChangeLog>

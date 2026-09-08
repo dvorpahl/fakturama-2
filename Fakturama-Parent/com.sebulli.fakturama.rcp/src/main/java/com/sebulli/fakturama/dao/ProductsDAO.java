@@ -1,5 +1,6 @@
 package com.sebulli.fakturama.dao;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -19,17 +20,23 @@ import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.model.AbstractCategory;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.model.ProductCategory;
+import com.sebulli.fakturama.model.ProductWebshop;
+import com.sebulli.fakturama.model.ProductWebshop_;
 import com.sebulli.fakturama.model.Product_;
 import com.sebulli.fakturama.oldmodel.OldProducts;
+import com.sebulli.fakturama.views.datatable.products.ProductListDescriptor;
 import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 @Creatable
 public class ProductsDAO extends AbstractDAO<Product> {
@@ -53,12 +60,36 @@ public class ProductsDAO extends AbstractDAO<Product> {
         final Root<Product> root = criteria.from(Product.class);
         criteria.distinct(true).where(buildPageablePredicate(cb, root, searchTerm, categoryName, treeObjectType));
         if (StringUtils.isNotBlank(orderByProperty)) {
+            final List<Order> orderList = new ArrayList<>();
+            if (ProductListDescriptor.WEBSHOP_PRICE.getPropertyName().equals(orderByProperty)) {
+                // webshopPrice isn't a real Product/JPA attribute (no relationship from Product
+                // to ProductWebshop, only the reverse - see ProductListDescriptor's javadoc), so
+                // it can't go through root.get(orderByProperty) like every other column. A
+                // correlated subquery stands in for it instead - safe as a scalar expression
+                // because a product has at most one non-deleted ProductWebshop row (same
+                // assumption ProductWebshopDAO#findByProduct already makes). A product that
+                // isn't offered in the shop has no such row, so the subquery evaluates to NULL
+                // for it; ordering by "is it null" first, ahead of the price itself, is what
+                // actually pins every webshop-flagged product above every non-webshop one
+                // regardless of asc/desc - relying on the DB's own default NULL ordering (which
+                // flips between ASC and DESC, and differs by dialect) would make that grouping
+                // toggle inconsistently with the sort direction instead of staying put.
+                final Subquery<Double> webshopPrice = criteria.subquery(Double.class);
+                final Root<ProductWebshop> webshopRoot = webshopPrice.from(ProductWebshop.class);
+                webshopPrice.select(webshopRoot.get(ProductWebshop_.shopPrice)).where(
+                        cb.equal(webshopRoot.get(ProductWebshop_.product), root), cb.isFalse(webshopRoot.get(ProductWebshop_.deleted)));
+                final Expression<Integer> notOfferedInShop = cb.<Integer> selectCase().when(cb.isNull(webshopPrice), 1).otherwise(0);
+                orderList.add(cb.asc(notOfferedInShop));
+                orderList.add(descending ? cb.desc(webshopPrice) : cb.asc(webshopPrice));
+            } else {
+                orderList.add(descending ? cb.desc(root.get(orderByProperty)) : cb.asc(root.get(orderByProperty)));
+            }
             // id is always the last ORDER BY criterion for a stable row order across pages - ties
             // on orderByProperty alone (e.g. two products with the same name) would otherwise let
             // the DB return them in a different relative order per page, which can duplicate or
             // skip rows across a LIMIT/OFFSET boundary.
-            final jakarta.persistence.criteria.Order order = descending ? cb.desc(root.get(orderByProperty)) : cb.asc(root.get(orderByProperty));
-            criteria.orderBy(order, cb.desc(root.get(Product_.id)));
+            orderList.add(cb.desc(root.get(Product_.id)));
+            criteria.orderBy(orderList);
         } else {
             criteria.orderBy(cb.desc(root.get(Product_.id)));
         }
@@ -317,6 +348,40 @@ public class ProductsDAO extends AbstractDAO<Product> {
             return results.isEmpty() ? null : (byte[]) results.get(0);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /**
+     * Whether a shop-optimized and/or a hi-res picture variant exist for the SAME
+     * FKT_PRODUCTPICTURES row VW_PRODUCT_PICTURE already picked as "the" picture (see
+     * {@link #findPictureBytesForItemNumber(String)}'s javadoc and the view's own WHERE
+     * clause, changelog 20260902-078/20260908-001) - drives the ProductEditor's "+Shop
+     * +HiRes" badge next to the picture preview, so the user can tell at a glance whether
+     * the base picture is all there is, or fakturama-tool's own upload flow also produced
+     * the shop-sized/original-resolution variants (see product_pictures.py's
+     * build_picture_variants()). NONE (both false) whenever no picture is available at all,
+     * including when the view doesn't exist yet.
+     */
+    public record PictureVariantFlags(boolean hasShopPicture, boolean hasHiresPicture) {
+        public static final PictureVariantFlags NONE = new PictureVariantFlags(false, false);
+    }
+
+    public PictureVariantFlags findPictureVariantFlagsForItemNumber(final String itemNumber) {
+        if (StringUtils.isBlank(itemNumber)) {
+            return PictureVariantFlags.NONE;
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            List<Object[]> results = getEntityManager()
+                    .createNativeQuery("SELECT HAS_SHOP_PICTURE, HAS_HIRES_PICTURE FROM VW_PRODUCT_PICTURE WHERE ITEMNUMBER = ?1")
+                    .setParameter(1, itemNumber).getResultList();
+            if (results.isEmpty()) {
+                return PictureVariantFlags.NONE;
+            }
+            final Object[] row = results.get(0);
+            return new PictureVariantFlags(Boolean.TRUE.equals(row[0]), Boolean.TRUE.equals(row[1]));
+        } catch (Exception e) {
+            return PictureVariantFlags.NONE;
         }
     }
 }

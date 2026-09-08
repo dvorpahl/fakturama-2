@@ -710,10 +710,24 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * proofing). <!-- end-model-doc -->
      * 
      * @return the value of '<em><b>additionalInfo</b></em>' feature
-     * @generated
      */
     public IndividualDocumentInfo getAdditionalInfo() {
-
+        // additionalInfo's field initializer (new IndividualDocumentInfo()) only applies to a
+        // freshly-constructed, not-yet-persisted Document - for a Document loaded from the DB by
+        // JPA, EclipseLink overwrites the field straight from FK_INDIVIDUALINFO, which turns it
+        // back into null whenever that column is NULL or points at a row that no longer exists
+        // (e.g. an externally/manually inserted FKT_DOCUMENT row, or one hand-edited on the DB).
+        // DocumentEditor calls document.getAdditionalInfo().setXxx(...) in several places without
+        // a null check, so a null here crashed the whole editor on open ("Unable to create class
+        // 'DocumentEditor'", live reproduced with an order imported by an external tool whose
+        // FKT_DOCUMENT row had no matching FKT_INDIVIDUALDOCUMENTINFO companion row) - lazily
+        // healing it here, once, for every caller, is more robust than guarding each call site
+        // individually (a class this central will keep growing new callers). additionalInfo is
+        // mapped with cascade = CascadeType.ALL, so saving the document afterwards persists this
+        // fresh instance and backfills FK_INDIVIDUALINFO on its own, no manual SQL needed.
+        if (additionalInfo == null) {
+            additionalInfo = new IndividualDocumentInfo();
+        }
         return additionalInfo;
     }
 

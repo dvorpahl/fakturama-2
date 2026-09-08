@@ -13,6 +13,8 @@
 
 package com.sebulli.fakturama.parts;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +63,7 @@ public class FktGetEnvironmentInfoFunction extends AbstractFktBrowserFunction {
         info.put("companyWebsite", pref(preferences, Constants.PREFERENCES_YOURCOMPANY_WEBSITE));
 
         info.put("osUserName", System.getProperty("user.name", "(unknown)"));
+        info.put("hostName", resolveHostName());
         info.put("os", Platform.getOS());
         info.put("osVersion", System.getProperty("os.version", ""));
         info.put("osArch", Platform.getOSArch());
@@ -70,6 +73,30 @@ public class FktGetEnvironmentInfoFunction extends AbstractFktBrowserFunction {
         info.put("workspace", pref(preferences, Constants.GENERAL_WORKSPACE));
 
         return FktJsonUtil.toJsonObject(info);
+    }
+
+    /**
+     * The machine's own network name, for the "welcher Client/Rechner" badge fakturama-tool
+     * shows once a session logs in via FKT.getAuthToken()/{@code /login/fkt} (see
+     * auth.py's {@code client_hostname}). Env vars checked first - they're instant and set by
+     * the OS itself (COMPUTERNAME on Windows, HOSTNAME on most Linux shells), whereas
+     * {@link InetAddress#getLocalHost()} can trigger a real (if usually fast) DNS/NSS lookup and
+     * has historically been unreliable on machines with an unusual /etc/hosts or no reverse DNS
+     * entry for their own address.
+     */
+    private static String resolveHostName() {
+        String fromEnv = System.getenv("COMPUTERNAME");
+        if (fromEnv == null || fromEnv.isBlank()) {
+            fromEnv = System.getenv("HOSTNAME");
+        }
+        if (fromEnv != null && !fromEnv.isBlank()) {
+            return fromEnv;
+        }
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "(unknown)";
+        }
     }
 
     private static String pref(final IPreferenceStore preferences, final String key) {

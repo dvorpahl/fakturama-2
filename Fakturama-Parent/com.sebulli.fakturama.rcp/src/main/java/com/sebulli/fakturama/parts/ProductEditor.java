@@ -182,6 +182,7 @@ public class ProductEditor extends Editor<Product> {
     private CCombo comboCategory;
     private ProductCategory oldCat;
     private FakturamaPictureControl labelProductPicture;
+    private Label labelPictureVariants;
     private Composite photoComposite;
     private Text note;
 
@@ -486,6 +487,34 @@ public class ProductEditor extends Editor<Product> {
 		} else {
 			labelProductPicture.setImageByteArray(null);
 		}
+		updatePictureVariantsBadge();
+	}
+
+	/**
+	 * "+Shop +HiRes" badge below the picture preview: which additional picture variants
+	 * fakturama-tool's own upload flow produced for this item (see
+	 * {@link ProductsDAO#findPictureVariantFlagsForItemNumber(String)}), beyond the base
+	 * picture shown above - lets the user tell at a glance whether that's all there is,
+	 * without having to leave the Java client to check.
+	 */
+	private void updatePictureVariantsBadge() {
+		final ProductsDAO.PictureVariantFlags flags = productsDAO.findPictureVariantFlagsForItemNumber(editorProduct.getItemNumber());
+		final StringBuilder badge = new StringBuilder();
+		final StringBuilder tooltip = new StringBuilder();
+		if (flags.hasShopPicture()) {
+			badge.append(msg.editorProductPictureShopBadge);
+			tooltip.append(msg.editorProductPictureShopBadgeTooltip);
+		}
+		if (flags.hasHiresPicture()) {
+			if (badge.length() > 0) {
+				badge.append(' ');
+				tooltip.append('\n');
+			}
+			badge.append(msg.editorProductPictureHiresBadge);
+			tooltip.append(msg.editorProductPictureHiresBadgeTooltip);
+		}
+		labelPictureVariants.setText(badge.toString());
+		labelPictureVariants.setToolTipText(tooltip.length() > 0 ? tooltip.toString() : null);
 	}
 	
 	private void createAndSetDefaultImage() {
@@ -684,6 +713,12 @@ public class ProductEditor extends Editor<Product> {
         labelProductPicture = new FakturamaPictureControl(photoComposite);
         ContextInjectionFactory.inject(labelProductPicture, context);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(labelProductPicture);
+
+        // "+Shop +HiRes" badge: which additional picture variants fakturama-tool's own upload
+        // flow produced for this item, beyond the base picture shown above (see setPicture()).
+        labelPictureVariants = new Label(photoComposite, SWT.NONE);
+        GridDataFactory.swtDefaults().grab(true, false).align(SWT.CENTER, SWT.CENTER).applyTo(labelPictureVariants);
+
         createAndSetDefaultImage();
         setPicture();
 
@@ -915,6 +950,12 @@ public class ProductEditor extends Editor<Product> {
             // off also clears a non-zero stock value (after confirming, since that's
             // silently throwing away a real number) - a zero/null value is cleared
             // straight away, nothing to confirm there.
+            //
+            // Cleared to null, not 0.0: a not-managed article has NO stock figure at all,
+            // as opposed to a managed one that's really down to zero - ProductListTable's
+            // QUANTITY column already treats null as "show nothing" vs. 0.0 as "show 0,00"
+            // (see its label provider), so this is what actually makes the 0,00 disappear
+            // from the product list for articles marked "nicht lagerrelevant".
             checkboxStockManaged.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(final SelectionEvent e) {
@@ -928,12 +969,12 @@ public class ProductEditor extends Editor<Product> {
                             final boolean clear = MessageDialog.openQuestion(top.getShell(), msg.editorProductFieldStockmanagedClearconfirmTitle,
                                     msg.editorProductFieldStockmanagedClearconfirmMessage + " " + quantityFormat.format(currentQuantity));
                             if (clear) {
-                                editorProduct.setQuantity(0.0);
-                                textQuantity.setValue(0.0);
+                                editorProduct.setQuantity(null);
+                                textQuantity.setValue(null);
                             }
                         } else {
-                            editorProduct.setQuantity(0.0);
-                            textQuantity.setValue(0.0);
+                            editorProduct.setQuantity(null);
+                            textQuantity.setValue(null);
                         }
                     }
                     textQuantity.getControl().setEnabled(nowManaged);
@@ -1308,17 +1349,28 @@ public class ProductEditor extends Editor<Product> {
      * the bidirectional binding reflects the new values in the UI itself.
      * Only touches fields that are still empty, so re-checking the box later
      * in the same session never clobbers something the user already typed.
+     * <p>
+     * Stock quantity/status are only seeded for a stock-managed article ({@link
+     * Product#getStockManaged()}) - a not-managed one (e.g. a service/maintenance package)
+     * has no {@link Product#getQuantity()} to seed from in the first place (see
+     * checkboxStockManaged's listener above, which clears it to {@code null} rather than
+     * 0.0 exactly so it isn't mistaken for "really zero stock"), and defaulting its shop
+     * stock status to "outofstock" here would be actively wrong for what WooCommerce should
+     * treat as a virtual product with no stock tracking at all, not a physical one that
+     * merely happens to be depleted.
      */
     private void prefillWebshopDefaults() {
         if (editorProductWebshop.getShopPrice() == null && editorProduct.getPrice1() != null) {
             editorProductWebshop.setShopPrice(editorProduct.getPrice1());
         }
-        if (editorProductWebshop.getShopStockQuantity() == null && editorProduct.getQuantity() != null) {
-            editorProductWebshop.setShopStockQuantity(editorProduct.getQuantity());
-        }
-        if (StringUtils.isBlank(editorProductWebshop.getShopStockStatus())) {
-            final boolean inStock = editorProduct.getQuantity() != null && editorProduct.getQuantity() > 0;
-            editorProductWebshop.setShopStockStatus(inStock ? "instock" : "outofstock");
+        if (Boolean.TRUE.equals(editorProduct.getStockManaged())) {
+            if (editorProductWebshop.getShopStockQuantity() == null && editorProduct.getQuantity() != null) {
+                editorProductWebshop.setShopStockQuantity(editorProduct.getQuantity());
+            }
+            if (StringUtils.isBlank(editorProductWebshop.getShopStockStatus())) {
+                final boolean inStock = editorProduct.getQuantity() != null && editorProduct.getQuantity() > 0;
+                editorProductWebshop.setShopStockStatus(inStock ? "instock" : "outofstock");
+            }
         }
     }
 

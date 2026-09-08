@@ -2,6 +2,8 @@ package com.sebulli.fakturama.views.datatable.common;
 
 import java.util.function.IntFunction;
 
+import org.eclipse.nebula.widgets.nattable.NatTable;
+import org.eclipse.nebula.widgets.nattable.layer.DataLayer;
 import org.eclipse.nebula.widgets.nattable.util.GUIHelper;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -70,6 +72,29 @@ public final class ModernTableStyle {
         table.addListener(SWT.PaintItem, event -> {
             // no-op: keep default text painting, only here so MeasureItem's height sticks
         });
+    }
+
+    /**
+     * NatTable equivalent of {@link #applyFixedRowHeight(Table, float)} - DocumentItemListTable
+     * (the item grid inside Angebot/Auftrag/Rechnung/Lieferschein editors) is still NatTable-based,
+     * not one of the native SWT.VIRTUAL {@link Table}s this class otherwise targets, so the
+     * {@code SWT.MeasureItem} trick doesn't apply here; NatTable has its own, more direct API for
+     * a uniform row height ({@link DataLayer#setDefaultRowHeight(int)}) that doesn't need it.
+     * <p>
+     * Same {@code lineMultiple} rationale as the SWT version: caps every row to a fixed multiple of
+     * the table's own font-line height regardless of how many embedded newlines a cell's text
+     * contains, so a multi-line hint/description visibly signals "there's more here" (partially cut
+     * off) rather than either silently hiding it behind a single line or blowing the row out to fit
+     * it in full and pushing every other row out of view.
+     * <p>
+     * Call once right after creating the {@link NatTable}, passing its body {@link DataLayer}
+     * (e.g. {@code EntityGridListLayer#getBodyDataLayer()}).
+     */
+    public static void applyFixedRowHeight(final NatTable natTable, final DataLayer bodyDataLayer, final float lineMultiple) {
+        final GC gc = new GC(natTable);
+        final int lineHeight = gc.getFontMetrics().getHeight();
+        gc.dispose();
+        bodyDataLayer.setDefaultRowHeight(Math.round(lineHeight * lineMultiple));
     }
 
     /**

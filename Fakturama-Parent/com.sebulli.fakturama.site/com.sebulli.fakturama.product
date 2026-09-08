@@ -18,6 +18,12 @@
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Xdock:icon=../Resources/app.icns
       </vmArgsMac>
+      <!-- SWT's Browser widget defaults to the legacy Internet Explorer engine on Windows
+           unless told otherwise - "edge" makes it try the Edge/WebView2 backend first and
+           automatically fall back to IE (org.eclipse.swt.browser.IEVersion below already
+           pins that fallback to IE11-compat mode) only if WebView2 isn't installed. -->
+      <vmArgsWin>-Dorg.eclipse.swt.browser.DefaultType=edge
+      </vmArgsWin>
    </launcherArgs>
 
    <windowImages i16="app/app_16.png" i32="app/app_32.png" i48="app/app_48.png" i64="app/app_64.png" i128="app/app_128.png" i256="app/app_256.png"/>

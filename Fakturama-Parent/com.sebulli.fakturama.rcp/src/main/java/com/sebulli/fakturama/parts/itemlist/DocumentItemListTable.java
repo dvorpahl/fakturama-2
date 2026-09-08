@@ -145,6 +145,7 @@ import com.sebulli.fakturama.util.ProductUtil;
 import com.sebulli.fakturama.views.datatable.AbstractViewDataTable;
 import com.sebulli.fakturama.views.datatable.common.CellImagePainter;
 import com.sebulli.fakturama.views.datatable.common.ListSelectionStyleConfiguration;
+import com.sebulli.fakturama.views.datatable.common.ModernTableStyle;
 import com.sebulli.fakturama.views.datatable.common.MoneyDisplayConverter;
 import com.sebulli.fakturama.views.datatable.layer.EntityGridListLayer;
 import com.sebulli.fakturama.views.datatable.tree.model.TreeObject;
@@ -718,6 +719,17 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                                                                ,gridListLayer.getViewportLayer()  */
                 gridListLayer.getGridLayer(), false);
         natTable.setLayerPainter(new NatGridLayerPainter(natTable, DataLayer.DEFAULT_ROW_HEIGHT));
+
+        // Fixed row height of 1.8 lines - without this every row defaults to
+        // DataLayer.DEFAULT_ROW_HEIGHT (20px, one line), so a multi-line Hinweis/
+        // Beschreibung either gets silently clipped to its first line (no visual cue that
+        // there's more) or, depending on how the active cell painter handles embedded
+        // newlines, spills unevenly into neighbouring rows. 1.8 rather than a whole
+        // multiple of lines is deliberate - see ModernTableStyle#applyFixedRowHeight's
+        // Javadoc for the same rationale on the SWT-table side of this codebase (a
+        // partially cut-off second line signals "there's more here" instead of either
+        // hiding it completely or reserving a full second line on every row).
+        ModernTableStyle.applyFixedRowHeight(natTable, gridListLayer.getBodyDataLayer(), 1.8f);
 
         // register a MoveCellSelectionCommandHandler with
         // TABLE_CYCLE_TRAVERSAL_STRATEGY for horizontal traversal

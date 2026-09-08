@@ -374,6 +374,7 @@ public class Messages {
     public String editorDocumentPaidat;
     public String editorDocumentPayuntil;
     public String editorDocumentPayuntilTooltip;
+    public String editorDocumentReliabilityTooltip;
     public String editorDocumentRefnumberTooltip;
     public String editorDocumentSelecttemplateTooltip;
     public String editorDocumentTotalgross;
@@ -422,6 +423,10 @@ public class Messages {
     public String editorProductFieldStockmanagedClearconfirmMessage;
     public String editorProductFieldSupplierItemnumber;
     public String editorProductFieldSupplierItemnumberTooltip;
+    public String editorProductPictureShopBadge;
+    public String editorProductPictureShopBadgeTooltip;
+    public String editorProductPictureHiresBadge;
+    public String editorProductPictureHiresBadgeTooltip;
     public String editorProductLabelWebshop;
     public String editorProductFieldInshopName;
     public String editorProductFieldShoppriceName;

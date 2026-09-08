@@ -167,6 +167,7 @@ import com.sebulli.fakturama.model.ObjectDuplicator;
 import com.sebulli.fakturama.model.ObjectDuplicator.DuplicateMode;
 import com.sebulli.fakturama.model.Payment;
 import com.sebulli.fakturama.model.Product;
+import com.sebulli.fakturama.model.ReliabilityType;
 import com.sebulli.fakturama.model.Shipping;
 import com.sebulli.fakturama.model.ShippingVatType;
 import com.sebulli.fakturama.model.TextModule;
@@ -291,6 +292,7 @@ public class DocumentEditor extends Editor<Document> {
     private Composite paidContainer;
     private Composite paidDataContainer = null;
     private Combo comboPayment;
+    private Label reliabilityIcon;
     private Label warningDepositIcon;
     private Label warningDepositText;
     private Spinner spDueDays;
@@ -2088,6 +2090,48 @@ public class DocumentEditor extends Editor<Document> {
     }
 
     /**
+     * Shows a small colored badge next to the address icons for the given contact's Bonität
+     * (ReliabilityType): green with a star for GOOD, amber for MEDIUM, red with an X for POOR.
+     * A contact without a maintained rating (reliability is {@code null} or
+     * {@link ReliabilityType#NONE}, the latter being the explicit "---" combo entry in the
+     * contact editor) hides the badge entirely instead of showing a meaningless default -
+     * same collapse-to-0x0 trick as {@link #showHideWarningIcon()}.
+     *
+     * @param contact
+     *            the contact whose reliability should be reflected, or {@code null}
+     */
+    private void updateReliabilityIcon(final Contact contact) {
+        final ReliabilityType reliability = contact != null ? contact.getReliability() : null;
+        Icon icon = null;
+        if (reliability != null) {
+            switch (reliability) {
+            case GOOD:
+                icon = Icon.DOCEDIT_RELIABILITY_GOOD;
+                break;
+            case MEDIUM:
+                icon = Icon.DOCEDIT_RELIABILITY_MEDIUM;
+                break;
+            case POOR:
+                icon = Icon.DOCEDIT_RELIABILITY_POOR;
+                break;
+            default:
+                // NONE - no rating maintained, keep the badge hidden
+                break;
+            }
+        }
+        if (icon != null) {
+            reliabilityIcon.setImage(icon.getImage(IconSize.DocumentIconSize));
+            reliabilityIcon.setToolTipText(MessageFormat.format(msg.editorDocumentReliabilityTooltip, contactUtil.getReliabilityString(reliability)));
+            GridDataFactory.swtDefaults().align(SWT.END, SWT.TOP).applyTo(reliabilityIcon);
+        } else {
+            GridDataFactory.swtDefaults().hint(0, 0).align(SWT.END, SWT.TOP).applyTo(reliabilityIcon);
+        }
+        // addressComposite (the actual parent) is a local variable of createPartControl(), not
+        // a field - going via getParent() reaches it anyway without needing to hoist it.
+        reliabilityIcon.getParent().layout(true);
+    }
+
+    /**
      * Fill the address {@link CTabItem} with a contact
      * 
      * @param address
@@ -2097,6 +2141,7 @@ public class DocumentEditor extends Editor<Document> {
      */
     private void setAddress(final Address address, final DocumentReceiver documentReceiver) {
         final Contact contact = address.getContact();
+        updateReliabilityIcon(contact);
         // set the DocumentReceiver in the currently active address tab
         selectedAddresses.put(document.getBillingType(), documentReceiver);
 
@@ -2604,6 +2649,14 @@ public class DocumentEditor extends Editor<Document> {
             }
         });
 
+        // Reliability (Bonität) badge - reflects the currently selected contact's
+        // creditworthiness rating (Contact.getReliability(), maintained in the "Sonstiges"
+        // tab of the contact editor). Hidden by default (collapsed to 0x0, same trick as
+        // showHideWarningIcon() below) until updateReliabilityIcon() has an actual contact
+        // to show a rating for - see setAddress().
+        reliabilityIcon = new Label(addressComposite, SWT.NONE | SWT.RIGHT);
+        GridDataFactory.swtDefaults().hint(0, 0).align(SWT.END, SWT.TOP).applyTo(reliabilityIcon);
+
         // Export address to CSV
         final Label exportToCSV = new Label(defaultValuePrefs.getBoolean(Constants.PREFERENCES_EXPORT_CSV4DHL) ? addressComposite : invisible,
                 SWT.NONE | SWT.RIGHT);
@@ -2630,6 +2683,12 @@ public class DocumentEditor extends Editor<Document> {
         final DocumentReceiver mainReceiver = createOrGetMainReceiver();
         final CTabItem addressTab = createAddressTabItem(mainReceiver);
         addressAndIconComposite.setSelection(addressTab);
+        // Initial Bonität badge for a document that already has a receiver when opened
+        // (setAddress() only fires afterwards, when the user actively re-picks a contact via
+        // the address dialog - see the "Contact" case in handleDialogSelection()). findById()
+        // is null-safe both for a null id (brand-new document, no receiver yet) and returns
+        // null if the contact itself can't be resolved.
+        updateReliabilityIcon(contactDAO.findById(mainReceiver.getOriginContactId()));
         if (document.getReceiver().size() > 1) {
             final Iterator<DocumentReceiver> it = document.getReceiver().iterator();
             while (it.hasNext()) {

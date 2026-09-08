@@ -67,7 +67,14 @@ public class DoubleValueFormatter extends NumberFormatter implements ITextFormat
     @Override
     public Object getValue() {
         Number widgetValue = (Number) super.getValue();
-        return widgetValue.doubleValue();
+        // Null-safe like getDisplayString() below - a not-stock-managed Product.quantity is
+        // set to null (not 0.0) so it can be told apart from "really has zero stock" in the
+        // product list (see ProductListTable's QUANTITY column, which shows an empty cell only
+        // for null). ProductEditor's checkboxStockManaged listener relies on this by calling
+        // textQuantity.setValue(null) when "Bestand führen" is unchecked - without this
+        // null-check that round-trips straight into an NPE the next time something reads the
+        // field back (binding sync, save, ...).
+        return widgetValue == null ? null : widgetValue.doubleValue();
     }
 
     /* (non-Javadoc)
