@@ -497,6 +497,17 @@ TODO:
 	</changeSet>
 
  	<changeSet author="rheydenr" id="20190915-052">
+		<!-- Ältere Liquibase-Versionen (vor dem Upgrade auf 4.25.0) haben die Prüfsumme
+		dieses Changesets falsch als MD5 eines LEEREN Inhalts berechnet, weil sie die
+		beiden dbms-gebundenen <sql>-Kindelemente nicht korrekt ausgewertet haben
+		(d41d8cd98f00b204e9800998ecf8427e ist die MD5-Summe des leeren Strings) - bei
+		jedem Bestandssystem, das diesen Changeset schon vor dem Liquibase-Upgrade
+		ausgeführt hat, steht daher die alte, falsche Prüfsumme in DATABASECHANGELOG.
+		Beide Werte hier eingetragen, statt die DB manuell per UPDATE zu korrigieren -
+		das ist der von Liquibase dafür vorgesehene Mechanismus, siehe
+		https://docs.liquibase.com/concepts/changelogs/changeset.html#changeset-validchecksum-attribute -->
+		<validCheckSum>9:d41d8cd98f00b204e9800998ecf8427e</validCheckSum>
+		<validCheckSum>9:014028cff8982186d5197842bb269582</validCheckSum>
 		<comment>update addresses (merge delivery contacts into existing billing contacts)</comment>
 		<sql dbms="mysql,mariadb">INSERT INTO TMP_CONTACTS_WITH_ADDRESSES
 		SELECT t.BILLING_ADDRESS_ID,
@@ -644,6 +655,11 @@ TODO:
 	</changeSet>
 
 	<changeSet author="rheydenr" id="20190915-053">
+		<!-- Gleicher Grund wie bei 20190915-052 (siehe dortiger Kommentar) - auch dieser
+		Changeset hat zwei dbms-gebundene <sql>-Kindelemente und war von derselben
+		Liquibase-Prüfsumme-Regression betroffen. -->
+		<validCheckSum>9:d41d8cd98f00b204e9800998ecf8427e</validCheckSum>
+		<validCheckSum>9:61064c9950ede605d8918a94d85bc82c</validCheckSum>
 		<comment>merge delivery addresses</comment>
 
 		<sql dbms="mysql,mariadb">INSERT INTO TMP_CONTACTS_WITH_ADDRESSES

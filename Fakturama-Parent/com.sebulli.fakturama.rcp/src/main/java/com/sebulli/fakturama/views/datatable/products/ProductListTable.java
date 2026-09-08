@@ -111,6 +111,9 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     private ProductCategoriesDAO productCategoriesDAO;
 
     @Inject
+    private com.sebulli.fakturama.dao.ProductWebshopDAO productWebshopDAO;
+
+    @Inject
     private IPreferenceStore prefStore;
 
     @Inject
@@ -118,6 +121,17 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     private PagedEntityEventList<Product> productListData;
     private ca.odell.glazedlists.EventList<ProductCategory> categories;
+
+    /**
+     * Webshop overlay per product ID for whichever page/result set is currently displayed -
+     * refreshed alongside every {@link #loadProductPage(int, int)}/{@link
+     * #reloadDialogProducts(String)} call (see {@link #refreshWebshopCache(List)}), read by the
+     * WEBSHOP_PRICE column's label provider. Batched per page rather than one
+     * {@code ProductWebshopDAO#findByProduct} call per row - see
+     * {@link com.sebulli.fakturama.dao.ProductWebshopDAO#findByProducts}'s javadoc for why a
+     * fetch-join isn't possible here.
+     */
+    private Map<Long, com.sebulli.fakturama.model.ProductWebshop> webshopCache = Map.of();
 
     private String currentSearchTerm;
     private String currentCategoryName;
@@ -242,6 +256,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     /** DIALOG mode: bounded, plain (non-virtual) list - reloaded wholesale per debounced search term. */
     private void reloadDialogProducts(final String searchTerm) {
         final List<Product> results = productsDAO.findPage(searchTerm, null, null, null, false, 0, 200);
+        refreshWebshopCache(results);
         productsViewer.setInput(results);
         for (int i = 0; i < table.getItemCount(); i++) {
             com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, i);
@@ -267,17 +282,22 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 continue;
             }
             final boolean rightAligned = descriptor == ProductListDescriptor.PRICE || descriptor == ProductListDescriptor.QUANTITY
-                    || descriptor == ProductListDescriptor.VAT;
+                    || descriptor == ProductListDescriptor.VAT || descriptor == ProductListDescriptor.WEBSHOP_PRICE;
             final TableViewerColumn viewerColumn = new TableViewerColumn(productsViewer, rightAligned ? SWT.RIGHT : SWT.LEFT);
             final TableColumn column = viewerColumn.getColumn();
             column.setText(msg.getMessageFromKey(descriptor.getMessageKey()));
             viewerColumn.setLabelProvider(createLabelProvider(descriptor));
-            column.addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(final SelectionEvent e) {
-                    onColumnSelected(descriptor, column);
-                }
-            });
+            if (descriptor != ProductListDescriptor.WEBSHOP_PRICE) {
+                // Not sortable: its propertyName ("webshopPrice") isn't a real Product/JPA
+                // attribute (see the enum's javadoc), so onColumnSelected()'s
+                // root.get(orderByProperty) would throw for it.
+                column.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(final SelectionEvent e) {
+                        onColumnSelected(descriptor, column);
+                    }
+                });
+            }
             tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), 30, true));
             if (descriptor == ProductListDescriptor.DESCRIPTION) {
                 descriptionColumnIndex = columnIndex;
@@ -331,6 +351,15 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                         return numberFormatterService.doubleToFormattedPrice(price);
                     case VAT:
                         return product.getVat() != null ? numberFormatterService.DoubleToFormatedPercent(product.getVat().getTaxValue()) : "";
+                    case WEBSHOP_PRICE:
+                        // Empty unless "im Shop anbieten" is set (a non-deleted ProductWebshop
+                        // row exists, see webshopCache's javadoc) - not merely "has a shop price
+                        // value", since that column is meant to answer "is this offered in the
+                        // shop, and at what price", not double as a generic price display.
+                        final com.sebulli.fakturama.model.ProductWebshop webshopData = webshopCache.get(product.getId());
+                        return webshopData != null && webshopData.getShopPrice() != null
+                                ? numberFormatterService.doubleToFormattedPrice(webshopData.getShopPrice())
+                                : "";
                     default:
                         return "";
                 }
@@ -386,8 +415,15 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     /** {@link PagedEntityEventList.PageLoader} for productListData - current search/category/sort criteria. */
     private List<Product> loadProductPage(final int firstResult, final int maxResults) {
-        return productsDAO.findPage(currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty, currentSortDescending, firstResult,
-                maxResults);
+        final List<Product> page = productsDAO.findPage(currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty,
+                currentSortDescending, firstResult, maxResults);
+        refreshWebshopCache(page);
+        return page;
+    }
+
+    /** Refreshes {@link #webshopCache} for a newly loaded page/result set - see its javadoc. */
+    private void refreshWebshopCache(final List<Product> products) {
+        webshopCache = productWebshopDAO.findByProducts(products);
     }
 
     /** Row count for the same criteria as {@link #loadProductPage(int, int)}. */

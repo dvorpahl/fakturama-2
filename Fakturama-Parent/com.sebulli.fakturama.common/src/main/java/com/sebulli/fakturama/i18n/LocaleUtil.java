@@ -278,14 +278,20 @@ public class LocaleUtil implements ILocaleService {
         if (currencyLocale == null) {
             String localeString = Activator.getPreferenceStore().getString(Constants.PREFERENCE_CURRENCY_LOCALE);
             if (localeString.isEmpty()) {
-                // Use a real locale identifier as fallback.  The former
-                // display-country value ("United States") could not be
-                // parsed and consequently returned the language-only JVM
-                // locale (for example "en"), which has no currency unit.
-                currencyLocale = Locale.US;
+                // No preference saved yet (fresh install, or a user who never opened the
+                // currency preference page) - route through the SAME
+                // ensureCountryForCurrency() fallback used below instead of hardcoding
+                // Locale.US: getDefaultLocale() is typically language-only (e.g. "de",
+                // no country - see its Javadoc/callers), which Monetary.getCurrency()
+                // can't resolve to a CurrencyUnit on its own, but
+                // Locale.getDefault(Locale.Category.FORMAT) (the JVM/OS locale) usually
+                // does have one. The previous unconditional Locale.US here masked the
+                // real system locale for every such user - e.g. a German installation
+                // showing "$" instead of "€" on every price field, since
+                // GeneralPreferencePage.setInitValues() then persists whatever this
+                // method returns as the stored default.
+                currencyLocale = ensureCountryForCurrency(getDefaultLocale(), Locale.getDefault(Locale.Category.FORMAT));
                 return currencyLocale;
-// Alternative:
-//              localeString = Locale.GERMAN.getCountry() + "/" + Locale.GERMAN.getLanguage();
             }
             Pattern pattern = Pattern.compile("(\\w{2})/(\\w{2})");
             Matcher matcher = pattern.matcher(localeString);

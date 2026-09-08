@@ -249,7 +249,9 @@ public class ProductsDAO extends AbstractDAO<Product> {
     public String[] getVisibleProperties() {
         // remove invisible properties
         List<String> resultList = Arrays.asList(Product_.itemNumber.getName(), Product_.name.getName(), Product_.description.getName(),
-                Product_.quantity.getName(), Product_.price1.getName(), Product_.vat.getName()).stream().filter((final String prop) -> {
+                Product_.quantity.getName(), Product_.price1.getName(), Product_.vat.getName(),
+                com.sebulli.fakturama.views.datatable.products.ProductListDescriptor.WEBSHOP_PRICE.getPropertyName()).stream()
+                .filter((final String prop) -> {
 
                     if (eclipsePrefs != null) {
                         if (prop.equalsIgnoreCase(Product_.quantity.getName()) && !eclipsePrefs.getBoolean(Constants.PREFERENCES_PRODUCT_USE_QUANTITY, true)) {

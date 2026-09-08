@@ -30,7 +30,13 @@ public enum ProductListDescriptor {
     DESCRIPTION("description", "common.field.description", 2, 200),
     QUANTITY("quantity", "common.field.quantity", 3, 70),
     PRICE("price1", "common.field.price", 4, 70),  // but sometimes it's the gross price!!!
-    VAT("vat", "common.field.vat", 5, 70)
+    VAT("vat", "common.field.vat", 5, 70),
+    // Not a real Product/JPA attribute - there's no direct entity relationship from Product to
+    // ProductWebshop (only the other way round, see ProductWebshop#getProduct()), so this is
+    // populated via a separate batched lookup (see ProductListTable's webshopCache) rather than a
+    // JPA fetch-join like the other columns. Not sortable for the same reason - see
+    // ProductListTable#createColumns(), which skips wiring a sort listener for this one.
+    WEBSHOP_PRICE("webshopPrice", "product.field.webshopprice", 6, 70)
     ;
 
     private String propertyName, messageKey;
@@ -97,6 +103,7 @@ public enum ProductListDescriptor {
         ProductListDescriptor.QUANTITY.getPropertyName(),
         ProductListDescriptor.PRICE.getPropertyName(),
         ProductListDescriptor.VAT.getPropertyName(),
+        ProductListDescriptor.WEBSHOP_PRICE.getPropertyName(),
         };
     }
 

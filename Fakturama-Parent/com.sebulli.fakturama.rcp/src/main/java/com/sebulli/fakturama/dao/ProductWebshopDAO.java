@@ -1,7 +1,13 @@
 package com.sebulli.fakturama.dao;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
 
@@ -47,6 +53,31 @@ public class ProductWebshopDAO extends AbstractDAO<ProductWebshop> {
             // no webshop data for this product yet - that's the normal case for most products
         }
         return result;
+    }
+
+    /**
+     * Batched counterpart to {@link #findByProduct(Product)} for a whole page of products at
+     * once (see {@code ProductListTable}'s "Webshop price" column) - Product has no mapped
+     * relationship back to ProductWebshop (only the other direction, see
+     * {@link ProductWebshop#getProduct()}), so a JPA fetch-join from the Product side isn't
+     * possible here; this is the one query-per-page alternative instead of one query per row.
+     *
+     * @param products
+     *            the page of products to look up webshop overlays for
+     * @return a map from {@link Product#getId()} to its (non-deleted) webshop overlay - products
+     *         without one (most products) are simply absent from the map, not mapped to
+     *         {@code null}
+     */
+    public Map<Long, ProductWebshop> findByProducts(final Collection<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<ProductWebshop> criteria = cb.createQuery(ProductWebshop.class);
+        final Root<ProductWebshop> root = criteria.from(ProductWebshop.class);
+        criteria.where(cb.and(root.get(ProductWebshop_.product).in(products), cb.isFalse(root.get(ProductWebshop_.deleted))));
+        final List<ProductWebshop> results = getEntityManager().createQuery(criteria).getResultList();
+        return results.stream().collect(Collectors.toMap((final ProductWebshop pw) -> pw.getProduct().getId(), Function.identity()));
     }
 
     /**
