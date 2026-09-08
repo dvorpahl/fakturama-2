@@ -163,11 +163,21 @@ public class LifecycleManager {
 
         // There should be a better way to close the Splash
         // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=376821
+        //
+        // unsubscribe() BEFORE close(), not after: several parts can activate in a rapid,
+        // nested burst while the initial perspective is being built (more likely on a fresh
+        // profile with no saved layout to just restore instead of freshly constructing one),
+        // and each activation publishes its own ACTIVATE event synchronously. Unsubscribing
+        // first shrinks the window in which a nested event re-enters this same handler before
+        // the previous call has deregistered it - closing the splash Shell can itself pump
+        // further synchronous SWT/event-broker activity, so doing it last matters. Combined
+        // with SplashServiceImpl#close()'s own isDisposed() guard as a second line of defense,
+        // in case a nested event still slips through this ordering.
         eventBroker.subscribe(UIEvents.UILifeCycle.ACTIVATE, new EventHandler() {
             @Override
             public void handleEvent(final Event event) {
-                splashService.close();
                 eventBroker.unsubscribe(this);
+                splashService.close();
             }
         });
 

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: com.sebulli.fakturama.common;singleton:=true
-Bundle-Version: 2.2.1.PREVIEW
+Bundle-Version: 2.2.1
 Bundle-Localization: plugin
 Export-Package: com.sebulli.fakturama.common,
  com.sebulli.fakturama.exception,

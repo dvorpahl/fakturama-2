@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: mariadb-database-connector
 Bundle-SymbolicName: org.fakturama.database.mariadb;singleton:=true
 Bundle-Vendor: Fakturama.org
-Bundle-Version: 2.2.1.PREVIEW
+Bundle-Version: 2.2.1
 Bundle-Activator: org.fakturama.database.mariadb.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: org.fakturama.database.mysql

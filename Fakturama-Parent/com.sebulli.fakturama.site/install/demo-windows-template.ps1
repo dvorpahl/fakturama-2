@@ -127,8 +127,12 @@ try {
     Remove-Item -LiteralPath $zipPath
     $appDir = Join-Path $workDir "app"
     $javaPath = Join-Path $workDir "jre\bin\java.exe"
+    $webview2Dir = Join-Path $workDir "webview2"
     if (-not (Test-Path -LiteralPath $javaPath)) {
         throw "Mitgelieferte Java-Laufzeit wurde nicht gefunden (erwartet unter jre\bin\java.exe) - Archiv beschaedigt oder falsch erzeugt?"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $webview2Dir "msedgewebview2.exe"))) {
+        throw "Mitgelieferte WebView2-Laufzeit wurde nicht gefunden (erwartet unter webview2\msedgewebview2.exe) - Archiv beschaedigt oder falsch erzeugt?"
     }
 
     $fakeHome = Join-Path $workDir "home"
@@ -170,16 +174,26 @@ try {
         throw "Fakturama.exe wurde im entpackten Archiv nicht gefunden."
     }
 
-    Write-Host "Starte Fakturama-Demo (DB: ${DB_HOST}:${DB_PORT}/${DB_NAME}) ..."
+    Write-Host "Starte Fakturama-Demo (DB: ${DB_HOST}:${DB_PORT}/${DB_NAME}) mit integriertem Edge (WebView2) ..."
     # -Dfakturama.demoMode=true: startet maximiert und schreibt lokale Einstellungsaenderungen
     # (Tabellenspalten, Nummernkreise, ...) nicht in die geteilte Test-DB zurueck - siehe
     # LifecycleManager#processAdditions / PreferencesInDatabase#savePreferenceValue.
+    #
+    # -Dorg.eclipse.swt.browser.DefaultType=edge/-Dorg.eclipse.swt.browser.EdgeDir: das
+    # regulaere Fakturama.ini traegt DefaultType=edge zwar bereits (siehe
+    # com.sebulli.fakturama.product), aber -vmargs auf der Kommandozeile ERSETZT den
+    # ganzen -vmargs-Abschnitt aus der .ini komplett statt ihn zu ergaenzen (bekanntes
+    # Eclipse-Launcher-Verhalten) - deshalb muss dieses Demo-Skript, das seine eigenen
+    # -vmargs setzt, beide Properties hier selbst nochmal mitgeben. EdgeDir zeigt auf die
+    # mitgelieferte WebView2-Fixed-Version-Runtime (siehe build-demo-windows.sh), damit die
+    # Demo auch auf einem Rechner ohne vorinstallierte (Evergreen-)WebView2-Runtime laeuft.
     #
     # Ein einzelner, manuell gequoteter Argument-String statt eines Arrays: Start-Process
     # -ArgumentList quotet Array-Elemente mit Leerzeichen (z.B. im Temp-Pfad) nicht
     # zuverlaessig selbst - bekannte PowerShell-Falle. Gleiche flache Struktur wie
     # build-demo.sh's "$LAUNCHER" -vm "$JAVA_BIN" -vmargs "-Duser.home=$FAKE_HOME" ... .
-    $argumentString = '-vm "' + $javaPath + '" -vmargs -Duser.home="' + $fakeHome + '" -Dfakturama.demoMode=true'
+    $argumentString = '-vm "' + $javaPath + '" -vmargs -Duser.home="' + $fakeHome + '" -Dfakturama.demoMode=true' `
+        + ' -Dorg.eclipse.swt.browser.DefaultType=edge -Dorg.eclipse.swt.browser.EdgeDir="' + $webview2Dir + '"'
     $proc = Start-Process -FilePath $launcher.FullName -ArgumentList $argumentString -PassThru -Wait
 }
 finally {

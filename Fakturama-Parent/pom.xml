@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.sebulli.fakturama</groupId>
 	<artifactId>Fakturama-Parent</artifactId>
-	<version>2.2.1.PREVIEW</version>
+	<version>2.2.1</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -425,17 +425,10 @@
 									<ws>win32</ws>
 									<arch>x86_64</arch>
 								</environment>
-								<environment>
-									<os>macosx</os>
-									<ws>cocoa</ws>
-									<arch>x86_64</arch>
-								</environment>
-                                <!-- works only with a native MacOS -->
-								<environment>
-									<os>macosx</os>
-									<ws>cocoa</ws>
-									<arch>aarch64</arch>
-								</environment>
+								<!-- macOS deliberately excluded from this branch's CI build - nobody on
+                                     this team has a Mac to test/support it on. Re-add the two macosx/cocoa
+                                     environments (x86_64 + aarch64, "works only with a native MacOS") here
+                                     if that changes. -->
 								<environment>
 									<os>linux</os>
 									<ws>gtk</ws>

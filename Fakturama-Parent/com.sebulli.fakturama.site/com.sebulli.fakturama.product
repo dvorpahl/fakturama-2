@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.2.1.PREVIEW" type="features" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="Fakturama" uid="Fakturama.ID" id="com.sebulli.fakturama.rcp.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="2.2.1" type="features" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="icon://APP_ABOUT_ICON"/>
@@ -28,8 +28,15 @@
 
    <windowImages i16="app/app_16.png" i32="app/app_32.png" i48="app/app_48.png" i64="app/app_64.png" i128="app/app_128.png" i256="app/app_256.png"/>
 
-   <splash
-      location="com.sebulli.fakturama.rcp" />
+   <!-- No native launcher splash on purpose: LifecycleManager/SplashServiceImpl already open
+        our own SWT splash Shell (splash-rcp.png) with progress bar/text as soon as the OSGi
+        context is up - that's the only splash the app needs. Keeping the native "-showsplash"
+        one too (driven by this <splash> element + osgi.splashPath below) meant BOTH were shown
+        at once for the whole startup window: the native launcher positions its bitmap using its
+        own monitor-centering logic, our SWT Shell centers via Display.getPrimaryMonitor() - on
+        this multi-monitor/HiDPI desktop those two computations don't agree, so the two splash
+        images rendered visibly offset/overlapping instead of one cleanly handing off to the
+        other. Removing the native one leaves exactly one splash on screen. -->
    <launcher name="Fakturama">
       <linux icon="app/app_256.xpm"/>
       <macosx icon="app/app.icns"/>
@@ -348,10 +355,10 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </plugins>
 
    <features>
-      <feature id="com.sebulli.fakturama.feature" version="2.2.1.PREVIEW"/>
-      <feature id="org.fakturama.exporter.zugferd.feature" version="2.2.1.PREVIEW"/>
-      <feature id="org.fakturama.export.feature" version="2.2.1.PREVIEW"/>
-      <feature id="org.fakturama.import.feature" version="2.2.1.PREVIEW"/>
+      <feature id="com.sebulli.fakturama.feature" version="2.2.1"/>
+      <feature id="org.fakturama.exporter.zugferd.feature" version="2.2.1"/>
+      <feature id="org.fakturama.export.feature" version="2.2.1"/>
+      <feature id="org.fakturama.import.feature" version="2.2.1"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.nebula.widgets.nattable.core.feature"/>
       <feature id="org.eclipse.nebula.widgets.nattable.extension.glazedlists.feature"/>
@@ -407,7 +414,6 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="eclipse.p2.profile" value="profile" />
       <property name="org.eclipse.swt.browser.IEVersion" value="12001" os="win32" />
-      <property name="osgi.splashPath" value="file:plugins/com.sebulli.fakturama.rcp" />
       <property name="osgi.instance.area" value="@user.home/.fakturama2" />
       <property name="eclipse.buildId" value="${unqualifiedVersion}.${buildQualifier}" />
       <property name="osgi.resolveOptionalImports" value="true" />

@@ -76,17 +76,41 @@ trap 'rm -rf "$BUILD_DIR"' EXIT
 # App-ZIP und JRE-tar.gz in ein gemeinsames ZIP zusammenfuehren (app/ + jre/ Unterordner,
 # gleiche Struktur wie build-demo.sh's tar-Payload fuer Linux), damit das generierte
 # PowerShell-Skript nur ein einziges Archiv extrahieren muss.
-mkdir -p "$BUILD_DIR/payload/app" "$BUILD_DIR/payload/jre"
+mkdir -p "$BUILD_DIR/payload/app" "$BUILD_DIR/payload/jre" "$BUILD_DIR/payload/webview2"
 ( cd "$BUILD_DIR/payload/app" && unzip -q "$APP_ARCHIVE" )
 tar -xzf "$JRE_ARCHIVE" -C "$BUILD_DIR/payload/jre"
 
+# WebView2 "Fixed Version" Runtime fuer Windows x64 - SWT's Browser-Widget faellt sonst auf
+# die alte IE-Engine zurueck, wenn auf dem Zielrechner keine (Evergreen-)WebView2-Runtime
+# vorinstalliert ist. Ueber das inoffizielle, aber gaengige NuGet-Repackaging
+# WebView2.Runtime.X64 (github.com/ProKn1fe/WebView2.Runtime) statt Microsofts eigener,
+# nur per JS-Download-Seite erreichbarer Fixed-Version-Distribution - kein offizielles
+# Microsoft-Paket, Inhalt aber verifiziert (msedgewebview2.exe, EBWebView/, Locales/, ...,
+# echte ~535 MB Runtime). Die eigentlichen Dateien liegen im nupkg unter
+# contentFiles/any/any/WebView2/, NICHT unter einem "embedded/"-Pfad.
+WEBVIEW2_VERSION="${WEBVIEW2_VERSION:-120.0.2210.133}"
+WEBVIEW2_URL="https://www.nuget.org/api/v2/package/WebView2.Runtime.X64/${WEBVIEW2_VERSION}"
+echo "Lade WebView2 Fixed-Version-Runtime ${WEBVIEW2_VERSION} herunter (~535 MB, kann dauern) ..."
+WEBVIEW2_NUPKG="$BUILD_DIR/webview2.nupkg"
+curl -sSL --fail -o "$WEBVIEW2_NUPKG" "$WEBVIEW2_URL"
+WEBVIEW2_TMP="$BUILD_DIR/webview2_tmp"
+mkdir -p "$WEBVIEW2_TMP"
+unzip -q "$WEBVIEW2_NUPKG" -d "$WEBVIEW2_TMP"
+WEBVIEW2_CONTENT="$WEBVIEW2_TMP/contentFiles/any/any/WebView2"
+if [ ! -f "$WEBVIEW2_CONTENT/msedgewebview2.exe" ]; then
+    echo "error: msedgewebview2.exe nicht gefunden unter '$WEBVIEW2_CONTENT' - hat sich die Paketstruktur von WebView2.Runtime.X64 geaendert?" >&2
+    exit 1
+fi
+cp -r "$WEBVIEW2_CONTENT/." "$BUILD_DIR/payload/webview2/"
+
 PAYLOAD_ZIP="$BUILD_DIR/payload.zip"
-( cd "$BUILD_DIR/payload" && zip -q -r "$PAYLOAD_ZIP" app jre )
+( cd "$BUILD_DIR/payload" && zip -q -r "$PAYLOAD_ZIP" app jre webview2 )
 
 # Pruefsumme des rohen (noch unkodierten) Payload-ZIPs - das generierte .ps1 prueft
-# damit nach dem Base64-Decode, ob die ~300 MB grosse Datei auf dem Transportweg
-# (Download/Kopie zu Heinz) unversehrt angekommen ist, statt bei Beschaedigung nur
-# eine kryptische .NET-Fehlermeldung zu zeigen.
+# damit nach dem Base64-Decode, ob die (mit gebuendelter WebView2-Runtime jetzt eher
+# ~1 GB als text-kodierte .ps1-Datei) grosse Datei auf dem Transportweg (Download/Kopie
+# zu Heinz) unversehrt angekommen ist, statt bei Beschaedigung nur eine kryptische
+# .NET-Fehlermeldung zu zeigen.
 PAYLOAD_SHA256="$(sha256sum "$PAYLOAD_ZIP" | cut -d' ' -f1)"
 
 HEADER="$BUILD_DIR/header.ps1"

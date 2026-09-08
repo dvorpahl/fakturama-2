@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: hsql-database-connector
 Bundle-SymbolicName: org.fakturama.database.hsql;singleton:=true
 Bundle-Vendor: Fakturama.org
-Bundle-Version: 2.2.1.PREVIEW
+Bundle-Version: 2.2.1
 Export-Package: org.fakturama.database.hsql
 Bundle-Activator: org.fakturama.database.hsql.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-17

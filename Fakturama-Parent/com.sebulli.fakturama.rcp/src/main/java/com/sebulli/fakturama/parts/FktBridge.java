@@ -87,8 +87,58 @@ public class FktBridge {
      * <p>Also dispatches a {@code window.FKTReady} event and sets {@code window.FKT.ready = true}
      * on every (re-)install, so pages can listen for readiness instead of racing a one-shot check -
      * see {@code FKT-Debug} console output on the page itself for what the page observed.</p>
+     *
+     * <p>Self-delaying: if SWT hasn't (re-)attached its native BrowserFunctions to the current
+     * document yet (a separate, independently-timed step from the {@code changed}/{@code completed}
+     * events that normally trigger this call - see {@link #nativeFunctionsAreAttached(Browser)}),
+     * this reschedules itself on a short timer instead of installing wrappers around functions
+     * that don't exist yet. Callers never need to retry this themselves.</p>
      */
+    /** Poll interval while waiting for SWT to (re-)attach its native BrowserFunctions to a
+     * freshly (re-)created document - see {@link #injectNamespace(Browser)}'s javadoc for why
+     * this polling exists at all. Short enough that the whole retry loop stays imperceptible in
+     * the near-universal case where the attachment is already done by the time this runs. */
+    private static final int READY_POLL_INTERVAL_MS = 20;
+
+    /** ~2s worst case (see {@link #READY_POLL_INTERVAL_MS}) before giving up and logging instead
+     * of polling forever - a document that never gets native functions attached (disposed
+     * Browser, an engine that doesn't support BrowserFunction at all, ...) must not leave a
+     * runaway timer chain behind. */
+    private static final int MAX_READY_POLL_ATTEMPTS = 100;
+
     public void injectNamespace(final Browser browser) {
+        injectNamespace(browser, 0);
+    }
+
+    private void injectNamespace(final Browser browser, final int attempt) {
+        if (browser.isDisposed()) {
+            return;
+        }
+        // window.FKT.getAuthToken() (and every other FKT.* call) used to throw
+        // "ReferenceError: Can't find variable: __fkt_getAuthToken" reproducibly on the first
+        // FKTReady after a (re-)navigation, succeeding only on a later retry - not a page-load
+        // timing issue on the JS side (login.html already retries across FKTReady events for
+        // exactly this), but a genuine race on THIS side: this method runs from
+        // ProgressListener#changed/#completed, which fire on network-load progress, while SWT's
+        // own (re-)attachment of the native BrowserFunctions to a new document is a separate,
+        // independently-timed step - nothing guarantees the latter has completed before the
+        // former fires, on any backend (originally seen on Windows/IE, confirmed on
+        // Linux/WebKitGTK too). Rather than defining window.FKT.* wrappers that reference a
+        // native function which may not exist yet and hoping a later network event retries
+        // this in time, verify one native function is actually callable first and, if not,
+        // retry on a short Java-side timer - independent of network activity, so success is
+        // typically single-digit-milliseconds after the real attachment happens instead of
+        // "whenever the next resource happens to load".
+        if (!nativeFunctionsAreAttached(browser)) {
+            if (attempt < MAX_READY_POLL_ATTEMPTS) {
+                browser.getDisplay().timerExec(READY_POLL_INTERVAL_MS, () -> injectNamespace(browser, attempt + 1));
+            } else {
+                log.warn("FKT bridge: native BrowserFunctions never became callable after " + MAX_READY_POLL_ATTEMPTS
+                        + " retries (~" + (MAX_READY_POLL_ATTEMPTS * READY_POLL_INTERVAL_MS) + "ms) for " + safeUrl(browser)
+                        + " - window.FKT will not be installed for this document.");
+            }
+            return;
+        }
         String script = "(function() {"
                 + "try {"
                 + "window.FKT = window.FKT || {};"
@@ -120,6 +170,22 @@ public class FktBridge {
         }
         if (!executed) {
             log.warn("FKT bridge: browser.execute() returned false (script was not run) while injecting window.FKT for " + safeUrl(browser));
+        }
+    }
+
+    /** Whether SWT has (re-)attached its native BrowserFunction bridge to the browser's CURRENT
+     * document yet - checked via one representative function ({@code getAuthToken}'s) rather
+     * than all of them, since SWT attaches every {@code BrowserFunction} on a given
+     * {@link Browser} through the same shared native-to-JS bridge in one step (they're all
+     * thin JS wrappers around one internal dispatcher, not independently registered), so one
+     * being callable means they all are. {@code evaluate()} rather than {@code execute()} -
+     * needs the actual boolean result, not just whether the script ran. */
+    private boolean nativeFunctionsAreAttached(final Browser browser) {
+        try {
+            Object result = browser.evaluate("return typeof " + FktGetAuthTokenFunction.JS_NAME + " === 'function';");
+            return Boolean.TRUE.equals(result);
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 

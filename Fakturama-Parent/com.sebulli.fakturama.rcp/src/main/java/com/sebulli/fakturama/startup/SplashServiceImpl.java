@@ -245,7 +245,13 @@ public class SplashServiceImpl implements ISplashService {
 
 	@Override
 	public void close() {
-		if(splashShell != null) {
+		// isDisposed() guard: LifecycleManager's ACTIVATE subscriber can be invoked more than
+		// once before its own unsubscribe() takes effect if several parts activate in a rapid,
+		// nested burst during initial perspective construction (most likely on a genuinely
+		// fresh profile with no saved perspective layout to just restore) - without this guard,
+		// the second call hit an already-disposed Shell and threw
+		// "org.eclipse.swt.SWTException: Widget is disposed" right after startup.
+		if (splashShell != null && !splashShell.isDisposed()) {
 			splashShell.close();
 		}
 		splashShell = null;
