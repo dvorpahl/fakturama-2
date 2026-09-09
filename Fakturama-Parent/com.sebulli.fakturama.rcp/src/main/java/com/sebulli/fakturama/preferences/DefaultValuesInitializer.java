@@ -54,8 +54,10 @@ public class DefaultValuesInitializer extends AbstractPreferenceInitializer {
      */
     @Override
     public void initializeDefaultPreferences() {
-        ILogger log = EclipseContextFactory.getServiceContext(Activator.getContext()).get(ILogger.class);
-        log.info("Entering default Preference Initializer");
+        ILogger log = getLoggerWithRetry();
+        if (log != null) {
+            log.info("Entering default Preference Initializer");
+        }
         IPreferenceStore defaultValuesNode = FakturamaPreferenceStoreProvider.getInstance().getPreferenceStore();
 
         // TODO Later on we use registered preference pages which register itself on a registry:
@@ -86,11 +88,35 @@ public class DefaultValuesInitializer extends AbstractPreferenceInitializer {
         for (Class<? extends IInitializablePreference> clazz : classesToInit) {
             IInitializablePreference p = ContextInjectionFactory.make(clazz, EclipseContextFactory.getServiceContext(Activator.getContext()));
             if (Objects.isNull(p)) {
-                log.error("Object for Class '" + clazz.getSimpleName() + "' is null");
+                if (log != null) {
+                    log.error("Object for Class '" + clazz.getSimpleName() + "' is null");
+                }
+                continue;
             }
             p.setInitValues(defaultValuesNode);
         }
 
         EclipseContextFactory.getServiceContext(Activator.getContext()).set(IPreferenceStore.class, defaultValuesNode);
+    }
+
+    /**
+     * Looks up the {@link ILogger} OSGi service. During early bundle startup the
+     * service (backed by a DS component with a mandatory {@code ExtendedLogService}
+     * reference) may not be published yet, so retry for a short time instead of
+     * failing this preference initializer - and with it the whole RCP bundle
+     * activation - with a NullPointerException.
+     */
+    private ILogger getLoggerWithRetry() {
+        ILogger log = EclipseContextFactory.getServiceContext(Activator.getContext()).get(ILogger.class);
+        for (int attempts = 0; log == null && attempts < 50; attempts++) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            log = EclipseContextFactory.getServiceContext(Activator.getContext()).get(ILogger.class);
+        }
+        return log;
     }
 }
