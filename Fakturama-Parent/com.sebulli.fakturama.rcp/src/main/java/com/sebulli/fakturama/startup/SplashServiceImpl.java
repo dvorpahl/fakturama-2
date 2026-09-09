@@ -17,6 +17,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -235,12 +236,45 @@ public class SplashServiceImpl implements ISplashService {
 	}
 
 	private Point getMonitorCenter(Shell shell) {
+		// Prefer landing this Shell exactly where the native launcher already placed its own
+		// splash bitmap, instead of independently recomputing a "center of primary monitor" -
+		// the native launcher's centering (raw pixels, its own monitor-selection heuristic) and
+		// this computation (SWT's DPI-scaled Display.getPrimaryMonitor()) don't always agree on
+		// multi-monitor/HiDPI setups, which used to show the native splash and this one visibly
+		// offset from each other instead of one cleanly handing off to the other.
+		Point nativeSplashLocation = getNativeSplashLocation(shell.getDisplay());
+		if (nativeSplashLocation != null) {
+			return nativeSplashLocation;
+		}
 		Monitor primary = shell.getDisplay().getPrimaryMonitor ();
 		Rectangle bounds = primary.getBounds();
 		Rectangle rect = shell.getBounds();
 		int x = bounds.x + (bounds.width - rect.width) / 2;
 		int y = bounds.y + (bounds.height - rect.height) / 2;
 		return new Point(x, y);
+	}
+
+	/**
+	 * When started via the native launcher (not from within the IDE), the equinox launcher
+	 * exposes the already-open native splash window's handle via the
+	 * "org.eclipse.equinox.launcher.splash.handle" system property (this is the same
+	 * undocumented mechanism org.eclipse.ui.internal.WorkbenchPlugin#getSplashShell uses).
+	 * Shell#internal_new() lets us wrap that handle to read back its real on-screen bounds -
+	 * the actual position the native launcher computed - so our own Shell can match it exactly
+	 * instead of guessing. Returns null (falling back to manual centering) whenever there is no
+	 * native splash to align with, e.g. when launched from the IDE.
+	 */
+	private Point getNativeSplashLocation(Display display) {
+		String splashHandle = System.getProperty("org.eclipse.equinox.launcher.splash.handle");
+		if (splashHandle == null) {
+			return null;
+		}
+		try {
+			Rectangle bounds = Shell.internal_new(display, Long.parseLong(splashHandle.trim())).getBounds();
+			return new Point(bounds.x, bounds.y);
+		} catch (RuntimeException e) {
+			return null;
+		}
 	}
 
 	@Override
