@@ -13,6 +13,9 @@
 
 package com.sebulli.fakturama.parts;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
@@ -125,7 +128,7 @@ public class FktBridge {
         // former fires, on any backend (originally seen on Windows/IE, confirmed on
         // Linux/WebKitGTK too). Rather than defining window.FKT.* wrappers that reference a
         // native function which may not exist yet and hoping a later network event retries
-        // this in time, verify one native function is actually callable first and, if not,
+        // this in time, verify every native function is actually callable first and, if not,
         // retry on a short Java-side timer - independent of network activity, so success is
         // typically single-digit-milliseconds after the real attachment happens instead of
         // "whenever the next resource happens to load".
@@ -174,15 +177,18 @@ public class FktBridge {
     }
 
     /** Whether SWT has (re-)attached its native BrowserFunction bridge to the browser's CURRENT
-     * document yet - checked via one representative function ({@code getAuthToken}'s) rather
-     * than all of them, since SWT attaches every {@code BrowserFunction} on a given
-     * {@link Browser} through the same shared native-to-JS bridge in one step (they're all
-     * thin JS wrappers around one internal dispatcher, not independently registered), so one
-     * being callable means they all are. {@code evaluate()} rather than {@code execute()} -
-     * needs the actual boolean result, not just whether the script ran. */
+     * document yet - checked against every function {@link #injectNamespace(Browser, int)} is
+     * about to wrap, rather than assuming one being callable means they all are. {@code
+     * evaluate()} rather than {@code execute()} - needs the actual boolean result, not just
+     * whether the script ran. */
     private boolean nativeFunctionsAreAttached(final Browser browser) {
         try {
-            Object result = browser.evaluate("return typeof " + FktGetAuthTokenFunction.JS_NAME + " === 'function';");
+            String check = Stream.of(FktGetEnvironmentInfoFunction.JS_NAME, FktOpenProductFunction.JS_NAME,
+                    FktOpenProductByIdFunction.JS_NAME, FktOpenDocumentFunction.JS_NAME, FktOpenDocumentByIdFunction.JS_NAME,
+                    FktUpdatedObjectFunction.JS_NAME, FktIdentifyFunction.JS_NAME, FktGetAuthTokenFunction.JS_NAME)
+                    .map(name -> "typeof " + name + " === 'function'")
+                    .collect(Collectors.joining(" && "));
+            Object result = browser.evaluate("return " + check + ";");
             return Boolean.TRUE.equals(result);
         } catch (RuntimeException e) {
             return false;

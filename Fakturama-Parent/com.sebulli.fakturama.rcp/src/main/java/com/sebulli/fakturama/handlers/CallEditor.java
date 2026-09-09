@@ -125,6 +125,18 @@ public class CallEditor {
     }
 
     /**
+     * Writes {@code value} into both {@code part}'s transientData and persistedState in one call
+     * - the two writes {@link #resolveParam} needs a param to survive an application restart, so
+     * a future call site can't forget the persistedState half the way {@link #PARAM_VOUCHERTYPE}
+     * and {@link #PARAM_EDITOR_TYPE} used to require doing by hand at every case in {@link
+     * #createEditorPart}.
+     */
+    private static void putMirrored(final MPart part, final String key, final String value) {
+        part.getTransientData().put(key, value);
+        part.getPersistedState().put(key, value);
+    }
+
+    /**
      * The type of the editor which has to be called.
      */
     public static final String PARAM_EDITOR_TYPE = "com.sebulli.fakturama.editors.editortype";
@@ -343,15 +355,13 @@ public class CallEditor {
 			case ExpenditureVoucherListTable.ID:
                 myPart.setLabel(msg.commandExpenditurevouchersName);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + ExpenditureVoucherEditor.class.getName());
-                myPart.getTransientData().put(PARAM_VOUCHERTYPE, VoucherType.EXPENDITURE.getName());
-                myPart.getPersistedState().put(PARAM_VOUCHERTYPE, VoucherType.EXPENDITURE.getName());
+                putMirrored(myPart, PARAM_VOUCHERTYPE, VoucherType.EXPENDITURE.getName());
                 break;
 			case ReceiptVoucherEditor.ID:
 			case ReceiptVoucherListTable.ID:
                 myPart.setLabel(msg.commandReceiptvouchersName);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + ReceiptVoucherEditor.class.getName());
-                myPart.getTransientData().put(PARAM_VOUCHERTYPE, VoucherType.RECEIPTVOUCHER.getName());
-                myPart.getPersistedState().put(PARAM_VOUCHERTYPE, VoucherType.RECEIPTVOUCHER.getName());
+                putMirrored(myPart, PARAM_VOUCHERTYPE, VoucherType.RECEIPTVOUCHER.getName());
                 break;
 			case ListEditor.ID:
 			case ItemAccountTypeListTable.ID:
@@ -373,14 +383,12 @@ public class CallEditor {
             case DebitorEditor.ID:
                 myPart.setLabel(msg.pageContacts);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + DebitorEditor.class.getName());
-                myPart.getTransientData().put(PARAM_EDITOR_TYPE, type);
-                myPart.getPersistedState().put(PARAM_EDITOR_TYPE, type);
+                putMirrored(myPart, PARAM_EDITOR_TYPE, type);
                 break;
             case CreditorEditor.ID:
                 myPart.setLabel(msg.pageContacts);
                 myPart.setContributionURI(BASE_CONTRIBUTION_URI + CreditorEditor.class.getName());
-                myPart.getTransientData().put(PARAM_EDITOR_TYPE, type);
-                myPart.getPersistedState().put(PARAM_EDITOR_TYPE, type);
+                putMirrored(myPart, PARAM_EDITOR_TYPE, type);
                 break;
             case DocumentsListTable.ID:
             case DocumentEditor.ID:

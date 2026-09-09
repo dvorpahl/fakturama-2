@@ -1361,7 +1361,14 @@ public class ProductEditor extends Editor<Product> {
      */
     private void prefillWebshopDefaults() {
         if (editorProductWebshop.getShopPrice() == null && editorProduct.getPrice1() != null) {
-            editorProductWebshop.setShopPrice(editorProduct.getPrice1());
+            // price1 is always a NET price in this editor (see netText[i]'s binding below); the
+            // webshop's shopPrice (WooCommerce regular_price) is customer-facing and needs to be
+            // gross, so convert using the product's own VAT rate instead of copying it as-is.
+            final VAT vat = editorProduct.getVat();
+            final Double shopPrice = vat != null && vat.getTaxValue() != null
+                    ? DataUtils.getInstance().CalculateGrossFromNet(editorProduct.getPrice1(), vat.getTaxValue())
+                    : editorProduct.getPrice1();
+            editorProductWebshop.setShopPrice(shopPrice);
         }
         if (Boolean.TRUE.equals(editorProduct.getStockManaged())) {
             if (editorProductWebshop.getShopStockQuantity() == null && editorProduct.getQuantity() != null) {

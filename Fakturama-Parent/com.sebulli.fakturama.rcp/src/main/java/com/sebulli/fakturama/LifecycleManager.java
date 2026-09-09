@@ -137,6 +137,11 @@ public class LifecycleManager {
     // same running list without changing method signatures.
     private String splashProgress = "";
 
+    // Timestamp of the last appendProgress() call, 0 until the first one - used to only make up
+    // the *remaining* balance of MIN_STEP_DWELL_MILLIS instead of blocking the full amount on
+    // every single call (see appendProgress()'s Javadoc).
+    private long lastProgressAt;
+
     private static final boolean RESTART_APPLICATION = true;
 
     private Job dbInitJob;
@@ -291,8 +296,11 @@ public class LifecycleManager {
         for (final MStackElement stackElement : stackElements) {
             final MPart documentPart = (MPart) stackElement;
             if (documentPart.getContext() != null && documentPart.isDirty()) {
-                partService.savePart(documentPart, true);
-                partService.hidePart(documentPart, true);
+                // savePart() can return false if the user cancels the save-confirmation dialog -
+                // don't force the part closed (and its unsaved edits lost) in that case.
+                if (partService.savePart(documentPart, true)) {
+                    partService.hidePart(documentPart, true);
+                }
             }
         }
     }
@@ -324,6 +332,12 @@ public class LifecycleManager {
      * (typically local/demo) database the individual steps still replace each other faster than a
      * human can consciously read them appearing one at a time.
      * <p>
+     * The dwell only makes up the *remaining* balance of MIN_STEP_DWELL_MILLIS since the previous
+     * call, not a flat 150ms added on top of every single call regardless of how much real work
+     * (DB update, class init, ...) already ran between them - a normal (non-reinit) startup, whose
+     * steps are mostly real work rather than near-instant DB writes, therefore no longer pays a
+     * blocking ~150ms tax per step it didn't need.
+     * <p>
      * A first attempt paused with a plain Thread.sleep() here, which made no visible difference
      * at all (confirmed: still only the final accumulated string ever appeared, even across
      * several distinct steps that should each have been visible for 150ms). checksBeforeStartup()
@@ -340,15 +354,25 @@ public class LifecycleManager {
     private static final int MIN_STEP_DWELL_MILLIS = 150;
 
     private void appendProgress(final ISplashService splashService, final String item) {
+        final long now = System.currentTimeMillis();
+        final long elapsedSincePrevious = lastProgressAt == 0 ? 0 : now - lastProgressAt;
+        lastProgressAt = now;
+
         splashProgress = splashProgress.isEmpty() ? item : splashProgress + ", " + item;
         splashService.setMessage(splashProgress);
+
+        if (elapsedSincePrevious >= MIN_STEP_DWELL_MILLIS) {
+            // The previous message was already visible long enough thanks to real work done
+            // between calls - no need to also block for the flat dwell time here.
+            return;
+        }
 
         final Shell splashShell = splashService.getSplashShell();
         if (splashShell == null || splashShell.isDisposed()) {
             return;
         }
         final Display display = splashShell.getDisplay();
-        final long deadline = System.currentTimeMillis() + MIN_STEP_DWELL_MILLIS;
+        final long deadline = now + (MIN_STEP_DWELL_MILLIS - elapsedSincePrevious);
         while (System.currentTimeMillis() < deadline) {
             if (!display.readAndDispatch()) {
                 // Nothing queued right now - a short real sleep (not a busy-loop) until the

@@ -25,17 +25,6 @@ import com.sebulli.fakturama.model.Document;
  * every read of Document, everywhere, not just the queries we remembered to add the hint to.
  */
 public class InheritanceOuterJoinSessionCustomizer implements SessionCustomizer {
-    /**
-     * {@code Document}'s eager, non-self-referencing @ManyToOne relations - none of these can be
-     * made truly {@code LAZY} either (same weaving restriction), so every access resolves them one
-     * way or another. Deliberately excludes {@code sourceDocument}/{@code invoiceReference}: both
-     * are self-referencing ({@code Document -> Document}), so joining them by default would make
-     * building *every* Document also eagerly build its whole referenced-document chain - see
-     * {@code DocumentsDAO#fetchDocumentRelations}'s javadoc for the thousands-of-reads case that
-     * caused. Those two stay lazy-on-access (still a single outer-joined query each, just not
-     * fetched up front); this only covers the four relations that are cheap and finite either way.
-     */
-    private static final String[] DOCUMENT_JOINED_ATTRIBUTES = { "additionalInfo", "payment", "shipping", "noVatReference" };
 
     @Override
     public void customize(final Session session) {
@@ -55,13 +44,32 @@ public class InheritanceOuterJoinSessionCustomizer implements SessionCustomizer 
         // to one extra single-row SELECT per relation per Document. Setting the join at the
         // descriptor level makes it the default for every read of Document, everywhere, not just
         // the call sites we remembered to fetch-join explicitly.
+        //
+        // Derived from the mappings themselves rather than a hardcoded attribute-name list, so a
+        // future relation added to Document is covered automatically instead of silently falling
+        // back to the one-extra-SELECT-per-row behavior this customizer exists to eliminate.
+        // Excludes:
+        //  - collection-valued mappings (@OneToMany/@ManyToMany, e.g. the item lists): outer-
+        //    joining a to-many relation multiplies the parent row per child instead of fetching
+        //    it cheaply, the opposite of what this customizer is for.
+        //  - relations whose reference class is Document or a subclass (sourceDocument,
+        //    invoiceReference): both are self-referencing (Document -> Document), so joining them
+        //    by default would make building *every* Document also eagerly build its whole
+        //    referenced-document chain - see DocumentsDAO#fetchDocumentRelations's javadoc for
+        //    the thousands-of-reads case that caused. Those stay lazy-on-access (still a single
+        //    outer-joined query each, just not fetched up front).
         final ClassDescriptor documentDescriptor = session.getDescriptor(Document.class);
         if (documentDescriptor != null) {
-            for (final String attribute : DOCUMENT_JOINED_ATTRIBUTES) {
-                final DatabaseMapping mapping = documentDescriptor.getMappingForAttributeName(attribute);
-                if (mapping instanceof ForeignReferenceMapping) {
-                    ((ForeignReferenceMapping) mapping).setJoinFetch(ForeignReferenceMapping.OUTER_JOIN);
+            for (final DatabaseMapping mapping : documentDescriptor.getMappings()) {
+                if (!(mapping instanceof ForeignReferenceMapping) || mapping.isCollectionMapping()) {
+                    continue;
                 }
+                final ForeignReferenceMapping refMapping = (ForeignReferenceMapping) mapping;
+                final Class<?> referenceClass = refMapping.getReferenceClass();
+                if (referenceClass != null && Document.class.isAssignableFrom(referenceClass)) {
+                    continue;
+                }
+                refMapping.setJoinFetch(ForeignReferenceMapping.OUTER_JOIN);
             }
         }
     }

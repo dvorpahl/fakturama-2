@@ -49,6 +49,9 @@ final class FktJsonUtil {
                 case '"':
                     escaped.append("\\\"");
                     break;
+                case '\'':
+                    escaped.append("\\'");
+                    break;
                 case '\\':
                     escaped.append("\\\\");
                     break;

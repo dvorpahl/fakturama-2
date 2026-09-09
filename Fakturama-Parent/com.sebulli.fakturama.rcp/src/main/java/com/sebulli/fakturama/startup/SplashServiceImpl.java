@@ -143,11 +143,11 @@ public class SplashServiceImpl implements ISplashService {
 			// replacing it - a single line was too short to show more than the first ~15-20
 			// characters of that combined text without SWT.WRAP silently clipping the rest at
 			// the label's bottom edge. Kept anchored to the same bottom edge as before (only
-			// grown upward) so it still doesn't encroach on the progress bar area below it.
-			// Top nudged down 10px from the original -55 (now -45) since it was overlapping the
-			// background image's icon row right above it.
-			textRect = new Rectangle(10, imageBounds.height - 45,
-					imageBounds.width - 40, 35);
+			// grown upward, to 50px from the original 40px) so it still doesn't encroach on the
+			// progress bar area below it, while staying clear of the background image's icon row
+			// above it.
+			textRect = new Rectangle(10, imageBounds.height - 60,
+					imageBounds.width - 40, 50);
 		}
 		textLabel.setBounds(textRect);
 

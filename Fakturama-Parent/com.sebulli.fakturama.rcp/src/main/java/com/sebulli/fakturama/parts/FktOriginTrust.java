@@ -13,8 +13,13 @@
 
 package com.sebulli.fakturama.parts;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.browser.Browser;
@@ -51,7 +56,10 @@ final class FktOriginTrust {
             return new Decision(null, null, null, null, false, "browser.getUrl() is null");
         }
         if (currentUrl.startsWith("file://")) {
-            return new Decision(currentUrl, null, null, null, true, "file:// is always trusted");
+            boolean trusted = isUnderWorkspace(currentUrl);
+            return new Decision(currentUrl, null, null, null, trusted,
+                    trusted ? "file:// under configured workspace directory"
+                            : "file:// outside configured workspace directory");
         }
         if (!(currentUrl.startsWith("http://") || currentUrl.startsWith("https://"))) {
             return new Decision(currentUrl, null, null, null, false, "unsupported scheme");
@@ -67,6 +75,29 @@ final class FktOriginTrust {
         String trustedOrigin = originOf(trustedUrl);
         boolean trusted = currentOrigin != null && currentOrigin.equalsIgnoreCase(trustedOrigin);
         return new Decision(currentUrl, currentOrigin, trustedUrl, trustedOrigin, trusted, null);
+    }
+
+    /**
+     * Whether {@code fileUrl} resolves (after canonicalization, so {@code ..} segments and
+     * symlinks can't be used to escape) to a path inside the user's configured Fakturama
+     * workspace directory - Fakturama's own bundled local content (start page, templates) all
+     * lives there. Trusting {@code file://} unconditionally would hand {@code FKT.*} access to
+     * any local HTML file the {@code Browser} widget can be navigated to, not just Fakturama's
+     * own.
+     */
+    private static boolean isUnderWorkspace(final String fileUrl) {
+        String workspace = FakturamaPreferenceStoreProvider.getInstance().getPreferenceStore()
+                .getString(Constants.GENERAL_WORKSPACE);
+        if (StringUtils.isBlank(workspace)) {
+            return false;
+        }
+        try {
+            Path filePath = new File(new URI(fileUrl)).getCanonicalFile().toPath();
+            Path workspacePath = new File(workspace).getCanonicalFile().toPath();
+            return filePath.startsWith(workspacePath);
+        } catch (URISyntaxException | IllegalArgumentException | IOException e) {
+            return false;
+        }
     }
 
     private static String originOf(final String url) {

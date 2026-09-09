@@ -3,18 +3,26 @@
 # Arch/Manjaro package for Fakturama, built from the same Linux product tar.gz
 # that build-packages.sh copies to $HEINZ_DIR (Fakturama.ID-linux.gtk.x86_64.tar.gz).
 #
-# NOT built or verified here - this box has no Arch/makepkg toolchain (only
-# Debian's dpkg-deb, used for the .deb via install4j). Copy this file and the
-# tar.gz into one directory on an actual Arch/Manjaro machine and run:
-#   makepkg -si
-# then sanity-check that the app launches and its .desktop entry/icon show up
-# before treating this as a real deliverable - the postinstall steps mirror
-# the Deb/RPM media in Fakturama-v2.x.install4j (move pixmaps/applications
-# into the FHS locations, symlink the launcher into /usr/local/bin) but were
-# written by inspection, not by running makepkg.
+# build-packages.sh now runs `makepkg --nodeps` against a copy of this file
+# (with pkgver and sha256sums patched to the actual build's version/tarball
+# hash) on this Debian box, which has the Debian-packaged Arch build tools
+# (makepkg/pacman-package-manager/fakeroot/binutils/gcc) installed - but
+# `pacman` here has no Arch repos configured (no /etc/pacman.conf
+# [core]/[extra] sections, no mirrorlist), so `-s`/`-i` (sync+install
+# depends via pacman) cannot work here, hence --nodeps. The resulting
+# .pkg.tar.zst is therefore built but not runtime-verified on a real
+# Arch/Manjaro system - sanity-check that the app launches and its
+# .desktop entry/icon show up before treating it as a real deliverable.
+# The postinstall steps mirror the Deb/RPM media in Fakturama-v2.x.install4j
+# (move pixmaps/applications into the FHS locations, symlink the launcher
+# into /usr/local/bin).
+#
+# pkgver below is just the template default for a manual `makepkg -si` run
+# on an actual Arch machine - build-packages.sh overrides it with the real
+# reactor version at build time instead of relying on this staying in sync.
 
 pkgname=fakturama
-pkgver=2.2.1.rc
+pkgver=2.2.1
 pkgrel=1
 pkgdesc="Invoicing software for small and medium enterprises"
 arch=('x86_64')
@@ -25,11 +33,18 @@ source=("Fakturama.ID-linux.gtk.x86_64.tar.gz")
 sha256sums=('SKIP') # fill in once you have the real tar.gz's checksum
 
 package() {
-    local _productdir="$srcdir/Fakturama.ID/linux/gtk/x86_64"
+    # The tar.gz extracts flat (Fakturama, plugins/, features/, p2/, ... directly
+    # under $srcdir) - NOT nested under Fakturama.ID/linux/gtk/x86_64/ as originally
+    # assumed here by inspection. Confirmed by actually running makepkg.
+    local _productdir="$srcdir"
     local _installdir="$pkgdir/usr/share/fakturama2"
 
     install -dm755 "$_installdir"
     cp -r "$_productdir"/* "$_installdir"/
+    # $_productdir is $srcdir itself now (see above), which also holds makepkg's
+    # own copy/symlink of the downloaded source archive alongside the extracted
+    # product tree - strip it back out, it's not part of the product.
+    rm -f "$_installdir/$(basename "${source[0]}")"
 
     # Same FHS relocation the Deb/RPM postInstallScript does: pixmaps and the
     # .desktop entry don't belong under /usr/share/fakturama2 on a real system.
