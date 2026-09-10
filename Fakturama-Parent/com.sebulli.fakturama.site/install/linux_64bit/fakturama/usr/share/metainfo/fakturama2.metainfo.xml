@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>fakturama2.desktop</id>
+  <launchable type="desktop-id">fakturama2.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>EPL-1.0</project_license>
+
+  <name>Fakturama</name>
+  <name xml:lang="de">Fakturama</name>
+
+  <summary>Create invoices, manage products and customers</summary>
+  <summary xml:lang="de">Rechnungen schreiben, Produkte und Kunden verwalten</summary>
+
+  <description>
+    <p>
+      Fakturama enables you to write your invoices in an easy way. You can
+      create orders, delivery notes and many other documents. If you have a
+      web shop, you can connect it to Fakturama. You can also create
+      e-invoices (XRechnung and Factur-X/ZUGFeRD).
+    </p>
+    <p xml:lang="de">
+      Fakturama hilft dir, deine Rechnungen einfach zu schreiben. Du kannst
+      Angebote, Lieferscheine und viele weitere Dokumente erstellen. Wenn du
+      einen Webshop betreibst, kannst du ihn mit Fakturama verbinden.
+      Außerdem lassen sich E-Rechnungen (XRechnung und Factur-X/ZUGFeRD)
+      erzeugen.
+    </p>
+  </description>
+
+  <url type="homepage">https://www.fakturama.info</url>
+
+  <developer id="org.fakturama">
+    <name>Fakturama Team</name>
+  </developer>
+
+  <provides>
+    <binary>Fakturama</binary>
+  </provides>
+</component>

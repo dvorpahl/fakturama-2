@@ -23,8 +23,8 @@
       </additionalLanguages>
     </languages>
     <variables>
-      <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery papers and many more documents. If you hava a web shop you can connect it to Fakturama. Furthermore, you can create e-invoices (XRechnung and Factur-X)." />
-      <variable name="sys.ext.rpmSummary" value="A tool for creating invoices and manage your products and customers." />
+      <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery notes and many other documents, manage your products and customers, and connect a web shop to Fakturama. It can also create e-invoices (XRechnung and Factur-X/ZUGFeRD)." />
+      <variable name="sys.ext.rpmSummary" value="Invoicing and small-business management software" />
     </variables>
     <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsKeySource="pkcs11" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" windowsCertDir="/Users/rheydenreich/Security/keys" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8" windowsPkcs11Library="/Library/OpenSC/lib/opensc-pkcs11.so">
       <macSearchedJars>
@@ -817,12 +817,14 @@ return console.askYesNo(message, true);
 sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
-sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo mkdir -p /usr/share/metainfo
+sudo mv /usr/share/fakturama2/metainfo/* /usr/share/metainfo
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications /usr/share/fakturama2/metainfo
 sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -838,13 +840,15 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
 sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
-sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo mkdir -p /usr/share/metainfo
+sudo mv /usr/share/fakturama2/metainfo/* /usr/share/metainfo
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications /usr/share/fakturama2/metainfo
 sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
       <jreBundle usePack200="false" />
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive (x64, NO JRE)" id="900" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64, NO JRE)" id="900" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -860,13 +864,15 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
 sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
-sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo mkdir -p /usr/share/metainfo
+sudo mv /usr/share/fakturama2/metainfo/* /usr/share/metainfo
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications /usr/share/fakturama2/metainfo
 sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
       <jreBundle usePack200="false" jreBundleSource="none" />
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -883,7 +889,9 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
 sudo rm -rf /usr/share/fakturama2/configuration</preInstallScript>
       <postInstallScript>sudo mv /usr/share/fakturama2/pixmaps/* /usr/share/pixmaps
 sudo mv /usr/share/fakturama2/applications/* /usr/share/applications
-sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications
+sudo mkdir -p /usr/share/metainfo
+sudo mv /usr/share/fakturama2/metainfo/* /usr/share/metainfo
+sudo rm -rf /usr/share/fakturama2/pixmaps /usr/share/fakturama2/applications /usr/share/fakturama2/metainfo
 sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
