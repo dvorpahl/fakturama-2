@@ -29,8 +29,12 @@ arch=('x86_64')
 url="https://www.fakturama.info"
 license=('EPL-1.0')
 depends=('gtk3' 'webkit2gtk-4.1')
-source=("Fakturama.ID-linux.gtk.x86_64.tar.gz")
-sha256sums=('SKIP') # fill in once you have the real tar.gz's checksum
+# fakturama2.desktop/fakturama2.xpm are the same menu-entry/icon files the Deb/RPM media
+# ship (see install/linux_64bit/fakturama/usr/share/{applications,pixmaps}/) - unlike
+# those, the raw Tycho product tar.gz has no applications/pixmaps directories of its own
+# (it's just the bare Eclipse RCP product), so this package must supply them itself.
+source=("Fakturama.ID-linux.gtk.x86_64.tar.gz" "fakturama2.desktop" "fakturama2.xpm")
+sha256sums=('SKIP' 'SKIP' 'SKIP') # fill in once you have the real tar.gz's checksum
 
 package() {
     # The tar.gz extracts flat (Fakturama, plugins/, features/, p2/, ... directly
@@ -41,23 +45,14 @@ package() {
 
     install -dm755 "$_installdir"
     cp -r "$_productdir"/* "$_installdir"/
-    # $_productdir is $srcdir itself now (see above), which also holds makepkg's
-    # own copy/symlink of the downloaded source archive alongside the extracted
-    # product tree - strip it back out, it's not part of the product.
-    rm -f "$_installdir/$(basename "${source[0]}")"
+    # $_productdir is $srcdir itself now (see above), which also holds makepkg's own
+    # copy of every downloaded source (the tar.gz, plus the .desktop/.xpm below)
+    # alongside the extracted product tree - strip them back out, they're not part
+    # of the product itself, they get installed to their own FHS paths below instead.
+    rm -f "$_installdir/$(basename "${source[0]}")" "$_installdir/fakturama2.desktop" "$_installdir/fakturama2.xpm"
 
-    # Same FHS relocation the Deb/RPM postInstallScript does: pixmaps and the
-    # .desktop entry don't belong under /usr/share/fakturama2 on a real system.
-    if [ -d "$_installdir/pixmaps" ]; then
-        install -dm755 "$pkgdir/usr/share/pixmaps"
-        mv "$_installdir"/pixmaps/* "$pkgdir/usr/share/pixmaps"/
-        rmdir "$_installdir/pixmaps"
-    fi
-    if [ -d "$_installdir/applications" ]; then
-        install -dm755 "$pkgdir/usr/share/applications"
-        mv "$_installdir"/applications/* "$pkgdir/usr/share/applications"/
-        rmdir "$_installdir/applications"
-    fi
+    install -Dm644 "$srcdir/fakturama2.desktop" "$pkgdir/usr/share/applications/fakturama2.desktop"
+    install -Dm644 "$srcdir/fakturama2.xpm" "$pkgdir/usr/share/pixmaps/fakturama2.xpm"
 
     chmod 755 "$_installdir/Fakturama"
     install -dm755 "$pkgdir/usr/local/bin"
