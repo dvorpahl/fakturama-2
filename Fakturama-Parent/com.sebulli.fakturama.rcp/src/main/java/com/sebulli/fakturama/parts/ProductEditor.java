@@ -193,7 +193,8 @@ public class ProductEditor extends Editor<Product> {
     // saving anything) apart from "had shop data, user just unchecked it" (soft-delete the row)
     private boolean productHadWebshopData;
     private Button checkboxInShop;
-    private Text textShopPrice, textShopSalePrice, textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
+    private FormattedText textShopPrice, textShopSalePrice;
+    private Text textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
     private CDateTime dtShopSaleFrom, dtShopSaleTo;
     private Combo comboShopStockStatus, comboShopBackorders;
 
@@ -808,9 +809,11 @@ public class ProductEditor extends Editor<Product> {
         Label labelShopPrice = new Label(pricingGroup, SWT.NONE);
         labelShopPrice.setText(msg.editorProductFieldShoppriceName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
-        textShopPrice = new Text(pricingGroup, SWT.BORDER);
-        textShopPrice.addKeyListener(new ReturnKeyAdapter(textShopPrice));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice);
+        textShopPrice = new FormattedText(pricingGroup, SWT.BORDER);
+        MoneyFormatter shopPriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
+        textShopPrice.setFormatter(shopPriceFormatter);
+        textShopPrice.getControl().addKeyListener(new ReturnKeyAdapter(textShopPrice.getControl()));
+        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice.getControl());
 
         // Row: Staffelpreise - the existing scaled-price control (label plus a
         // per-tier "ab <qty> -> price" table), unchanged internally, just
@@ -1282,9 +1285,11 @@ public class ProductEditor extends Editor<Product> {
         Label labelShopSalePrice = new Label(webshopGroup, SWT.NONE);
         labelShopSalePrice.setText(msg.editorProductFieldShopsalepriceName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSalePrice);
-        textShopSalePrice = new Text(webshopGroup, SWT.BORDER);
-        textShopSalePrice.addKeyListener(new ReturnKeyAdapter(textShopSalePrice));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopSalePrice);
+        textShopSalePrice = new FormattedText(webshopGroup, SWT.BORDER);
+        MoneyFormatter shopSalePriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
+        textShopSalePrice.setFormatter(shopSalePriceFormatter);
+        textShopSalePrice.getControl().addKeyListener(new ReturnKeyAdapter(textShopSalePrice.getControl()));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopSalePrice.getControl());
 
         Label labelShopSaleFrom = new Label(webshopGroup, SWT.NONE);
         labelShopSaleFrom.setText(msg.editorProductFieldShopsalefromName);
@@ -1328,8 +1333,8 @@ public class ProductEditor extends Editor<Product> {
      * instead of iterating one shared container's children.
      */
     private void setWebshopFieldsEnabled(final boolean enabled) {
-        textShopPrice.setEnabled(enabled);
-        textShopSalePrice.setEnabled(enabled);
+        textShopPrice.getControl().setEnabled(enabled);
+        textShopSalePrice.getControl().setEnabled(enabled);
         dtShopSaleFrom.setEnabled(enabled);
         dtShopSaleTo.setEnabled(enabled);
         textShopStockQuantity.setEnabled(enabled);
@@ -1462,10 +1467,15 @@ public class ProductEditor extends Editor<Product> {
     /**
      * Binds the "Webshop" group's controls to {@link #editorProductWebshop} -
      * a different entity than the rest of this editor's fields, which is
-     * fine since {@code bindModelValue}'s generic overloads key off the
-     * passed-in target's own class (only its {@code FormattedText} overload
-     * hardcodes {@code getModelClass()}==Product, which is why none of these
-     * fields use {@code FormattedText}).
+     * fine since {@code bindModelValue}'s overloads (including the
+     * {@code FormattedText} one, since it was fixed to key off the target's
+     * own runtime class instead of a hardcoded {@code Product}) all key off
+     * the passed-in target's own class. {@code textShopPrice}/
+     * {@code textShopSalePrice} use the {@code FormattedText}+
+     * {@code MoneyFormatter} overload so they display as Euro amounts like
+     * every other price field in this editor; the remaining numeric fields
+     * here are plain {@code Text} with a generic (non-currency) number
+     * strategy.
      */
     private void bindWebshopFields() {
         checkboxInShop.setSelection(productHadWebshopData);
@@ -1477,8 +1487,8 @@ public class ProductEditor extends Editor<Product> {
         final UpdateValueStrategy<Object, String> intToStringStrategy = UpdateValueStrategy.create(NumberToStringConverter.fromInteger(doubleFormat, false));
         final UpdateValueStrategy<Object, Integer> stringToIntStrategy = UpdateValueStrategy.create(StringToNumberConverter.toInteger(false));
 
-        bindModelValue(editorProductWebshop, textShopPrice, ProductWebshop_.shopPrice.getName(), 16, stringToDoubleStrategy, doubleToStringStrategy);
-        bindModelValue(editorProductWebshop, textShopSalePrice, ProductWebshop_.shopSalePrice.getName(), 16, stringToDoubleStrategy, doubleToStringStrategy);
+        bindModelValue(editorProductWebshop, textShopPrice, ProductWebshop_.shopPrice.getName(), 16);
+        bindModelValue(editorProductWebshop, textShopSalePrice, ProductWebshop_.shopSalePrice.getName(), 16);
         bindModelValue(editorProductWebshop, textShopStockQuantity, ProductWebshop_.shopStockQuantity.getName(), 16, stringToDoubleStrategy,
                 doubleToStringStrategy);
         bindModelValue(editorProductWebshop, textShopLowStockAmount, ProductWebshop_.shopLowStockAmount.getName(), 8, stringToIntStrategy, intToStringStrategy);

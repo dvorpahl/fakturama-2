@@ -482,7 +482,7 @@ public abstract class Editor<T extends IEntity> {
         if (limit > 0) {
             source.getControl().setTextLimit(limit);
         }
-        IBeanValueProperty nameProperty = BeanProperties.value(getModelClass(), property);
+        IBeanValueProperty nameProperty = BeanProperties.value(target.getClass(), property);
         IObservableValue<E> model = nameProperty.observe(target);
         IObservableValue<E> uiWidget = new FormattedTextObservableValue(source, SWT.Modify);
         binding = getCtx().bindValue(uiWidget, model);
