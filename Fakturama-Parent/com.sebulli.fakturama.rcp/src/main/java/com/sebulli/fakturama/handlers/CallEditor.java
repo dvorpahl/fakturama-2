@@ -232,22 +232,24 @@ public class CallEditor {
             // forceNew means we want to create a new document unconditionally
             if(!BooleanUtils.toBoolean(isForceNew)) {
                 
-                Object selObj = selectionService.getSelection();
-                Long id = null;
-                if (selObj instanceof List) {
-                    @SuppressWarnings({ "unchecked" })
-                    List<IEntity> selection = (List<IEntity>) selectionService.getSelection();
-                    if (!selection.isEmpty()) {
-                        id = (Long) selection.get(0).getId();
-                    }
-                } else {
-                    id = (Long)selObj;
-                }
-
-                if(id != null) {
-                    params.put(PARAM_OBJ_ID, Long.toString(id));
-                } else {
+                // An explicitly passed objId wins over the workbench selection: callers like the
+                // FKT.openDocument*() browser bridge name exactly which object to open, and must not
+                // be overridden by whatever row happens to be selected in a list part.
+                if (StringUtils.isNotBlank(objId)) {
                     params.put(PARAM_OBJ_ID, objId);
+                } else {
+                    Object selObj = selectionService.getSelection();
+                    Long id = null;
+                    if (selObj instanceof List) {
+                        @SuppressWarnings({ "unchecked" })
+                        List<IEntity> selection = (List<IEntity>) selObj;
+                        if (!selection.isEmpty()) {
+                            id = (Long) selection.get(0).getId();
+                        }
+                    } else {
+                        id = (Long) selObj;
+                    }
+                    params.put(PARAM_OBJ_ID, id != null ? Long.toString(id) : null);
                 }
             	params.put(PARAM_CALLING_DOC, callingDoc);
             	params.put(PARAM_COPY, BooleanUtils.toStringTrueFalse(isCopy));

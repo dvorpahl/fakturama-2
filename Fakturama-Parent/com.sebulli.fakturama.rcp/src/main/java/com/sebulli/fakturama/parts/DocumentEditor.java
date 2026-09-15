@@ -293,6 +293,10 @@ public class DocumentEditor extends Editor<Document> {
     private Composite paidDataContainer = null;
     private Combo comboPayment;
     private Label reliabilityIcon;
+    // Slot the customer summary card lives in, kept so the card can be rebuilt when the
+    // document's contact changes while the editor is open - see updateCustomerSummary().
+    private Composite customerSummarySlot;
+    private CustomerSummaryComposite customerSummary;
     private Label warningDepositIcon;
     private Label warningDepositText;
     private Spinner spDueDays;
@@ -2126,9 +2130,13 @@ public class DocumentEditor extends Editor<Document> {
         } else {
             GridDataFactory.swtDefaults().hint(0, 0).align(SWT.END, SWT.TOP).applyTo(reliabilityIcon);
         }
-        // addressComposite (the actual parent) is a local variable of createPartControl(), not
-        // a field - going via getParent() reaches it anyway without needing to hoist it.
-        reliabilityIcon.getParent().layout(true);
+        // Not getParent().layout(): that only re-arranges children within addressComposite's
+        // *existing* bounds, so a badge going from hidden (0x0) to visible while the editor is
+        // already open - the user picking a contact via the address dialog, see setAddress() -
+        // never got the extra row and stayed invisible until the document was reopened.
+        // requestLayout() lays out from the shell down this control's ancestors instead, which
+        // lets the composite actually grow.
+        reliabilityIcon.requestLayout();
     }
 
     /**
@@ -2142,6 +2150,9 @@ public class DocumentEditor extends Editor<Document> {
     private void setAddress(final Address address, final DocumentReceiver documentReceiver) {
         final Contact contact = address.getContact();
         updateReliabilityIcon(contact);
+        // The document already carries the new receiver at this point (addOrReplaceReceiverToDocument()
+        // runs before this call in handleDialogSelection()), so the card resolves the new contact.
+        updateCustomerSummary();
         // set the DocumentReceiver in the currently active address tab
         selectedAddresses.put(document.getBillingType(), documentReceiver);
 
@@ -2359,10 +2370,10 @@ public class DocumentEditor extends Editor<Document> {
         GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 64).applyTo(chainSlot);
         createDocumentChain(chainSlot);
 
-        final Composite directLinksSlot = new Composite(documentHeader, SWT.NONE);
-        GridLayoutFactory.fillDefaults().applyTo(directLinksSlot);
-        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 64).applyTo(directLinksSlot);
-        createCustomerSummary(directLinksSlot);
+        customerSummarySlot = new Composite(documentHeader, SWT.NONE);
+        GridLayoutFactory.fillDefaults().applyTo(customerSummarySlot);
+        GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 64).applyTo(customerSummarySlot);
+        updateCustomerSummary();
 
         final PGroup headerGroup = new PGroup(upperObjects, SWT.SMOOTH);
         headerGroup.setToggleRenderer(new TwisteToggleRenderer());
@@ -2963,26 +2974,41 @@ public class DocumentEditor extends Editor<Document> {
         GridDataFactory.fillDefaults().grab(true, true).applyTo(documentChain);
     }
 
-    private void createCustomerSummary(final Composite parent) {
-        final DocumentReceiver receiver = addressManager.getBillingAdress(document);
-        if (receiver == null || receiver.getOriginContactId() == null) {
+    /**
+     * (Re-)builds the customer summary card in {@link #customerSummarySlot}. Called once while
+     * the editor is being built and again from {@link #setAddress} whenever the user picks a
+     * different contact, since the card's contents (contact plus its computed statistics) are
+     * passed to {@link CustomerSummaryComposite} at construction time - so refreshing it means
+     * disposing and recreating it rather than setting new values. A document whose receiver has
+     * no resolvable contact simply leaves the slot empty.
+     */
+    private void updateCustomerSummary() {
+        if (customerSummarySlot == null || customerSummarySlot.isDisposed()) {
             return;
         }
-        final Contact contact = contactDAO.findById(receiver.getOriginContactId());
+        if (customerSummary != null && !customerSummary.isDisposed()) {
+            customerSummary.dispose();
+        }
+        customerSummary = null;
+
+        final DocumentReceiver receiver = addressManager.getBillingAdress(document);
+        final Contact contact = receiver != null && receiver.getOriginContactId() != null ? contactDAO.findById(receiver.getOriginContactId()) : null;
         if (contact == null || contact.getId() <= 0) {
+            customerSummarySlot.requestLayout();
             return;
         }
 
         final CustomerStatistics statistics = ContextInjectionFactory.make(CustomerStatistics.class, context);
         statistics.setContact(contact);
         statistics.makeStatistics(true);
-        final CustomerSummaryComposite customerSummary = new CustomerSummaryComposite(parent, SWT.NONE, msg, contact, getContactDisplayName(contact),
+        customerSummary = new CustomerSummaryComposite(customerSummarySlot, SWT.NONE, msg, contact, getContactDisplayName(contact),
                 statistics.getOrdersCount(), statistics.getOpenInvoicesCount(),
                 numberFormatterService.doubleToFormattedPrice(statistics.getTotal()),
                 numberFormatterService.doubleToFormattedPrice(statistics.getOpenTotal()), statistics.getLastOrderMonth(),
                 statistics.getTotal(), statistics.getOpenTotal(), this::openCustomerFromSummary);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).indent(0, 4)
                 .hint(CustomerSummaryComposite.PREFERRED_WIDTH, CustomerSummaryComposite.PREFERRED_HEIGHT).applyTo(customerSummary);
+        customerSummarySlot.requestLayout();
     }
 
     /**

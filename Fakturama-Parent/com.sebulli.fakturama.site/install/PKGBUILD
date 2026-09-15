@@ -28,7 +28,7 @@ pkgdesc="Invoicing software for small and medium enterprises"
 arch=('x86_64')
 url="https://www.fakturama.info"
 license=('EPL-1.0')
-depends=('gtk3' 'webkit2gtk-4.1')
+depends=('gtk3' 'libsoup>=2.74.3' 'webkit2gtk>=2.50.6')
 # fakturama2.desktop/fakturama2.xpm are the same menu-entry/icon files the Deb/RPM media
 # ship (see install/linux_64bit/fakturama/usr/share/{applications,pixmaps}/) - unlike
 # those, the raw Tycho product tar.gz has no applications/pixmaps directories of its own

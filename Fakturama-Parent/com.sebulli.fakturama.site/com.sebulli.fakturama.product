@@ -14,6 +14,13 @@
    </configIni>
 
    <launcherArgs>
+      <!-- Without this the native launcher never opens the splash bitmap, no matter that the
+           <splash> element and osgi.splashPath below tell it where to find one - and then
+           SplashServiceImpl#getNativeSplashLocation() has no
+           "org.eclipse.equinox.launcher.splash.handle" to align our own SWT splash Shell to,
+           so it silently falls back to centering on the primary monitor. -->
+      <programArgs>-showsplash
+      </programArgs>
       <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Xdock:icon=../Resources/app.icns
