@@ -214,7 +214,6 @@
   <handlers xmi:id="_cmZ3IOhrEeSelNaW6sEw-A" elementId="com.sebulli.fakturama.documentitemlist.handler.move.up" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.parts.itemlist.MoveEntryUpMenuItem" command="_58wvUOOYEeSCoO-pHSKlQQ"/>
   <handlers xmi:id="_p__qAO3zEeScLKnTyMNVVA" elementId="com.sebulli.fakturama.rcp.handler.opentexts" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenListViewsHandler" command="_fXJwsCY9EeSOztFzZzvbWw"/>
   <handlers xmi:id="_EfTzoPEkEeSGDdyebXoOvA" elementId="com.sebulli.fakturama.rcp.handler.openlists" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenListViewsHandler" command="_kmeVQCY9EeSOztFzZzvbWw"/>
-  <handlers xmi:id="_categoryManagerHandler" elementId="com.sebulli.fakturama.rcp.handler.opencategorymanager" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenCategoryManagerHandler" command="_categoryManagerCommand"/>
   <handlers xmi:id="_X_xfIFD2EeWYUbHCtLGOiQ" elementId="com.sebulli.fakturama.rcp.handler.openexpenditures" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenListViewsHandler" command="_rAi1sCY9EeSOztFzZzvbWw"/>
   <handlers xmi:id="_FxPtoFEAEeWYUbHCtLGOiQ" elementId="com.sebulli.fakturama.rcp.handler.openreceiptvouchers" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenListViewsHandler" command="_xbxzwCY9EeSOztFzZzvbWw"/>
   <handlers xmi:id="_ZBS4gENJEeOd4ZSH8zQNZQ" elementId="com.sebulli.fakturama.handler.webShopImport" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.webshopimport.WebShopImportManager" command="_QWE00ENJEeOd4ZSH8zQNZQ"/>
@@ -572,7 +571,6 @@
   <commands xmi:id="_kmeVQCY9EeSOztFzZzvbWw" elementId="com.sebulli.fakturama.command.openLists" commandName="%command.lists.name" description="%command.lists.tooltip" category="_no8mgEstEeOZ37-tYt-QvQ">
     <parameters xmi:id="_7gHwgO4BEeScLKnTyMNVVA" elementId="com.sebulli.fakturama.lists.viewtype" name="View Type" optional="false"/>
   </commands>
-  <commands xmi:id="_categoryManagerCommand" elementId="com.sebulli.fakturama.command.openCategoryManager" commandName="%command.categories.name" description="%command.categories.tooltip" category="_no8mgEstEeOZ37-tYt-QvQ"/>
   <commands xmi:id="_rAi1sCY9EeSOztFzZzvbWw" elementId="com.sebulli.fakturama.command.openExpenditureVouchers" commandName="%command.expenditurevouchers.name" description="%command.expenditurevouchers.tooltip" category="_no8mgEstEeOZ37-tYt-QvQ">
     <parameters xmi:id="_VpYIIFD5EeWYUbHCtLGOiQ" elementId="com.sebulli.fakturama.lists.viewtype" name="View Type" optional="false"/>
   </commands>
