@@ -230,6 +230,11 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
      */
     public List<DebitorAddress> findForTreeListView(final ContactType contactType, final String searchTerm, final Integer firstResult,
             final Integer maxDebitors) {
+        return findForTreeListView(contactType, searchTerm, null, null, firstResult, maxDebitors);
+    }
+
+    public List<DebitorAddress> findForTreeListView(final ContactType contactType, final String searchTerm, final String categoryName,
+            final TreeObjectType categoryType, final Integer firstResult, final Integer maxDebitors) {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
 
         // Step 1: page of matching debitor IDs only - no collection fetch join here, so
@@ -240,7 +245,7 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
         // debitors within a page, which is what actually surfaced this - see findForListView.)
         final CriteriaQuery<Long> idQuery = cb.createQuery(Long.class);
         final Root<Debitor> idRoot = idQuery.from(getEntityClass());
-        idQuery.select(idRoot.get(Debitor_.id)).where(buildTreeListPredicate(cb, idRoot, searchTerm)).orderBy(cb.asc(idRoot.get(Debitor_.customerNumber)));
+        idQuery.select(idRoot.get(Debitor_.id)).where(buildTreeListPredicate(cb, idRoot, searchTerm, categoryName, categoryType)).orderBy(cb.asc(idRoot.get(Debitor_.customerNumber)));
         final TypedQuery<Long> idTypedQuery = getEntityManager().createQuery(idQuery);
         if (firstResult != null) {
             idTypedQuery.setFirstResult(firstResult);
@@ -286,10 +291,14 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
 
     /** Counts the {@link Debitor}s (not {@link DebitorAddress} rows) matching the same criteria as {@link #findForTreeListView}. */
     public long countForTreeListView(final String searchTerm) {
+        return countForTreeListView(searchTerm, null, null);
+    }
+
+    public long countForTreeListView(final String searchTerm, final String categoryName, final TreeObjectType categoryType) {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Long> query = cb.createQuery(Long.class);
         final Root<Debitor> debitorQuery = query.from(getEntityClass());
-        query.select(cb.countDistinct(debitorQuery)).where(buildTreeListPredicate(cb, debitorQuery, searchTerm));
+        query.select(cb.countDistinct(debitorQuery)).where(buildTreeListPredicate(cb, debitorQuery, searchTerm, categoryName, categoryType));
         return getEntityManager().createQuery(query).getSingleResult().longValue();
     }
 
@@ -305,6 +314,16 @@ public class DebitorsDAO extends AbstractDAO<Debitor> {
                             cb.like(cb.lower(debitorQuery.get(Debitor_.company)), likeTerm),
                             cb.like(cb.lower(addressJoin.get(Address_.zip)), likeTerm),
                             cb.like(cb.lower(addressJoin.get(Address_.city)), likeTerm)));
+        }
+        return predicate;
+    }
+
+    private Predicate buildTreeListPredicate(final CriteriaBuilder cb, final Root<Debitor> root, final String searchTerm,
+            final String categoryName, final TreeObjectType categoryType) {
+        Predicate predicate = buildTreeListPredicate(cb, root, searchTerm);
+        final Set<Long> categoryIds = resolveCategoryIds(categoryName, categoryType);
+        if (categoryIds != null) {
+            predicate = cb.and(predicate, categoryIds.isEmpty() ? cb.disjunction() : root.get(Debitor_.categories).get("id").in(categoryIds));
         }
         return predicate;
     }

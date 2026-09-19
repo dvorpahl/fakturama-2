@@ -14,6 +14,18 @@ import jakarta.persistence.criteria.Root;
 public class ShippingCategoriesDAO extends AbstractCategoriesDAO<ShippingCategory> {
 
     @Override
+    public void moveContents(final ShippingCategory oldCat, final ShippingCategory newCat) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<Shipping> update = cb.createCriteriaUpdate(Shipping.class);
+        Root<Shipping> root = update.from(Shipping.class);
+        update.set(root.get(Shipping_.categories), newCat);
+        update.where(cb.equal(root.get(Shipping_.categories), oldCat));
+        getEntityManager().getTransaction().begin();
+        getEntityManager().createQuery(update).executeUpdate();
+        getEntityManager().getTransaction().commit();
+    }
+
+    @Override
     protected Class<ShippingCategory> getEntityClass() {
         return ShippingCategory.class;
     }

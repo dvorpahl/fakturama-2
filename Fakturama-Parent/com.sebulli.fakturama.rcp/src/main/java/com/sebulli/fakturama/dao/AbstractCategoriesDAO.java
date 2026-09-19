@@ -25,6 +25,11 @@ import jakarta.persistence.criteria.Root;
  */
 public abstract class AbstractCategoriesDAO<T extends AbstractCategory> extends AbstractDAO<T> {
 
+    /** Moves all records that reference {@code oldCat} to {@code newCat}. */
+    public void moveContents(final T oldCat, final T newCat) {
+        // Categories without record references may use the default implementation.
+    }
+
     /**
      * Finds a Category by its name. Category in this case is a String separated
      * by slashes, e.g. "/fooCat/barCat". Searching starts with the rightmost
@@ -108,6 +113,20 @@ public abstract class AbstractCategoriesDAO<T extends AbstractCategory> extends 
             if (oldCat.getParent() != null) {
                 deleteEmptyCategory((T) oldCat.getParent());
             }
+        } catch (SQLException e) {
+            throw new FakturamaStoringException("Error removing category from database.", e, oldCat);
+        }
+    }
+
+    /** Deletes exactly this category after its references/children were handled by the caller. */
+    public void deleteCategoryOnly(final T oldCat) throws FakturamaStoringException {
+        try {
+            checkConnection();
+            EntityTransaction trx = getEntityManager().getTransaction();
+            trx.begin();
+            updateObsoleteEntities(oldCat);
+            getEntityManager().remove(getEntityManager().merge(oldCat));
+            trx.commit();
         } catch (SQLException e) {
             throw new FakturamaStoringException("Error removing category from database.", e, oldCat);
         }

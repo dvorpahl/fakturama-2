@@ -14,6 +14,18 @@ import jakarta.persistence.criteria.Root;
 public class VatCategoriesDAO extends AbstractCategoriesDAO<VATCategory> {
 
     @Override
+    public void moveContents(final VATCategory oldCat, final VATCategory newCat) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<VAT> update = cb.createCriteriaUpdate(VAT.class);
+        Root<VAT> root = update.from(VAT.class);
+        update.set(root.get(VAT_.category), newCat);
+        update.where(cb.equal(root.get(VAT_.category), oldCat));
+        getEntityManager().getTransaction().begin();
+        getEntityManager().createQuery(update).executeUpdate();
+        getEntityManager().getTransaction().commit();
+    }
+
+    @Override
     protected Class<VATCategory> getEntityClass() {
         return VATCategory.class;
     }

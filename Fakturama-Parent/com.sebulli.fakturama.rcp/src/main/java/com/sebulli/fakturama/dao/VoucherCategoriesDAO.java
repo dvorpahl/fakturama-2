@@ -24,6 +24,7 @@ import com.sebulli.fakturama.model.Voucher_;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
 
 /**
@@ -31,6 +32,18 @@ import jakarta.persistence.criteria.Root;
  */
 @Creatable
 public class VoucherCategoriesDAO extends AbstractCategoriesDAO<VoucherCategory> {
+
+    @Override
+    public void moveContents(final VoucherCategory oldCat, final VoucherCategory newCat) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<Voucher> update = cb.createCriteriaUpdate(Voucher.class);
+        Root<Voucher> root = update.from(Voucher.class);
+        update.set(root.get(Voucher_.account), newCat);
+        update.where(cb.equal(root.get(Voucher_.account), oldCat));
+        getEntityManager().getTransaction().begin();
+        getEntityManager().createQuery(update).executeUpdate();
+        getEntityManager().getTransaction().commit();
+    }
 
     @Override
     protected Class<VoucherCategory> getEntityClass() {

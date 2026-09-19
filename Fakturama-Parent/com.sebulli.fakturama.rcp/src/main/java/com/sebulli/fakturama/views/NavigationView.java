@@ -153,6 +153,8 @@ public class NavigationView {
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ItemAccountTypeListTable.ID);
         addAction(group2, Icon.COMMAND_LIST, "command.lists", CommandIds.CMD_OPEN_LISTS, parameters);
 
+        addAction(group2, Icon.COMMAND_LIST, "command.categories", CommandIds.CMD_OPEN_CATEGORY_MANAGER);
+
         parameters = new HashMap<>();
         parameters.put(OpenListViewsHandler.PARAM_LIST_TYPE, ExpenditureVoucherListTable.ID);
         addAction(group2, Icon.COMMAND_EXPENDITURE_VOUCHER, "command.expenditurevouchers", CommandIds.CMD_OPEN_EXPENDITUREVOUCHERS, parameters);

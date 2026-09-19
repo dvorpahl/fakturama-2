@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,27 @@ import jakarta.persistence.criteria.Subquery;
 
 @Creatable
 public class ProductsDAO extends AbstractDAO<Product> {
+
+    /** Active GEKO reservations grouped by item number. */
+    public Map<String, Double> findActiveReservedQuantities() {
+        final Map<String, Double> result = new LinkedHashMap<>();
+        try {
+            final List<?> rows = getEntityManager().createNativeQuery(
+                    "SELECT ITEMNUMBER, COALESCE(SUM(MENGE - MENGE_GELIEFERT), 0) "
+                            + "FROM GEKO_RESERVIERUNG WHERE STATUS = 'aktiv' GROUP BY ITEMNUMBER")
+                    .getResultList();
+            for (final Object row : rows) {
+                if (row instanceof Object[] values && values.length >= 2 && values[0] != null) {
+                    final Number reserved = values[1] instanceof Number ? (Number) values[1] : null;
+                    result.put(String.valueOf(values[0]), reserved != null ? reserved.doubleValue() : 0.0d);
+                }
+            }
+        } catch (final RuntimeException ex) {
+            // GEKO_RESERVIERUNG is optional for regular Fakturama installations.
+            getLog().debug("GEKO_RESERVIERUNG is not available; ignoring reservations: " + ex.getMessage());
+        }
+        return result;
+    }
 
     @Inject
     private ProductCategoriesDAO productCategoriesDAO;

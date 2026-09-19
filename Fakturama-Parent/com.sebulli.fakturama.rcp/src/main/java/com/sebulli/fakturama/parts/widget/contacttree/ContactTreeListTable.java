@@ -23,6 +23,7 @@ import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.di.Focus;
@@ -72,6 +73,8 @@ import com.sebulli.fakturama.parts.widget.search.TextSearchControl;
 import com.sebulli.fakturama.views.datatable.contacts.ContactListDescriptor;
 import com.sebulli.fakturama.views.datatable.layer.PagedEntityEventList;
 import com.sebulli.fakturama.views.datatable.tree.ui.TopicTreeViewer;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeCategoryLabelProvider;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
@@ -89,7 +92,8 @@ import ca.odell.glazedlists.GlazedLists;
  * so this widget now only ever asks for rows it's about to paint.
  */
 @SuppressWarnings("unchecked")
-public abstract class ContactTreeListTable<K extends DebitorAddress> {
+public abstract class ContactTreeListTable<K extends DebitorAddress>
+        implements TopicTreeViewer.TableFilterTarget<ContactCategory> {
     @Inject
     private IPreferenceStore eclipsePrefs;
 
@@ -171,6 +175,8 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
     private Table table;
     private PagedEntityEventList<K> contactListData;
     private String currentSearchTerm;
+    private String currentCategoryName;
+    private TreeObjectType currentCategoryType;
     private final Runnable searchDebounceRunnable = this::applyDebouncedSearch;
 
     @PostConstruct
@@ -178,6 +184,14 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         // Create the top composite
         top = new Composite(parent, SWT.NONE);
         GridLayoutFactory.fillDefaults().margins(0, 0).numColumns(2).applyTo(top);
+
+        context.set(TopicTreeViewer.PARENT_COMPOSITE, top);
+        context.set(TopicTreeViewer.USE_DOCUMENT_AND_CONTACT_FILTER, false);
+        context.set(TopicTreeViewer.USE_ALL, true);
+        topicTreeViewer = (TopicTreeViewer<ContactCategory>) ContextInjectionFactory.make(TopicTreeViewer.class, context);
+        categories = GlazedLists.eventList(contactCategoriesDAO.findAll());
+        topicTreeViewer.setInput(categories);
+        topicTreeViewer.setLabelProvider(new TreeCategoryLabelProvider());
 
         Composite searchAndTableComposite = top;
         // Create the composite that contains the search field and the table
@@ -187,6 +201,7 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         natTable.addDisposeListener(e -> onStop(natTable));
 
         this.listTablePart = listTablePart;
+        topicTreeViewer.setTable(this);
         // if another click handler is set we use it
         final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_CONTACTS_CLICKHANDLER);
         hookDoubleClickCommand(commandId != null ? (String) commandId : null);
@@ -376,11 +391,11 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
 
     /** {@link PagedEntityEventList.PageLoader} for contactListData - the current (debounced) search term. */
     private List<K> loadContactPageInternal(final int firstResult, final int maxResults) {
-        return loadContactPage(contactType, currentSearchTerm, firstResult, maxResults);
+        return loadContactPage(contactType, currentSearchTerm, currentCategoryName, currentCategoryType, firstResult, maxResults);
     }
 
     private long countContactsInternal() {
-        return countContacts(contactType, currentSearchTerm);
+        return countContacts(contactType, currentSearchTerm, currentCategoryName, currentCategoryType);
     }
 
     private void reloadContactList() {
@@ -413,6 +428,28 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
         reloadContactList();
     }
 
+    @Override
+    public void setCategoryFilter(final String filter, final TreeObjectType treeObjectType) {
+        currentCategoryName = StringUtils.trimToNull(filter);
+        currentCategoryType = treeObjectType;
+        reloadContactList();
+    }
+
+    @Override
+    public void setTransactionFilter(final long filter, final com.sebulli.fakturama.views.datatable.tree.model.TreeObject treeObject) {
+        // Contact trees do not support transaction filtering.
+    }
+
+    @Override
+    public void setContactFilter(final long filter) {
+        // Contact trees already display contacts and do not have a contact sub-filter.
+    }
+
+    @Override
+    public void changeToolbarItem(final com.sebulli.fakturama.views.datatable.tree.model.TreeObject treeObject) {
+        // No category-dependent toolbar actions are defined for the picker.
+    }
+
     protected abstract String getEditorTypeId();
 
     /**
@@ -420,10 +457,11 @@ public abstract class ContactTreeListTable<K extends DebitorAddress> {
      * ordered the same way the DAO's tree-view query does. A real {@code WHERE}/{@code LIMIT}
      * query either way, never client-side filtering of an already-loaded list.
      */
-    protected abstract List<K> loadContactPage(ContactType contactType, String searchTerm, int firstResult, int maxResults);
+    protected abstract List<K> loadContactPage(ContactType contactType, String searchTerm, String categoryName,
+            TreeObjectType categoryType, int firstResult, int maxResults);
 
     /** Row count for the same criteria as {@link #loadContactPage}, without loading entities. */
-    protected abstract long countContacts(ContactType contactType, String searchTerm);
+    protected abstract long countContacts(ContactType contactType, String searchTerm, String categoryName, TreeObjectType categoryType);
 
     protected abstract Class<K> getEntityClass();
 

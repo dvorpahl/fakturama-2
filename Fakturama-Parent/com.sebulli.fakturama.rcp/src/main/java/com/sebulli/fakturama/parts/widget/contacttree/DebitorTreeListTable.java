@@ -15,6 +15,7 @@ import com.sebulli.fakturama.dao.DebitorsDAO;
 import com.sebulli.fakturama.model.ContactType;
 import com.sebulli.fakturama.model.Debitor;
 import com.sebulli.fakturama.parts.DebitorEditor;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
@@ -49,13 +50,14 @@ public class DebitorTreeListTable extends ContactTreeListTable<DebitorAddress> {
     }
 
     @Override
-    protected List<DebitorAddress> loadContactPage(ContactType contactType, String searchTerm, int firstResult, int maxResults) {
-        return debitorDAO.findForTreeListView(contactType, searchTerm, firstResult, maxResults);
+    protected List<DebitorAddress> loadContactPage(ContactType contactType, String searchTerm, String categoryName,
+            TreeObjectType categoryType, int firstResult, int maxResults) {
+        return debitorDAO.findForTreeListView(contactType, searchTerm, categoryName, categoryType, firstResult, maxResults);
     }
 
     @Override
-    protected long countContacts(ContactType contactType, String searchTerm) {
-        return debitorDAO.countForTreeListView(searchTerm);
+    protected long countContacts(ContactType contactType, String searchTerm, String categoryName, TreeObjectType categoryType) {
+        return debitorDAO.countForTreeListView(searchTerm, categoryName, categoryType);
     }
 
     @Override

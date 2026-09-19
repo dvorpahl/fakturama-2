@@ -15,6 +15,7 @@ import com.sebulli.fakturama.dao.DebitorAddress;
 import com.sebulli.fakturama.model.ContactType;
 import com.sebulli.fakturama.model.Creditor;
 import com.sebulli.fakturama.parts.CreditorEditor;
+import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
@@ -48,13 +49,14 @@ protected String getPopupId() {
 }
 
 @Override
-protected List<DebitorAddress> loadContactPage(ContactType contactType, String searchTerm, int firstResult, int maxResults) {
-    return creditorsDAO.findForTreeListView(contactType, searchTerm, firstResult, maxResults);
+protected List<DebitorAddress> loadContactPage(ContactType contactType, String searchTerm, String categoryName,
+        TreeObjectType categoryType, int firstResult, int maxResults) {
+    return creditorsDAO.findForTreeListView(contactType, searchTerm, categoryName, categoryType, firstResult, maxResults);
 }
 
 @Override
-protected long countContacts(ContactType contactType, String searchTerm) {
-    return creditorsDAO.countForTreeListView(searchTerm);
+protected long countContacts(ContactType contactType, String searchTerm, String categoryName, TreeObjectType categoryType) {
+    return creditorsDAO.countForTreeListView(searchTerm, categoryName, categoryType);
 }
 
 @Override

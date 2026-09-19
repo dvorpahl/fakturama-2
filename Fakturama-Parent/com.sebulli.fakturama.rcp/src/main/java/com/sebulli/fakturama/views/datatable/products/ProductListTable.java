@@ -42,6 +42,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.nebula.widgets.nattable.util.GUIHelper;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -132,6 +133,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
      * fetch-join isn't possible here.
      */
     private Map<Long, com.sebulli.fakturama.model.ProductWebshop> webshopCache = Map.of();
+    private Map<String, Double> activeReservedQuantities = Map.of();
 
     private String currentSearchTerm;
     private String currentCategoryName;
@@ -156,9 +158,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         super.createPartControl(parent, Product.class, true, ID);
         final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_PRODUCTS_CLICKHANDLER);
         viewDataTableMode = commandId != null ? ViewDataTableMode.DIALOG : ViewDataTableMode.LIST;
-        if (!dialogMode) {
-            topicTreeViewer.setTable(this);
-        }
+        topicTreeViewer.setTable(this);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(top);
         return top;
@@ -255,11 +255,14 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     /** DIALOG mode: bounded, plain (non-virtual) list - reloaded wholesale per debounced search term. */
     private void reloadDialogProducts(final String searchTerm) {
-        final List<Product> results = productsDAO.findPage(searchTerm, null, null, null, false, 0, 200);
+        currentSearchTerm = searchTerm;
+        final List<Product> results = productsDAO.findPage(searchTerm, currentCategoryName, currentCategoryType, null, false, 0, 200);
         refreshWebshopCache(results);
+        activeReservedQuantities = productsDAO.findActiveReservedQuantities();
         productsViewer.setInput(results);
         for (int i = 0; i < table.getItemCount(); i++) {
             com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, i);
+            applyAvailabilityColor(table.getItem(i), results.get(i));
         }
         if (results.size() == 1 && prefStore.getBoolean(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG)) {
             selectedObject = results.get(0);
@@ -314,6 +317,37 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 final Object data = item.getData();
                 return data instanceof Product product ? product.getDescription() : null;
             });
+        }
+        if (dialogMode) {
+            final TableViewerColumn availabilityColumn = new TableViewerColumn(productsViewer, SWT.RIGHT);
+            final TableColumn column = availabilityColumn.getColumn();
+            column.setText("Frei");
+            availabilityColumn.setLabelProvider(new ColumnLabelProvider() {
+                @Override
+                public String getText(final Object element) {
+                    final Product product = (Product) element;
+                    return Boolean.TRUE.equals(product.getStockManaged())
+                            ? numberFormatterService.doubleToFormattedQuantity(getAvailableQuantity(product)) : "";
+                }
+            });
+            tableColumnLayout.setColumnData(column, new ColumnWeightData(75, 55, true));
+        }
+    }
+
+    private double getAvailableQuantity(final Product product) {
+        final double stock = product.getQuantity() != null ? product.getQuantity() : 0.0d;
+        return stock - activeReservedQuantities.getOrDefault(product.getItemNumber(), 0.0d);
+    }
+
+    private void applyAvailabilityColor(final TableItem item, final Product product) {
+        if (!dialogMode || !Boolean.TRUE.equals(product.getStockManaged())) {
+            return;
+        }
+        final double available = getAvailableQuantity(product);
+        if (available <= 0.0d) {
+            item.setBackground(GUIHelper.getColor(255, 225, 225));
+        } else if (available < 1.0d) {
+            item.setBackground(GUIHelper.getColor(255, 248, 210));
         }
     }
 
@@ -472,10 +506,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     @SuppressWarnings("unchecked")
     @Override
     protected TopicTreeViewer<ProductCategory> createCategoryTreeViewer(final Composite top) {
-        if (this.listTablePart.getTransientData().get(Constants.PROPERTY_PRODUCTS_CLICKHANDLER) != null) {
-            // DIALOG mode: search-only picker, no category tree pane.
-            return null;
-        }
         context.set(TopicTreeViewer.PARENT_COMPOSITE, top);
         context.set(TopicTreeViewer.USE_DOCUMENT_AND_CONTACT_FILTER, false);
         context.set(TopicTreeViewer.USE_ALL, true);
@@ -530,7 +560,11 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     public void setCategoryFilter(final String filter, final TreeObjectType treeObjectType) {
         currentCategoryName = filter;
         currentCategoryType = treeObjectType;
-        reloadProductList();
+        if (dialogMode) {
+            reloadDialogProducts(currentSearchTerm);
+        } else {
+            reloadProductList();
+        }
     }
 
     @Override

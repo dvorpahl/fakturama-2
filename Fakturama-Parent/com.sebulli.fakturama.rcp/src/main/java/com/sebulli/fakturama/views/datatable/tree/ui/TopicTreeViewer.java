@@ -58,6 +58,17 @@ import ca.odell.glazedlists.event.ListEventListener;
  * 
  */
 public class TopicTreeViewer<T extends AbstractCategory> {
+	/** Target of the category tree selection. */
+	public interface TableFilterTarget<C extends AbstractCategory> {
+		void setCategoryFilter(String filter, TreeObjectType treeObjectType);
+
+		void setTransactionFilter(long filter, TreeObject treeObject);
+
+		void setContactFilter(long filter);
+
+		void changeToolbarItem(TreeObject treeObject);
+	}
+
 	public static final String PARENT_COMPOSITE = "TopicTreeViewer_ParentComposite";
 	public static final String USE_DOCUMENT_AND_CONTACT_FILTER = "TopicTreeViewer_useDocumentAndContactFilter";
 	public static final String USE_ALL = "TopicTreeViewer_useAll";
@@ -99,7 +110,7 @@ public class TopicTreeViewer<T extends AbstractCategory> {
 //	private final boolean useAll;
 
 	// The corresponding table
-	private AbstractViewDataTable<? extends IEntity, T> viewDataSetTable;
+	private TableFilterTarget<T> viewDataSetTable;
     private TreeObjectContentProvider<T> contentProvider;
     
     public TopicTreeViewer() {
@@ -535,7 +546,7 @@ public class TopicTreeViewer<T extends AbstractCategory> {
 	 * @param viewDataSetTable
 	 *            The table of the view
 	 */
-	public void setTable(AbstractViewDataTable<? extends IEntity, T> viewDataSetTable) {
+	public void setTable(TableFilterTarget<T> viewDataSetTable) {
 		this.viewDataSetTable = viewDataSetTable;
 	}
 

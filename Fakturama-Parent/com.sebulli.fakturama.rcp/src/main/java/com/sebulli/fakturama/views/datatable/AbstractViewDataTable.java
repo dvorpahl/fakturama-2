@@ -100,7 +100,8 @@ import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
  * @author Gerd Bartelt
  * 
  */
-public abstract class AbstractViewDataTable<T extends IEntity, C extends AbstractCategory> {
+public abstract class AbstractViewDataTable<T extends IEntity, C extends AbstractCategory>
+        implements TopicTreeViewer.TableFilterTarget<C> {
 
     /**
      * Mode identifier for the current running state of the ViewDataTable

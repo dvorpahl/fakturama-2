@@ -223,6 +223,8 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
     private static final String DECIMAL_CELL_LABEL = "Decimal_Cell_LABEL";
     private static final String DATE_CELL_LABEL = "Date_Cell_LABEL";
     private static final String VAT_CELL_LABEL = "VAT_Cell_LABEL";
+    private static final String STOCK_SHORTAGE_YELLOW_CELL_LABEL = "StockShortageYellow_Cell_LABEL";
+    private static final String STOCK_SHORTAGE_RED_CELL_LABEL = "StockShortageRed_Cell_LABEL";
     private static final String DESCRIPTION_CELL_LABEL = "Description_Cell_LABEL";
     private static final String POSITIONNUMBER_CELL_LABEL = "Positionnumber_Cell_LABEL";
 
@@ -236,6 +238,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
 
     private ProductUtil productUtil;
     private DocumentItemUtil documentItemUtil;
+    private Map<String, Double> activeReservedQuantities = Map.of();
 
     /**
      * Checks if the current editor uses sales equalization tax (this is only
@@ -698,7 +701,27 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         registerColumnOverrides(reverseMap, columnLabelAccumulator, DocumentItemListDescriptor.QUNIT, TEXT_CELL_LABEL);
 
         // Register label accumulator
-        gridListLayer.getBodyDataLayer().setConfigLabelAccumulator(columnLabelAccumulator);
+        gridListLayer.getBodyDataLayer().setConfigLabelAccumulator((labels, columnPosition, rowPosition) -> {
+            columnLabelAccumulator.accumulateConfigLabels(labels, columnPosition, rowPosition);
+            if (documentType != DocumentType.OFFER) {
+                return;
+            }
+            if (rowPosition < 0 || rowPosition >= gridListLayer.getBodyDataProvider().getRowCount()) {
+                return;
+            }
+            final DocumentItemDTO item = gridListLayer.getBodyDataProvider().getRowObject(rowPosition);
+            final Product product = item != null ? item.getDocumentItem().getProduct() : null;
+            if (product == null || !Boolean.TRUE.equals(product.getStockManaged())) {
+                return;
+            }
+            final double available = getAvailableQuantity(product);
+            final double requested = item.getDocumentItem().getQuantity() != null ? item.getDocumentItem().getQuantity() : 0.0d;
+            if (available <= 0.0d) {
+                labels.addLabel(STOCK_SHORTAGE_RED_CELL_LABEL);
+            } else if (available < requested) {
+                labels.addLabel(STOCK_SHORTAGE_YELLOW_CELL_LABEL);
+            }
+        });
 
         // if a re-ordering of rows occurs we have to renumber the items
         gridListLayer.getBodyLayerStack().getRowReorderLayer().addLayerListener((final ILayerEvent event) -> {
@@ -754,9 +777,15 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
         }
 
         getDocumentItemsListData().clear();
+        activeReservedQuantities = productsDAO.findActiveReservedQuantities();
 
         List<DocumentItemDTO> documentItems = document.getItems().stream().map(DocumentItemDTO::new).collect(Collectors.toList());
         getDocumentItemsListData().addAll(documentItems);
+    }
+
+    private double getAvailableQuantity(final Product product) {
+        final double stock = product.getQuantity() != null ? product.getQuantity() : 0.0d;
+        return stock - activeReservedQuantities.getOrDefault(product.getItemNumber(), 0.0d);
     }
 
     private BidiMap<Integer, DocumentItemListDescriptor> createColumns() {
@@ -1131,6 +1160,10 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
             styleRightAligned.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.RIGHT);
             Style styleCentered = new Style();
             styleCentered.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.CENTER);
+            final Style stockShortageYellow = new Style();
+            stockShortageYellow.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.getColor(255, 248, 210));
+            final Style stockShortageRed = new Style();
+            stockShortageRed.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.getColor(255, 225, 225));
 
             //            //add the style configuration for hover
             //            Style style = new Style();
@@ -1145,6 +1178,10 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
                     styleLeftAligned, // value of the attribute
                     DisplayMode.NORMAL, // apply during normal rendering i.e not during selection or edit
                     GridRegion.BODY.toString()); // apply the above for all cells with this label
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, stockShortageYellow, DisplayMode.NORMAL,
+                    STOCK_SHORTAGE_YELLOW_CELL_LABEL);
+            configRegistry.registerConfigAttribute(CellConfigAttributes.CELL_STYLE, stockShortageRed, DisplayMode.NORMAL,
+                    STOCK_SHORTAGE_RED_CELL_LABEL);
             configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT, TEXT_CELL_LABEL);
             configRegistry.registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE, DisplayMode.EDIT,
                     DESCRIPTION_CELL_LABEL);
