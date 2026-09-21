@@ -354,7 +354,7 @@ public class ProductEditor extends Editor<Product> {
             if (BooleanUtils.toBoolean((String) part.getTransientData().get(CallEditor.PARAM_COPY))) {
                 // clone the product and use it as new one
                 editorProduct = new ObjectDuplicator().duplicateProduct(editorProduct);
-                editorProduct.setItemNumber(getNumberGenerator().getNextNr(ID));
+                editorProduct.setItemNumber(getNumberGenerator().getNextNr(getEditorID()));
                 getMDirtyablePart().setDirty(true);
             }
         }

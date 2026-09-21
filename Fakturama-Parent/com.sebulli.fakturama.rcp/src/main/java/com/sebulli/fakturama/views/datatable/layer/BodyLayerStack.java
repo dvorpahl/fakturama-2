@@ -1,6 +1,7 @@
 package com.sebulli.fakturama.views.datatable.layer;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 import org.eclipse.nebula.widgets.nattable.copy.command.CopyDataCommandHandler;
 import org.eclipse.nebula.widgets.nattable.data.IColumnPropertyAccessor;
@@ -55,9 +56,10 @@ public class BodyLayerStack<T extends IEntity> extends AbstractIndexLayerTransfo
         //see http://publicobject.com/glazedlists/ for further information
         TransformedList<T, T> rowObjectsGlazedList = GlazedLists.threadSafeList(eventList);
 
-        //use the SortedList constructor with 'null' for the Comparator because the Comparator
-        //will be set by configuration
-        this.sortedList = new SortedList<T>(rowObjectsGlazedList, null);
+        //default sort: newest record (highest id) first, so freshly created entries are
+        //immediately visible without having to click a column header. A user's own column
+        //sort (via GlazedListsSortModel/SortHeaderLayer) still overrides this once they click one.
+        this.sortedList = new SortedList<T>(rowObjectsGlazedList, Comparator.comparingLong(IEntity::getId).reversed());
 
         this.bodyDataProvider = new ListDataProvider<T>(sortedList, columnPropertyAccessor);
         this.bodyDataLayer = new DataLayer(getBodyDataProvider());
