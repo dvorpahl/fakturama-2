@@ -100,7 +100,7 @@ public class CallEditor {
     public static final String PARAM_CATEGORY = "com.sebulli.fakturama.editors.category";
     public static final String PARAM_FOLLOW_UP = "org.fakturama.document.followup";
     public static final String PARAM_COPY = "org.fakturama.document.copy";
-    
+
     /**
      * The type of the editor which has to be called.
      */
@@ -181,7 +181,7 @@ public class CallEditor {
             @Optional @Named(PARAM_FORCE_NEW) Boolean isForceNew,
             final MApplication application
             ) throws ExecutionException {
-		
+
 			// If we had a selection lets open the editor
             MPartStack documentPartStack = (MPartStack) modelService.find(DETAIL_PARTSTACK_ID, application);
             // close other editors if set in preferences

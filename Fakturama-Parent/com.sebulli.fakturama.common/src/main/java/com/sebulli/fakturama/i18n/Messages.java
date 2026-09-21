@@ -68,6 +68,10 @@ public class Messages {
     public String commandDocumentsMoveUpTooltip;
     public String commandDocumentsName;
     public String commandDocumentsTooltip;
+    public String commandDuplicateOfferMessage;
+    public String commandDuplicateOfferNewcustomer;
+    public String commandDuplicateOfferSamecustomer;
+    public String commandDuplicateOfferTitle;
     public String commandExpenditurevouchersName;
     public String commandExpenditurevouchersTooltip;
     public String commandListsName;
@@ -309,6 +313,8 @@ public class Messages {
     public String editorContactLabelAdditionaladdress;
     public String editorContactLabelMaintab;
     public String editorDocumentAdditemTooltip;
+    public String editorDocumentChainDirectorder;
+    public String editorDocumentChainWebshop;
     public String editorDocumentCopyitemTooltip;
     public String editorDocumentCheckboxPaidTooltip;
     public String editorDocumentCollectiveinvoiceTooltip;
@@ -327,6 +333,7 @@ public class Messages {
     public String editorDocumentDuedaysTooltip;
     public String editorDocumentErrorDocnumberNotnextfree;
     public String editorDocumentErrorDocnumberTitle;
+    public String editorDocumentQuestionUsenextfreenumber;
     public String editorDocumentErrorWrongcontactMsg;
     public String editorDocumentErrorWrongcontactTitle;
     public String editorDocumentFieldCommentTooltip;

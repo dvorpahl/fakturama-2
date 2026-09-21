@@ -3,6 +3,7 @@
  */
 package com.sebulli.fakturama.calculate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -245,7 +246,11 @@ public class DocumentSummaryCalculator {
 
             // at this point we have all relevant VATs (discounted items)
             // and store them into a separate container.
-            for (final VatSummaryItem vatSummaryItem : retval.getVatSummary()) {
+            final List<VatSummaryItem> vatSummarySnapshot;
+            synchronized (retval.getVatSummary()) {
+                vatSummarySnapshot = new ArrayList<>(retval.getVatSummary());
+            }
+            for (final VatSummaryItem vatSummaryItem : vatSummarySnapshot) {
                 // Get the data from each entry
                 currentVatDescription = vatSummaryItem.getVatName();
                 shippingVatPercent = vatSummaryItem.getVatPercent();
@@ -374,7 +379,11 @@ public class DocumentSummaryCalculator {
             MonetaryAmount discountVatValue = Money.from(zero);
             String discountVatDescription = "";
             // Get the data from each entry
-            for (final VatSummaryItem vatSummaryItem : retval.getVatSummary()) {
+            final List<VatSummaryItem> vatSummarySnapshot;
+            synchronized (retval.getVatSummary()) {
+                vatSummarySnapshot = new ArrayList<>(retval.getVatSummary());
+            }
+            for (final VatSummaryItem vatSummaryItem : vatSummarySnapshot) {
 
                 // If noVat is set, the VAT is 0%
                 if (param.getNoVatRef() != null) {

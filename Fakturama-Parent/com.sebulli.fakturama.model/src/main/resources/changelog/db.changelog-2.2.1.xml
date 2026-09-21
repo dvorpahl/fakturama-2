@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+<!--
+Codifies performance indexes that already exist on the production database
+(reverse-engineered from a phpMyAdmin dump, 2026-09-01) but were never captured
+in a changeset, so a fresh install would silently miss them. Each changeSet is
+guarded by an indexExists precondition (onFail="MARK_RAN") so it is a no-op on
+a database that already has the index, and only creates it on a fresh/older one.
+
+Also adds an index for FKT_DOCUMENTRECEIVER.ORIGINCONTACTID, which backs
+DocumentsDAO#findInvoicesForContact()/#findPaidInvoicesForContact() (join on
+this column) but has never been indexed.
+
+TODO: consider adding a real FOREIGN KEY constraint for
+FKT_DOCUMENTRECEIVER.ORIGINCONTACTID -> FKT_CONTACT.ID once it's confirmed the
+live data has no orphaned values (contacts that were hard-deleted while
+documents referencing them still exist). Deferred for now - index only.
+
+FKT_DOCUMENT.FK_CONTACT / FK_DELIVERYCONTACT / CONSULTANT are legacy columns
+from the pre-2.1 schema, superseded by FKT_DOCUMENTRECEIVER's address-snapshot
+approach and unused by current code. Left untouched here on purpose (no drop).
+-->
+
+    <changeSet author="dvorpahl" id="20260901-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_ADDRESS" indexName="IDX_ADDRESS_CONTACT_DELETED"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_ADDRESS_CONTACT_DELETED" tableName="FKT_ADDRESS">
+            <column name="CONTACT_ADDRESSES"/>
+            <column name="DELETED"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-002" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_ADDRESS" indexName="IDX_ADDRESS_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_ADDRESS_NAME" tableName="FKT_ADDRESS">
+            <column name="DELETED"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-003" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_ADDRESS" indexName="IDX_ADDRESS_ZIP"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_ADDRESS_ZIP" tableName="FKT_ADDRESS">
+            <column name="DELETED"/>
+            <column name="ZIP"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-004" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_ADDRESS" indexName="IDX_ADDRESS_CITY"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_ADDRESS_CITY" tableName="FKT_ADDRESS">
+            <column name="DELETED"/>
+            <column name="CITY"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-005" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_CONTACT" indexName="IDX_CONTACT_CUSTOMERNUMBER"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_CONTACT_CUSTOMERNUMBER" tableName="FKT_CONTACT">
+            <column name="DELETED"/>
+            <column name="CUSTOMERNUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-006" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_CONTACT" indexName="IDX_CONTACT_SUPPLIERNUMBER"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_CONTACT_SUPPLIERNUMBER" tableName="FKT_CONTACT">
+            <column name="DELETED"/>
+            <column name="SUPPLIERNUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-007" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_CONTACT" indexName="IDX_CONTACT_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_CONTACT_NAME" tableName="FKT_CONTACT">
+            <column name="DELETED"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-008" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_CONTACT" indexName="IDX_CONTACT_COMPANY"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_CONTACT_COMPANY" tableName="FKT_CONTACT">
+            <column name="DELETED"/>
+            <column name="COMPANY"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-009" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_DELIVERYCONTACT"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_DELIVERYCONTACT" tableName="FKT_DOCUMENT">
+            <column name="FK_DELIVERYCONTACT"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-010" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_LIST_DATE"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_LIST_DATE" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="DTYPE"/>
+            <column name="DOCUMENTDATE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-011" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_LIST_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_LIST_NAME" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="DTYPE"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-012" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENT" indexName="IDX_DOC_OPEN_INVOICES"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOC_OPEN_INVOICES" tableName="FKT_DOCUMENT">
+            <column name="DELETED"/>
+            <column name="DTYPE"/>
+            <column name="PAID"/>
+            <column name="DOCUMENTDATE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-013" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENTITEM" indexName="IDX_DOCITEM_DOCUMENT_POS"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOCITEM_DOCUMENT_POS" tableName="FKT_DOCUMENTITEM">
+            <column name="FK_DOCUMENT"/>
+            <column name="POSNR"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-014" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENTITEM" indexName="IDX_DOCITEM_ITEMNUMBER"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOCITEM_ITEMNUMBER" tableName="FKT_DOCUMENTITEM">
+            <column name="ITEMNUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-015" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENTITEM" indexName="IDX_DOCITEM_GTIN"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOCITEM_GTIN" tableName="FKT_DOCUMENTITEM">
+            <column name="GTIN"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-016" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCT" indexName="IDX_PRODUCT_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCT_NAME" tableName="FKT_PRODUCT">
+            <column name="DELETED"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-017" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCT" indexName="IDX_PRODUCT_GTIN"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCT_GTIN" tableName="FKT_PRODUCT">
+            <column name="GTIN"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-018" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCT" indexName="IDX_PRODUCT_SUPPLIERITEMNUMBER"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCT_SUPPLIERITEMNUMBER" tableName="FKT_PRODUCT">
+            <column name="SUPPLIERITEMNUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-019" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCT" indexName="IDX_PRODUCT_CATEGORY_NAME"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_PRODUCT_CATEGORY_NAME" tableName="FKT_PRODUCT">
+            <column name="DELETED"/>
+            <column name="FK_CATEGORY"/>
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dvorpahl" id="20260901-020" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_PRODUCT" indexName="idx_product_itemnumber_only"/></not>
+        </preConditions>
+        <createIndex indexName="idx_product_itemnumber_only" tableName="FKT_PRODUCT">
+            <column name="ITEMNUMBER"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- New index: backs DocumentsDAO#findInvoicesForContact()/#findPaidInvoicesForContact(),
+         which join FKT_DOCUMENTRECEIVER.ORIGINCONTACTID against FKT_CONTACT.ID and were
+         previously running against an unindexed column. -->
+    <changeSet author="dvorpahl" id="20260901-021" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="FKT_DOCUMENTRECEIVER" indexName="IDX_DOCRECEIVER_ORIGINCONTACT"/></not>
+        </preConditions>
+        <createIndex indexName="IDX_DOCRECEIVER_ORIGINCONTACT" tableName="FKT_DOCUMENTRECEIVER">
+            <column name="ORIGINCONTACTID"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

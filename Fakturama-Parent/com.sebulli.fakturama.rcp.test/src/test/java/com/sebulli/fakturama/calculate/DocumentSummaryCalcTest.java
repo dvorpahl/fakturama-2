@@ -1,5 +1,6 @@
 package com.sebulli.fakturama.calculate;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.NumberFormat;
@@ -321,6 +322,21 @@ public class DocumentSummaryCalcTest {
         assertEquals(2, calc.getVatSummary(invoice).size());
         // sum of items has to be equal to summary.getTotalVat()
         assertEquals(totalVat, calc.getDocumentSummary(invoice).getTotalVatRounded().getNumber().doubleValue(), 0);
+    }
+
+    @Test
+    void testAutoVATShippingWithNoVATReference() {
+        final Invoice invoice = FakturamaModelPackage.MODELFACTORY.createInvoice();
+        invoice.addToItems(createDocumentItem(1, Double.valueOf(1.0), Double.valueOf(10.0), Double.valueOf(0.19)));
+        invoice.setNetGross(DocumentSummary.ROUND_NET_VALUES);
+        invoice.setNoVatReference(createVat("No VAT", 0.0));
+
+        final Shipping testShipping = createTestShipping();
+        testShipping.setAutoVat(ShippingVatType.SHIPPINGVATNET);
+        invoice.setShipping(testShipping);
+
+        final DocumentSummaryManager calc = ContextInjectionFactory.make(DocumentSummaryManager.class, ctx);
+        assertDoesNotThrow(() -> calc.calculate(invoice));
     }
 
     /**

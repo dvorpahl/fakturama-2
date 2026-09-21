@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.fakturama.addon.purchaseorders.example.feature"
+      label="Fakturama Purchase Orders Example Add-on"
+      version="2.2.0"
+      provider-name="Fakturama.org">
+
+   <description>
+      Example add-on that reads fakturama-tool purchase orders from add-on-owned tables.
+   </description>
+
+   <requires>
+      <import feature="com.sebulli.fakturama.feature" version="2.2.0" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="org.fakturama.addon.purchaseorders.example"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

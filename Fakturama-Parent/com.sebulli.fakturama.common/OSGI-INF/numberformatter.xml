@@ -6,5 +6,8 @@
    </service>
    <reference bind="bindLocaleService" cardinality="1..1" interface="com.sebulli.fakturama.i18n.ILocaleService" name="ILocaleService" policy="static"/>
    <reference bind="bindLog" cardinality="1..1" interface="com.sebulli.fakturama.log.ILogger" name="ILogger" policy="static"/>
-   <reference cardinality="1..1" interface="org.javamoney.moneta.spi.loader.LoaderService" name="LoaderService" policy="static"/>
+   <!-- The formatter registers its own monetary providers and can operate
+        before a LoaderService is published.  Making this auxiliary reference
+        optional prevents the core service from disappearing during startup. -->
+   <reference cardinality="0..1" interface="org.javamoney.moneta.spi.loader.LoaderService" name="LoaderService" policy="static"/>
 </scr:component>

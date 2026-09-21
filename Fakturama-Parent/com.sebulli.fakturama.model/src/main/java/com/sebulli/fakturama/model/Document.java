@@ -12,6 +12,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -57,7 +58,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
      * 
      * @generated
      */
-    @ManyToOne(cascade = { CascadeType.ALL })
+    @ManyToOne(cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @JoinColumns({ @JoinColumn(name = "FK_INDIVIDUALINFO") })
     private IndividualDocumentInfo additionalInfo = new IndividualDocumentInfo();
 

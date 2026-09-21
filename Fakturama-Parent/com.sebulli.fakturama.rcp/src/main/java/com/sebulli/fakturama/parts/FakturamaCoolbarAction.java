@@ -84,7 +84,6 @@ public class FakturamaCoolbarAction extends Action {
 
     @Override
     public void runWithEvent(Event event) {
-
         ParameterizedCommand parameterizedCommand = pCmd;
         if (handlerService.canExecute(parameterizedCommand)) {
             final IEclipseContext staticContext = EclipseContextFactory.create("fakturama-static-context");
@@ -96,7 +95,12 @@ public class FakturamaCoolbarAction extends Action {
                     parameterizedCommand = cmdService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
             }
 
-            // if CTRL key is pressed then we try to duplicate the current editor into a new one
+            // if CTRL key is pressed then we try to duplicate the current editor into a new one.
+            // Note: this only decides *whether* a copy is requested at all - which kind of copy
+            // (same customer / blank / cross-type template) is decided later, inside
+            // DocumentEditor#init(), where the new part/document actually exists and a stable
+            // Shell is available. Doing that decision (and its dialog) here used to be fragile:
+            // it ran nested inside this click's event dispatch, before the target part existed.
             if ((event.stateMask & SWT.MOD1) == SWT.MOD1) {
                 // does only work under certain circumstances
                 ParameterizedCommand duplicateCmd = cmdService.createCommand(CommandIds.CMD_OBJECT_DUPLICATE);
