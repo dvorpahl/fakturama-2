@@ -16,7 +16,10 @@ package com.sebulli.fakturama.parts;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -42,6 +45,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.annotations.Optional;
+import org.eclipse.e4.ui.di.Focus;
 import org.eclipse.e4.ui.di.Persist;
 import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.e4.ui.model.application.ui.MDirtyable;
@@ -49,6 +53,7 @@ import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.workbench.UIEvents;
 import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.jface.databinding.fieldassist.ControlDecorationSupport;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -72,11 +77,12 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -95,6 +101,7 @@ import com.sebulli.fakturama.dao.ProductCategoriesDAO;
 import com.sebulli.fakturama.dao.ProductWebshopDAO;
 import com.sebulli.fakturama.dao.ProductsDAO;
 import com.sebulli.fakturama.dao.VatsDAO;
+import com.sebulli.fakturama.dialogs.SelectProductDialog;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.misc.Constants;
@@ -170,7 +177,7 @@ public class ProductEditor extends Editor<Product> {
     private Composite top;
     private Text textItemNr;
     private Text textName;
-    private Text textGtin, textSupplierItemNumber;
+    private Text textGtin, textSupplierItemNumber, textReplacedByProductId;
     private Text textDescription;
     private Text udf01, udf02, udf03;
     private Combo comboVat;
@@ -184,6 +191,7 @@ public class ProductEditor extends Editor<Product> {
     private FakturamaPictureControl labelProductPicture;
     private Label labelPictureVariants;
     private Composite photoComposite;
+    private boolean refreshingPicture;
     private Text note;
 
     // Webshop overlay (FKT_PRODUCTWEBSHOP) - the "im Shop" checkbox and its fields
@@ -465,59 +473,78 @@ public class ProductEditor extends Editor<Product> {
      * Reload the product picture
      */
 	private void setPicture() {
-
-		Image image = null;
-		// Display the picture, if a product picture is set.
-		if (editorProduct.getPicture() != null) {
-
-			// Load the image, based on the picture name, save to image registry.
-			// Max size is governed dynamically by photoComposite's resize listener
-			// (see createPartControl) rather than a fixed size here.
-			image = JFaceResources.getImageRegistry().get("prodimg_" + editorProduct.getItemNumber());
-			if (image == null) {
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(editorProduct.getPicture())) {
-					ImageData imageData = new ImageData(bais);
-					image = new Image(Display.getCurrent(), imageData);
-					JFaceResources.getImageRegistry().put("prodimg_" + editorProduct.getItemNumber(), image);
-				} catch (Exception e) {
-					// catch all exceptions here since we check for errors later
-					log.error(e, "Icon not found");
-				}
-			}
-			labelProductPicture.setImageByteArray(editorProduct.getPicture());
-		} else {
-			labelProductPicture.setImageByteArray(null);
+		// The webtool owns product pictures. Query its view for each editor opening so
+		// externally replaced or deleted pictures are reflected in the preview.
+		refreshingPicture = true;
+		try {
+			labelProductPicture.setImageByteArray(newProduct ? null
+					: productsDAO.findPictureBytesForItemNumber(editorProduct.getItemNumber()));
+		} finally {
+			refreshingPicture = false;
 		}
 		updatePictureVariantsBadge();
 	}
 
-	/**
-	 * "+Shop +HiRes" badge below the picture preview: which additional picture variants
-	 * fakturama-tool's own upload flow produced for this item (see
-	 * {@link ProductsDAO#findPictureVariantFlagsForItemNumber(String)}), beyond the base
-	 * picture shown above - lets the user tell at a glance whether that's all there is,
-	 * without having to leave the Java client to check.
-	 */
+	@Override
+	@Focus
+	public void setFocus() {
+		if (labelProductPicture != null && !labelProductPicture.isDisposed()) {
+			setPicture();
+		}
+		super.setFocus();
+	}
+
+	/** Show the three image destinations used by the webtool's picture catalog. */
 	private void updatePictureVariantsBadge() {
 		final ProductsDAO.PictureVariantFlags flags = productsDAO.findPictureVariantFlagsForItemNumber(editorProduct.getItemNumber());
-		final StringBuilder badge = new StringBuilder();
-		final StringBuilder tooltip = new StringBuilder();
-		if (flags.hasShopPicture()) {
-			badge.append(msg.editorProductPictureShopBadge);
-			tooltip.append(msg.editorProductPictureShopBadgeTooltip);
+		labelPictureVariants.setText("FAKT " + (flags.hasFaktPicture() ? "✓" : "–")
+				+ "   SHOP " + (flags.hasShopPicture() ? "✓" : "–")
+				+ "   HIRES " + (flags.hasHiresPicture() ? "✓" : "–"));
+		labelPictureVariants.setToolTipText(msg.editorProductPictureStatusTooltip);
+	}
+
+	private void openPictureEditor() {
+		final String configuredUrl = defaultValuePrefs.getString(Constants.PREFERENCES_GENERAL_WEBBROWSER_URL).trim();
+		final String itemNumber = editorProduct.getItemNumber();
+		if (configuredUrl.isEmpty() || StringUtils.isBlank(itemNumber)) {
+			MessageDialog.openInformation(top.getShell(), msg.editorProductPictureEditorButton,
+					msg.editorProductPictureEditorMissingUrl);
+			return;
 		}
-		if (flags.hasHiresPicture()) {
-			if (badge.length() > 0) {
-				badge.append(' ');
-				tooltip.append('\n');
+		try {
+			final URI base = URI.create(configuredUrl);
+			if (!("http".equalsIgnoreCase(base.getScheme()) || "https".equalsIgnoreCase(base.getScheme()))
+					|| base.getHost() == null) {
+				throw new IllegalArgumentException("Invalid webtool URL");
 			}
-			badge.append(msg.editorProductPictureHiresBadge);
-			tooltip.append(msg.editorProductPictureHiresBadgeTooltip);
+			final String origin = base.getScheme() + "://" + base.getRawAuthority();
+			final String url = origin + "/product-pictures/review?item_number="
+					+ URLEncoder.encode(itemNumber, StandardCharsets.UTF_8);
+			if (!Program.launch(url)) {
+				throw new IllegalStateException("Could not open browser");
+			}
+		} catch (IllegalArgumentException | IllegalStateException e) {
+			log.error(e, "Could not open picture editor");
+			MessageDialog.openError(top.getShell(), msg.editorProductPictureEditorButton,
+					msg.editorProductPictureEditorOpenError);
 		}
-		labelPictureVariants.setText(badge.toString());
-		labelPictureVariants.setToolTipText(tooltip.length() > 0 ? tooltip.toString() : null);
 	}
 	
+	private void selectReplacementProduct() {
+		final MPart currentPart = context.get(MPart.class);
+		try {
+			final SelectProductDialog dialog = ContextInjectionFactory.make(SelectProductDialog.class, context);
+			dialog.setSelectionOnly(true);
+			dialog.setDialogBoundsSettings(getDialogSettings("SelectProductDialog"),
+					Dialog.DIALOG_PERSISTSIZE | Dialog.DIALOG_PERSISTLOCATION);
+			if (dialog.open() == Dialog.OK && dialog.getSelectedProduct() != null) {
+				textReplacedByProductId.setText(Long.toString(dialog.getSelectedProduct().getId()));
+			}
+		} finally {
+			context.set(MPart.class, currentPart);
+		}
+	}
+
 	private void createAndSetDefaultImage() {
 		// Display an empty background if no picture is set or picture is not found.
 		try {
@@ -589,21 +616,21 @@ public class ProductEditor extends Editor<Product> {
         // Add context help reference
         //		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, ContextHelpConstants.PRODUCT_EDITOR);
 
-        // User-resizable layout: everything down through Zusatzdaten sits at its
-        // natural/minimum height in a plain (non-sash) grid; a single sash below
-        // that lets the user trade some of that fixed block's height for more
-        // room in Notiz, which absorbs all the slack by default.
+        // The outer sash separates the product fields from the note area. A second,
+        // horizontal sash below separates master data from the picture preview.
         SashForm rowsAndNoteSash = new SashForm(top, SWT.VERTICAL);
         styleSash(rowsAndNoteSash);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(rowsAndNoteSash);
 
-        Composite topBlock = new Composite(rowsAndNoteSash, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(3).applyTo(topBlock);
+        SashForm topBlock = new SashForm(rowsAndNoteSash, SWT.VERTICAL);
+        styleSash(topBlock);
+
+        SashForm masterPictureSash = new SashForm(topBlock, SWT.HORIZONTAL);
+        styleSash(masterPictureSash);
 
         // Group: Stammdaten
-        Group stammdatenGroup = new Group(topBlock, SWT.NONE);
+        Group stammdatenGroup = new Group(masterPictureSash, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(4).applyTo(stammdatenGroup);
-        GridDataFactory.fillDefaults().span(2, 1).grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(stammdatenGroup);
         stammdatenGroup.setText("\u00A0\u00A0" + msg.editorProductLabelMasterdata);
 
         // Left column (top to bottom): Artikelnummer, Name, Kategorie
@@ -615,7 +642,7 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelItemNr);
         textItemNr = new Text(useItemNr ? stammdatenGroup : invisible, SWT.BORDER);
         textItemNr.addKeyListener(new ReturnKeyAdapter(textItemNr));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textItemNr);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textItemNr);
         if (!useItemNr) {
             // filler: keep this row's left-hand cells occupied even when
             // Artikelnummer is hidden, so "GTIN" doesn't slide into its place
@@ -629,7 +656,7 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelGtin);
         textGtin = new Text(stammdatenGroup, SWT.BORDER);
         textGtin.addKeyListener(new ReturnKeyAdapter(textGtin));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textGtin);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textGtin);
 
         // Row: Name | Art.-Nr. Lieferant
         Label labelName = new Label(stammdatenGroup, SWT.NONE);
@@ -639,7 +666,7 @@ public class ProductEditor extends Editor<Product> {
         textName = new Text(stammdatenGroup, SWT.BORDER);
         textName.setToolTipText(labelName.getToolTipText());
         textName.addKeyListener(new ReturnKeyAdapter(textName));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textName);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textName);
 
         Label labelSupplierItemNumber = new Label(stammdatenGroup, SWT.NONE);
         labelSupplierItemNumber.setText(msg.editorProductFieldSupplierItemnumber);
@@ -647,7 +674,7 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelSupplierItemNumber);
         textSupplierItemNumber = new Text(stammdatenGroup, SWT.BORDER);
         textSupplierItemNumber.addKeyListener(new ReturnKeyAdapter(textSupplierItemNumber));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textSupplierItemNumber);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textSupplierItemNumber);
 
         // for correct tab-order (see FAK-465)
         Control nextWidget = null;
@@ -658,7 +685,7 @@ public class ProductEditor extends Editor<Product> {
         labelCategory.setToolTipText(msg.editorProductCategoryTooltip);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelCategory);
         comboCategory = new CCombo(stammdatenGroup, SWT.BORDER);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(comboCategory);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(comboCategory);
 
         Label labelQuantityUnit = new Label(useQuantityUnit ? stammdatenGroup : invisible, SWT.NONE);
         //T: Product Editor - Label Product quantity unit
@@ -676,7 +703,24 @@ public class ProductEditor extends Editor<Product> {
             new Label(stammdatenGroup, SWT.NONE);
             new Label(stammdatenGroup, SWT.NONE);
         }
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textQuantityUnit);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textQuantityUnit);
+
+        Label labelReplacedBy = new Label(stammdatenGroup, SWT.NONE);
+        labelReplacedBy.setText("Ersetzt durch (ID)");
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelReplacedBy);
+        Composite replacementInput = new Composite(stammdatenGroup, SWT.NONE);
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(replacementInput);
+        GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(replacementInput);
+        textReplacedByProductId = new Text(replacementInput, SWT.BORDER);
+        textReplacedByProductId.setToolTipText("Leer: aktiv; 0: Auslaufartikel ohne Nachfolger; positive ID: Nachfolgeartikel");
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textReplacedByProductId);
+        Button selectReplacementButton = new Button(replacementInput, SWT.PUSH);
+        selectReplacementButton.setText("…");
+        selectReplacementButton.setToolTipText("Nachfolgeartikel auswählen");
+        selectReplacementButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> selectReplacementProduct()));
+        Label replacedByHint = new Label(stammdatenGroup, SWT.NONE);
+        replacedByHint.setText("0 = Auslaufartikel ohne Nachfolger");
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(replacedByHint);
 
         // Row: Beschreibung, spanning the group's full width - kept fairly
         // short (it can still grow if the window does), the picture preview
@@ -692,48 +736,54 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.fillDefaults().span(3, 1).hint(10, 50).grab(true, true).applyTo(textDescription);
 
         // Group: Produktbild - beside Stammdaten
-        Group productPictureGroup = new Group(usePicture ? topBlock : invisible, SWT.NONE);
+        Group productPictureGroup = new Group(usePicture ? masterPictureSash : invisible, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(1).applyTo(productPictureGroup);
-        GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(productPictureGroup);
         productPictureGroup.setText("\u00A0\u00A0" + msg.exporterDataPicture);
         if (!usePicture) {
-            // filler: keep row 1 at 3 columns even when Produktbild is hidden
-            new Label(topBlock, SWT.NONE);
+            new Composite(masterPictureSash, SWT.NONE);
         }
 
-        // The photo - proportional/centered via FakturamaPictureControl's own scaling,
-        // filling whatever space Produktbild actually has (grows with it, see
-        // stammdatenGroup/productPictureGroup's grab(true, true) above) rather than
-        // floating at a fixed natural size in the middle of a bigger box.
+        // Fixed size hints keep picture dimensions out of the sash's preferred size.
+        // Both controls still expand into the width the user assigns to the preview.
         photoComposite = new Composite(productPictureGroup, SWT.BORDER);
         GridLayoutFactory.swtDefaults().margins(10, 10).numColumns(1).applyTo(photoComposite);
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(photoComposite);
+        GridDataFactory.fillDefaults().hint(120, 120).grab(true, true).applyTo(photoComposite);
         photoComposite.setBackground(new Color(null, 255, 255, 255));
 
         // The picture name label
         labelProductPicture = new FakturamaPictureControl(photoComposite);
         ContextInjectionFactory.inject(labelProductPicture, context);
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(labelProductPicture);
+        GridDataFactory.fillDefaults().hint(100, 100).grab(true, true).applyTo(labelProductPicture);
 
-        // "+Shop +HiRes" badge: which additional picture variants fakturama-tool's own upload
-        // flow produced for this item, beyond the base picture shown above (see setPicture()).
+        // Availability for Fakturama, shop and high-resolution pictures.
         labelPictureVariants = new Label(photoComposite, SWT.NONE);
         GridDataFactory.swtDefaults().grab(true, false).align(SWT.CENTER, SWT.CENTER).applyTo(labelPictureVariants);
+
+        Button openPictureEditorButton = new Button(productPictureGroup, SWT.PUSH);
+        openPictureEditorButton.setText(msg.editorProductPictureEditorButton);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(openPictureEditorButton);
+        openPictureEditorButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openPictureEditor()));
 
         createAndSetDefaultImage();
         setPicture();
 
-        // getMaxImageWidth/-Height are fixed pixel caps, not tied to the container's
-        // actual size - grab(true, true) above lets photoComposite itself grow/shrink
-        // with the sash, but the picture control still only ever renders up to
-        // whatever those caps say. Recompute them from photoComposite's real size on
-        // every resize so the image actually fills the space instead of sitting
-        // undersized in the middle of it once that space exceeds the old cap.
-        // Only touches the max-size properties and re-layouts (never setPicture(),
-        // which would reassign the image bytes and risk feeding back into another
-        // resize - it doesn't need to change here, only how large it's allowed to
-        // render) - and skips applying anything when the size hasn't actually
-        // changed, since a layout pass can itself report a spurious resize.
+        // Keep the preview within the user-assigned pane. The Nebula control only
+        // rescales bitmap data when it is assigned, so debounce that work while dragging.
+        final Runnable rescalePicture = () -> {
+            if (labelProductPicture.isDisposed()) {
+                return;
+            }
+            final byte[] picture = labelProductPicture.getImageByteArray();
+            if (picture != null) {
+                refreshingPicture = true;
+                try {
+                    labelProductPicture.setImageByteArray(picture);
+                } finally {
+                    refreshingPicture = false;
+                }
+            }
+            labelProductPicture.layout(true, true);
+        };
         final int[] lastAppliedSize = { -1, -1 };
         photoComposite.addControlListener(ControlListener.controlResizedAdapter(e -> {
             final Rectangle area = photoComposite.getClientArea();
@@ -745,18 +795,24 @@ public class ProductEditor extends Editor<Product> {
                 lastAppliedSize[1] = newHeight;
                 labelProductPicture.setMaxImageWidth(newWidth);
                 labelProductPicture.setMaxImageHeight(newHeight);
-                photoComposite.layout(true, true);
+                labelProductPicture.layout(true, true);
+                photoComposite.getDisplay().timerExec(-1, rescalePicture);
+                photoComposite.getDisplay().timerExec(120, rescalePicture);
             }
         }));
 
         labelProductPicture.addPropertyChangeListener(FakturamaPictureControl.IMAGE_BYTEARRAY_PROPERTY, new PropertyChangeListener() {
             @Override
             public void propertyChange(final PropertyChangeEvent event) {
+				if (refreshingPicture) {
+					return;
+				}
                 byte[] newImage = (byte[]) event.getNewValue();
                 final String imageKey = "prodimg_" + Objects.toString(editorProduct.getItemNumber(), Long.toString(editorProduct.getId()));
                 JFaceResources.getImageRegistry().remove(imageKey);
                 // if image was deleted we use the default image
                 editorProduct.setPicture(newImage);
+                updatePictureVariantsBadge();
                 if (newImage != null) {
                     Display display = Display.getCurrent();
                     ByteArrayInputStream bais = new ByteArrayInputStream(newImage);
@@ -767,10 +823,12 @@ public class ProductEditor extends Editor<Product> {
             }
         });
 
-        // ========= Row 2: Preise & Steuer (col 1) | Lager & Versand (col 2) | Webshop (col 3) =========
+        // ========= Row 2: Preise & Steuer | Lager & Versand | Webshop =========
+        SashForm detailColumnsSash = new SashForm(topBlock, SWT.HORIZONTAL);
+        styleSash(detailColumnsSash);
 
         // Group: Preise & Steuer
-        Group pricingGroup = new Group(topBlock, SWT.NONE);
+        Group pricingGroup = new Group(detailColumnsSash, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(4).applyTo(pricingGroup);
         GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(pricingGroup);
         pricingGroup.setText("\u00A0\u00A0" + msg.editorProductLabelPricing);
@@ -858,7 +916,11 @@ public class ProductEditor extends Editor<Product> {
 
         // Create a row for each entry of the scaled price table
         context.set(Constants.CONTEXT_STYLE, SWT.BORDER | SWT.RIGHT);
-        context.set(Constants.CONTEXT_VATVALUE, editorProduct.getVat().getTaxValue());
+        // Older products can have no VAT assigned. Keep the VAT selector empty and
+        // use 0% only for the price widgets until the user chooses a VAT rate.
+        final VAT productVat = editorProduct.getVat();
+        context.set(Constants.CONTEXT_VATVALUE,
+                productVat != null && productVat.getTaxValue() != null ? productVat.getTaxValue() : Double.valueOf(0.0));
         Object priceObj;
         for (int i = 0; i < MAX_NUMBER_OF_PRICES; i++) {
             try {
@@ -925,7 +987,7 @@ public class ProductEditor extends Editor<Product> {
         setTabOrder(textDescription, nextWidget);
 
         // Group: Lager & Versand
-        Group stockShippingGroup = new Group(topBlock, SWT.NONE);
+        Group stockShippingGroup = new Group(detailColumnsSash, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(stockShippingGroup);
         GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(stockShippingGroup);
         stockShippingGroup.setText("\u00A0\u00A0" + msg.editorProductLabelStockshipping);
@@ -1023,14 +1085,12 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopLowStockAmount);
 
         // Group: Webshop (below Produktbild)
-        createWebshopGroup(topBlock);
+        createWebshopGroup(detailColumnsSash);
 
-        // ================= Zusatzdaten + Notiz, below the one sash =================
-        // Zusatzdaten stays at its natural height like everything in topBlock above;
-        // Notiz is the only thing that actually grows, absorbing all the slack.
+        // ================= Zusatzdaten + Notiz, with their own lower splitter =================
 
-        Composite bottomBlock = new Composite(rowsAndNoteSash, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(1).margins(0, 0).applyTo(bottomBlock);
+        SashForm bottomBlock = new SashForm(rowsAndNoteSash, SWT.VERTICAL);
+        styleSash(bottomBlock);
 
         Group additionalDataGroup = new Group(bottomBlock, SWT.NONE);
         GridLayoutFactory.swtDefaults().numColumns(6).applyTo(additionalDataGroup);
@@ -1058,7 +1118,7 @@ public class ProductEditor extends Editor<Product> {
         udf03.addKeyListener(new ReturnKeyAdapter(udf03));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(udf03);
 
-        // ================= Notiz - the one thing that actually grows =================
+        // ================= Notiz =================
 
         Group noteGroup = new Group(bottomBlock, SWT.NONE);
         noteGroup.setText("\u00A0\u00A0" + msg.editorContactLabelNotice);
@@ -1069,16 +1129,29 @@ public class ProductEditor extends Editor<Product> {
         note.addKeyListener(new ReturnKeyAdapter(note));
         GridDataFactory.fillDefaults().grab(true, true).applyTo(note);
 
+        if (usePicture) {
+            masterPictureSash.setWeights(loadSashWeights(PICTURE_WEIGHTS_KEY, new int[] { 70, 30 }));
+            persistSashWeights(masterPictureSash, PICTURE_WEIGHTS_KEY);
+        } else {
+            masterPictureSash.setMaximizedControl(stammdatenGroup);
+        }
+        detailColumnsSash.setWeights(loadSashWeights(DETAIL_WEIGHTS_KEY, new int[] { 40, 30, 30 }));
+        persistSashWeights(detailColumnsSash, DETAIL_WEIGHTS_KEY);
+        topBlock.setWeights(loadSashWeights(UPPER_ROWS_WEIGHTS_KEY, new int[] { 45, 55 }));
+        persistSashWeights(topBlock, UPPER_ROWS_WEIGHTS_KEY);
+        bottomBlock.setWeights(loadSashWeights(LOWER_ROWS_WEIGHTS_KEY, new int[] { 25, 75 }));
+        persistSashWeights(bottomBlock, LOWER_ROWS_WEIGHTS_KEY);
+
         // Give topBlock a weight that approximates its own natural/minimum height on
         // a typical window (constrainSash below is what actually enforces the floor
         // on a tall one) and let Notiz have the rest - unless the user already dragged
         // it somewhere else in a previous session (see persistSashWeights below).
-        rowsAndNoteSash.setWeights(loadSashWeights(new int[] { 25, 75 }));
+        rowsAndNoteSash.setWeights(loadSashWeights(SASH_WEIGHTS_KEY, new int[] { 75, 25 }));
 
         // Keep the drag from squeezing topBlock below what it needs to show
         // everything, or Notiz down to nothing.
         constrainSash(rowsAndNoteSash, topBlock, 130);
-        persistSashWeights(rowsAndNoteSash);
+        persistSashWeights(rowsAndNoteSash, SASH_WEIGHTS_KEY);
         // constrainSash only clamps a live drag - it does nothing for the weights just applied
         // above, whether that's the hardcoded default or a restored-but-now-stale value (e.g. from
         // a previously bigger window). Enforce the same content-derived floor here too, both once
@@ -1201,6 +1274,10 @@ public class ProductEditor extends Editor<Product> {
 
     private static final String SASH_SETTINGS_SECTION = "ProductEditorSash";
     private static final String SASH_WEIGHTS_KEY = "rowsAndNoteWeights";
+    private static final String PICTURE_WEIGHTS_KEY = "masterPictureWeights";
+    private static final String UPPER_ROWS_WEIGHTS_KEY = "upperRowsWeights";
+    private static final String DETAIL_WEIGHTS_KEY = "detailColumnsWeights";
+    private static final String LOWER_ROWS_WEIGHTS_KEY = "lowerRowsWeights";
 
     /**
      * A single, global (not per-product) remembered split position for
@@ -1215,8 +1292,8 @@ public class ProductEditor extends Editor<Product> {
         return settings.getSection(section);
     }
 
-    private int[] loadSashWeights(final int[] defaultWeights) {
-        final String[] saved = getDialogSettings(SASH_SETTINGS_SECTION).getArray(SASH_WEIGHTS_KEY);
+    private int[] loadSashWeights(final String key, final int[] defaultWeights) {
+        final String[] saved = getDialogSettings(SASH_SETTINGS_SECTION).getArray(key);
         if (saved == null || saved.length != defaultWeights.length) {
             return defaultWeights;
         }
@@ -1227,9 +1304,9 @@ public class ProductEditor extends Editor<Product> {
         }
     }
 
-    private void saveSashWeights(final SashForm sashForm) {
+    private void saveSashWeights(final SashForm sashForm, final String key) {
         final String[] asStrings = Arrays.stream(sashForm.getWeights()).mapToObj(Integer::toString).toArray(String[]::new);
-        getDialogSettings(SASH_SETTINGS_SECTION).put(SASH_WEIGHTS_KEY, asStrings);
+        getDialogSettings(SASH_SETTINGS_SECTION).put(key, asStrings);
     }
 
     /**
@@ -1239,10 +1316,14 @@ public class ProductEditor extends Editor<Product> {
      * fires, but {@link SashForm#getWeights()} only reflects the new layout once SWT has finished
      * processing this same event, hence the asyncExec rather than reading it inline here.
      */
-    private void persistSashWeights(final SashForm sashForm) {
+    private void persistSashWeights(final SashForm sashForm, final String key) {
         for (final Control control : sashForm.getChildren()) {
             if (control instanceof Sash) {
-                control.addListener(SWT.Selection, event -> Display.getDefault().asyncExec(() -> saveSashWeights(sashForm)));
+                control.addListener(SWT.Selection, event -> Display.getDefault().asyncExec(() -> {
+                    if (!sashForm.isDisposed()) {
+                        saveSashWeights(sashForm, key);
+                    }
+                }));
             }
         }
     }
@@ -1366,14 +1447,8 @@ public class ProductEditor extends Editor<Product> {
      */
     private void prefillWebshopDefaults() {
         if (editorProductWebshop.getShopPrice() == null && editorProduct.getPrice1() != null) {
-            // price1 is always a NET price in this editor (see netText[i]'s binding below); the
-            // webshop's shopPrice (WooCommerce regular_price) is customer-facing and needs to be
-            // gross, so convert using the product's own VAT rate instead of copying it as-is.
-            final VAT vat = editorProduct.getVat();
-            final Double shopPrice = vat != null && vat.getTaxValue() != null
-                    ? DataUtils.getInstance().CalculateGrossFromNet(editorProduct.getPrice1(), vat.getTaxValue())
-                    : editorProduct.getPrice1();
-            editorProductWebshop.setShopPrice(shopPrice);
+            // WooCommerce receives net prices; product VAT is applied by the shop.
+            editorProductWebshop.setShopPrice(editorProduct.getPrice1());
         }
         if (Boolean.TRUE.equals(editorProduct.getStockManaged())) {
             if (editorProductWebshop.getShopStockQuantity() == null && editorProduct.getQuantity() != null) {
@@ -1415,6 +1490,17 @@ public class ProductEditor extends Editor<Product> {
         ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
 
         bindModelValue(editorProduct, textSupplierItemNumber, Product_.supplierItemNumber.getName(), 64);
+        final UpdateValueStrategy<Object, Long> replacementToModel = UpdateValueStrategy.create(StringToNumberConverter.toLong(false));
+        replacementToModel.setBeforeSetValidator(value -> {
+            if (value == null || ((Long) value) >= 0
+                    && (editorProduct.getId() <= 0 || ((Long) value) != editorProduct.getId())) {
+                return ValidationStatus.ok();
+            }
+            return ValidationStatus.error("Nachfolgeartikel muss eine andere, positive Artikel-ID oder 0 sein.");
+        });
+        final Binding replacementBinding = bindModelValue(editorProduct, textReplacedByProductId, "replacedByProductId", 20,
+                replacementToModel, UpdateValueStrategy.create(NumberToStringConverter.fromLong(numberFormat, false)));
+        ControlDecorationSupport.create(replacementBinding, SWT.TOP | SWT.LEFT);
         bindModelValue(editorProduct, textDescription, Product_.description.getName(), 0); // no limit
         if (useQuantityUnit) {
             UpdateValueStrategy<Text, String> strategy = new UpdateValueStrategy<>();

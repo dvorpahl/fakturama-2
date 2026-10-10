@@ -38,10 +38,18 @@ import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.internal.workbench.E4Workbench;
 import org.eclipse.e4.ui.model.application.MApplication;
+import org.eclipse.e4.ui.model.application.commands.MCommand;
+import org.eclipse.e4.ui.model.application.commands.MCommandParameter;
+import org.eclipse.e4.ui.model.application.commands.MCommandsFactory;
+import org.eclipse.e4.ui.model.application.commands.MHandler;
+import org.eclipse.e4.ui.model.application.commands.MParameter;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.basic.MPartStack;
 import org.eclipse.e4.ui.model.application.ui.basic.MStackElement;
 import org.eclipse.e4.ui.model.application.ui.basic.MTrimmedWindow;
+import org.eclipse.e4.ui.model.application.ui.menu.MHandledMenuItem;
+import org.eclipse.e4.ui.model.application.ui.menu.MMenu;
+import org.eclipse.e4.ui.model.application.ui.menu.MMenuFactory;
 import org.eclipse.e4.ui.workbench.IWorkbench;
 import org.eclipse.e4.ui.workbench.UIEvents;
 import org.eclipse.e4.ui.workbench.lifecycle.PostContextCreate;
@@ -77,6 +85,7 @@ import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.dbservice.IDbUpdateService;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.SaveHandler;
+import com.sebulli.fakturama.handlers.SetProductWebshopHandler;
 import com.sebulli.fakturama.parts.BrowserEditor;
 import com.sebulli.fakturama.i18n.Messages;
 import com.sebulli.fakturama.log.ILogger;
@@ -95,6 +104,7 @@ import com.sebulli.fakturama.preferences.PreferencesInDatabase;
 import com.sebulli.fakturama.resources.core.TemplateResourceManager;
 import com.sebulli.fakturama.startup.ConfigurationManager;
 import com.sebulli.fakturama.startup.ISplashService;
+import com.sebulli.fakturama.views.datatable.products.ProductListTable;
 
 import jakarta.persistence.PersistenceException;
 
@@ -662,9 +672,87 @@ public class LifecycleManager {
         }
     }
 
+    /**
+     * Existing workspaces restore their saved e4 model instead of rebuilding it from
+     * Application.e4xmi. Add new command and popup entries to that restored model without
+     * discarding the user's window layout or open tabs.
+     */
+    private void ensureProductWebshopMenu(final MApplication app, final EModelService modelService) {
+        MCommand command = app.getCommand(SetProductWebshopHandler.COMMAND_ID);
+        if (command == null) {
+            command = MCommandsFactory.INSTANCE.createCommand();
+            command.setElementId(SetProductWebshopHandler.COMMAND_ID);
+            command.setCommandName("Web-Shop-Status ändern");
+            app.getCommands().add(command);
+        }
+        if (command.getParameters().stream().noneMatch(parameter -> SetProductWebshopHandler.PARAM_ENABLED.equals(parameter.getElementId()))) {
+            final MCommandParameter parameter = MCommandsFactory.INSTANCE.createCommandParameter();
+            parameter.setElementId(SetProductWebshopHandler.PARAM_ENABLED);
+            parameter.setName(SetProductWebshopHandler.PARAM_ENABLED);
+            parameter.setTypeId(Boolean.class.getName());
+            command.getParameters().add(parameter);
+        }
+
+        final MCommand webshopCommand = command;
+        MHandler handler = app.getHandlers().stream()
+                .filter(candidate -> SetProductWebshopHandler.HANDLER_ID.equals(candidate.getElementId()))
+                .findFirst().orElse(null);
+        if (handler == null) {
+            handler = MCommandsFactory.INSTANCE.createHandler();
+            handler.setElementId(SetProductWebshopHandler.HANDLER_ID);
+            app.getHandlers().add(handler);
+        }
+        handler.setCommand(webshopCommand);
+        handler.setContributionURI("bundleclass://com.sebulli.fakturama.rcp/"
+                + SetProductWebshopHandler.class.getName());
+
+        final Object foundPart = modelService.find(ProductListTable.ID, app);
+        if (!(foundPart instanceof MPart productPart)) {
+            return;
+        }
+        MMenu popup = productPart.getMenus().stream()
+                .filter(menu -> SetProductWebshopHandler.POPUP_ID.equals(menu.getElementId()))
+                .findFirst().orElse(null);
+        if (popup == null) {
+            popup = MMenuFactory.INSTANCE.createPopupMenu();
+            popup.setElementId(SetProductWebshopHandler.POPUP_ID);
+            productPart.getMenus().add(popup);
+        }
+        ensureProductWebshopItem(popup, webshopCommand, SetProductWebshopHandler.ENABLE_ITEM_ID,
+                "Für Web-Shop freigeben", true);
+        ensureProductWebshopItem(popup, webshopCommand, SetProductWebshopHandler.DISABLE_ITEM_ID,
+                "Web-Shop-Freigabe entfernen", false);
+    }
+
+    private void ensureProductWebshopItem(final MMenu popup, final MCommand command, final String itemId,
+            final String label, final boolean enabled) {
+        MHandledMenuItem item = popup.getChildren().stream()
+                .filter(child -> itemId.equals(child.getElementId()))
+                .filter(MHandledMenuItem.class::isInstance)
+                .map(MHandledMenuItem.class::cast)
+                .findFirst().orElse(null);
+        if (item == null) {
+            item = MMenuFactory.INSTANCE.createHandledMenuItem();
+            item.setElementId(itemId);
+            popup.getChildren().add(item);
+        }
+        item.setLabel(label);
+        item.setIconURI("icon://COMMAND_SHOP");
+        item.setCommand(command);
+        if (item.getParameters().stream().noneMatch(parameter -> SetProductWebshopHandler.PARAM_ENABLED.equals(parameter.getName()))) {
+            final MParameter parameter = MCommandsFactory.INSTANCE.createParameter();
+            parameter.setElementId(itemId + ".parameter");
+            parameter.setName(SetProductWebshopHandler.PARAM_ENABLED);
+            parameter.setValue(Boolean.toString(enabled));
+            item.getParameters().add(parameter);
+        }
+    }
+
     @ProcessAdditions
     void processAdditions(final IEventBroker eventBroker, final MApplication app, final EModelService modelService, final IApplicationContext appContext,
             @Named(E4Workbench.INSTANCE_LOCATION) final Location instanceLocation, final ISplashService splashService) {
+
+        ensureProductWebshopMenu(app, modelService);
 
         // TODO put the Login Dialog in here
         if (eclipsePrefs.getBoolean("isreinit", false)) {

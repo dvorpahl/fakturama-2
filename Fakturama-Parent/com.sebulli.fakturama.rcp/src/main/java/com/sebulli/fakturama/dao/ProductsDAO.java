@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ import com.sebulli.fakturama.model.ProductWebshop;
 import com.sebulli.fakturama.model.ProductWebshop_;
 import com.sebulli.fakturama.model.Product_;
 import com.sebulli.fakturama.oldmodel.OldProducts;
+import com.sebulli.fakturama.views.datatable.products.ProductIconFilter;
 import com.sebulli.fakturama.views.datatable.products.ProductListDescriptor;
 import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
@@ -33,7 +35,6 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
@@ -42,6 +43,31 @@ import jakarta.persistence.criteria.Subquery;
 
 @Creatable
 public class ProductsDAO extends AbstractDAO<Product> {
+
+    /**
+     * Returns item numbers that are roots of a Stückliste. The PART_LI table is
+     * an optional companion table used by the web application, so its absence
+     * must not make ordinary Fakturama installations fail.
+     */
+    public Set<String> findAssemblyItemNumbers() {
+        final Set<String> result = new HashSet<>();
+        try {
+            for (final Object value : getEntityManager().createNativeQuery("SELECT DISTINCT ZSB FROM PART_LI").getResultList()) {
+                if (value != null) {
+                    // PART_LI contains padded item numbers (for example "B32-GX ").
+                    // Match the database's case-insensitive, PAD SPACE comparison.
+                    result.add(normalizeAssemblyItemNumber(String.valueOf(value)));
+                }
+            }
+        } catch (final RuntimeException ex) {
+            getLog().warn("Stücklistenkennzeichnung nicht verfügbar (PART_LI): {}", ex.getMessage());
+        }
+        return result;
+    }
+
+    public static String normalizeAssemblyItemNumber(final String itemNumber) {
+        return itemNumber == null ? "" : itemNumber.stripTrailing().toLowerCase(Locale.ROOT);
+    }
 
     /** Active GEKO reservations grouped by item number. */
     public Map<String, Double> findActiveReservedQuantities() {
@@ -78,33 +104,22 @@ public class ProductsDAO extends AbstractDAO<Product> {
      */
     public List<Product> findPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
             final String orderByProperty, final boolean descending, final int firstResult, final int maxResults) {
+        return findPage(searchTerm, categoryName, treeObjectType, orderByProperty, descending, firstResult, maxResults,
+                ProductIconFilter.ALL, ProductIconFilter.ALL, ProductIconFilter.ALL, Set.of());
+    }
+
+    public List<Product> findPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final String orderByProperty, final boolean descending, final int firstResult, final int maxResults,
+            final ProductIconFilter assemblyFilter, final ProductIconFilter webshopFilter, final ProductIconFilter outdatedFilter,
+            final Set<String> assemblyItemNumbers) {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Product> criteria = cb.createQuery(Product.class);
         final Root<Product> root = criteria.from(Product.class);
-        criteria.distinct(true).where(buildPageablePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        criteria.distinct(true).where(buildPageablePredicate(cb, criteria, root, searchTerm, categoryName, treeObjectType,
+                assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers));
         if (StringUtils.isNotBlank(orderByProperty)) {
             final List<Order> orderList = new ArrayList<>();
-            if (ProductListDescriptor.WEBSHOP_PRICE.getPropertyName().equals(orderByProperty)) {
-                // webshopPrice isn't a real Product/JPA attribute (no relationship from Product
-                // to ProductWebshop, only the reverse - see ProductListDescriptor's javadoc), so
-                // it can't go through root.get(orderByProperty) like every other column. A
-                // correlated subquery stands in for it instead - safe as a scalar expression
-                // because a product has at most one non-deleted ProductWebshop row (same
-                // assumption ProductWebshopDAO#findByProduct already makes). A product that
-                // isn't offered in the shop has no such row, so the subquery evaluates to NULL
-                // for it; ordering by "is it null" first, ahead of the price itself, is what
-                // actually pins every webshop-flagged product above every non-webshop one
-                // regardless of asc/desc - relying on the DB's own default NULL ordering (which
-                // flips between ASC and DESC, and differs by dialect) would make that grouping
-                // toggle inconsistently with the sort direction instead of staying put.
-                final Subquery<Double> webshopPrice = criteria.subquery(Double.class);
-                final Root<ProductWebshop> webshopRoot = webshopPrice.from(ProductWebshop.class);
-                webshopPrice.select(webshopRoot.get(ProductWebshop_.shopPrice)).where(
-                        cb.equal(webshopRoot.get(ProductWebshop_.product), root), cb.isFalse(webshopRoot.get(ProductWebshop_.deleted)));
-                final Expression<Integer> notOfferedInShop = cb.<Integer> selectCase().when(cb.isNull(webshopPrice), 1).otherwise(0);
-                orderList.add(cb.asc(notOfferedInShop));
-                orderList.add(descending ? cb.desc(webshopPrice) : cb.asc(webshopPrice));
-            } else {
+            if (!ProductListDescriptor.WEBSHOP_PRICE.getPropertyName().equals(orderByProperty)) {
                 orderList.add(descending ? cb.desc(root.get(orderByProperty)) : cb.asc(root.get(orderByProperty)));
             }
             // id is always the last ORDER BY criterion for a stable row order across pages - ties
@@ -128,21 +143,37 @@ public class ProductsDAO extends AbstractDAO<Product> {
 
     /** Row count for the same criteria as {@link #findPage}. */
     public long countPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType) {
+        return countPage(searchTerm, categoryName, treeObjectType,
+                ProductIconFilter.ALL, ProductIconFilter.ALL, ProductIconFilter.ALL, Set.of());
+    }
+
+    public long countPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final ProductIconFilter assemblyFilter, final ProductIconFilter webshopFilter, final ProductIconFilter outdatedFilter,
+            final Set<String> assemblyItemNumbers) {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
         final Root<Product> root = criteria.from(Product.class);
-        criteria.select(cb.countDistinct(root)).where(buildPageablePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        criteria.select(cb.countDistinct(root)).where(buildPageablePredicate(cb, criteria, root, searchTerm, categoryName, treeObjectType,
+                assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers));
         return getEntityManager().createQuery(criteria).getSingleResult();
     }
 
-    private Predicate buildPageablePredicate(final CriteriaBuilder cb, final Root<Product> root, final String searchTerm, final String categoryName,
-            final TreeObjectType treeObjectType) {
+    private Predicate buildPageablePredicate(final CriteriaBuilder cb, final CriteriaQuery<?> criteria, final Root<Product> root,
+            final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final ProductIconFilter assemblyFilter, final ProductIconFilter webshopFilter, final ProductIconFilter outdatedFilter,
+            final Set<String> assemblyItemNumbers) {
         Predicate predicate = cb.not(root.get(Product_.deleted));
         if (StringUtils.isNotBlank(searchTerm)) {
-            final String likeTerm = "%" + searchTerm.toLowerCase(java.util.Locale.ROOT) + "%";
-            predicate = cb.and(predicate,
-                    cb.or(cb.like(cb.lower(root.get(Product_.itemNumber)), likeTerm), cb.like(cb.lower(root.get(Product_.name)), likeTerm),
-                            cb.like(cb.lower(root.get(Product_.description)), likeTerm)));
+            final List<Predicate> tokenPredicates = new ArrayList<>();
+            for (final String token : StringUtils.split(searchTerm)) {
+                final String likeTerm = "%" + token.toLowerCase(java.util.Locale.ROOT) + "%";
+                tokenPredicates.add(cb.or(
+                        cb.like(cb.lower(root.get(Product_.itemNumber)), likeTerm),
+                        cb.like(cb.lower(root.get(Product_.supplierItemNumber)), likeTerm),
+                        cb.like(cb.lower(root.get(Product_.name)), likeTerm),
+                        cb.like(cb.lower(root.get(Product_.description)), likeTerm)));
+            }
+            predicate = cb.and(predicate, cb.and(tokenPredicates.toArray(new Predicate[0])));
         }
         final Set<Long> categoryIds = resolveCategoryIds(categoryName, treeObjectType);
         if (categoryIds != null) {
@@ -151,6 +182,24 @@ public class ProductsDAO extends AbstractDAO<Product> {
             // everything for a category selection that (for whatever reason) resolved to no
             // matching categories. Make that case explicitly match nothing instead.
             predicate = cb.and(predicate, categoryIds.isEmpty() ? cb.disjunction() : root.get(Product_.categories).get("id").in(categoryIds));
+        }
+        if (assemblyFilter != ProductIconFilter.ALL) {
+            final Predicate hasAssembly = assemblyItemNumbers.isEmpty() ? cb.disjunction()
+                    : cb.and(cb.isNotNull(root.get(Product_.itemNumber)),
+                            cb.lower(cb.trim(root.get(Product_.itemNumber))).in(assemblyItemNumbers));
+            predicate = cb.and(predicate, assemblyFilter == ProductIconFilter.ONLY ? hasAssembly : cb.not(hasAssembly));
+        }
+        if (webshopFilter != ProductIconFilter.ALL) {
+            final Subquery<Long> shopQuery = criteria.subquery(Long.class);
+            final Root<ProductWebshop> shop = shopQuery.from(ProductWebshop.class);
+            shopQuery.select(cb.literal(1L)).where(cb.equal(shop.get(ProductWebshop_.product), root),
+                    cb.isFalse(shop.get(ProductWebshop_.deleted)));
+            final Predicate hasWebshop = cb.exists(shopQuery);
+            predicate = cb.and(predicate, webshopFilter == ProductIconFilter.ONLY ? hasWebshop : cb.not(hasWebshop));
+        }
+        if (outdatedFilter != ProductIconFilter.ALL) {
+            final Predicate isOutdated = cb.isNotNull(root.get("replacedByProductId"));
+            predicate = cb.and(predicate, outdatedFilter == ProductIconFilter.ONLY ? isOutdated : cb.not(isOutdated));
         }
         return predicate;
     }
@@ -374,19 +423,9 @@ public class ProductsDAO extends AbstractDAO<Product> {
         }
     }
 
-    /**
-     * Whether a shop-optimized and/or a hi-res picture variant exist for the SAME
-     * FKT_PRODUCTPICTURES row VW_PRODUCT_PICTURE already picked as "the" picture (see
-     * {@link #findPictureBytesForItemNumber(String)}'s javadoc and the view's own WHERE
-     * clause, changelog 20260902-078/20260908-001) - drives the ProductEditor's "+Shop
-     * +HiRes" badge next to the picture preview, so the user can tell at a glance whether
-     * the base picture is all there is, or fakturama-tool's own upload flow also produced
-     * the shop-sized/original-resolution variants (see product_pictures.py's
-     * build_picture_variants()). NONE (both false) whenever no picture is available at all,
-     * including when the view doesn't exist yet.
-     */
-    public record PictureVariantFlags(boolean hasShopPicture, boolean hasHiresPicture) {
-        public static final PictureVariantFlags NONE = new PictureVariantFlags(false, false);
+    /** Availability of each image variant on any catalog picture for this item. */
+    public record PictureVariantFlags(boolean hasFaktPicture, boolean hasShopPicture, boolean hasHiresPicture) {
+        public static final PictureVariantFlags NONE = new PictureVariantFlags(false, false, false);
     }
 
     public PictureVariantFlags findPictureVariantFlagsForItemNumber(final String itemNumber) {
@@ -396,15 +435,21 @@ public class ProductsDAO extends AbstractDAO<Product> {
         try {
             @SuppressWarnings("unchecked")
             List<Object[]> results = getEntityManager()
-                    .createNativeQuery("SELECT HAS_SHOP_PICTURE, HAS_HIRES_PICTURE FROM VW_PRODUCT_PICTURE WHERE ITEMNUMBER = ?1")
+                    .createNativeQuery("SELECT MAX(PICTURE IS NOT NULL), MAX(PICTURE_SHOP IS NOT NULL), "
+                            + "MAX(COALESCE(PICTURE_HIRES, ORIGINAL_PICTURE) IS NOT NULL) "
+                            + "FROM FKT_PRODUCTPICTURES WHERE ITEMNUMBER = ?1")
                     .setParameter(1, itemNumber).getResultList();
             if (results.isEmpty()) {
                 return PictureVariantFlags.NONE;
             }
             final Object[] row = results.get(0);
-            return new PictureVariantFlags(Boolean.TRUE.equals(row[0]), Boolean.TRUE.equals(row[1]));
+            return new PictureVariantFlags(isPresent(row[0]), isPresent(row[1]), isPresent(row[2]));
         } catch (Exception e) {
             return PictureVariantFlags.NONE;
         }
+    }
+
+    private static boolean isPresent(final Object value) {
+        return value instanceof Number number && number.intValue() != 0;
     }
 }

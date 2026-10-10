@@ -93,7 +93,7 @@ public class FktGetEnvironmentInfoFunction extends AbstractFktBrowserFunction {
      * has historically been unreliable on machines with an unusual /etc/hosts or no reverse DNS
      * entry for their own address.
      */
-    private static String resolveHostName() {
+    static String resolveHostName() {
         String fromEnv = System.getenv("COMPUTERNAME");
         if (fromEnv == null || fromEnv.isBlank()) {
             fromEnv = System.getenv("HOSTNAME");
@@ -116,7 +116,7 @@ public class FktGetEnvironmentInfoFunction extends AbstractFktBrowserFunction {
      * attempted; other platforms (and every failure/empty-result case on those two) fall back
      * the same way.
      */
-    private static String resolveGreetingName() {
+    static String resolveGreetingName() {
         String osUserName = System.getProperty("user.name", "(unknown)");
         String os = Platform.getOS();
         String fullName;

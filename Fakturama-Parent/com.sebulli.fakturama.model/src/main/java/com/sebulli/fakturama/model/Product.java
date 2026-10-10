@@ -334,6 +334,11 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     @Column(name = "STOCKMANAGED")
     private Boolean stockManaged = Boolean.TRUE;
 
+    /** Null: active; 0: discontinued; positive: ID of the successor product. */
+    @Basic()
+    @Column(name = "REPLACEDBYPRODUCTID")
+    private Long replacedByProductId = null;
+
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
      *
@@ -584,6 +589,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
         retval.setSellingUnit(this.getSellingUnit());
         retval.setVat(this.getVat());
         retval.setWebshopId(this.getWebshopId());
+        retval.setReplacedByProductId(this.getReplacedByProductId());
         retval.setWeight(this.getWeight());
         retval.setGtin(this.getGtin());
         retval.setCostPrice(this.getCostPrice());
@@ -1178,6 +1184,15 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     public void setWebshopId(final Long newWebshopId) {
         firePropertyChange("webshopId", this.webshopId, newWebshopId);
         webshopId = newWebshopId;
+    }
+
+    public Long getReplacedByProductId() {
+        return replacedByProductId;
+    }
+
+    public void setReplacedByProductId(final Long newReplacedByProductId) {
+        firePropertyChange("replacedByProductId", this.replacedByProductId, newReplacedByProductId);
+        replacedByProductId = newReplacedByProductId;
     }
 
     /**

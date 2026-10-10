@@ -55,6 +55,7 @@ import com.sebulli.fakturama.views.datatable.products.ProductListTable;
  */
 public class SelectProductDialog extends AbstractSelectionDialog<Product> {
     protected static final String PRODUCTSELECTION_DIALOG = "org.fakturama.productselection.dialog";
+    public static final String SELECTION_ONLY = "fakturama.productselection.selectionOnly";
 
 	protected static final Point DEFAULT_DIALOG_SIZE = new Point(800, 550);
 
@@ -72,8 +73,18 @@ public class SelectProductDialog extends AbstractSelectionDialog<Product> {
     private IEclipseContext context;
     
     private ProductListTable productListTable;
+    private boolean selectionOnly;
+    private Product selectedProduct;
     
     private Control top;
+
+    public void setSelectionOnly(final boolean selectionOnly) {
+        this.selectionOnly = selectionOnly;
+    }
+
+    public Product getSelectedProduct() {
+        return selectedProduct;
+    }
 
 	/**
 	 * Constructor
@@ -109,6 +120,7 @@ public class SelectProductDialog extends AbstractSelectionDialog<Product> {
         part.setContext(context);
         part.setElementId(PRODUCTSELECTION_DIALOG);
         part.getTransientData().put(Constants.PROPERTY_PRODUCTS_CLICKHANDLER, Constants.COMMAND_SELECTITEM);
+        part.getTransientData().put(SELECTION_ONLY, selectionOnly);
         context.set(MPart.class, part);
         productListTable = ContextInjectionFactory.make(ProductListTable.class, context);
 
@@ -119,6 +131,14 @@ public class SelectProductDialog extends AbstractSelectionDialog<Product> {
             @Override
             public void keyPressed(KeyEvent e) {
                 if(e.keyCode == SWT.CR) {
+                    if (selectionOnly) {
+                        selectedProduct = productListTable.getSelectedObject();
+                        if (selectedProduct != null) {
+                            setReturnCode(OK);
+                            close();
+                        }
+                        return;
+                    }
                     Map<String, Object> eventParams = new HashMap<>();
                     eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
                     eventParams.put(ProductListTable.SELECTED_PRODUCT_ID, Arrays.asList(productListTable.getSelectedObject().getId()));
@@ -141,6 +161,15 @@ public class SelectProductDialog extends AbstractSelectionDialog<Product> {
      */
     @Override
     protected void okPressed() {
+        if (selectionOnly) {
+            final Product[] selected = productListTable.getSelectedObjects(true);
+            if (selected.length == 0) {
+                return;
+            }
+            selectedProduct = selected[0];
+            super.okPressed();
+            return;
+        }
         if (productListTable.getSelectedObjects(true) != null) {
             Map<String, Object> eventParams = new HashMap<>();
             eventParams.put(DocumentEditor.DOCUMENT_ID, context.get(DocumentEditor.DOCUMENT_ID));
@@ -164,6 +193,9 @@ public class SelectProductDialog extends AbstractSelectionDialog<Product> {
     protected void handleDialogDoubleClickClose(@UIEventTopic("DialogAction/CloseProduct") Event event) {
         if (event != null) {
             if (productListTable.getSelectedObject() != null) {
+                if (selectionOnly) {
+                    selectedProduct = productListTable.getSelectedObject();
+                }
                 // only for convenience, the result is already set by NatTable on double click and send to the 
                 // DocumentEditor.
                 setResult(productListTable.getSelectedObject());

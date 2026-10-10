@@ -16,6 +16,7 @@ import com.sebulli.fakturama.model.Address;
 import com.sebulli.fakturama.model.Address_;
 import com.sebulli.fakturama.model.Contact;
 import com.sebulli.fakturama.model.ContactCategory;
+import com.sebulli.fakturama.model.Contact_;
 import com.sebulli.fakturama.model.ContactType;
 import com.sebulli.fakturama.model.Creditor;
 import com.sebulli.fakturama.model.Creditor_;
@@ -279,15 +280,27 @@ public class CreditorsDAO extends AbstractDAO<Creditor> {
     private Predicate buildTreeListPredicate(final CriteriaBuilder cb, final Root<Creditor> debitorQuery, final String searchTerm) {
         Predicate predicate = cb.and(debitorQuery.get(Creditor_.customerNumber).isNotNull(), cb.not(debitorQuery.get(Creditor_.deleted)));
         if (StringUtils.isNotBlank(searchTerm)) {
-            final String likeTerm = "%" + searchTerm.toLowerCase(java.util.Locale.ROOT) + "%";
             final jakarta.persistence.criteria.Join<Creditor, Address> addressJoin = debitorQuery.join(Creditor_.addresses, JoinType.LEFT);
-            predicate = cb.and(predicate,
-                    cb.or(cb.like(cb.lower(debitorQuery.get(Creditor_.customerNumber)), likeTerm),
-                            cb.like(cb.lower(debitorQuery.get(Creditor_.firstName)), likeTerm),
-                            cb.like(cb.lower(debitorQuery.get(Creditor_.name)), likeTerm),
-                            cb.like(cb.lower(debitorQuery.get(Creditor_.company)), likeTerm),
-                            cb.like(cb.lower(addressJoin.get(Address_.zip)), likeTerm),
-                            cb.like(cb.lower(addressJoin.get(Address_.city)), likeTerm)));
+            final List<Predicate> tokenPredicates = new ArrayList<>();
+            for (final String token : StringUtils.split(searchTerm)) {
+                final String likeTerm = "%" + token.toLowerCase(java.util.Locale.ROOT) + "%";
+                tokenPredicates.add(cb.or(
+                        cb.like(cb.lower(debitorQuery.get(Creditor_.customerNumber)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Creditor_.firstName)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Creditor_.name)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Creditor_.company)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Contact_.alias)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Contact_.vatNumber)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Contact_.supplierNumber)), likeTerm),
+                        cb.like(cb.lower(debitorQuery.get(Contact_.website)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.street)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.zip)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.city)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.email)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.phone)), likeTerm),
+                        cb.like(cb.lower(addressJoin.get(Address_.mobile)), likeTerm)));
+            }
+            predicate = cb.and(predicate, cb.and(tokenPredicates.toArray(new Predicate[0])));
         }
         return predicate;
     }

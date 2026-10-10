@@ -25,18 +25,21 @@ import org.apache.commons.lang3.StringUtils;
  *
  */
 public enum ProductListDescriptor {
-    ITEMNO("itemNumber", "product.field.itemno", 0, 55),
-    NAME("name", "common.field.name", 1, 120),
-    DESCRIPTION("description", "common.field.description", 2, 200),
-    QUANTITY("quantity", "common.field.quantity", 3, 70),
-    PRICE("price1", "common.field.price", 4, 70),  // but sometimes it's the gross price!!!
-    VAT("vat", "common.field.vat", 5, 70),
+    ICON_ASSEMBLY("$assembly", null, 0, 5),
+    ICON_WEBSHOP("$webshop", null, 1, 5),
+    ICON_OUTDATED("$outdated", null, 2, 5),
+    ITEMNO("itemNumber", "product.field.itemno", 3, 55),
+    NAME("name", "common.field.name", 4, 120),
+    DESCRIPTION("description", "common.field.description", 5, 200),
+    QUANTITY("quantity", "common.field.quantity", 6, 70),
+    PRICE("price1", "common.field.price", 7, 70),  // but sometimes it's the gross price!!!
+    VAT("vat", "common.field.vat", 8, 70),
     // Not a real Product/JPA attribute - there's no direct entity relationship from Product to
     // ProductWebshop (only the other way round, see ProductWebshop#getProduct()), so this is
     // populated via a separate batched lookup (see ProductListTable's webshopCache) rather than a
     // JPA fetch-join like the other columns. Not sortable for the same reason - see
     // ProductListTable#createColumns(), which skips wiring a sort listener for this one.
-    WEBSHOP_PRICE("webshopPrice", "product.field.webshopprice", 6, 70)
+    WEBSHOP_PRICE("webshopPrice", "product.field.webshopprice", 9, 70)
     ;
 
     private String propertyName, messageKey;
@@ -97,6 +100,9 @@ public enum ProductListDescriptor {
 
     public static final String[] getProductPropertyNames() {
         return new String[]{
+        ProductListDescriptor.ICON_ASSEMBLY.getPropertyName(),
+        ProductListDescriptor.ICON_WEBSHOP.getPropertyName(),
+        ProductListDescriptor.ICON_OUTDATED.getPropertyName(),
         ProductListDescriptor.ITEMNO.getPropertyName(), 
         ProductListDescriptor.NAME.getPropertyName(), 
         ProductListDescriptor.DESCRIPTION.getPropertyName(), 

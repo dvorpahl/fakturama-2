@@ -1,6 +1,7 @@
 package com.sebulli.fakturama.views.datatable.common;
 
 import java.util.function.IntFunction;
+import java.util.function.IntPredicate;
 
 import org.eclipse.nebula.widgets.nattable.NatTable;
 import org.eclipse.nebula.widgets.nattable.layer.DataLayer;
@@ -8,6 +9,7 @@ import org.eclipse.nebula.widgets.nattable.util.GUIHelper;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -61,16 +63,34 @@ public final class ModernTableStyle {
      * platforms only apply a custom {@code MeasureItem} height when all three are hooked together.
      */
     public static void applyFixedRowHeight(final Table table, final float lineMultiple) {
+        applyFixedRowHeight(table, lineMultiple, column -> false);
+    }
+
+    /** Draw image-only columns ourselves so GTK paints them on the first virtual-table pass. */
+    public static void applyFixedRowHeight(final Table table, final float lineMultiple, final IntPredicate imageColumn) {
         final GC gc = new GC(table);
         final int lineHeight = gc.getFontMetrics().getHeight();
         gc.dispose();
         final int rowHeight = Math.round(lineHeight * lineMultiple);
         table.addListener(SWT.MeasureItem, event -> event.height = rowHeight);
         table.addListener(SWT.EraseItem, event -> {
-            // no-op: keep default background painting, only here so MeasureItem's height sticks
+            if (imageColumn.test(event.index)) {
+                // Keep GTK's row/selection background, but suppress its unreliable image painter.
+                event.detail &= ~SWT.FOREGROUND;
+            }
         });
         table.addListener(SWT.PaintItem, event -> {
-            // no-op: keep default text painting, only here so MeasureItem's height sticks
+            final boolean drawImage = imageColumn.test(event.index);
+            if (!drawImage && (event.detail & SWT.SELECTED) == 0) {
+                return;
+            }
+            final Image image = ((TableItem) event.item).getImage(event.index);
+            if (image != null) {
+                final Rectangle bounds = image.getBounds();
+                final Rectangle cell = ((TableItem) event.item).getBounds(event.index);
+                event.gc.drawImage(image, drawImage ? cell.x + (cell.width - bounds.width) / 2 : event.x,
+                        cell.y + (cell.height - bounds.height) / 2);
+            }
         });
     }
 

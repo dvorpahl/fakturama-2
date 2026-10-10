@@ -10,6 +10,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.e4.core.di.annotations.Creatable;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.model.Product;
@@ -76,7 +78,12 @@ public class ProductWebshopDAO extends AbstractDAO<ProductWebshop> {
         final CriteriaQuery<ProductWebshop> criteria = cb.createQuery(ProductWebshop.class);
         final Root<ProductWebshop> root = criteria.from(ProductWebshop.class);
         criteria.where(cb.and(root.get(ProductWebshop_.product).in(products), cb.isFalse(root.get(ProductWebshop_.deleted))));
-        final List<ProductWebshop> results = getEntityManager().createQuery(criteria).getResultList();
+        final TypedQuery<ProductWebshop> query = getEntityManager().createQuery(criteria);
+        // The product editor saves the webshop overlay through another editor action while this
+        // DAO may already have an older managed instance in EclipseLink's first-level cache.
+        // Force the list query to use the just-persisted values after a product save.
+        query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+        final List<ProductWebshop> results = query.getResultList();
         return results.stream().collect(Collectors.toMap((final ProductWebshop pw) -> pw.getProduct().getId(), Function.identity()));
     }
 
@@ -96,6 +103,45 @@ public class ProductWebshopDAO extends AbstractDAO<ProductWebshop> {
         final ProductWebshop template = new ProductWebshop();
         template.setProduct(product);
         return findOrCreate(template);
+    }
+
+    /** Enables or disables the webshop overlay for several products. */
+    public void setEnabled(final Collection<Product> products, final boolean enabled) throws FakturamaStoringException {
+        if (products == null) {
+            return;
+        }
+        for (final Product product : products) {
+            ProductWebshop webshop = findByProductIncludingDeleted(product);
+            if (enabled) {
+                if (webshop == null) {
+                    webshop = findOrCreateForProduct(product);
+                }
+                boolean changed = false;
+                if (Boolean.TRUE.equals(webshop.getDeleted())) {
+                    webshop.setDeleted(Boolean.FALSE);
+                    changed = true;
+                }
+                if (webshop.getShopPrice() == null && product.getPrice1() != null) {
+                    webshop.setShopPrice(product.getPrice1());
+                    changed = true;
+                }
+                if (changed) {
+                    update(webshop);
+                }
+            } else if (webshop != null && !Boolean.TRUE.equals(webshop.getDeleted())) {
+                webshop.setDeleted(Boolean.TRUE);
+                update(webshop);
+            }
+        }
+    }
+
+    private ProductWebshop findByProductIncludingDeleted(final Product product) {
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<ProductWebshop> criteria = cb.createQuery(ProductWebshop.class);
+        final Root<ProductWebshop> root = criteria.from(ProductWebshop.class);
+        criteria.where(cb.equal(root.get(ProductWebshop_.product), product));
+        final List<ProductWebshop> results = getEntityManager().createQuery(criteria).setMaxResults(1).getResultList();
+        return results.isEmpty() ? null : results.get(0);
     }
 
     @Override

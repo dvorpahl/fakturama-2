@@ -219,6 +219,7 @@
   <handlers xmi:id="_ZBS4gENJEeOd4ZSH8zQNZQ" elementId="com.sebulli.fakturama.handler.webShopImport" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.webshopimport.WebShopImportManager" command="_QWE00ENJEeOd4ZSH8zQNZQ"/>
   <handlers xmi:id="__VvQYEWlEeOt-cfrfJc3bg" elementId="com.sebulli.fakturama.handler.selectWorkspace" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.SelectWorkspaceHandler" command="_mzJEUEWlEeOt-cfrfJc3bg"/>
   <handlers xmi:id="_NdhkECY6EeSOztFzZzvbWw" elementId="com.sebulli.fakturama.new.product.handler" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.CallEditor" command="_MFWfwEy7EeOA3qmx22wNtw"/>
+  <handlers xmi:id="_productWebshopHandler" elementId="com.sebulli.fakturama.product.webshop.handler" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.SetProductWebshopHandler" command="_productWebshopCommand"/>
   <handlers xmi:id="_te9tsM2mEeSiG9D4SxDGVQ" elementId="com.sebulli.fakturama.new.contact.handler" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.CallEditor" command="_c8eN4Ey7EeOA3qmx22wNtw"/>
   <handlers xmi:id="_YEaEsMExEeSyj41D59qmtg" elementId="com.sebulli.fakturama.handler.openbrowser" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.OpenBrowserEditorHandler" command="_qPSyAEy_EeOA3qmx22wNtw"/>
   <handlers xmi:id="_7l2HYDtWEeOcltwCzP-ZbQ" elementId="com.sebulli.fakturama.rcp.openDetailEditor" contributionURI="bundleclass://com.sebulli.fakturama.rcp/com.sebulli.fakturama.handlers.CallEditor" command="_A9gvoDtXEeOcltwCzP-ZbQ"/>
@@ -417,6 +418,12 @@
                 <parameters xmi:id="_9EYWgFSxEeqZdIc7uJaYSw" elementId="com.sebulli.fakturama.rcp.parameter.101" name="org.fakturama.rcp.forcenew" value="true"/>
               </children>
               <children xsi:type="menu:HandledMenuItem" xmi:id="_eMdkQFP-EeW3ufIjNR4o7Q" elementId="com.sebulli.fakturama.productlist.popup.deleteentry" label="%main.menu.edit.delete.name" iconURI="icon://COMMAND_DELETE" tooltip="%main.menu.edit.delete.tooltip" command="_ayiaoCDaEeSlDJPSSzlhCQ"/>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_productWebshopEnable" elementId="com.sebulli.fakturama.productlist.popup.webshop.enable" label="Für Web-Shop freigeben" iconURI="icon://COMMAND_SHOP" command="_productWebshopCommand">
+                <parameters xmi:id="_productWebshopEnableParameter" elementId="com.sebulli.fakturama.product.webshop.enabled.true" name="com.sebulli.fakturama.product.webshop.enabled" value="true"/>
+              </children>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_productWebshopDisable" elementId="com.sebulli.fakturama.productlist.popup.webshop.disable" label="Web-Shop-Freigabe entfernen" iconURI="icon://COMMAND_SHOP" command="_productWebshopCommand">
+                <parameters xmi:id="_productWebshopDisableParameter" elementId="com.sebulli.fakturama.product.webshop.enabled.false" name="com.sebulli.fakturama.product.webshop.enabled" value="false"/>
+              </children>
             </menus>
             <toolbar xmi:id="_2ESGUFNAEeWjKIo2lUnWdg" elementId="com.sebulli.fakturama.rcp.toolbar.10">
               <children xsi:type="menu:HandledToolItem" xmi:id="_8pgG0FNAEeWjKIo2lUnWdg" elementId="com.sebulli.fakturama.listview.product.add" iconURI="icon://COMMAND_PLUS" tooltip="%command.new.product.tooltip" command="_A9gvoDtXEeOcltwCzP-ZbQ">
@@ -589,6 +596,9 @@
   </commands>
   <commands xmi:id="_MFWfwEy7EeOA3qmx22wNtw" elementId="command.new.product" commandName="%toolbar.new.product.name" description="%command.new.product.tooltip" category="_no8mgEstEeOZ37-tYt-QvQ">
     <parameters xmi:id="_6BSUcGMEEeWIcrS-VkgIGw" elementId="com.sebulli.fakturama.editors.editortype" name="Product Editor type"/>
+  </commands>
+  <commands xmi:id="_productWebshopCommand" elementId="com.sebulli.fakturama.command.productWebshop" commandName="Web-Shop-Status ändern">
+    <parameters xmi:id="_productWebshopEnabledParameter" elementId="com.sebulli.fakturama.product.webshop.enabled" name="com.sebulli.fakturama.product.webshop.enabled" typeId="java.lang.Boolean"/>
   </commands>
   <commands xmi:id="_c8eN4Ey7EeOA3qmx22wNtw" elementId="command.new.contact" commandName="%toolbar.new.contact.name" description="%command.new.contact.tooltip" category="_no8mgEstEeOZ37-tYt-QvQ">
     <parameters xmi:id="_6EuHkOhxEeSelNaW6sEw-A" elementId="com.sebulli.fakturama.editors.editortype" name="Contact Type"/>

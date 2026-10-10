@@ -17,6 +17,7 @@ import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.nebula.widgets.picture.ImageFilterExtension;
 import org.eclipse.nebula.widgets.picture.PictureControl;
@@ -64,6 +65,17 @@ public class FakturamaPictureControl extends PictureControl {
 
     public FakturamaPictureControl(final Composite parent) {
         super(parent);
+    }
+
+    @Override
+    protected ImageData getResizedImageData(final ImageData imageData) {
+        final Integer maxWidth = getMaxImageWidth();
+        final Integer maxHeight = getMaxImageHeight();
+        final double widthScale = maxWidth != null && maxWidth > 0 ? (double) maxWidth / imageData.width : 1.0;
+        final double heightScale = maxHeight != null && maxHeight > 0 ? (double) maxHeight / imageData.height : 1.0;
+        final double scale = Math.min(1.0, Math.min(widthScale, heightScale));
+        return scale < 1.0 ? imageData.scaledTo(Math.max(1, (int) Math.round(imageData.width * scale)),
+                Math.max(1, (int) Math.round(imageData.height * scale))) : imageData;
     }
 
     @PostConstruct

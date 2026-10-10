@@ -983,4 +983,12 @@ class of bug that causes, see validCheckSum there).
         </createView>
     </changeSet>
 
+    <changeSet author="dvorpahl" id="20261007-001" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="FKT_PRODUCT" columnName="REPLACEDBYPRODUCTID"/></not>
+        </preConditions>
+        <addColumn tableName="FKT_PRODUCT">
+            <column name="REPLACEDBYPRODUCTID" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

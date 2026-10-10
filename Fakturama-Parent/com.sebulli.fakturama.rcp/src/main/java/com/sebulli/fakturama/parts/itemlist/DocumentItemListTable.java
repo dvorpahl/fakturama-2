@@ -1163,7 +1163,7 @@ public class DocumentItemListTable extends AbstractViewDataTable<DocumentItemDTO
             final Style stockShortageYellow = new Style();
             stockShortageYellow.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.getColor(255, 248, 210));
             final Style stockShortageRed = new Style();
-            stockShortageRed.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.getColor(255, 225, 225));
+            stockShortageRed.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, GUIHelper.getColor(255, 247, 247));
 
             //            //add the style configuration for hover
             //            Style style = new Style();

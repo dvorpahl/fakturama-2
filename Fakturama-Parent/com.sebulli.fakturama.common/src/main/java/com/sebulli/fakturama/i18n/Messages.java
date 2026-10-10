@@ -427,6 +427,10 @@ public class Messages {
     public String editorProductPictureShopBadgeTooltip;
     public String editorProductPictureHiresBadge;
     public String editorProductPictureHiresBadgeTooltip;
+    public String editorProductPictureStatusTooltip;
+    public String editorProductPictureEditorButton;
+    public String editorProductPictureEditorMissingUrl;
+    public String editorProductPictureEditorOpenError;
     public String editorProductLabelWebshop;
     public String editorProductFieldInshopName;
     public String editorProductFieldShoppriceName;

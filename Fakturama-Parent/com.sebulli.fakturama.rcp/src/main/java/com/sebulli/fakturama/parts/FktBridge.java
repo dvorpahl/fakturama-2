@@ -71,6 +71,7 @@ public class FktBridge {
         new FktUpdatedObjectFunction(browser, ctx, log);
         new FktIdentifyFunction(browser, part, log);
         new FktGetAuthTokenFunction(browser, log);
+        new FktRequestAuthInfoFunction(browser, log);
 
         this.version = Platform.getProduct().getDefiningBundle().getVersion().toString();
         this.log = log;
@@ -155,6 +156,7 @@ public class FktBridge {
                 + "window.FKT.updatedObject = function(id, dtype) { return " + FktUpdatedObjectFunction.JS_NAME + "(id, dtype); };"
                 + "window.FKT.identify = function(userName, hostName) { return " + FktIdentifyFunction.JS_NAME + "(userName, hostName); };"
                 + "window.FKT.getAuthToken = function() { return " + FktGetAuthTokenFunction.JS_NAME + "(); };"
+                + "window.FKT.requestAuthInfo = function() { return " + FktRequestAuthInfoFunction.JS_NAME + "(); };"
                 + "window.FKT.ready = true;"
                 + "if (window.console && window.console.log) {"
                 + "console.log('[FKT-Bridge] window.FKT (re-)installed, version ' + window.FKT.version + ', readyState=' + document.readyState + ', url=' + location.href);"
@@ -185,7 +187,8 @@ public class FktBridge {
         try {
             String check = Stream.of(FktGetEnvironmentInfoFunction.JS_NAME, FktOpenProductFunction.JS_NAME,
                     FktOpenProductByIdFunction.JS_NAME, FktOpenDocumentFunction.JS_NAME, FktOpenDocumentByIdFunction.JS_NAME,
-                    FktUpdatedObjectFunction.JS_NAME, FktIdentifyFunction.JS_NAME, FktGetAuthTokenFunction.JS_NAME)
+                    FktUpdatedObjectFunction.JS_NAME, FktIdentifyFunction.JS_NAME, FktGetAuthTokenFunction.JS_NAME,
+                    FktRequestAuthInfoFunction.JS_NAME)
                     .map(name -> "typeof " + name + " === 'function'")
                     .collect(Collectors.joining(" && "));
             Object result = browser.evaluate("return " + check + ";");

@@ -30,29 +30,31 @@ import ca.odell.glazedlists.matchers.Matcher;
 public class CommonListItemMatcher<T extends ICategorizable<? extends AbstractCategory>> implements Matcher<T>{
     private final String categoryName;
     private final boolean isRootNode;
-    private final String rootNodeName;
     
     /**
      * Constructor
      * 
      * @param categoryName category name which is selected in tree viewer
      * @param treeObjectType the selected {@link TreeObjectType}
-     * @param rootNodeName the name of the root node (needed for building the complete category path of an item) 
+     * @param rootNodeName legacy argument; tree filters now contain only real category paths 
      */
     public CommonListItemMatcher(String categoryName, TreeObjectType treeObjectType, String rootNodeName) {
-        this.categoryName = (treeObjectType == TreeObjectType.LEAF_NODE) ? categoryName : StringUtils.appendIfMissing(categoryName, "/");
+        this.categoryName = StringUtils.strip(StringUtils.defaultString(categoryName), "/");
         this.isRootNode = treeObjectType == TreeObjectType.ALL_NODE || treeObjectType == TreeObjectType.ROOT_NODE;
-        this.rootNodeName = "/" + rootNodeName + "/";
     }
 
     @Override
     public boolean matches(T item) {
-        boolean found = false;
-        if(!isRootNode()) {
-            String fullCategoryName =  StringUtils.appendIfMissing(CommonConverter.getCategoryName(item.getCategories(), rootNodeName), "/");
-            found = fullCategoryName.startsWith(StringUtils.stripEnd(categoryName, "/"));
+        if (isRootNode()) {
+            return true;
         }
-        return isRootNode() || found;
+        if (item == null || item.getCategories() == null || categoryName.isEmpty()) {
+            return false;
+        }
+        // TopicTreeViewer omits the synthetic root and localized "all" nodes.
+        String fullCategoryName = CommonConverter.getCategoryName(item.getCategories(), "");
+        return fullCategoryName.equals(categoryName)
+                || fullCategoryName.startsWith(categoryName + "/");
     }
 
     public boolean isRootNode() {

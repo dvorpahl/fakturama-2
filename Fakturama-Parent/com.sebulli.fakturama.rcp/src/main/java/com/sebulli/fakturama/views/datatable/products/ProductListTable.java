@@ -12,9 +12,13 @@ package com.sebulli.fakturama.views.datatable.products;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -29,6 +33,7 @@ import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.e4.ui.di.UISynchronize;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -36,8 +41,10 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -48,16 +55,24 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.osgi.service.prefs.BackingStoreException;
 
 import com.sebulli.fakturama.dao.AbstractDAO;
 import com.sebulli.fakturama.dao.ProductCategoriesDAO;
 import com.sebulli.fakturama.dao.ProductsDAO;
+import com.sebulli.fakturama.dialogs.SelectProductDialog;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
 import com.sebulli.fakturama.handlers.CommandIds;
@@ -65,9 +80,12 @@ import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
 import com.sebulli.fakturama.model.Product;
 import com.sebulli.fakturama.model.ProductCategory;
+import com.sebulli.fakturama.model.ProductWebshop;
 import com.sebulli.fakturama.parts.DocumentEditor;
 import com.sebulli.fakturama.parts.Editor;
 import com.sebulli.fakturama.parts.ProductEditor;
+import com.sebulli.fakturama.resources.core.Icon;
+import com.sebulli.fakturama.resources.core.IconSize;
 import com.sebulli.fakturama.views.datatable.AbstractViewDataTable;
 import com.sebulli.fakturama.views.datatable.layer.EntityGridListLayer;
 import com.sebulli.fakturama.views.datatable.layer.PagedEntityEventList;
@@ -98,6 +116,10 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     private static final int PRODUCT_BATCH_SIZE = 30;
     private static final int SEARCH_DEBOUNCE_MS = 300;
+    private static final String ASSEMBLY_FILTER_PREF = "productList.filter.assembly";
+    private static final String WEBSHOP_FILTER_PREF = "productList.filter.webshop";
+    private static final String OUTDATED_FILTER_PREF = "productList.filter.outdated";
+    private static final String FILTER_EVENT = "ProductListTable/FiltersChanged";
 
     @Inject
     private UISynchronize sync;
@@ -107,6 +129,9 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     @Inject
     private ProductsDAO productsDAO;
+
+    @Inject
+    private EPartService partService;
 
     @Inject
     private ProductCategoriesDAO productCategoriesDAO;
@@ -132,7 +157,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
      * {@link com.sebulli.fakturama.dao.ProductWebshopDAO#findByProducts}'s javadoc for why a
      * fetch-join isn't possible here.
      */
-    private Map<Long, com.sebulli.fakturama.model.ProductWebshop> webshopCache = Map.of();
+    private final Map<Long, com.sebulli.fakturama.model.ProductWebshop> webshopCache = new HashMap<>();
     private Map<String, Double> activeReservedQuantities = Map.of();
 
     private String currentSearchTerm;
@@ -140,16 +165,21 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     private TreeObjectType currentCategoryType = TreeObjectType.ALL_NODE;
     private String currentSortProperty;
     private boolean currentSortDescending;
+    private ProductIconFilter assemblyFilter = ProductIconFilter.ALL;
+    private ProductIconFilter webshopFilter = ProductIconFilter.ALL;
+    private ProductIconFilter outdatedFilter = ProductIconFilter.ALL;
     private final Runnable searchDebounceRunnable = this::applyDebouncedSearchTerm;
 
     private TableViewer productsViewer;
     private Table table;
     private boolean dialogMode;
     private TableColumn sortedColumn;
+    private final Map<TableColumn, Image> filterHeaderImages = new HashMap<>();
 
     private MPart listTablePart;
     private Product selectedObject;
     private ViewDataTableMode viewDataTableMode;
+    private Set<String> assemblyItemNumbers = java.util.Collections.emptySet();
 
     @PostConstruct
     public Control createPartControl(final Composite parent, final MPart listTablePart) {
@@ -174,6 +204,10 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         return getSelectedObjects(false);
     }
 
+    public boolean hasSelection() {
+        return productsViewer != null && !productsViewer.getStructuredSelection().isEmpty();
+    }
+
     @Override
     public Product[] getSelectedObjects(final boolean selectIfSingleRow) {
         final IStructuredSelection sel = productsViewer.getStructuredSelection();
@@ -193,6 +227,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     @Override
     protected Control createListTable(final Composite searchAndTableComposite) {
         dialogMode = this.listTablePart.getTransientData().get(Constants.PROPERTY_PRODUCTS_CLICKHANDLER) != null;
+        assemblyItemNumbers = productsDAO.findAssemblyItemNumbers();
+        loadIconFilters();
 
         final Composite tableComposite = new Composite(searchAndTableComposite, SWT.NONE);
         tableColumnLayout = new TableColumnLayout();
@@ -203,10 +239,28 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         table = new Table(tableComposite, style);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
+        table.addDisposeListener(e -> filterHeaderImages.values().forEach(image -> {
+            if (!image.isDisposed()) {
+                image.dispose();
+            }
+        }));
         com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyHeaderStyle(table);
-        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyFixedRowHeight(table, 1.7f);
+        com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyFixedRowHeight(table, 1.7f,
+                column -> column >= 0 && column < table.getColumnCount()
+                        && table.getColumn(column).getData("productFilterDescriptor") != null);
         productsViewer = new TableViewer(table);
         productsViewer.setUseHashlookup(true);
+        ColumnViewerToolTipSupport.enableFor(productsViewer);
+        table.addListener(SWT.MenuDetect, event -> {
+            if (dialogMode) {
+                return;
+            }
+            final TableItem clicked = table.getItem(table.toControl(new Point(event.x, event.y)));
+            if (clicked != null && !table.isSelected(table.indexOf(clicked))) {
+                productsViewer.setSelection(new StructuredSelection(clicked.getData()), true);
+            }
+            partService.activate(listTablePart);
+        });
 
         createColumns();
 
@@ -236,6 +290,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                     }
                     productsViewer.replace(product, index);
                     com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, index);
+                    applyActiveSaleColor(table.getItem(index), product);
                 }
 
                 @Override
@@ -256,13 +311,16 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     /** DIALOG mode: bounded, plain (non-virtual) list - reloaded wholesale per debounced search term. */
     private void reloadDialogProducts(final String searchTerm) {
         currentSearchTerm = searchTerm;
-        final List<Product> results = productsDAO.findPage(searchTerm, currentCategoryName, currentCategoryType, null, false, 0, 200);
+        final List<Product> results = productsDAO.findPage(searchTerm, currentCategoryName, currentCategoryType, null, false, 0, 200,
+                assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers);
+        webshopCache.clear();
         refreshWebshopCache(results);
         activeReservedQuantities = productsDAO.findActiveReservedQuantities();
         productsViewer.setInput(results);
         for (int i = 0; i < table.getItemCount(); i++) {
             com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, i);
             applyAvailabilityColor(table.getItem(i), results.get(i));
+            applyActiveSaleColor(table.getItem(i), results.get(i));
         }
         if (results.size() == 1 && prefStore.getBoolean(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG)) {
             selectedObject = results.get(0);
@@ -279,7 +337,12 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         final String[] visibleProperties = productsDAO.getVisibleProperties();
         int descriptionColumnIndex = -1;
         int columnIndex = 0;
-        for (final String propertyName : visibleProperties) {
+        final List<String> properties = new ArrayList<>();
+        properties.add(ProductListDescriptor.ICON_ASSEMBLY.getPropertyName());
+        properties.add(ProductListDescriptor.ICON_WEBSHOP.getPropertyName());
+        properties.add(ProductListDescriptor.ICON_OUTDATED.getPropertyName());
+        properties.addAll(Arrays.asList(visibleProperties));
+        for (final String propertyName : properties) {
             final ProductListDescriptor descriptor = ProductListDescriptor.getDescriptorForProperty(propertyName).orElse(null);
             if (descriptor == null) {
                 continue;
@@ -288,20 +351,27 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                     || descriptor == ProductListDescriptor.VAT || descriptor == ProductListDescriptor.WEBSHOP_PRICE;
             final TableViewerColumn viewerColumn = new TableViewerColumn(productsViewer, rightAligned ? SWT.RIGHT : SWT.LEFT);
             final TableColumn column = viewerColumn.getColumn();
-            column.setText(msg.getMessageFromKey(descriptor.getMessageKey()));
+            final boolean iconColumn = descriptor == ProductListDescriptor.ICON_ASSEMBLY
+                    || descriptor == ProductListDescriptor.ICON_WEBSHOP || descriptor == ProductListDescriptor.ICON_OUTDATED;
+            column.setText(iconColumn ? "" : msg.getMessageFromKey(descriptor.getMessageKey()));
+            column.setResizable(!iconColumn);
             viewerColumn.setLabelProvider(createLabelProvider(descriptor));
-            // webshopPrice isn't a real Product/JPA attribute, so onColumnSelected() can't sort
-            // it via the generic root.get(orderByProperty) path used for every other column -
-            // ProductsDAO#findPage() special-cases this exact propertyName with a correlated
-            // subquery instead, grouping every webshop-flagged product above the non-webshop
-            // ones (see its javadoc for why).
-            column.addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(final SelectionEvent e) {
-                    onColumnSelected(descriptor, column);
-                }
-            });
-            tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), 30, true));
+            if (iconColumn) {
+                column.setData("productFilterDescriptor", descriptor);
+                updateFilterHeader(column, descriptor);
+                column.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> cycleIconFilter(column, descriptor)));
+            }
+            // webshopPrice isn't a Product/JPA attribute (ProductWebshop only points to Product),
+            // so it cannot safely participate in the paged CriteriaQuery sort.
+            if (!iconColumn && descriptor != ProductListDescriptor.WEBSHOP_PRICE) {
+                column.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(final SelectionEvent e) {
+                        onColumnSelected(descriptor, column);
+                    }
+                });
+            }
+            tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), iconColumn ? 36 : 30, !iconColumn));
             if (descriptor == ProductListDescriptor.DESCRIPTION) {
                 descriptionColumnIndex = columnIndex;
             }
@@ -334,6 +404,161 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         }
     }
 
+    private ProductIconFilter iconFilter(final ProductListDescriptor descriptor) {
+        return switch (descriptor) {
+            case ICON_ASSEMBLY -> assemblyFilter;
+            case ICON_WEBSHOP -> webshopFilter;
+            case ICON_OUTDATED -> outdatedFilter;
+            default -> ProductIconFilter.ALL;
+        };
+    }
+
+    private boolean loadIconFilters() {
+        final ProductIconFilter newAssembly = ProductIconFilter.fromPreference(eclipsePrefs.get(ASSEMBLY_FILTER_PREF, ProductIconFilter.ALL.name()));
+        final ProductIconFilter newWebshop = ProductIconFilter.fromPreference(eclipsePrefs.get(WEBSHOP_FILTER_PREF, ProductIconFilter.ALL.name()));
+        final ProductIconFilter newOutdated = ProductIconFilter.fromPreference(eclipsePrefs.get(OUTDATED_FILTER_PREF, ProductIconFilter.ALL.name()));
+        final boolean changed = assemblyFilter != newAssembly || webshopFilter != newWebshop || outdatedFilter != newOutdated;
+        assemblyFilter = newAssembly;
+        webshopFilter = newWebshop;
+        outdatedFilter = newOutdated;
+        return changed;
+    }
+
+    @Inject
+    @Optional
+    public void handleIconFilterChange(@UIEventTopic(FILTER_EVENT) final String ignored) {
+        if (table == null || table.isDisposed() || !loadIconFilters()) {
+            return;
+        }
+        for (final TableColumn column : table.getColumns()) {
+            if (column.getData("productFilterDescriptor") instanceof ProductListDescriptor descriptor) {
+                updateFilterHeader(column, descriptor);
+            }
+        }
+        if (dialogMode) {
+            reloadDialogProducts(currentSearchTerm);
+        } else {
+            reloadProductList();
+        }
+    }
+
+    private void cycleIconFilter(final TableColumn column, final ProductListDescriptor descriptor) {
+        final ProductIconFilter next = iconFilter(descriptor).next();
+        final String preferenceKey;
+        switch (descriptor) {
+            case ICON_ASSEMBLY -> {
+                assemblyFilter = next;
+                preferenceKey = ASSEMBLY_FILTER_PREF;
+            }
+            case ICON_WEBSHOP -> {
+                webshopFilter = next;
+                preferenceKey = WEBSHOP_FILTER_PREF;
+            }
+            case ICON_OUTDATED -> {
+                outdatedFilter = next;
+                preferenceKey = OUTDATED_FILTER_PREF;
+            }
+            default -> { return; }
+        }
+        eclipsePrefs.put(preferenceKey, next.name());
+        try {
+            eclipsePrefs.flush();
+        } catch (BackingStoreException e) {
+            log.error(e, "Could not save product list icon filter");
+        }
+        updateFilterHeader(column, descriptor);
+        if (dialogMode) {
+            reloadDialogProducts(currentSearchTerm);
+        } else {
+            reloadProductList();
+        }
+        evtBroker.post(FILTER_EVENT, next.name());
+    }
+
+    private void updateFilterHeader(final TableColumn column, final ProductListDescriptor descriptor) {
+        final ProductIconFilter filter = iconFilter(descriptor);
+        final Icon icon = switch (descriptor) {
+            case ICON_ASSEMBLY -> Icon.COMMAND_STUECKLISTE;
+            case ICON_WEBSHOP -> Icon.COMMAND_SHOP;
+            case ICON_OUTDATED -> Icon.COMMAND_PRODUCT_OUTDATED;
+            default -> null;
+        };
+        if (icon == null) {
+            return;
+        }
+        final Image headerImage = createFilterHeaderImage(icon.getImage(IconSize.DefaultIconSize), filter);
+        final Image oldImage = filterHeaderImages.put(column, headerImage);
+        column.setImage(headerImage);
+        if (oldImage != null) {
+            oldImage.dispose();
+        }
+        final String subject = switch (descriptor) {
+            case ICON_ASSEMBLY -> "Stücklisten";
+            case ICON_WEBSHOP -> "Webshop-Artikel";
+            case ICON_OUTDATED -> "ersetzte und Auslaufartikel";
+            default -> "Artikel";
+        };
+        final String state = switch (filter) {
+            case ALL -> "alle anzeigen";
+            case ONLY -> "nur " + subject + " anzeigen";
+            case EXCLUDE -> subject + " ausblenden";
+        };
+        column.setToolTipText(state + " · Klicken zum Wechseln");
+    }
+
+    private Image createFilterHeaderImage(final Image symbol, final ProductIconFilter filter) {
+        final PaletteData palette = new PaletteData(0xFF0000, 0x00FF00, 0x0000FF);
+        final ImageData result = new ImageData(28, 18, 24, palette);
+        result.alphaData = new byte[28 * 18];
+        final RGB tint = switch (filter) {
+            case ALL -> null;
+            case ONLY -> new RGB(231, 221, 247);
+            case EXCLUDE -> new RGB(250, 225, 225);
+        };
+        if (tint != null) {
+            final int tintPixel = palette.getPixel(tint);
+            for (int y = 0; y < result.height; y++) {
+                for (int x = 0; x < result.width; x++) {
+                    result.setPixel(x, y, tintPixel);
+                    result.setAlpha(x, y, 255);
+                }
+            }
+        }
+        if (symbol != null) {
+            final ImageData source = symbol.getImageData();
+            for (int y = 0; y < Math.min(16, source.height); y++) {
+                for (int x = 0; x < Math.min(16, source.width); x++) {
+                    final int sourcePixel = source.getPixel(x, y);
+                    final int alpha = source.transparentPixel == sourcePixel ? 0 : source.getAlpha(x, y);
+                    if (alpha == 0) {
+                        continue;
+                    }
+                    final RGB foreground = source.palette.getRGB(sourcePixel);
+                    final RGB color = tint == null || alpha == 255 ? foreground : new RGB(
+                            (foreground.red * alpha + tint.red * (255 - alpha)) / 255,
+                            (foreground.green * alpha + tint.green * (255 - alpha)) / 255,
+                            (foreground.blue * alpha + tint.blue * (255 - alpha)) / 255);
+                    result.setPixel(x + 1, y + 1, palette.getPixel(color));
+                    result.setAlpha(x + 1, y + 1, tint == null ? alpha : 255);
+                }
+            }
+        }
+        if (filter != ProductIconFilter.ALL) {
+            final int marker = palette.getPixel(filter == ProductIconFilter.ONLY ? new RGB(91, 55, 129) : new RGB(151, 58, 58));
+            for (int x = 20; x <= 25; x++) {
+                result.setPixel(x, 8, marker);
+                result.setAlpha(x, 8, 255);
+            }
+            if (filter == ProductIconFilter.ONLY) {
+                for (int y = 5; y <= 11; y++) {
+                    result.setPixel(22, y, marker);
+                    result.setAlpha(22, y, 255);
+                }
+            }
+        }
+        return new Image(table.getDisplay(), result);
+    }
+
     private double getAvailableQuantity(final Product product) {
         final double stock = product.getQuantity() != null ? product.getQuantity() : 0.0d;
         return stock - activeReservedQuantities.getOrDefault(product.getItemNumber(), 0.0d);
@@ -345,9 +570,41 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         }
         final double available = getAvailableQuantity(product);
         if (available <= 0.0d) {
-            item.setBackground(GUIHelper.getColor(255, 225, 225));
+            item.setBackground(GUIHelper.getColor(255, 247, 247));
         } else if (available < 1.0d) {
             item.setBackground(GUIHelper.getColor(255, 248, 210));
+        }
+    }
+
+    private void applyActiveSaleColor(final TableItem item, final Product product) {
+        if (dialogMode || item == null || item.isDisposed() || !isActiveSale(webshopCache.get(product.getId()))) {
+            return;
+        }
+        item.setBackground(GUIHelper.getColor(225, 245, 225));
+    }
+
+    private boolean isActiveSale(final ProductWebshop webshop) {
+        if (webshop == null || webshop.getShopSalePrice() == null) {
+            return false;
+        }
+        final LocalDate today = LocalDate.now();
+        final LocalDate from = toLocalDate(webshop.getShopSaleFrom());
+        final LocalDate to = toLocalDate(webshop.getShopSaleTo());
+        return (from == null || !today.isBefore(from)) && (to == null || !today.isAfter(to));
+    }
+
+    private LocalDate toLocalDate(final Date date) {
+        return date == null ? null : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private void refreshVisibleRowColors() {
+        if (table == null || table.isDisposed() || dialogMode) {
+            return;
+        }
+        for (final TableItem item : table.getItems()) {
+            if (item.getData() instanceof Product product) {
+                applyActiveSaleColor(item, product);
+            }
         }
     }
 
@@ -398,6 +655,33 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                         return "";
                 }
             }
+
+            @Override
+            public org.eclipse.swt.graphics.Image getImage(final Object element) {
+                final Product product = (Product) element;
+                final Icon icon = switch (descriptor) {
+                    case ICON_ASSEMBLY -> assemblyItemNumbers.contains(ProductsDAO.normalizeAssemblyItemNumber(product.getItemNumber()))
+                            ? Icon.COMMAND_STUECKLISTE : null;
+                    case ICON_WEBSHOP -> webshopCache.containsKey(product.getId()) ? Icon.COMMAND_SHOP : null;
+                    case ICON_OUTDATED -> product.getReplacedByProductId() != null ? Icon.COMMAND_PRODUCT_OUTDATED : null;
+                    default -> null;
+                };
+                return icon != null ? icon.getImage(IconSize.DefaultIconSize) : null;
+            }
+
+            @Override
+            public String getToolTipText(final Object element) {
+                final Product product = (Product) element;
+                return switch (descriptor) {
+                    case ICON_ASSEMBLY -> assemblyItemNumbers.contains(ProductsDAO.normalizeAssemblyItemNumber(product.getItemNumber()))
+                            ? "Stückliste" : null;
+                    case ICON_WEBSHOP -> webshopCache.containsKey(product.getId()) ? "Für Web-Shop aktiviert" : null;
+                    case ICON_OUTDATED -> product.getReplacedByProductId() == null ? null
+                            : product.getReplacedByProductId() == 0L ? "Auslaufartikel ohne Nachfolger"
+                                    : "Ersetzt durch Artikel-ID " + product.getReplacedByProductId();
+                    default -> null;
+                };
+            }
         };
     }
 
@@ -443,31 +727,35 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         eventParams.put(SELECTED_PRODUCT_ID, Arrays.asList(Long.valueOf(selectedObject.getId())));
         // selecting an entry and closing the dialog are two different actions.
         // the "CloseProduct" event is caught by SelectProductDialog#handleDialogDoubleClickClose.
-        evtBroker.post("DialogSelection/Product", eventParams);
+        if (!Boolean.TRUE.equals(listTablePart.getTransientData().get(SelectProductDialog.SELECTION_ONLY))) {
+            evtBroker.post("DialogSelection/Product", eventParams);
+        }
         evtBroker.post("DialogAction/CloseProduct", eventParams);
     }
 
     /** {@link PagedEntityEventList.PageLoader} for productListData - current search/category/sort criteria. */
     private List<Product> loadProductPage(final int firstResult, final int maxResults) {
         final List<Product> page = productsDAO.findPage(currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty,
-                currentSortDescending, firstResult, maxResults);
+                currentSortDescending, firstResult, maxResults, assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers);
         refreshWebshopCache(page);
         return page;
     }
 
     /** Refreshes {@link #webshopCache} for a newly loaded page/result set - see its javadoc. */
     private void refreshWebshopCache(final List<Product> products) {
-        webshopCache = productWebshopDAO.findByProducts(products);
+        webshopCache.putAll(productWebshopDAO.findByProducts(products));
     }
 
     /** Row count for the same criteria as {@link #loadProductPage(int, int)}. */
     private long countProducts() {
-        return productsDAO.countPage(currentSearchTerm, currentCategoryName, currentCategoryType);
+        return productsDAO.countPage(currentSearchTerm, currentCategoryName, currentCategoryType,
+                assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers);
     }
 
     /** Re-runs the current search/category/sort query from the start (a new DB round trip, not a client-side re-filter). */
     private void reloadProductList() {
         if (productListData != null) {
+            webshopCache.clear();
             productListData.reload(this::loadProductPage, this::countProducts);
             if (table != null && !table.isDisposed()) {
                 table.setItemCount((int) productListData.size());
@@ -526,7 +814,10 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     public void handleRefreshEvent(@UIEventTopic(ProductEditor.EDITOR_ID) final String message) {
         if (StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
             sync.syncExec(() -> top.setRedraw(false));
+            assemblyItemNumbers = productsDAO.findAssemblyItemNumbers();
             reloadProductList();
+            productsViewer.refresh();
+            refreshVisibleRowColors();
             if (categories != null) {
                 GlazedLists.replaceAll(categories, GlazedLists.eventList(productCategoriesDAO.findAll(true)), false);
             }
