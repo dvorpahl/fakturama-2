@@ -32,6 +32,7 @@ import org.eclipse.e4.ui.di.Focus;
 import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.e4.ui.di.UISynchronize;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.menu.MHandledMenuItem;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
 import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
@@ -75,6 +76,7 @@ import com.sebulli.fakturama.dao.ProductsDAO;
 import com.sebulli.fakturama.dialogs.SelectProductDialog;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.CallEditor;
+import com.sebulli.fakturama.handlers.OpenProductInWebtoolHandler;
 import com.sebulli.fakturama.handlers.CommandIds;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.misc.DataUtils;
@@ -116,6 +118,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     private static final int PRODUCT_BATCH_SIZE = 30;
     private static final int SEARCH_DEBOUNCE_MS = 300;
+    private static final long ASSEMBLY_RETRY_MS = 10_000;
     private static final String ASSEMBLY_FILTER_PREF = "productList.filter.assembly";
     private static final String WEBSHOP_FILTER_PREF = "productList.filter.webshop";
     private static final String OUTDATED_FILTER_PREF = "productList.filter.outdated";
@@ -180,6 +183,9 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     private Product selectedObject;
     private ViewDataTableMode viewDataTableMode;
     private Set<String> assemblyItemNumbers = java.util.Collections.emptySet();
+    private boolean assemblyLookupAvailable = true;
+    private String assemblyLookupError;
+    private long nextAssemblyLookupAttempt;
 
     @PostConstruct
     public Control createPartControl(final Composite parent, final MPart listTablePart) {
@@ -208,6 +214,52 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         return productsViewer != null && !productsViewer.getStructuredSelection().isEmpty();
     }
 
+    public Product getSingleSelectedProductForWebtool() {
+        if (!assemblyLookupAvailable || productsViewer == null || productsViewer.getStructuredSelection().size() != 1) {
+            return null;
+        }
+        final Object selected = productsViewer.getStructuredSelection().getFirstElement();
+        return selected instanceof Product product && product.getId() > 0 ? product : null;
+    }
+
+    public boolean isAssembly(final Product product) {
+        return assemblyItemNumbers.contains(ProductsDAO.normalizeAssemblyItemNumber(product.getItemNumber()));
+    }
+
+    private void updateWebtoolMenuLabel() {
+        final Product product = getSingleSelectedProductForWebtool();
+        listTablePart.getMenus().stream()
+                .flatMap(menu -> menu.getChildren().stream())
+                .filter(MHandledMenuItem.class::isInstance)
+                .map(MHandledMenuItem.class::cast)
+                .filter(item -> OpenProductInWebtoolHandler.ITEM_ID.equals(item.getElementId()))
+                .findFirst()
+                .ifPresent(item -> item.setLabel(product == null ? "Im Webtool bearbeiten…"
+                        : isAssembly(product) ? "Im Webtool Stückliste bearbeiten…"
+                        : "Im Webtool Produkt bearbeiten…"));
+    }
+
+    private void refreshAssemblyItemNumbers() {
+        final ProductsDAO.AssemblyLookupResult result = productsDAO.findAssemblyItemNumbersWithStatus();
+        assemblyItemNumbers = result.itemNumbers();
+        assemblyLookupAvailable = result.available();
+        assemblyLookupError = result.errorMessage();
+        nextAssemblyLookupAttempt = System.currentTimeMillis() + ASSEMBLY_RETRY_MS;
+        if (table != null && !table.isDisposed()) {
+            for (final TableColumn column : table.getColumns()) {
+                if (column.getData("productFilterDescriptor") == ProductListDescriptor.ICON_ASSEMBLY) {
+                    updateFilterHeader(column, ProductListDescriptor.ICON_ASSEMBLY);
+                }
+            }
+        }
+    }
+
+    private void retryAssemblyLookupIfNeeded() {
+        if (!assemblyLookupAvailable && System.currentTimeMillis() >= nextAssemblyLookupAttempt) {
+            refreshAssemblyItemNumbers();
+        }
+    }
+
     @Override
     public Product[] getSelectedObjects(final boolean selectIfSingleRow) {
         final IStructuredSelection sel = productsViewer.getStructuredSelection();
@@ -227,7 +279,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     @Override
     protected Control createListTable(final Composite searchAndTableComposite) {
         dialogMode = this.listTablePart.getTransientData().get(Constants.PROPERTY_PRODUCTS_CLICKHANDLER) != null;
-        assemblyItemNumbers = productsDAO.findAssemblyItemNumbers();
+        refreshAssemblyItemNumbers();
         loadIconFilters();
 
         final Composite tableComposite = new Composite(searchAndTableComposite, SWT.NONE);
@@ -260,6 +312,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 productsViewer.setSelection(new StructuredSelection(clicked.getData()), true);
             }
             partService.activate(listTablePart);
+            updateWebtoolMenuLabel();
         });
 
         createColumns();
@@ -310,6 +363,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
 
     /** DIALOG mode: bounded, plain (non-virtual) list - reloaded wholesale per debounced search term. */
     private void reloadDialogProducts(final String searchTerm) {
+        retryAssemblyLookupIfNeeded();
         currentSearchTerm = searchTerm;
         final List<Product> results = productsDAO.findPage(searchTerm, currentCategoryName, currentCategoryType, null, false, 0, 200,
                 assemblyFilter, webshopFilter, outdatedFilter, assemblyItemNumbers);
@@ -486,7 +540,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         if (icon == null) {
             return;
         }
-        final Image headerImage = createFilterHeaderImage(icon.getImage(IconSize.DefaultIconSize), filter);
+        final boolean assemblyUnavailable = descriptor == ProductListDescriptor.ICON_ASSEMBLY && !assemblyLookupAvailable;
+        final Image headerImage = createFilterHeaderImage(icon.getImage(IconSize.DefaultIconSize), filter, assemblyUnavailable);
         final Image oldImage = filterHeaderImages.put(column, headerImage);
         column.setImage(headerImage);
         if (oldImage != null) {
@@ -503,15 +558,18 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
             case ONLY -> "nur " + subject + " anzeigen";
             case EXCLUDE -> subject + " ausblenden";
         };
-        column.setToolTipText(state + " · Klicken zum Wechseln");
+        column.setToolTipText(assemblyUnavailable
+                ? "Stücklistenstatus nicht verfügbar (PART_LI): " + assemblyLookupError + " · Erneuter Versuch beim nächsten Aufruf"
+                : state + (descriptor == ProductListDescriptor.ICON_ASSEMBLY
+                        ? " · " + assemblyItemNumbers.size() + " Stücklistenkennungen geladen" : "") + " · Klicken zum Wechseln");
     }
 
-    private Image createFilterHeaderImage(final Image symbol, final ProductIconFilter filter) {
+    private Image createFilterHeaderImage(final Image symbol, final ProductIconFilter filter, final boolean warning) {
         final PaletteData palette = new PaletteData(0xFF0000, 0x00FF00, 0x0000FF);
         final ImageData result = new ImageData(28, 18, 24, palette);
         result.alphaData = new byte[28 * 18];
         final RGB tint = switch (filter) {
-            case ALL -> null;
+            case ALL -> warning ? new RGB(255, 244, 215) : null;
             case ONLY -> new RGB(231, 221, 247);
             case EXCLUDE -> new RGB(250, 225, 225);
         };
@@ -543,17 +601,24 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 }
             }
         }
-        if (filter != ProductIconFilter.ALL) {
-            final int marker = palette.getPixel(filter == ProductIconFilter.ONLY ? new RGB(91, 55, 129) : new RGB(151, 58, 58));
-            for (int x = 20; x <= 25; x++) {
-                result.setPixel(x, 8, marker);
-                result.setAlpha(x, 8, 255);
+        if (filter != ProductIconFilter.ALL || warning) {
+            final int marker = palette.getPixel(warning ? new RGB(134, 84, 19)
+                    : filter == ProductIconFilter.ONLY ? new RGB(91, 55, 129) : new RGB(151, 58, 58));
+            if (!warning) {
+                for (int x = 20; x <= 25; x++) {
+                    result.setPixel(x, 8, marker);
+                    result.setAlpha(x, 8, 255);
+                }
             }
-            if (filter == ProductIconFilter.ONLY) {
+            if (warning || filter == ProductIconFilter.ONLY) {
                 for (int y = 5; y <= 11; y++) {
                     result.setPixel(22, y, marker);
                     result.setAlpha(22, y, 255);
                 }
+            }
+            if (warning) {
+                result.setPixel(22, 13, marker);
+                result.setAlpha(22, 13, 255);
             }
         }
         return new Image(table.getDisplay(), result);
@@ -755,6 +820,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     /** Re-runs the current search/category/sort query from the start (a new DB round trip, not a client-side re-filter). */
     private void reloadProductList() {
         if (productListData != null) {
+            retryAssemblyLookupIfNeeded();
             webshopCache.clear();
             productListData.reload(this::loadProductPage, this::countProducts);
             if (table != null && !table.isDisposed()) {
@@ -814,7 +880,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     public void handleRefreshEvent(@UIEventTopic(ProductEditor.EDITOR_ID) final String message) {
         if (StringUtils.equals(message, Editor.UPDATE_EVENT) && !top.isDisposed()) {
             sync.syncExec(() -> top.setRedraw(false));
-            assemblyItemNumbers = productsDAO.findAssemblyItemNumbers();
+            refreshAssemblyItemNumbers();
             reloadProductList();
             productsViewer.refresh();
             refreshVisibleRowColors();
@@ -901,6 +967,13 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     @Focus
     public void focus() {
         if (natTable != null) {
+            if (!assemblyLookupAvailable && System.currentTimeMillis() >= nextAssemblyLookupAttempt) {
+                if (dialogMode) {
+                    reloadDialogProducts(currentSearchTerm);
+                } else {
+                    reloadProductList();
+                }
+            }
             natTable.setFocus();
         }
     }

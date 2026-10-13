@@ -85,6 +85,7 @@ import com.sebulli.fakturama.dao.VatsDAO;
 import com.sebulli.fakturama.dbservice.IDbUpdateService;
 import com.sebulli.fakturama.exception.FakturamaStoringException;
 import com.sebulli.fakturama.handlers.SaveHandler;
+import com.sebulli.fakturama.handlers.OpenProductInWebtoolHandler;
 import com.sebulli.fakturama.handlers.SetProductWebshopHandler;
 import com.sebulli.fakturama.parts.BrowserEditor;
 import com.sebulli.fakturama.i18n.Messages;
@@ -748,11 +749,61 @@ public class LifecycleManager {
         }
     }
 
+    private void ensureProductWebtoolMenu(final MApplication app, final EModelService modelService) {
+        MCommand command = app.getCommand(OpenProductInWebtoolHandler.COMMAND_ID);
+        if (command == null) {
+            command = MCommandsFactory.INSTANCE.createCommand();
+            command.setElementId(OpenProductInWebtoolHandler.COMMAND_ID);
+            command.setCommandName("Produkt im Webtool bearbeiten");
+            app.getCommands().add(command);
+        }
+        MHandler handler = app.getHandlers().stream()
+                .filter(candidate -> OpenProductInWebtoolHandler.HANDLER_ID.equals(candidate.getElementId()))
+                .findFirst().orElse(null);
+        if (handler == null) {
+            handler = MCommandsFactory.INSTANCE.createHandler();
+            handler.setElementId(OpenProductInWebtoolHandler.HANDLER_ID);
+            app.getHandlers().add(handler);
+        }
+        handler.setCommand(command);
+        handler.setContributionURI("bundleclass://com.sebulli.fakturama.rcp/"
+                + OpenProductInWebtoolHandler.class.getName());
+
+        final Object foundPart = modelService.find(ProductListTable.ID, app);
+        if (!(foundPart instanceof MPart productPart)) {
+            return;
+        }
+        MMenu popup = productPart.getMenus().stream()
+                .filter(menu -> SetProductWebshopHandler.POPUP_ID.equals(menu.getElementId()))
+                .findFirst().orElse(null);
+        if (popup == null) {
+            popup = MMenuFactory.INSTANCE.createPopupMenu();
+            popup.setElementId(SetProductWebshopHandler.POPUP_ID);
+            productPart.getMenus().add(popup);
+        }
+        final MHandledMenuItem existing = popup.getChildren().stream()
+                .filter(child -> OpenProductInWebtoolHandler.ITEM_ID.equals(child.getElementId()))
+                .filter(MHandledMenuItem.class::isInstance)
+                .map(MHandledMenuItem.class::cast)
+                .findFirst().orElse(null);
+        final MHandledMenuItem item;
+        if (existing == null) {
+            item = MMenuFactory.INSTANCE.createHandledMenuItem();
+            item.setElementId(OpenProductInWebtoolHandler.ITEM_ID);
+            popup.getChildren().add(item);
+        } else {
+            item = existing;
+        }
+        item.setLabel("Im Webtool bearbeiten…");
+        item.setCommand(command);
+    }
+
     @ProcessAdditions
     void processAdditions(final IEventBroker eventBroker, final MApplication app, final EModelService modelService, final IApplicationContext appContext,
             @Named(E4Workbench.INSTANCE_LOCATION) final Location instanceLocation, final ISplashService splashService) {
 
         ensureProductWebshopMenu(app, modelService);
+        ensureProductWebtoolMenu(app, modelService);
 
         // TODO put the Login Dialog in here
         if (eclipsePrefs.getBoolean("isreinit", false)) {

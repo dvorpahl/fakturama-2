@@ -49,7 +49,9 @@ public class ProductsDAO extends AbstractDAO<Product> {
      * an optional companion table used by the web application, so its absence
      * must not make ordinary Fakturama installations fail.
      */
-    public Set<String> findAssemblyItemNumbers() {
+    public record AssemblyLookupResult(Set<String> itemNumbers, boolean available, String errorMessage) { }
+
+    public AssemblyLookupResult findAssemblyItemNumbersWithStatus() {
         final Set<String> result = new HashSet<>();
         try {
             for (final Object value : getEntityManager().createNativeQuery("SELECT DISTINCT ZSB FROM PART_LI").getResultList()) {
@@ -59,10 +61,16 @@ public class ProductsDAO extends AbstractDAO<Product> {
                     result.add(normalizeAssemblyItemNumber(String.valueOf(value)));
                 }
             }
+            return new AssemblyLookupResult(Set.copyOf(result), true, null);
         } catch (final RuntimeException ex) {
-            getLog().warn("Stücklistenkennzeichnung nicht verfügbar (PART_LI): {}", ex.getMessage());
+            final String error = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+            getLog().warn("Stücklistenkennzeichnung nicht verfügbar (PART_LI): {}", error);
+            return new AssemblyLookupResult(Set.of(), false, error);
         }
-        return result;
+    }
+
+    public Set<String> findAssemblyItemNumbers() {
+        return findAssemblyItemNumbersWithStatus().itemNumbers();
     }
 
     public static String normalizeAssemblyItemNumber(final String itemNumber) {

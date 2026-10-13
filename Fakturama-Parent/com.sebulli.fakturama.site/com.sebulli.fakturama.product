@@ -21,7 +21,7 @@
            so it silently falls back to centering on the primary monitor. -->
       <programArgs>-showsplash
       </programArgs>
-      <vmArgs>-DREFRESH_BUNDLES=false -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off
+      <vmArgs>-DREFRESH_BUNDLES=false -Dosgi.checkConfiguration=true -Dorg.eclipse.e4.ui.css.dynamic=true --add-modules=ALL-SYSTEM -DLiquibaseHubMode=off
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Xdock:name=Fakturama -Xdock:icon=../Resources/app.icns
       </vmArgsMac>
