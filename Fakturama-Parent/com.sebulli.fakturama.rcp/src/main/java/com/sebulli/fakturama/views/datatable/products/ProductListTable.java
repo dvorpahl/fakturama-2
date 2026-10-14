@@ -12,9 +12,6 @@ package com.sebulli.fakturama.views.datatable.products;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -343,7 +340,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                     }
                     productsViewer.replace(product, index);
                     com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, index);
-                    applyActiveSaleColor(table.getItem(index), product);
                 }
 
                 @Override
@@ -374,7 +370,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         for (int i = 0; i < table.getItemCount(); i++) {
             com.sebulli.fakturama.views.datatable.common.ModernTableStyle.applyZebraStripe(table, i);
             applyAvailabilityColor(table.getItem(i), results.get(i));
-            applyActiveSaleColor(table.getItem(i), results.get(i));
         }
         if (results.size() == 1 && prefStore.getBoolean(Constants.PREFERENCES_DOCUMENT_IMMEDIATELY_OVERTAKE_ITEMNUMBER_FROM_PRODUCTS_DIALOG)) {
             selectedObject = results.get(0);
@@ -641,38 +636,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         }
     }
 
-    private void applyActiveSaleColor(final TableItem item, final Product product) {
-        if (dialogMode || item == null || item.isDisposed() || !isActiveSale(webshopCache.get(product.getId()))) {
-            return;
-        }
-        item.setBackground(GUIHelper.getColor(225, 245, 225));
-    }
-
-    private boolean isActiveSale(final ProductWebshop webshop) {
-        if (webshop == null || webshop.getShopSalePrice() == null) {
-            return false;
-        }
-        final LocalDate today = LocalDate.now();
-        final LocalDate from = toLocalDate(webshop.getShopSaleFrom());
-        final LocalDate to = toLocalDate(webshop.getShopSaleTo());
-        return (from == null || !today.isBefore(from)) && (to == null || !today.isAfter(to));
-    }
-
-    private LocalDate toLocalDate(final Date date) {
-        return date == null ? null : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    }
-
-    private void refreshVisibleRowColors() {
-        if (table == null || table.isDisposed() || dialogMode) {
-            return;
-        }
-        for (final TableItem item : table.getItems()) {
-            if (item.getData() instanceof Product product) {
-                applyActiveSaleColor(item, product);
-            }
-        }
-    }
-
     private void onColumnSelected(final ProductListDescriptor descriptor, final TableColumn column) {
         if (dialogMode) {
             return;
@@ -883,7 +846,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
             refreshAssemblyItemNumbers();
             reloadProductList();
             productsViewer.refresh();
-            refreshVisibleRowColors();
             if (categories != null) {
                 GlazedLists.replaceAll(categories, GlazedLists.eventList(productCategoriesDAO.findAll(true)), false);
             }

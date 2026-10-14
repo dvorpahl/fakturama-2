@@ -2068,12 +2068,8 @@
 			<para>Je nach Einstellung wird der Netto- oder Bruttopreis angezeigt. Beim Editieren des Nettopreises wird automatisch der Bruttopreis angepaßt und umgekehrt, jeweils abhängig vom Mehrwertsteuersatz. Die Verwendung von (bis zu fünf) Staffelpreisen ist ebenfalls möglich (kann über die Einstellungen gesteuert werden).</para>
 		</section>
 		<section>
-			<subtitle>Zuschlag</subtitle>
-			<para>Zuschlag, der für den Produktpreis gilt.</para>
-		</section>
-		<section>
 			<subtitle>Einkaufspreis</subtitle>
-			<para>Der Einkaufspreis des Produktes. Dazu kann auch noch ein Zuschlag (in % oder absolut) erfaßt werden (wird derzeit aber noch nicht ausgewertet).</para>
+			<para>Der Einkaufspreis des Produktes.</para>
 		</section>
 		<section>
 			<subtitle>MwSt.</subtitle>

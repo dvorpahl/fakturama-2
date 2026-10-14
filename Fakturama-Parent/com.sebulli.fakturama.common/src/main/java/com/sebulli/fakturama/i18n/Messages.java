@@ -412,7 +412,6 @@ public class Messages {
     public String editorProductFieldGrosspriceName;
     public String editorProductFieldGtin;
     public String editorProductFieldPriceName;
-    public String editorProductFieldAllowance;
     public String editorProductFieldCostprice;
     public String editorProductFieldQuantityunitName;
     public String editorProductFieldQuantityunitInvalid;
@@ -440,6 +439,13 @@ public class Messages {
     public String editorProductFieldShopstockquantityName;
     public String editorProductFieldShopstockstatusName;
     public String editorProductFieldShopbackordersName;
+    public String editorProductFieldShopoptionUnset;
+    public String editorProductFieldShopstatusInstock;
+    public String editorProductFieldShopstatusOutofstock;
+    public String editorProductFieldShopstatusOnbackorder;
+    public String editorProductFieldShopbackordersNo;
+    public String editorProductFieldShopbackordersNotify;
+    public String editorProductFieldShopbackordersYes;
     public String editorProductFieldShoplowstockamountName;
     public String editorProductFieldDeliverytimeName;
     public String editorProductLabelAdditionaldata;

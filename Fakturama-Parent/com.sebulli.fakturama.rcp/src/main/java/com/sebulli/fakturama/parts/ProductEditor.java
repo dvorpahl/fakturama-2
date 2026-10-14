@@ -18,13 +18,19 @@ import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -38,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.UpdateValueStrategy;
+import org.eclipse.core.databinding.conversion.Converter;
 import org.eclipse.core.databinding.conversion.text.NumberToStringConverter;
 import org.eclipse.core.databinding.conversion.text.StringToNumberConverter;
 import org.eclipse.core.databinding.validation.ValidationStatus;
@@ -138,6 +145,8 @@ public class ProductEditor extends Editor<Product> {
 
     /** The number of prices. */
     private static final int MAX_NUMBER_OF_PRICES = 5;
+    private static final HttpClient SHOP_STATUS_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NORMAL).build();
 
     @Inject
     protected VatsDAO vatDao;
@@ -185,7 +194,7 @@ public class ProductEditor extends Editor<Product> {
     private FormattedText textQuantity;
     private Button checkboxStockManaged;
     private FormattedText costPrice;
-    private Text textQuantityUnit, allowance;
+    private Text textQuantityUnit;
     private CCombo comboCategory;
     private ProductCategory oldCat;
     private FakturamaPictureControl labelProductPicture;
@@ -201,9 +210,12 @@ public class ProductEditor extends Editor<Product> {
     // saving anything) apart from "had shop data, user just unchecked it" (soft-delete the row)
     private boolean productHadWebshopData;
     private Button checkboxInShop;
-    private FormattedText textShopPrice, textShopSalePrice;
+    private Button openShopProductButton;
+    private WooCommerceProductLink shopProductLink;
+    private boolean shopStatusCheckInFlight;
+    private long lastShopStatusCheck;
+    private FormattedText textShopPrice;
     private Text textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
-    private CDateTime dtShopSaleFrom, dtShopSaleTo;
     private Combo comboShopStockStatus, comboShopBackorders;
 
     // Widgets (and variables) for the scaled price.
@@ -244,6 +256,13 @@ public class ProductEditor extends Editor<Product> {
      */
     @Persist
     public Boolean doSave(final IProgressMonitor monitor) {
+
+        final String replacementError = replacementValidationError(textReplacedByProductId.getText());
+        if (replacementError != null) {
+            MessageDialog.openError(top.getShell(), "Nachfolgeartikel", replacementError);
+            textReplacedByProductId.setFocus();
+            return Boolean.FALSE;
+        }
 
         /*
          * the following parameters are not saved:
@@ -491,8 +510,50 @@ public class ProductEditor extends Editor<Product> {
 		if (labelProductPicture != null && !labelProductPicture.isDisposed()) {
 			setPicture();
 		}
+		if (openShopProductButton != null && !openShopProductButton.isDisposed()) {
+			verifyPublishedShopProduct(false);
+		}
 		super.setFocus();
 	}
+
+    private void verifyPublishedShopProduct(final boolean openWhenPublished) {
+        if (openShopProductButton == null || openShopProductButton.isDisposed() || shopProductLink == null
+                || shopStatusCheckInFlight) {
+            return;
+        }
+        if (!openWhenPublished && System.currentTimeMillis() - lastShopStatusCheck < 30_000) {
+            return;
+        }
+        shopStatusCheckInFlight = true;
+        openShopProductButton.setEnabled(false);
+        openShopProductButton.setToolTipText("Veröffentlichungsstatus im Shop wird geprüft…");
+        final HttpRequest request = HttpRequest.newBuilder(shopProductLink.publishedProductUri())
+                .timeout(Duration.ofSeconds(8)).GET().build();
+        final Display display = openShopProductButton.getDisplay();
+        SHOP_STATUS_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .whenComplete((response, error) -> {
+                    if (display.isDisposed()) {
+                        return;
+                    }
+                    display.asyncExec(() -> {
+                        if (openShopProductButton.isDisposed()) {
+                            return;
+                        }
+                        shopStatusCheckInFlight = false;
+                        lastShopStatusCheck = System.currentTimeMillis();
+                        final boolean published = error == null && response != null && response.statusCode() == 200
+                                && response.headers().firstValue("Content-Type").orElse("")
+                                        .toLowerCase(Locale.ROOT).contains("json");
+                        openShopProductButton.setEnabled(published);
+                        openShopProductButton.setToolTipText(published ? "Veröffentlichtes Produkt im Shop bearbeiten"
+                                : "Produkt ist nicht veröffentlicht oder der Shop-Status konnte nicht geprüft werden.");
+                        if (published && openWhenPublished && !Program.launch(shopProductLink.adminEditorUrl())) {
+                            MessageDialog.openError(openShopProductButton.getShell(), "Im Webshop bearbeiten",
+                                    "Der Browser konnte nicht geöffnet werden.");
+                        }
+                    });
+                });
+    }
 
 	/** Show the three image destinations used by the webtool's picture catalog. */
 	private void updatePictureVariantsBadge() {
@@ -538,12 +599,25 @@ public class ProductEditor extends Editor<Product> {
 			dialog.setDialogBoundsSettings(getDialogSettings("SelectProductDialog"),
 					Dialog.DIALOG_PERSISTSIZE | Dialog.DIALOG_PERSISTLOCATION);
 			if (dialog.open() == Dialog.OK && dialog.getSelectedProduct() != null) {
-				textReplacedByProductId.setText(Long.toString(dialog.getSelectedProduct().getId()));
+				textReplacedByProductId.setText(dialog.getSelectedProduct().getItemNumber());
 			}
 		} finally {
 			context.set(MPart.class, currentPart);
 		}
 	}
+
+    private String replacementValidationError(final String value) {
+        final String itemNumber = StringUtils.trimToEmpty(value);
+        if (itemNumber.isEmpty() || "0".equals(itemNumber)) {
+            return null;
+        }
+        final Product replacement = productsDAO.findByItemNumber(itemNumber);
+        if (replacement == null) {
+            return "Nachfolgeartikel mit dieser Artikelnummer nicht gefunden.";
+        }
+        return editorProduct.getId() > 0 && editorProduct.getId() == replacement.getId()
+                ? "Ein Artikel kann sich nicht selbst ersetzen." : null;
+    }
 
 	private void createAndSetDefaultImage() {
 		// Display an empty background if no picture is set or picture is not found.
@@ -706,13 +780,13 @@ public class ProductEditor extends Editor<Product> {
         GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(textQuantityUnit);
 
         Label labelReplacedBy = new Label(stammdatenGroup, SWT.NONE);
-        labelReplacedBy.setText("Ersetzt durch (ID)");
+        labelReplacedBy.setText("Ersetzt durch ArtNr (0=ohne Bezug)");
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelReplacedBy);
         Composite replacementInput = new Composite(stammdatenGroup, SWT.NONE);
         GridLayoutFactory.fillDefaults().numColumns(2).applyTo(replacementInput);
         GridDataFactory.fillDefaults().hint(120, SWT.DEFAULT).grab(true, false).applyTo(replacementInput);
         textReplacedByProductId = new Text(replacementInput, SWT.BORDER);
-        textReplacedByProductId.setToolTipText("Leer: aktiv; 0: Auslaufartikel ohne Nachfolger; positive ID: Nachfolgeartikel");
+        textReplacedByProductId.setToolTipText("Leer: aktiv; 0: Auslaufartikel ohne Nachfolger; sonst: Artikelnummer des Nachfolgers");
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textReplacedByProductId);
         Button selectReplacementButton = new Button(replacementInput, SWT.PUSH);
         selectReplacementButton.setText("…");
@@ -851,27 +925,10 @@ public class ProductEditor extends Editor<Product> {
         comboVat.setToolTipText(labelVat.getToolTipText());
         if (!useVat) {
             // filler: keep this row's cell count at 4 even when MwSt is hidden,
-            // so "Zuschlag" below doesn't slide into its place
+            // so the price table below doesn't slide into its place
             new Label(invisible, SWT.NONE);
             new Label(invisible, SWT.NONE);
         }
-
-        // Row: Zuschlag | Webshop-Normalpreis
-        Label labelAllowance = new Label(pricingGroup, SWT.NONE);
-        labelAllowance.setText(msg.editorProductFieldAllowance);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelAllowance);
-        allowance = new Text(pricingGroup, SWT.BORDER);
-        allowance.addKeyListener(new ReturnKeyAdapter(allowance));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(allowance);
-
-        Label labelShopPrice = new Label(pricingGroup, SWT.NONE);
-        labelShopPrice.setText(msg.editorProductFieldShoppriceName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
-        textShopPrice = new FormattedText(pricingGroup, SWT.BORDER);
-        MoneyFormatter shopPriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
-        textShopPrice.setFormatter(shopPriceFormatter);
-        textShopPrice.getControl().addKeyListener(new ReturnKeyAdapter(textShopPrice.getControl()));
-        GridDataFactory.swtDefaults().hint(120, SWT.DEFAULT).applyTo(textShopPrice.getControl());
 
         // Row: Staffelpreise - the existing scaled-price control (label plus a
         // per-tier "ab <qty> -> price" table), unchanged internally, just
@@ -1060,31 +1117,7 @@ public class ProductEditor extends Editor<Product> {
         textWeight.getControl().addKeyListener(new ReturnKeyAdapter(textWeight.getControl()));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textWeight.getControl());
 
-        // Row: Lieferzeit
-        Label labelDeliveryTime = new Label(stockShippingGroup, SWT.NONE);
-        labelDeliveryTime.setText(msg.editorProductFieldDeliverytimeName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDeliveryTime);
-        textDeliveryTime = new Text(stockShippingGroup, SWT.BORDER);
-        textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
-
-        // Row: Shop-Lagerbestand
-        Label labelShopStockQuantity = new Label(stockShippingGroup, SWT.NONE);
-        labelShopStockQuantity.setText(msg.editorProductFieldShopstockquantityName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockQuantity);
-        textShopStockQuantity = new Text(stockShippingGroup, SWT.BORDER);
-        textShopStockQuantity.addKeyListener(new ReturnKeyAdapter(textShopStockQuantity));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopStockQuantity);
-
-        // Row: Meldebestand (Shop)
-        Label labelShopLowStockAmount = new Label(stockShippingGroup, SWT.NONE);
-        labelShopLowStockAmount.setText(msg.editorProductFieldShoplowstockamountName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopLowStockAmount);
-        textShopLowStockAmount = new Text(stockShippingGroup, SWT.BORDER);
-        textShopLowStockAmount.addKeyListener(new ReturnKeyAdapter(textShopLowStockAmount));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopLowStockAmount);
-
-        // Group: Webshop (below Produktbild)
+        // Group: Webshop
         createWebshopGroup(detailColumnsSash);
 
         // ================= Zusatzdaten + Notiz, with their own lower splitter =================
@@ -1328,15 +1361,7 @@ public class ProductEditor extends Editor<Product> {
         }
     }
 
-    /**
-     * Creates the "Webshop" group: an "im Shop anbieten" checkbox plus the
-     * sale-window and status-override fields from FKT_PRODUCTWEBSHOP. The
-     * regular shop price ("Webshop-Normalpreis"), shop stock quantity and low
-     * stock threshold moved into "Preise & Steuer" resp. "Lager & Versand"
-     * instead (see caller) - they're still enabled/disabled together with
-     * this group's checkbox, just laid out elsewhere (see
-     * {@link #setWebshopFieldsEnabled(boolean)}).
-     */
+    /** Creates the controls backed by FKT_PRODUCTWEBSHOP. */
     private void createWebshopGroup(final Composite parent) {
         Group webshopGroup = new Group(parent, SWT.NONE);
         webshopGroup.setText("\u00A0\u00A0" + msg.editorProductLabelWebshop);
@@ -1363,61 +1388,75 @@ public class ProductEditor extends Editor<Product> {
         });
         GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxInShop);
 
-        Label labelShopSalePrice = new Label(webshopGroup, SWT.NONE);
-        labelShopSalePrice.setText(msg.editorProductFieldShopsalepriceName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSalePrice);
-        textShopSalePrice = new FormattedText(webshopGroup, SWT.BORDER);
-        MoneyFormatter shopSalePriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
-        textShopSalePrice.setFormatter(shopSalePriceFormatter);
-        textShopSalePrice.getControl().addKeyListener(new ReturnKeyAdapter(textShopSalePrice.getControl()));
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopSalePrice.getControl());
+        Label labelShopPrice = new Label(webshopGroup, SWT.NONE);
+        labelShopPrice.setText(msg.editorProductFieldShoppriceName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopPrice);
+        textShopPrice = new FormattedText(webshopGroup, SWT.BORDER);
+        MoneyFormatter shopPriceFormatter = ContextInjectionFactory.make(MoneyFormatter.class, context);
+        textShopPrice.setFormatter(shopPriceFormatter);
+        textShopPrice.getControl().addKeyListener(new ReturnKeyAdapter(textShopPrice.getControl()));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopPrice.getControl());
 
-        Label labelShopSaleFrom = new Label(webshopGroup, SWT.NONE);
-        labelShopSaleFrom.setText(msg.editorProductFieldShopsalefromName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleFrom);
-        dtShopSaleFrom = new CDateTime(webshopGroup, CDT.BORDER | CDT.DROP_DOWN);
-        dtShopSaleFrom.setFormat(CDT.DATE_MEDIUM);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(dtShopSaleFrom);
+        Label labelShopStockQuantity = new Label(webshopGroup, SWT.NONE);
+        labelShopStockQuantity.setText(msg.editorProductFieldShopstockquantityName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockQuantity);
+        textShopStockQuantity = new Text(webshopGroup, SWT.BORDER);
+        textShopStockQuantity.addKeyListener(new ReturnKeyAdapter(textShopStockQuantity));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopStockQuantity);
 
-        Label labelShopSaleTo = new Label(webshopGroup, SWT.NONE);
-        labelShopSaleTo.setText(msg.editorProductFieldShopsaletoName);
-        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopSaleTo);
-        dtShopSaleTo = new CDateTime(webshopGroup, CDT.BORDER | CDT.DROP_DOWN);
-        dtShopSaleTo.setFormat(CDT.DATE_MEDIUM);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(dtShopSaleTo);
+        Label labelShopLowStockAmount = new Label(webshopGroup, SWT.NONE);
+        labelShopLowStockAmount.setText(msg.editorProductFieldShoplowstockamountName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopLowStockAmount);
+        textShopLowStockAmount = new Text(webshopGroup, SWT.BORDER);
+        textShopLowStockAmount.addKeyListener(new ReturnKeyAdapter(textShopLowStockAmount));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textShopLowStockAmount);
 
         Label labelShopStockStatus = new Label(webshopGroup, SWT.NONE);
         labelShopStockStatus.setText(msg.editorProductFieldShopstockstatusName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopStockStatus);
         comboShopStockStatus = new Combo(webshopGroup, SWT.BORDER | SWT.READ_ONLY);
-        // WooCommerce's own fixed vocabulary for stock_status, kept untranslated since these are
-        // exactly the values sent/received over the REST API - a blank first entry means "not set".
-        comboShopStockStatus.setItems(new String[] { "", "instock", "outofstock", "onbackorder" });
         GridDataFactory.fillDefaults().grab(true, false).applyTo(comboShopStockStatus);
 
         Label labelShopBackorders = new Label(webshopGroup, SWT.NONE);
         labelShopBackorders.setText(msg.editorProductFieldShopbackordersName);
         GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelShopBackorders);
         comboShopBackorders = new Combo(webshopGroup, SWT.BORDER | SWT.READ_ONLY);
-        // WooCommerce's own fixed vocabulary for backorders - see comboShopStockStatus above.
-        comboShopBackorders.setItems(new String[] { "", "no", "notify", "yes" });
         GridDataFactory.fillDefaults().grab(true, false).applyTo(comboShopBackorders);
+
+        Label labelDeliveryTime = new Label(webshopGroup, SWT.NONE);
+        labelDeliveryTime.setText(msg.editorProductFieldDeliverytimeName);
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(labelDeliveryTime);
+        textDeliveryTime = new Text(webshopGroup, SWT.BORDER);
+        textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
+
+        openShopProductButton = new Button(webshopGroup, SWT.PUSH);
+        openShopProductButton.setText("Im Webshop bearbeiten…");
+        openShopProductButton.setEnabled(false);
+        GridDataFactory.swtDefaults().span(2, 1).align(SWT.END, SWT.CENTER).applyTo(openShopProductButton);
+        openShopProductButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> verifyPublishedShopProduct(true)));
+        final Long webshopId = editorProduct.getWebshopId();
+        if (webshopId != null && webshopId > 0) {
+            try {
+                shopProductLink = new WooCommerceProductLink(
+                        defaultValuePrefs.getString(Constants.PREFERENCES_WEBSHOP_URL), webshopId);
+                verifyPublishedShopProduct(false);
+            } catch (IllegalArgumentException e) {
+                openShopProductButton.setToolTipText("Webshop-Adresse ist nicht gültig.");
+            }
+        } else {
+            openShopProductButton.setToolTipText("Noch nicht mit einem Webshop-Produkt verknüpft.");
+        }
     }
 
     /**
      * Enables/disables every FKT_PRODUCTWEBSHOP-bound field at once,
      * following the "im Shop anbieten" checkbox - mirrors how
      * {@code checkboxStockManaged} above toggles {@code textQuantity}, just
-     * for the whole set of webshop fields. These now live spread across three
-     * different groups (Preise & Steuer, Lager & Versand, Webshop - see
-     * {@link #createPartControl(Composite)}), so they're listed explicitly
-     * instead of iterating one shared container's children.
+     * for the whole set of webshop fields.
      */
     private void setWebshopFieldsEnabled(final boolean enabled) {
         textShopPrice.getControl().setEnabled(enabled);
-        textShopSalePrice.getControl().setEnabled(enabled);
-        dtShopSaleFrom.setEnabled(enabled);
-        dtShopSaleTo.setEnabled(enabled);
         textShopStockQuantity.setEnabled(enabled);
         comboShopStockStatus.setEnabled(enabled);
         comboShopBackorders.setEnabled(enabled);
@@ -1490,16 +1529,39 @@ public class ProductEditor extends Editor<Product> {
         ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
 
         bindModelValue(editorProduct, textSupplierItemNumber, Product_.supplierItemNumber.getName(), 64);
-        final UpdateValueStrategy<Object, Long> replacementToModel = UpdateValueStrategy.create(StringToNumberConverter.toLong(false));
-        replacementToModel.setBeforeSetValidator(value -> {
-            if (value == null || ((Long) value) >= 0
-                    && (editorProduct.getId() <= 0 || ((Long) value) != editorProduct.getId())) {
-                return ValidationStatus.ok();
+        final UpdateValueStrategy<String, Long> replacementToModel = UpdateValueStrategy.create(new Converter<String, Long>(String.class, Long.class) {
+            @Override
+            public Long convert(final String value) {
+                final String itemNumber = StringUtils.trimToEmpty(value);
+                if (itemNumber.isEmpty()) {
+                    return null;
+                }
+                if ("0".equals(itemNumber)) {
+                    return 0L;
+                }
+                final Product replacement = productsDAO.findByItemNumber(itemNumber);
+                return replacement == null ? null : replacement.getId();
             }
-            return ValidationStatus.error("Nachfolgeartikel muss eine andere, positive Artikel-ID oder 0 sein.");
+        });
+        replacementToModel.setBeforeSetValidator(value -> {
+            final String error = replacementValidationError(textReplacedByProductId.getText());
+            return error == null ? ValidationStatus.ok() : ValidationStatus.error(error);
+        });
+        final UpdateValueStrategy<Long, String> replacementToText = UpdateValueStrategy.create(new Converter<Long, String>(Long.class, String.class) {
+            @Override
+            public String convert(final Long id) {
+                if (id == null) {
+                    return "";
+                }
+                if (id == 0L) {
+                    return "0";
+                }
+                final Product replacement = productsDAO.findById(id);
+                return replacement == null ? "" : replacement.getItemNumber();
+            }
         });
         final Binding replacementBinding = bindModelValue(editorProduct, textReplacedByProductId, "replacedByProductId", 20,
-                replacementToModel, UpdateValueStrategy.create(NumberToStringConverter.fromLong(numberFormat, false)));
+                replacementToModel, replacementToText);
         ControlDecorationSupport.create(replacementBinding, SWT.TOP | SWT.LEFT);
         bindModelValue(editorProduct, textDescription, Product_.description.getName(), 0); // no limit
         if (useQuantityUnit) {
@@ -1527,7 +1589,6 @@ public class ProductEditor extends Editor<Product> {
         }
 
         bindModelValue(editorProduct, costPrice, Product_.costPrice.getName(), 16);
-        bindModelValue(editorProduct, allowance, Product_.allowance.getName(), 16);
         fillAndBindVatCombo();
         bindModelValue(editorProduct, textWeight, Product_.weight.getName(), 16);
         bindModelValue(editorProduct, textQuantity, Product_.quantity.getName(), 0);
@@ -1557,8 +1618,8 @@ public class ProductEditor extends Editor<Product> {
      * {@code FormattedText} one, since it was fixed to key off the target's
      * own runtime class instead of a hardcoded {@code Product}) all key off
      * the passed-in target's own class. {@code textShopPrice}/
-     * {@code textShopSalePrice} use the {@code FormattedText}+
-     * {@code MoneyFormatter} overload so they display as Euro amounts like
+     * {@code textShopPrice} uses the {@code FormattedText}+
+     * {@code MoneyFormatter} overload so it displays as a Euro amount like
      * every other price field in this editor; the remaining numeric fields
      * here are plain {@code Text} with a generic (non-currency) number
      * strategy.
@@ -1574,17 +1635,47 @@ public class ProductEditor extends Editor<Product> {
         final UpdateValueStrategy<Object, Integer> stringToIntStrategy = UpdateValueStrategy.create(StringToNumberConverter.toInteger(false));
 
         bindModelValue(editorProductWebshop, textShopPrice, ProductWebshop_.shopPrice.getName(), 16);
-        bindModelValue(editorProductWebshop, textShopSalePrice, ProductWebshop_.shopSalePrice.getName(), 16);
         bindModelValue(editorProductWebshop, textShopStockQuantity, ProductWebshop_.shopStockQuantity.getName(), 16, stringToDoubleStrategy,
                 doubleToStringStrategy);
         bindModelValue(editorProductWebshop, textShopLowStockAmount, ProductWebshop_.shopLowStockAmount.getName(), 8, stringToIntStrategy, intToStringStrategy);
         bindModelValue(editorProductWebshop, textDeliveryTime, ProductWebshop_.deliveryTime.getName(), 255);
 
-        bindModelValue(editorProductWebshop, dtShopSaleFrom, ProductWebshop_.shopSaleFrom.getName());
-        bindModelValue(editorProductWebshop, dtShopSaleTo, ProductWebshop_.shopSaleTo.getName());
+        bindShopOption(comboShopStockStatus, ProductWebshop_.shopStockStatus.getName(),
+                editorProductWebshop.getShopStockStatus(),
+                new String[] { "", "instock", "outofstock", "onbackorder" },
+                new String[] { msg.editorProductFieldShopoptionUnset, msg.editorProductFieldShopstatusInstock,
+                        msg.editorProductFieldShopstatusOutofstock, msg.editorProductFieldShopstatusOnbackorder });
+        bindShopOption(comboShopBackorders, ProductWebshop_.shopBackorders.getName(),
+                editorProductWebshop.getShopBackorders(),
+                new String[] { "", "no", "notify", "yes" },
+                new String[] { msg.editorProductFieldShopoptionUnset, msg.editorProductFieldShopbackordersNo,
+                        msg.editorProductFieldShopbackordersNotify, msg.editorProductFieldShopbackordersYes });
+    }
 
-        bindModelValue(editorProductWebshop, comboShopStockStatus, ProductWebshop_.shopStockStatus.getName());
-        bindModelValue(editorProductWebshop, comboShopBackorders, ProductWebshop_.shopBackorders.getName());
+    private void bindShopOption(final Combo combo, final String property, final String currentCode,
+            final String[] codes, final String[] captions) {
+        final List<String> codeList = new ArrayList<>(Arrays.asList(codes));
+        final List<String> captionList = new ArrayList<>(Arrays.asList(captions));
+        if (StringUtils.isNotBlank(currentCode) && !codeList.contains(currentCode)) {
+            codeList.add(currentCode);
+            captionList.add(currentCode);
+        }
+        combo.setItems(captionList.toArray(new String[0]));
+        final UpdateValueStrategy<String, String> toModel = UpdateValueStrategy.create(
+                new Converter<String, String>(String.class, String.class) {
+                    @Override
+                    public String convert(final String caption) {
+                        return codeList.get(Math.max(0, captionList.indexOf(caption)));
+                    }
+                });
+        final UpdateValueStrategy<String, String> toDisplay = UpdateValueStrategy.create(
+                new Converter<String, String>(String.class, String.class) {
+                    @Override
+                    public String convert(final String code) {
+                        return captionList.get(Math.max(0, codeList.indexOf(StringUtils.defaultString(code))));
+                    }
+                });
+        bindModelValue(editorProductWebshop, combo, property, toModel, toDisplay);
     }
 
     /**

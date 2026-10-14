@@ -259,7 +259,6 @@ public class GenericProductsCsvImporter {
         product.setWeight(productBean.getWeight());
         product.setGtin(productBean.getGtin());
         product.setCostPrice(productBean.getCostPrice());
-        product.setAllowance(productBean.getAllowance());
         product.setCdf01(productBean.getCdf01());
         product.setCdf02(productBean.getCdf02());
         product.setCdf03(productBean.getCdf03());

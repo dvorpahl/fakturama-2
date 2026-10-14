@@ -48,7 +48,6 @@ public class ProductBeanCSV {
     private Double weight = null;
     private Long gtin = null;
     private Double costPrice = null;
-    private String allowance = null;
     private String cdf01 = null;
     private String cdf02 = null;
     private String cdf03 = null;
@@ -101,7 +100,6 @@ public class ProductBeanCSV {
             attributeToNameMap.put("weight", msg.exporterDataWeight); 
             attributeToNameMap.put("gtin", msg.editorProductFieldGtin); 
             attributeToNameMap.put("costPrice", msg.editorProductFieldCostprice); 
-            attributeToNameMap.put("allowance", msg.editorProductFieldAllowance); 
             attributeToNameMap.put("cdf01", msg.editorProductFieldUdf01); 
             attributeToNameMap.put("cdf02", msg.editorProductFieldUdf02); 
             attributeToNameMap.put("cdf03", msg.editorProductFieldUdf03); 
@@ -279,14 +277,6 @@ public class ProductBeanCSV {
 
     public void setCostPrice(Double costPrice) {
         this.costPrice = costPrice;
-    }
-
-    public String getAllowance() {
-        return allowance;
-    }
-
-    public void setAllowance(String allowance) {
-        this.allowance = allowance;
     }
 
     public String getCdf01() {
