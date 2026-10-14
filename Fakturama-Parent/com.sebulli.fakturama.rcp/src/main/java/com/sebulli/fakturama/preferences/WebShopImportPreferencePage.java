@@ -79,6 +79,8 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
         addField(new BooleanFieldEditor(Constants.PREFERENCES_WEBSHOP_ENABLED, msg.preferencesWebshopEnabled, getFieldEditorParent()));
 
         addField(new StringFieldEditor(Constants.PREFERENCES_WEBSHOP_URL, msg.preferencesWebshopUrl, getFieldEditorParent()));
+        addField(new StringFieldEditor(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL,
+                "PrestaShop-Admin-URL", getFieldEditorParent()));
 
         addField(new StringFieldEditor(Constants.PREFERENCES_WEBSHOP_USER, msg.preferencesWebshopUser, getFieldEditorParent()));
 
@@ -122,6 +124,7 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
     public void syncWithPreferencesFromDatabase(final boolean write) {
         preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_ENABLED, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_URL, write);
+        preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_USER, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_PASSWORD, write);
         preferencesInDatabase.syncWithPreferencesFromDatabase(Constants.PREFERENCES_WEBSHOP_PRODUCT_CATEGORY, write);
@@ -157,6 +160,7 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
 
         //T: Preference page "Web Shop Import" - Country specific URL of demo shop
         node.setDefault(Constants.PREFERENCES_WEBSHOP_URL, msg.preferencesWebshopDefaulturl);
+        node.setDefault(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL, "");
         node.setDefault(Constants.PREFERENCES_WEBSHOP_USER, "user");
         node.setDefault(Constants.PREFERENCES_WEBSHOP_PASSWORD, "password");
         //T: Preference page "Web Shop Import" - Default value "Product Category"

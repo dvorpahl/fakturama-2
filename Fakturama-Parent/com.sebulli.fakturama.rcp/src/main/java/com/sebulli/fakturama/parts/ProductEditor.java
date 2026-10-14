@@ -18,19 +18,14 @@ import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -145,8 +140,6 @@ public class ProductEditor extends Editor<Product> {
 
     /** The number of prices. */
     private static final int MAX_NUMBER_OF_PRICES = 5;
-    private static final HttpClient SHOP_STATUS_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NORMAL).build();
 
     @Inject
     protected VatsDAO vatDao;
@@ -210,10 +203,6 @@ public class ProductEditor extends Editor<Product> {
     // saving anything) apart from "had shop data, user just unchecked it" (soft-delete the row)
     private boolean productHadWebshopData;
     private Button checkboxInShop;
-    private Button openShopProductButton;
-    private WooCommerceProductLink shopProductLink;
-    private boolean shopStatusCheckInFlight;
-    private long lastShopStatusCheck;
     private FormattedText textShopPrice;
     private Text textShopStockQuantity, textShopLowStockAmount, textDeliveryTime;
     private Combo comboShopStockStatus, comboShopBackorders;
@@ -510,50 +499,8 @@ public class ProductEditor extends Editor<Product> {
 		if (labelProductPicture != null && !labelProductPicture.isDisposed()) {
 			setPicture();
 		}
-		if (openShopProductButton != null && !openShopProductButton.isDisposed()) {
-			verifyPublishedShopProduct(false);
-		}
 		super.setFocus();
 	}
-
-    private void verifyPublishedShopProduct(final boolean openWhenPublished) {
-        if (openShopProductButton == null || openShopProductButton.isDisposed() || shopProductLink == null
-                || shopStatusCheckInFlight) {
-            return;
-        }
-        if (!openWhenPublished && System.currentTimeMillis() - lastShopStatusCheck < 30_000) {
-            return;
-        }
-        shopStatusCheckInFlight = true;
-        openShopProductButton.setEnabled(false);
-        openShopProductButton.setToolTipText("Veröffentlichungsstatus im Shop wird geprüft…");
-        final HttpRequest request = HttpRequest.newBuilder(shopProductLink.publishedProductUri())
-                .timeout(Duration.ofSeconds(8)).GET().build();
-        final Display display = openShopProductButton.getDisplay();
-        SHOP_STATUS_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                .whenComplete((response, error) -> {
-                    if (display.isDisposed()) {
-                        return;
-                    }
-                    display.asyncExec(() -> {
-                        if (openShopProductButton.isDisposed()) {
-                            return;
-                        }
-                        shopStatusCheckInFlight = false;
-                        lastShopStatusCheck = System.currentTimeMillis();
-                        final boolean published = error == null && response != null && response.statusCode() == 200
-                                && response.headers().firstValue("Content-Type").orElse("")
-                                        .toLowerCase(Locale.ROOT).contains("json");
-                        openShopProductButton.setEnabled(published);
-                        openShopProductButton.setToolTipText(published ? "Veröffentlichtes Produkt im Shop bearbeiten"
-                                : "Produkt ist nicht veröffentlicht oder der Shop-Status konnte nicht geprüft werden.");
-                        if (published && openWhenPublished && !Program.launch(shopProductLink.adminEditorUrl())) {
-                            MessageDialog.openError(openShopProductButton.getShell(), "Im Webshop bearbeiten",
-                                    "Der Browser konnte nicht geöffnet werden.");
-                        }
-                    });
-                });
-    }
 
 	/** Show the three image destinations used by the webtool's picture catalog. */
 	private void updatePictureVariantsBadge() {
@@ -1430,22 +1377,29 @@ public class ProductEditor extends Editor<Product> {
         textDeliveryTime.addKeyListener(new ReturnKeyAdapter(textDeliveryTime));
         GridDataFactory.fillDefaults().grab(true, false).applyTo(textDeliveryTime);
 
-        openShopProductButton = new Button(webshopGroup, SWT.PUSH);
+        final Button openShopProductButton = new Button(webshopGroup, SWT.PUSH);
         openShopProductButton.setText("Im Webshop bearbeiten…");
-        openShopProductButton.setEnabled(false);
         GridDataFactory.swtDefaults().span(2, 1).align(SWT.END, SWT.CENTER).applyTo(openShopProductButton);
-        openShopProductButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> verifyPublishedShopProduct(true)));
+        openShopProductButton.setEnabled(false);
         final Long webshopId = editorProduct.getWebshopId();
-        if (webshopId != null && webshopId > 0) {
-            try {
-                shopProductLink = new WooCommerceProductLink(
-                        defaultValuePrefs.getString(Constants.PREFERENCES_WEBSHOP_URL), webshopId);
-                verifyPublishedShopProduct(false);
-            } catch (IllegalArgumentException e) {
-                openShopProductButton.setToolTipText("Webshop-Adresse ist nicht gültig.");
-            }
-        } else {
+        final String adminUrl = defaultValuePrefs.getString(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL).trim();
+        if (webshopId == null || webshopId <= 0) {
             openShopProductButton.setToolTipText("Noch nicht mit einem Webshop-Produkt verknüpft.");
+        } else if (adminUrl.isEmpty()) {
+            openShopProductButton.setToolTipText("PrestaShop-Admin-URL in den Webshop-Einstellungen eintragen.");
+        } else {
+            try {
+                final PrestaShopProductLink productLink = new PrestaShopProductLink(adminUrl, webshopId);
+                openShopProductButton.setEnabled(true);
+                openShopProductButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+                    if (!Program.launch(productLink.adminEditorUrl())) {
+                        MessageDialog.openError(openShopProductButton.getShell(), "Im Webshop bearbeiten",
+                                "Der PrestaShop-Produkteditor konnte nicht geöffnet werden.");
+                    }
+                }));
+            } catch (IllegalArgumentException e) {
+                openShopProductButton.setToolTipText("PrestaShop-Admin-URL ist nicht gültig.");
+            }
         }
     }
 

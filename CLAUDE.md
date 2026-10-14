@@ -13,4 +13,4 @@ Das zugehörige Projekt `fakturama-tool` (Litestar-Webserver) wird **ausschließ
 - Änderungen an Entitäten (z. B. `Product.java`) oder an `db.changelog-*.xml` ändern das Datenbankschema, das
   `fakturama-tool` und die Tests voraussetzen. Vorher dort abstimmen; DDL auf `FKT_*` nur mit ausdrücklicher Freigabe.
 - Der Fakturama-Client spricht seit 2026-10-08 die Datenbank auf der LXC an (`jdbc:mariadb://192.168.1.202:3307/fakturama_local`).
-- Weitere Testsysteme: LXC 201 (WooCommerce), 203 (Shopware), 204 (PrestaShop).
+- Weitere Testsysteme: LXC 201 (WooCommerce), 203 (Shopware), 204 (PrestaShop v9.2.0; vom Nutzer bestätigt am 2026-10-14).

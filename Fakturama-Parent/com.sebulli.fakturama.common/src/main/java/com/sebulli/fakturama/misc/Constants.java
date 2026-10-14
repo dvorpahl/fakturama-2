@@ -124,6 +124,7 @@ public class Constants {
      * 
      */
     public static final String PREFERENCES_WEBSHOP_URL = "WEBSHOP_URL";
+    public static final String PREFERENCES_PRESTASHOP_ADMIN_URL = "PRESTASHOP_ADMIN_URL";
 
     /**
      * Preference for enabling / disabling webshop import
