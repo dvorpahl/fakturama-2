@@ -1,0 +1,6 @@
+fakturamaso_sso_handoff:
+  path: fakturamaso/handoff
+  methods: [GET]
+  defaults:
+    _controller: 'FakturamaSso\Controller\Admin\HandoffController::handoffAction'
+    _anonymous_controller: true

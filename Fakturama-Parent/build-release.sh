@@ -42,8 +42,27 @@ done
 STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/fakturama-release.XXXXXXXX")"
 trap 'rm -rf -- "$STAGING_DIR"' EXIT
 
+# Hash the actual inputs, including the gitignored build-packages.sh (which
+# contains the local install4j key). Timestamp checks miss rapid edits and can
+# also be affected by filesystem timestamp resolution.
+source_fingerprint() {
+    find "$SCRIPT_DIR" \
+        \( -type d \( -name .git -o -name target \) -prune \) -o \
+        \( -type f ! -path "$SCRIPT_DIR/com.sebulli.fakturama.site/install/install/*" -print0 \) |
+        sort -z |
+        xargs -0 -r sha256sum |
+        sha256sum | cut -d' ' -f1
+}
+
+SOURCE_FINGERPRINT="$(source_fingerprint)"
+
 log "Building full release (Windows zip+MSI, Linux tar.gz+deb, Arch/Manjaro package)"
 HEINZ_DIR="$STAGING_DIR" "$SCRIPT_DIR/build-packages.sh"
+
+if [[ "$(source_fingerprint)" != "$SOURCE_FINGERPRINT" ]]; then
+    echo "error: build inputs changed during the release; refusing to publish a mixed build" >&2
+    exit 1
+fi
 
 # The package builder names its output directory with its own timestamp.
 # The temporary directory is empty before the build, so exactly one release
@@ -68,6 +87,8 @@ windows_plain="$BUILD_OUT_DIR/Installer_Fakturama_windows-x64_${project_version}
 windows_jre="$BUILD_OUT_DIR/Installer_Fakturama_windows-x64_${project_version}_with_jre.msi"
 debian_plain="$BUILD_OUT_DIR/Installer_Fakturama__${project_version}.deb"
 debian_jre="$BUILD_OUT_DIR/Installer_Fakturama_linux-amd64_${project_version}_with_jre.deb"
+windows_product="$BUILD_OUT_DIR/Fakturama.ID-win32.win32.x86_64.zip"
+linux_product="$BUILD_OUT_DIR/Fakturama.ID-linux.gtk.x86_64.tar.gz"
 
 shopt -s nullglob
 manjaro_packages=("$BUILD_OUT_DIR"/fakturama-"$project_version"-*-x86_64.pkg.tar.*)
@@ -76,7 +97,7 @@ if [ "${#manjaro_packages[@]}" -ne 1 ]; then
     echo "error: expected one Manjaro package in $BUILD_OUT_DIR, found ${#manjaro_packages[@]}" >&2
     exit 1
 fi
-for package in "$windows_plain" "$windows_jre" "$debian_plain" "$debian_jre" "${manjaro_packages[0]}"; do
+for package in "$windows_product" "$linux_product" "$windows_plain" "$windows_jre" "$debian_plain" "$debian_jre" "${manjaro_packages[0]}"; do
     if [ ! -s "$package" ]; then
         echo "error: missing or empty release package: $package" >&2
         exit 1

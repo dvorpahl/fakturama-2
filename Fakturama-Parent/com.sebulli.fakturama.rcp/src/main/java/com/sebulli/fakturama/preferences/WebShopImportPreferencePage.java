@@ -30,6 +30,9 @@ import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.jface.dialogs.MessageDialog;
 
 import com.sebulli.fakturama.dialogs.WebShopStatusSettingsDialog;
 import com.sebulli.fakturama.handlers.CommandIds;
@@ -42,6 +45,8 @@ import com.sebulli.fakturama.misc.Constants;
  * @author Gerd Bartelt
  */
 public class WebShopImportPreferencePage extends FieldEditorPreferencePage implements IInitializablePreference {
+
+    private Text prestaShopSsoSecret;
 
     @Inject
     @Translation
@@ -81,6 +86,12 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
         addField(new StringFieldEditor(Constants.PREFERENCES_WEBSHOP_URL, msg.preferencesWebshopUrl, getFieldEditorParent()));
         addField(new StringFieldEditor(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL,
                 "PrestaShop-Admin-URL", getFieldEditorParent()));
+
+        final Label ssoSecretLabel = new Label(getFieldEditorParent(), SWT.NONE);
+        ssoSecretLabel.setText("PrestaShop SSO-Schlüssel (lokal gespeichert)");
+        prestaShopSsoSecret = new Text(getFieldEditorParent(), SWT.BORDER | SWT.PASSWORD);
+        prestaShopSsoSecret.setMessage("64-stelliger Hex-Schlüssel aus dem PrestaShop-Modul");
+        prestaShopSsoSecret.setText(PrestaShopSsoSecretStore.read());
 
         addField(new StringFieldEditor(Constants.PREFERENCES_WEBSHOP_USER, msg.preferencesWebshopUser, getFieldEditorParent()));
 
@@ -183,7 +194,21 @@ public class WebShopImportPreferencePage extends FieldEditorPreferencePage imple
      */
     @Override
     public boolean performOk() {
+        final String ssoSecret = prestaShopSsoSecret == null ? "" : prestaShopSsoSecret.getText().trim();
+        if (!ssoSecret.isEmpty() && !ssoSecret.matches("[0-9a-fA-F]{64}")) {
+            MessageDialog.openError(getShell(), "PrestaShop SSO", "Der SSO-Schlüssel muss aus genau 64 hexadezimalen Zeichen bestehen.");
+            return false;
+        }
+        if (!super.performOk()) {
+            return false;
+        }
+        try {
+            PrestaShopSsoSecretStore.write(ssoSecret);
+        } catch (IllegalStateException e) {
+            MessageDialog.openError(getShell(), "PrestaShop SSO", e.getMessage());
+            return false;
+        }
         eventBroker.post("views/navigationUpdate", CommandIds.CMD_WEBSHOP_IMPORT);
-        return super.performOk();
+        return true;
     }
 }

@@ -127,6 +127,7 @@ import com.sebulli.fakturama.parts.widget.contentprovider.EntityComboProvider;
 import com.sebulli.fakturama.parts.widget.formatter.DoubleValueFormatter;
 import com.sebulli.fakturama.parts.widget.formatter.MoneyFormatter;
 import com.sebulli.fakturama.parts.widget.labelprovider.EntityLabelProvider;
+import com.sebulli.fakturama.preferences.PrestaShopSsoSecretStore;
 import com.sebulli.fakturama.resources.ITemplateResourceManager;
 import com.sebulli.fakturama.resources.core.Icon;
 import com.sebulli.fakturama.resources.core.ProgramImages;
@@ -304,7 +305,12 @@ public class ProductEditor extends Editor<Product> {
                 // at first look for the highest scaled price...
                  String methodName = String.format("getPrice%d", i + 1);
                  Object obj = MethodUtils.invokeExactMethod(editorProduct, methodName);
-                 lastScaledPrice = (Double) obj;
+                 // Older or partially populated products may have an empty
+                 // price at an enabled scale. Keep the last usable price so
+                 // saving can still fill the disabled trailing scales.
+                 if (obj != null) {
+                     lastScaledPrice = ((Double) obj).doubleValue();
+                 }
             }
 
             // if not all 5 scales are set we set the remaining prices to the last scaled price
@@ -1383,16 +1389,29 @@ public class ProductEditor extends Editor<Product> {
         openShopProductButton.setEnabled(false);
         final Long webshopId = editorProduct.getWebshopId();
         final String adminUrl = defaultValuePrefs.getString(Constants.PREFERENCES_PRESTASHOP_ADMIN_URL).trim();
+        final String ssoSecret = PrestaShopSsoSecretStore.read();
         if (webshopId == null || webshopId <= 0) {
             openShopProductButton.setToolTipText("Noch nicht mit einem Webshop-Produkt verknüpft.");
         } else if (adminUrl.isEmpty()) {
             openShopProductButton.setToolTipText("PrestaShop-Admin-URL in den Webshop-Einstellungen eintragen.");
+        } else if (ssoSecret.isEmpty()) {
+            openShopProductButton.setToolTipText("PrestaShop-SSO-Schlüssel in den Webshop-Einstellungen hinterlegen.");
+        } else if (!ssoSecret.matches("[0-9a-fA-F]{64}")) {
+            openShopProductButton.setToolTipText("PrestaShop-SSO-Schlüssel muss aus genau 64 Hex-Zeichen bestehen.");
         } else {
             try {
                 final PrestaShopProductLink productLink = new PrestaShopProductLink(adminUrl, webshopId);
                 openShopProductButton.setEnabled(true);
                 openShopProductButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-                    if (!Program.launch(productLink.adminEditorUrl())) {
+                    boolean launched = false;
+                    try {
+                        launched = Program.launch(productLink.handoffUrl(ssoSecret));
+                    } catch (IllegalArgumentException ex) {
+                        MessageDialog.openError(openShopProductButton.getShell(), "Im Webshop bearbeiten",
+                                "Der PrestaShop-SSO-Schlüssel ist ungültig.");
+                        return;
+                    }
+                    if (!launched) {
                         MessageDialog.openError(openShopProductButton.getShell(), "Im Webshop bearbeiten",
                                 "Der PrestaShop-Produkteditor konnte nicht geöffnet werden.");
                     }

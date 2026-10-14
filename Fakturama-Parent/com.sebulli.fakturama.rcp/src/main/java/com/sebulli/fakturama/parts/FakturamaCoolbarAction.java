@@ -25,9 +25,11 @@ import org.eclipse.e4.core.commands.ECommandService;
 import org.eclipse.e4.core.commands.EHandlerService;
 import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.ui.model.application.MApplication;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.basic.MPartStack;
 import org.eclipse.e4.ui.services.IServiceConstants;
-import org.eclipse.e4.ui.workbench.modeling.EPartService;
+import org.eclipse.e4.ui.workbench.modeling.EModelService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -44,9 +46,6 @@ public class FakturamaCoolbarAction extends Action {
 
     @Inject
     private EHandlerService handlerService;
-
-    @Inject
-    private EPartService partService;
 
     @Inject
     private ECommandService cmdService;
@@ -95,25 +94,29 @@ public class FakturamaCoolbarAction extends Action {
                     parameterizedCommand = cmdService.createCommand(CommandIds.CMD_CALL_EDITOR, params);
             }
 
-            // if CTRL key is pressed then we try to duplicate the current editor into a new one.
+            // If CTRL is pressed, duplicate the selected editor in the detail stack.
             // Note: this only decides *whether* a copy is requested at all - which kind of copy
             // (same customer / blank / cross-type template) is decided later, inside
             // DocumentEditor#init(), where the new part/document actually exists and a stable
             // Shell is available. Doing that decision (and its dialog) here used to be fragile:
             // it ran nested inside this click's event dispatch, before the target part existed.
             if ((event.stateMask & SWT.MOD1) == SWT.MOD1) {
-                // does only work under certain circumstances
-                ParameterizedCommand duplicateCmd = cmdService.createCommand(CommandIds.CMD_OBJECT_DUPLICATE);
-                if (handlerService.canExecute(duplicateCmd)) {
-                    MPart activePart = partService.getActivePart();
-                    // item has to correspond to the active editor!
-                    if (activePart != null && activePart.getObject() instanceof Editor) {
-                        String editorType = (String) parameterizedCommand.getParameterMap().get(CallEditor.PARAM_EDITOR_TYPE);
-                        if (editorType != null && activePart.getElementId().equalsIgnoreCase(editorType)) {
-                            staticContext.set(CallEditor.PARAM_COPY, Boolean.TRUE);
-                            staticContext.set(CallEditor.PARAM_FORCE_NEW, Boolean.FALSE);
-                            staticContext.set(CallEditor.PARAM_OBJ_ID, activePart.getTransientData().get(CallEditor.PARAM_OBJ_ID));
-                        }
+                // The toolbar belongs to its own part, so EPartService#getActivePart()
+                // can report the toolbar instead of the editor the user is looking at.
+                // Use the selected editor tab from the detail stack instead.
+                final MApplication application = ctx.get(MApplication.class);
+                final EModelService modelService = ctx.get(EModelService.class);
+                final MPartStack detailStack = application == null || modelService == null ? null
+                        : (MPartStack) modelService.find(CallEditor.DETAIL_PARTSTACK_ID, application);
+                final Object selectedElement = detailStack == null ? null : detailStack.getSelectedElement();
+                final String editorType = (String) parameterizedCommand.getParameterMap().get(CallEditor.PARAM_EDITOR_TYPE);
+                if (selectedElement instanceof MPart activeEditor && activeEditor.getObject() instanceof Editor
+                        && editorType != null && activeEditor.getElementId().equalsIgnoreCase(editorType)) {
+                    final String productId = CallEditor.resolveParam(activeEditor, CallEditor.PARAM_OBJ_ID);
+                    if (productId != null) {
+                        staticContext.set(CallEditor.PARAM_COPY, Boolean.TRUE);
+                        staticContext.set(CallEditor.PARAM_FORCE_NEW, Boolean.FALSE);
+                        staticContext.set(CallEditor.PARAM_OBJ_ID, productId);
                     }
                 }
             } else {

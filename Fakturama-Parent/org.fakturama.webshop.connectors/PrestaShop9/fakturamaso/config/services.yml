@@ -1,0 +1,8 @@
+services:
+  _defaults:
+    public: true
+    autowire: true
+    autoconfigure: true
+
+  FakturamaSso\Controller\Admin\HandoffController: ~
+  FakturamaSso\Security\HandoffAuthenticator: ~

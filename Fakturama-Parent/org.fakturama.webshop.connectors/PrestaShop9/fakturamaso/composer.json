@@ -1,0 +1,13 @@
+{
+  "name": "fakturama/prestashop-sso-bridge",
+  "description": "Short-lived SSO handoff from Fakturama to the PrestaShop 9.2 product editor",
+  "type": "prestashop-module",
+  "autoload": {
+    "psr-4": {
+      "FakturamaSso\\": "src/"
+    }
+  },
+  "config": {
+    "prepend-autoloader": false
+  }
+}
