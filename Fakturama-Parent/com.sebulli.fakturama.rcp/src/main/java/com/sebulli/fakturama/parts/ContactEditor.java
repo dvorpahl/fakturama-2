@@ -986,10 +986,6 @@ public abstract class ContactEditor<C extends Contact> extends Editor<C> {
     }
 
     private void createAddressGroup(final Composite invisible, final Composite twoPanelLayout) {
-        Composite tabAddress = new Composite(twoPanelLayout, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(3).applyTo(tabAddress);
-        GridDataFactory.fillDefaults().grab(true, true).applyTo(tabAddress);
-
         // Controls in the group "address"
 
         addressTabFolder = new CTabFolder(twoPanelLayout, SWT.NONE);

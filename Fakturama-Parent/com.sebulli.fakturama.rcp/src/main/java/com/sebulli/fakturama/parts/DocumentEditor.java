@@ -279,6 +279,7 @@ public class DocumentEditor extends Editor<Document> {
     private CDateTime dtOrderDate, dtVestingPeriodStart, dtVestingPeriodEnd;
     private CDateTime dtServiceDate;
     private Text txtCustomerRef;
+    private Button bRentalContract;
     private Text txtConsultant;
 
     private CTabFolder addressAndIconComposite;
@@ -700,6 +701,9 @@ public class DocumentEditor extends Editor<Document> {
         bindModelValue(document, dtDate, Document_.documentDate.getName());
         bindModelValue(document, comboNetGross, Document_.netGross.getName());
         bindModelValue(document, txtCustomerRef, Document_.customerRef.getName(), 250);
+        if (bRentalContract != null) {
+            bindModelValue(document, bRentalContract, Document_.rentalContract.getName());
+        }
         bindModelValue(document, tara, Document_.tara.getName(), 50);
 
         final DocumentReceiver mainTypeReceiver = addressManager.getAdressForBillingType(document, document.getBillingType());
@@ -2556,6 +2560,12 @@ public class DocumentEditor extends Editor<Document> {
             comboViewerNoVat.getCombo().setText(Objects.toString(noVatObject.getDescription(), noVatObject.getName()));
         } else {
             comboViewerNoVat.getCombo().select(0);
+        }
+
+        if (document.getBillingType().isORDER()) {
+            bRentalContract = new Button(xtraSettingsComposite, SWT.CHECK | SWT.LEFT);
+            bRentalContract.setText(msg.editorDocumentFieldRentalcontract);
+            GridDataFactory.fillDefaults().span(2, 1).applyTo(bRentalContract);
         }
 
         copyGroup = new Group(headerGroup, SWT.SHADOW_OUT);

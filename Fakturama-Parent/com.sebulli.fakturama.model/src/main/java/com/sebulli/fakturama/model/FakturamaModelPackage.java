@@ -2698,6 +2698,9 @@ public class FakturamaModelPackage extends ModelPackage {
      */
     public static final int PRODUCT_STOCKMANAGED_FEATURE_ID = 38;
 
+    /** Feature ID for Product.inInventory. */
+    public static final int PRODUCT_ININVENTORY_FEATURE_ID = 39;
+
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc -->
      *
@@ -11604,6 +11607,10 @@ public class FakturamaModelPackage extends ModelPackage {
      */
     public EAttribute getProduct_StockManaged() {
         return (EAttribute) getProductEClass().getEAllStructuralFeatures().get(PRODUCT_STOCKMANAGED_FEATURE_ID);
+    }
+
+    public EAttribute getProduct_InInventory() {
+        return (EAttribute) getProductEClass().getEAllStructuralFeatures().get(PRODUCT_ININVENTORY_FEATURE_ID);
     }
 
     /**

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.sebulli.fakturama.views.datatable.products;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,7 +32,6 @@ import org.eclipse.e4.ui.di.UISynchronize;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.menu.MHandledMenuItem;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
-import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -131,9 +131,6 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
     private ProductsDAO productsDAO;
 
     @Inject
-    private EPartService partService;
-
-    @Inject
     private ProductCategoriesDAO productCategoriesDAO;
 
     @Inject
@@ -189,6 +186,7 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
         log.debug("create Product list part");
         this.listTablePart = listTablePart;
         super.createPartControl(parent, Product.class, true, ID);
+        activatePartBeforeTableClick(listTablePart);
         final Object commandId = this.listTablePart.getTransientData().get(Constants.PROPERTY_PRODUCTS_CLICKHANDLER);
         viewDataTableMode = commandId != null ? ViewDataTableMode.DIALOG : ViewDataTableMode.LIST;
         topicTreeViewer.setTable(this);
@@ -397,7 +395,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                 continue;
             }
             final boolean rightAligned = descriptor == ProductListDescriptor.PRICE || descriptor == ProductListDescriptor.QUANTITY
-                    || descriptor == ProductListDescriptor.VAT || descriptor == ProductListDescriptor.WEBSHOP_PRICE;
+                    || descriptor == ProductListDescriptor.VAT || descriptor == ProductListDescriptor.COST_PRICE
+                    || descriptor == ProductListDescriptor.WEBSHOP_PRICE;
             final TableViewerColumn viewerColumn = new TableViewerColumn(productsViewer, rightAligned ? SWT.RIGHT : SWT.LEFT);
             final TableColumn column = viewerColumn.getColumn();
             final boolean iconColumn = descriptor == ProductListDescriptor.ICON_ASSEMBLY
@@ -543,20 +542,20 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
             oldImage.dispose();
         }
         final String subject = switch (descriptor) {
-            case ICON_ASSEMBLY -> "Stücklisten";
-            case ICON_WEBSHOP -> "Webshop-Artikel";
-            case ICON_OUTDATED -> "ersetzte und Auslaufartikel";
-            default -> "Artikel";
+            case ICON_ASSEMBLY -> msg.productListFilterAssembly;
+            case ICON_WEBSHOP -> msg.productListFilterWebshop;
+            case ICON_OUTDATED -> msg.productListFilterOutdated;
+            default -> msg.productListFilterWebshop;
         };
-        final String state = switch (filter) {
-            case ALL -> "alle anzeigen";
-            case ONLY -> "nur " + subject + " anzeigen";
-            case EXCLUDE -> subject + " ausblenden";
+        final String tooltip = switch (filter) {
+            case ALL -> MessageFormat.format(msg.listFilterAllTooltip, subject, msg.productListFilterGroup);
+            case ONLY -> MessageFormat.format(msg.listFilterOnlyTooltip, subject);
+            case EXCLUDE -> MessageFormat.format(msg.listFilterExcludeTooltip, subject);
         };
         column.setToolTipText(assemblyUnavailable
-                ? "Stücklistenstatus nicht verfügbar (PART_LI): " + assemblyLookupError + " · Erneuter Versuch beim nächsten Aufruf"
-                : state + (descriptor == ProductListDescriptor.ICON_ASSEMBLY
-                        ? " · " + assemblyItemNumbers.size() + " Stücklistenkennungen geladen" : "") + " · Klicken zum Wechseln");
+                ? MessageFormat.format(msg.productListFilterAssemblyUnavailable, assemblyLookupError)
+                : tooltip + (descriptor == ProductListDescriptor.ICON_ASSEMBLY
+                        ? " " + MessageFormat.format(msg.productListFilterAssemblyCount, assemblyItemNumbers.size()) : ""));
     }
 
     private Image createFilterHeaderImage(final Image symbol, final ProductIconFilter filter, final boolean warning) {
@@ -663,6 +662,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                         return com.sebulli.fakturama.views.datatable.common.ModernTableStyle.singleLineSummary(product.getDescription());
                     case QUANTITY:
                         return product.getQuantity() != null ? numberFormatterService.doubleToFormattedQuantity(product.getQuantity()) : "";
+                    case QUANTITY_UNIT:
+                        return product.getQuantityUnit() != null ? product.getQuantityUnit() : "";
                     case PRICE:
                         final Double price = getEclipsePrefs().getInt(Constants.PREFERENCES_PRODUCT_USE_NET_GROSS,
                                 Constants.PRODUCT_USE_NET_AND_GROSS) == Constants.PRODUCT_USE_NET ? product.getPrice1()
@@ -670,6 +671,8 @@ public class ProductListTable extends AbstractViewDataTable<Product, ProductCate
                         return numberFormatterService.doubleToFormattedPrice(price);
                     case VAT:
                         return product.getVat() != null ? numberFormatterService.DoubleToFormatedPercent(product.getVat().getTaxValue()) : "";
+                    case COST_PRICE:
+                        return product.getCostPrice() != null ? numberFormatterService.doubleToFormattedPrice(product.getCostPrice()) : "";
                     case WEBSHOP_PRICE:
                         // Empty unless "im Shop anbieten" is set (a non-deleted ProductWebshop
                         // row exists, see webshopCache's javadoc) - not merely "has a shop price

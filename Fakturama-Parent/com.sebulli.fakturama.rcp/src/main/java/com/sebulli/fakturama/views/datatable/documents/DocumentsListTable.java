@@ -142,6 +142,10 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     private TreeObjectType currentCategoryType = TreeObjectType.ALL_NODE;
     private String currentSortProperty;
     private boolean currentSortDescending;
+    private DocumentIconFilter webshopFilter = DocumentIconFilter.ALL;
+    private DocumentIconFilter rentalFilter = DocumentIconFilter.ALL;
+    private static final String WEBSHOP_FILTER_PREF = "documents.list.filter.webshop";
+    private static final String RENTAL_FILTER_PREF = "documents.list.filter.rental";
     // Reused across keystrokes so Display#timerExec(-1, ...) can cancel a still-pending debounce.
     private final Runnable searchDebounceRunnable = this::applyDebouncedSearchTerm;
 
@@ -182,6 +186,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             return null;
         }
         super.createPartControl(parent, Document.class, true, ID);
+        activatePartBeforeTableClick(listTablePart);
 
         if (!dialogMode) {
             topicTreeViewer.setTable(this);
@@ -294,12 +299,22 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
      * {@link #tableColumnLayout} (the JFace equivalent of NatTable's column-percentage sizing).
      */
     private void createColumns() {
+        webshopFilter = DocumentIconFilter.fromPreference(eclipsePrefs.get(WEBSHOP_FILTER_PREF, "ALL"));
+        rentalFilter = DocumentIconFilter.fromPreference(eclipsePrefs.get(RENTAL_FILTER_PREF, "ALL"));
         for (final DocumentListDescriptor descriptor : DocumentListDescriptor.values()) {
             final TableViewerColumn viewerColumn = new TableViewerColumn(documentsViewer, descriptor == DocumentListDescriptor.TOTAL ? SWT.RIGHT : SWT.LEFT);
             final TableColumn column = viewerColumn.getColumn();
             column.setText(descriptor.getMessageKey() != null ? msg.getMessageFromKey(descriptor.getMessageKey()) : "");
-            column.setResizable(descriptor != DocumentListDescriptor.ICON);
+            final boolean markerColumn = isMarkerColumn(descriptor);
+            column.setResizable(!markerColumn);
             viewerColumn.setLabelProvider(createLabelProvider(descriptor));
+            if (markerColumn) {
+                column.setImage(markerIcon(descriptor).getImage(IconSize.DefaultIconSize));
+                updateMarkerTooltip(column, descriptor);
+                column.addSelectionListener(new SelectionAdapter() {
+                    @Override public void widgetSelected(final SelectionEvent e) { cycleMarkerFilter(column, descriptor); }
+                });
+            }
             if (descriptor.getPropertyName() != null && !descriptor.getPropertyName().startsWith("$")) {
                 column.addSelectionListener(new SelectionAdapter() {
                     @Override
@@ -310,9 +325,61 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
             }
             // Percentage weights matching the old NatTable column widths (defaultWidth summed to
             // 140 across all 8 columns there too - reused verbatim as weights here).
-            tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), descriptor == DocumentListDescriptor.ICON ? 24 : 30,
-                    descriptor != DocumentListDescriptor.ICON));
+            tableColumnLayout.setColumnData(column, new ColumnWeightData(descriptor.getDefaultWidth(), markerColumn ? 36 : 30, !markerColumn));
         }
+    }
+
+    private boolean isMarkerColumn(final DocumentListDescriptor descriptor) {
+        return descriptor == DocumentListDescriptor.ICON_WEBSHOP || descriptor == DocumentListDescriptor.ICON_RENTAL;
+    }
+
+    private Icon markerIcon(final DocumentListDescriptor descriptor) {
+        return switch (descriptor) {
+            case ICON_WEBSHOP -> Icon.COMMAND_SHOP;
+            case ICON_RENTAL -> Icon.COMMAND_ORDER;
+            default -> null;
+        };
+    }
+
+    private DocumentIconFilter markerFilter(final DocumentListDescriptor descriptor) {
+        return switch (descriptor) {
+            case ICON_WEBSHOP -> webshopFilter;
+            case ICON_RENTAL -> rentalFilter;
+            default -> DocumentIconFilter.ALL;
+        };
+    }
+
+    private void cycleMarkerFilter(final TableColumn column, final DocumentListDescriptor descriptor) {
+        final DocumentIconFilter next = markerFilter(descriptor).next();
+        final String key;
+        switch (descriptor) {
+            case ICON_WEBSHOP -> { webshopFilter = next; key = WEBSHOP_FILTER_PREF; }
+            case ICON_RENTAL -> { rentalFilter = next; key = RENTAL_FILTER_PREF; }
+            default -> { return; }
+        }
+        eclipsePrefs.put(key, next.name());
+        try { eclipsePrefs.flush(); } catch (org.osgi.service.prefs.BackingStoreException e) { log.error(e, "Could not save document marker filter"); }
+        updateMarkerTooltip(column, descriptor);
+        reloadDocumentList();
+    }
+
+    private void updateMarkerTooltip(final TableColumn column, final DocumentListDescriptor descriptor) {
+        final String subject = switch (descriptor) {
+            case ICON_WEBSHOP -> msg.documentListFilterWebshop;
+            case ICON_RENTAL -> msg.documentListFilterRental;
+            default -> msg.documentListFilterWebshop;
+        };
+        final String tooltip = switch (markerFilter(descriptor)) {
+            case ALL -> MessageFormat.format(msg.listFilterAllTooltip, subject, msg.documentListFilterGroup);
+            case ONLY -> MessageFormat.format(msg.listFilterOnlyTooltip, subject);
+            case EXCLUDE -> MessageFormat.format(msg.listFilterExcludeTooltip, subject);
+        };
+        column.setText(switch (markerFilter(descriptor)) {
+            case ALL -> "";
+            case ONLY -> "+";
+            case EXCLUDE -> "−";
+        });
+        column.setToolTipText(tooltip);
     }
 
     private void onColumnSelected(final DocumentListDescriptor descriptor, final TableColumn column) {
@@ -364,6 +431,12 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
                     case PRINTED:
                         icon = BooleanUtils.toBoolean(doc.getPrinted()) ? Icon.COMMAND_PRINTER
                                 : StringUtils.isNotBlank(doc.getOdtPath()) || StringUtils.isNotBlank(doc.getPdfPath()) ? Icon.COMMAND_PRINTER_GREY : null;
+                        break;
+                    case ICON_WEBSHOP:
+                        icon = StringUtils.isNotBlank(doc.getWebshopId()) ? Icon.COMMAND_SHOP : null;
+                        break;
+                    case ICON_RENTAL:
+                        icon = doc.getBillingType().isORDER() && BooleanUtils.toBoolean(doc.getRentalContract()) ? Icon.COMMAND_ORDER : null;
                         break;
                     default:
                         icon = null;
@@ -526,7 +599,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
     /** {@link PagedEntityEventList.PageLoader} for documentListData - current search/category/sort criteria. */
     private List<Document> loadDocumentPage(final int firstResult, final int maxResults) {
         final List<Document> page = documentsDAO.findPage(true, currentSearchTerm, currentCategoryName, currentCategoryType, currentSortProperty,
-                currentSortDescending, firstResult, maxResults);
+                currentSortDescending, firstResult, maxResults, webshopFilter, rentalFilter);
         // Merge (not replace) - other already-loaded pages may still be on screen and rely on
         // their own ids still being present in this set.
         final List<Long> deliveryIds = page.stream().filter(doc -> DocumentTypeUtil.findByBillingType(doc.getBillingType()) == DocumentType.DELIVERY)
@@ -542,7 +615,7 @@ public class DocumentsListTable extends AbstractViewDataTable<Document, DummyStr
 
     /** Row count for the same criteria as {@link #loadDocumentPage(int, int)}. */
     private long countDocuments() {
-        return documentsDAO.countPage(currentSearchTerm, currentCategoryName, currentCategoryType);
+        return documentsDAO.countPage(currentSearchTerm, currentCategoryName, currentCategoryType, webshopFilter, rentalFilter);
     }
 
     /** Re-runs the current search/category/sort query from the start (a new DB round trip, not a client-side re-filter). */

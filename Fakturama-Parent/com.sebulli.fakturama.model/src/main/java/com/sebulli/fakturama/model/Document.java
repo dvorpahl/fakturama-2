@@ -95,6 +95,11 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
     @Column(name = "CUSTOMERREF")
     private String customerRef = null;
 
+    @Basic()
+    @Column(name = "RENTALCONTRACT")
+    private Boolean rentalContract = Boolean.FALSE;
+
+
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc -->
      * Indicator that shows if the paid value is only a deposit. If so, this
@@ -571,6 +576,7 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
             if (customerRef != null && other.getCustomerRef() != null) {
                 retval &= customerRef.compareTo(other.getCustomerRef()) == 0;
             }
+            retval &= Objects.equals(rentalContract, other.getRentalContract());
             if (deposit != null && other.getDeposit() != null) {
                 retval &= deposit.compareTo(other.getDeposit()) == 0;
             }
@@ -1873,6 +1879,15 @@ public abstract class Document extends ModelObject implements IEntity, Serializa
     public void setWebshopId(final String newWebshopId) {
         firePropertyChange("webshopId", this.webshopId, newWebshopId);
         webshopId = newWebshopId;
+    }
+
+    public Boolean getRentalContract() {
+        return rentalContract;
+    }
+
+    public void setRentalContract(final Boolean value) {
+        firePropertyChange("rentalContract", this.rentalContract, value);
+        this.rentalContract = value;
     }
 
     /**

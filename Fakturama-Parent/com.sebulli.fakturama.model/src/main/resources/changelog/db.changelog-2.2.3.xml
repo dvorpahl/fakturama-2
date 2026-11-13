@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="fakturama" id="20261112-001">
+        <preConditions onFail="MARK_RAN"><not><columnExists tableName="FKT_PRODUCT" columnName="ININVENTORY"/></not></preConditions>
+        <addColumn tableName="FKT_PRODUCT"><column name="ININVENTORY" type="BOOLEAN" defaultValueBoolean="true"><constraints nullable="false"/></column></addColumn>
+        <update tableName="FKT_PRODUCT">
+            <column name="ININVENTORY" valueBoolean="true"/>
+            <where>STOCKMANAGED = TRUE</where>
+        </update>
+        <update tableName="FKT_PRODUCT">
+            <column name="ININVENTORY" valueBoolean="false"/>
+            <where>STOCKMANAGED = FALSE OR STOCKMANAGED IS NULL</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

@@ -51,6 +51,7 @@ import com.sebulli.fakturama.model.Product_;
 import com.sebulli.fakturama.model.Proforma;
 import com.sebulli.fakturama.model.VoucherCategory;
 import com.sebulli.fakturama.views.datatable.documents.DocumentMatcher;
+import com.sebulli.fakturama.views.datatable.documents.DocumentIconFilter;
 import com.sebulli.fakturama.views.datatable.tree.ui.TreeObjectType;
 
 import jakarta.persistence.EntityTransaction;
@@ -61,6 +62,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -535,6 +537,13 @@ public class DocumentsDAO extends AbstractDAO<Document> {
      */
     public List<Document> findPage(final boolean forceRead, final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
             final String orderByProperty, final boolean descending, final int firstResult, final int maxResults) {
+        return findPage(forceRead, searchTerm, categoryName, treeObjectType, orderByProperty, descending, firstResult, maxResults,
+                DocumentIconFilter.ALL, DocumentIconFilter.ALL);
+    }
+
+    public List<Document> findPage(final boolean forceRead, final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final String orderByProperty, final boolean descending, final int firstResult, final int maxResults,
+            final DocumentIconFilter webshop, final DocumentIconFilter rental) {
         if (firstResult < 0 || maxResults <= 0) {
             throw new IllegalArgumentException("firstResult must be >= 0 and maxResults must be > 0");
         }
@@ -542,7 +551,7 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         final CriteriaQuery<Document> criteria = cb.createQuery(getEntityClass());
         final Root<Document> root = criteria.from(getEntityClass());
         fetchDocumentRelations(root);
-        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType, webshop, rental));
         if (StringUtils.isNotBlank(orderByProperty)) {
             final jakarta.persistence.criteria.Order order = descending ? cb.desc(root.get(orderByProperty)) : cb.asc(root.get(orderByProperty));
             criteria.orderBy(order, cb.desc(root.get(Document_.id)));
@@ -568,17 +577,22 @@ public class DocumentsDAO extends AbstractDAO<Document> {
 
     /** Counts documents matching the same search/category criteria as {@link #findPage}. */
     public long countPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType) {
+        return countPage(searchTerm, categoryName, treeObjectType, DocumentIconFilter.ALL, DocumentIconFilter.ALL);
+    }
+
+    public long countPage(final String searchTerm, final String categoryName, final TreeObjectType treeObjectType,
+            final DocumentIconFilter webshop, final DocumentIconFilter rental) {
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
         final Root<Document> root = criteria.from(getEntityClass());
         criteria.select(cb.count(root));
-        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType));
+        criteria.where(buildVisiblePredicate(cb, root, searchTerm, categoryName, treeObjectType, webshop, rental));
         return getEntityManager().createQuery(criteria).getSingleResult().longValue();
     }
 
     /** {@code deleted != TRUE}, AND-ed with the search predicate and the category predicate (either may be absent). */
     private Predicate buildVisiblePredicate(final CriteriaBuilder cb, final Root<Document> root, final String searchTerm, final String categoryName,
-            final TreeObjectType treeObjectType) {
+            final TreeObjectType treeObjectType, final DocumentIconFilter webshop, final DocumentIconFilter rental) {
         Predicate predicate = cb.notEqual(root.get(Document_.deleted), Boolean.TRUE);
         final Predicate searchPredicate = buildSearchPredicate(cb, root, searchTerm);
         if (searchPredicate != null) {
@@ -588,7 +602,21 @@ public class DocumentsDAO extends AbstractDAO<Document> {
         if (categoryPredicate != null) {
             predicate = cb.and(predicate, categoryPredicate);
         }
+        predicate = cb.and(predicate, iconPredicate(cb, root.get(Document_.webshopId), webshop));
+        predicate = cb.and(predicate, iconPredicate(cb, root.get(Document_.rentalContract), rental));
         return predicate;
+    }
+
+    private Predicate iconPredicate(final CriteriaBuilder cb, final jakarta.persistence.criteria.Path<?> path,
+            final DocumentIconFilter filter) {
+        if (filter == null || filter == DocumentIconFilter.ALL) return cb.conjunction();
+        final Predicate marked;
+        if (path.getJavaType() == String.class) {
+            marked = cb.and(path.isNotNull(), cb.notEqual(path.as(String.class), ""));
+        } else {
+            marked = cb.equal(path, Boolean.TRUE);
+        }
+        return filter == DocumentIconFilter.ONLY ? marked : cb.not(marked);
     }
 
     /**
@@ -665,13 +693,13 @@ public class DocumentsDAO extends AbstractDAO<Document> {
                 }
                 break;
             case DELIVERY:
-                final Predicate hasInvoice = cb.and(cb.isNotNull(root.get(Document_.invoiceReference)),
-                        cb.equal(root.get(Document_.invoiceReference).get(Document_.billingType), BillingType.INVOICE));
-                if (normalized.equals(typePath + "/" + msg.documentDeliveryStateHasinvoice)) {
-                    return hasInvoice;
-                }
-                if (normalized.equals(typePath + "/" + msg.documentDeliveryStateHasnoinvoice)) {
-                    return cb.not(hasInvoice);
+                final boolean wantsInvoice = normalized.equals(typePath + "/" + msg.documentDeliveryStateHasinvoice);
+                if (wantsInvoice || normalized.equals(typePath + "/" + msg.documentDeliveryStateHasnoinvoice)) {
+                    // explicit LEFT JOIN: navigating root.get(invoiceReference).get(..) would be an implicit
+                    // INNER JOIN and drop all delivery notes without invoice reference
+                    final Join<Document, ? extends Document> invoice = root.join(Document_.invoiceReference, JoinType.LEFT);
+                    final Predicate hasInvoice = cb.equal(invoice.get(Document_.billingType), BillingType.INVOICE);
+                    return wantsInvoice ? hasInvoice : cb.or(cb.isNull(invoice.get(Document_.id)), cb.not(hasInvoice));
                 }
                 break;
             case ORDER:

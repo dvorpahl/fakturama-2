@@ -25,13 +25,15 @@ import com.sebulli.fakturama.model.Document_;
     public enum DocumentListDescriptor {
 
         ICON("$documenttype", null, 0, 5), 
-        DOCUMENT(Document_.name.getName(), "common.field.document", 1, 10), 
-        DATE(Document_.documentDate.getName(), "common.field.date", 2, 10), 
-        NAME(Document_.addressFirstLine.getName(), "common.field.name", 3, 40),
-        CUSTREF(Document_.customerRef.getName(), "editor.document.field.custref", 4, 40), 
-        STATE("$status", "common.field.state", 5, 10),
-        TOTAL(Document_.totalValue.getName(), "common.field.total", 6, 20),
-        PRINTED("$printed", "common.field.printed", 7, 5),
+        ICON_WEBSHOP("$webshop", null, 1, 3),
+        ICON_RENTAL("$rental", null, 2, 3),
+        DOCUMENT(Document_.name.getName(), "common.field.document", 3, 10), 
+        DATE(Document_.documentDate.getName(), "common.field.date", 4, 10), 
+        NAME(Document_.addressFirstLine.getName(), "common.field.name", 5, 40),
+        CUSTREF(Document_.customerRef.getName(), "editor.document.field.custref", 6, 40), 
+        STATE("$status", "common.field.state", 7, 10),
+        TOTAL(Document_.totalValue.getName(), "common.field.total", 8, 20),
+        PRINTED("$printed", "common.field.printed", 9, 5),
         ;
 
         private String propertyName, messageKey;
@@ -92,6 +94,8 @@ import com.sebulli.fakturama.model.Document_;
         public static final String[] getDocumentPropertyNames() {
             return new String[] { 
                     DocumentListDescriptor.ICON.getPropertyName(), 
+                    DocumentListDescriptor.ICON_WEBSHOP.getPropertyName(),
+                    DocumentListDescriptor.ICON_RENTAL.getPropertyName(),
                     DocumentListDescriptor.DOCUMENT.getPropertyName(),
                     DocumentListDescriptor.DATE.getPropertyName(), 
                     DocumentListDescriptor.NAME.getPropertyName(),

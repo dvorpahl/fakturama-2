@@ -187,6 +187,7 @@ public class ProductEditor extends Editor<Product> {
     private FormattedText textWeight;
     private FormattedText textQuantity;
     private Button checkboxStockManaged;
+    private Button checkboxInInventory;
     private FormattedText costPrice;
     private Text textQuantityUnit;
     private CCombo comboCategory;
@@ -1008,6 +1009,11 @@ public class ProductEditor extends Editor<Product> {
         checkboxStockManaged.setToolTipText(msg.editorProductFieldStockmanagedTooltip);
         GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxStockManaged);
 
+        checkboxInInventory = new Button(useQuantity ? stockShippingGroup : invisible, SWT.CHECK);
+        checkboxInInventory.setText(msg.editorProductFieldIninventoryName);
+        checkboxInInventory.setToolTipText(msg.editorProductFieldIninventoryTooltip);
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxInInventory);
+
         // Row: Lagerbestand
         Label labelQuantity = new Label(useQuantity ? stockShippingGroup : invisible, SWT.NONE);
         //T: Product Editor - Label Product quantity
@@ -1036,6 +1042,8 @@ public class ProductEditor extends Editor<Product> {
                 public void widgetSelected(final SelectionEvent e) {
                     final boolean nowManaged = checkboxStockManaged.getSelection();
                     if (!nowManaged) {
+                        editorProduct.setInInventory(Boolean.FALSE);
+                        checkboxInInventory.setSelection(false);
                         final Double currentQuantity = editorProduct.getQuantity();
                         if (currentQuantity != null && currentQuantity != 0.0) {
                             final NumberFormat quantityFormat = NumberFormat.getNumberInstance();
@@ -1051,7 +1059,12 @@ public class ProductEditor extends Editor<Product> {
                             editorProduct.setQuantity(null);
                             textQuantity.setValue(null);
                         }
+                    } else {
+                        // A newly stock-managed article should be included in inventory by default.
+                        editorProduct.setInInventory(Boolean.TRUE);
+                        checkboxInInventory.setSelection(true);
                     }
+                    checkboxInInventory.setEnabled(nowManaged);
                     textQuantity.getControl().setEnabled(nowManaged);
                 }
             });
@@ -1567,9 +1580,11 @@ public class ProductEditor extends Editor<Product> {
         bindModelValue(editorProduct, textQuantity, Product_.quantity.getName(), 0);
         if (useQuantity) {
             bindModelValue(editorProduct, checkboxStockManaged, Product_.stockManaged.getName());
+            bindModelValue(editorProduct, checkboxInInventory, Product_.inInventory.getName());
             // the checkbox binding above doesn't fire a widget SelectionEvent, so the
             // quantity field's enabled state has to be synced explicitly after binding
             textQuantity.getControl().setEnabled(checkboxStockManaged.getSelection());
+            checkboxInInventory.setEnabled(checkboxStockManaged.getSelection());
         }
         bindModelValue(editorProduct, udf01, Product_.cdf01.getName(), 64);
         bindModelValue(editorProduct, udf02, Product_.cdf02.getName(), 64);

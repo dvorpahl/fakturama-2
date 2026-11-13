@@ -1119,6 +1119,9 @@
         <details key="java.member" value="stockManaged"/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="inInventory" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" defaultValueLiteral="true">
+      <eAnnotations source="org.eclipse.emf.texo"><details key="java.member" value="inInventory"/></eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProductOptions" eSuperTypes="#//IEntity">
     <eAnnotations source="http://www.fakturama.org/JavaBean"/>

@@ -39,11 +39,13 @@ import org.eclipse.e4.core.contexts.EclipseContextFactory;
 import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBarElement;
 import org.eclipse.e4.ui.model.application.ui.menu.impl.HandledToolItemImpl;
 import org.eclipse.e4.ui.services.EMenuService;
 import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -73,6 +75,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
 
 import com.sebulli.fakturama.Activator;
 import com.sebulli.fakturama.dao.AbstractDAO;
@@ -144,6 +147,9 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     protected ECommandService commandService;
 
     @Inject
+    protected EPartService partService;
+
+    @Inject
     protected ESelectionService selectionService;
 
     /**
@@ -190,6 +196,22 @@ public abstract class AbstractViewDataTable<T extends IEntity, C extends Abstrac
     // specific call below (addCustomStyling/postConfigureNatTable/onStart/setTheme) is guarded
     // with an instanceof check so those subclasses are unaffected.
     protected Control natTable;
+
+    /**
+     * Activates native SWT list parts on mouse-down, before the table processes the click. In
+     * contrast to NatTable, a native Table in an inactive E4 part can otherwise lose the initial
+     * click used to activate its part, leaving the row neither selected nor double-clicked.
+     */
+    protected void activatePartBeforeTableClick(final MPart part) {
+        if (!(natTable instanceof Table table)) {
+            return;
+        }
+        table.addListener(SWT.MouseDown, event -> {
+            if (partService.getActivePart() != part) {
+                partService.activate(part);
+            }
+        });
+    }
 
     /**
      * Creates the SWT controls for this workbench part.

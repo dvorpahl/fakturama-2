@@ -334,6 +334,10 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
     @Column(name = "STOCKMANAGED")
     private Boolean stockManaged = Boolean.TRUE;
 
+    @Basic()
+    @Column(name = "ININVENTORY")
+    private Boolean inInventory = Boolean.TRUE;
+
     /** Null: active; 0: discontinued; positive: ID of the successor product. */
     @Basic()
     @Column(name = "REPLACEDBYPRODUCTID")
@@ -535,6 +539,9 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
             if (stockManaged != null && other.getStockManaged() != null) {
                 retval &= stockManaged.compareTo(other.getStockManaged()) == 0;
             }
+            if (inInventory != null && other.getInInventory() != null) {
+                retval &= inInventory.compareTo(other.getInInventory()) == 0;
+            }
             if (description != null && other.getDescription() != null) {
                 retval &= description.compareTo(other.getDescription()) == 0;
             }
@@ -600,6 +607,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
         retval.setCdf03(this.getCdf03());
         retval.setNote(this.getNote());
         retval.setStockManaged(this.getStockManaged());
+        retval.setInInventory(this.getInInventory());
         retval.setDescription(this.getDescription());
         retval.setName(this.getName());
         retval.setDateAdded(this.getDateAdded());
@@ -1484,8 +1492,21 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
      * @generated
      */
     public void setStockManaged(final Boolean newStockManaged) {
+        if (!Boolean.TRUE.equals(newStockManaged)) {
+            setInInventory(Boolean.FALSE);
+        }
         firePropertyChange("stockManaged", this.stockManaged, newStockManaged);
         stockManaged = newStockManaged;
+    }
+
+    public Boolean getInInventory() {
+        return inInventory;
+    }
+
+    public void setInInventory(final Boolean newInInventory) {
+        final Boolean effectiveValue = Boolean.TRUE.equals(stockManaged) && Boolean.TRUE.equals(newInInventory);
+        firePropertyChange("inInventory", this.inInventory, effectiveValue);
+        inInventory = effectiveValue;
     }
 
     /**
@@ -1786,6 +1807,7 @@ public class Product extends ModelObject implements Serializable, IDescribableEn
                 + " weight: [" + getWeight() + "]" + " gtin: [" + getGtin() + "]" + " costPrice: [" + getCostPrice() + "]" + " allowance: [" + getAllowance()
                 + "]" + " cdf01: [" + getCdf01() + "]" + " cdf02: [" + getCdf02() + "]" + " cdf03: [" + getCdf03() + "]" + " note: [" + getNote() + "]"
                 + " stockManaged: [" + getStockManaged() + "]"
+                + " inInventory: [" + getInInventory() + "]"
                 + " description: [" + getDescription() + "]" + " name: [" + getName() + "]" + " dateAdded: [" + getDateAdded() + "]" + " modifiedBy: ["
                 + getModifiedBy() + "]" + " modified: [" + getModified() + "]" + " id: [" + getId() + "]" + " deleted: [" + getDeleted() + "]" + " validFrom: ["
                 + getValidFrom() + "]" + " validTo: [" + getValidTo() + "]";

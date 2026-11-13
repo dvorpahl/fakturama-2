@@ -114,6 +114,7 @@ public abstract class ContactListTable<T extends Contact> extends AbstractViewDa
         log.debug("create Contact list part");
         this.listTablePart = listTablePart;
         super.createPartControl(parent, Contact.class, true, ID);
+        activatePartBeforeTableClick(listTablePart);
         topicTreeViewer.setTable(this);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(natTable);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(top);

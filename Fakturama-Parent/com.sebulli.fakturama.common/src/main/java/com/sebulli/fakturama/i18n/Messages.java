@@ -244,6 +244,9 @@ public class Messages {
     public String documentDeliveryStateHasinvoice;
     public String documentDeliveryStateHasnoinvoice;
     public String documentDunningStatemarkerName;
+    public String documentListFilterGroup;
+    public String documentListFilterRental;
+    public String documentListFilterWebshop;
     public String documentOrderStateClosed;
     public String documentOrderStateInprogress;
     public String documentOrderStateNotshipped;
@@ -340,6 +343,7 @@ public class Messages {
     public String editorDocumentFieldConsultant;
     public String editorDocumentFieldConsultantTooltip;
     public String editorDocumentFieldCustref;
+    public String editorDocumentFieldRentalcontract;
     public String editorDocumentFieldCustrefTooltip;
     public String editorDocumentFieldDeposit;
     public String editorDocumentFieldInvoice;
@@ -418,6 +422,8 @@ public class Messages {
     public String editorProductFieldQuantityunitNameShort;
     public String editorProductFieldStockmanagedName;
     public String editorProductFieldStockmanagedTooltip;
+    public String editorProductFieldIninventoryName;
+    public String editorProductFieldIninventoryTooltip;
     public String editorProductFieldStockmanagedClearconfirmTitle;
     public String editorProductFieldStockmanagedClearconfirmMessage;
     public String editorProductFieldSupplierItemnumber;
@@ -989,6 +995,19 @@ public class Messages {
     public String productDataNet;
     public String productFieldItemno;
     public String productFieldWebshopprice;
+    public String productListFieldSalesprice;
+    public String productListFieldCostprice;
+    public String productListFieldOnlineprice;
+    public String productListFilterAssembly;
+    public String productListFilterAssemblyCount;
+    public String productListFilterAssemblyUnavailable;
+    public String productListFilterGroup;
+    public String productListFilterOutdated;
+    public String productListFilterWebshop;
+
+    public String listFilterAllTooltip;
+    public String listFilterOnlyTooltip;
+    public String listFilterExcludeTooltip;
     public String editorProductFieldUdf01;
     public String editorProductFieldUdf02;
     public String editorProductFieldUdf03;

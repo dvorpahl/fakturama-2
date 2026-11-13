@@ -78,7 +78,7 @@ public class CustomerSummaryComposite extends Composite {
         this.monthText = Objects.requireNonNull(monthText);
         this.paidTotal = paidTotal;
         this.openTotal = openTotal;
-        this.statisticsText = paidInvoices + "/" + openInvoices + "  |  ";
+        this.statisticsText = paidInvoices + "/" + openInvoices;
         this.resourceManager = new LocalResourceManager(JFaceResources.getResources(), this);
 
         final Image source = Icon.COMMAND_CONTACT.getImage(IconSize.DefaultIconSize);
@@ -148,16 +148,42 @@ public class CustomerSummaryComposite extends Composite {
 
         gc.setFont(originalFont);
         final int textY = 7 + gc.getFontMetrics().getHeight() + 1;
-        int currentX = textX;
-        gc.drawText(statisticsText, currentX, textY, true);
-        currentX += gc.textExtent(statisticsText).x;
+        String separator = "  |  ";
+        int separatorWidth = gc.textExtent(separator).x;
+        if (2 * separatorWidth > maximumWidth) {
+            separator = " | ";
+            separatorWidth = gc.textExtent(separator).x;
+        }
+        if (2 * separatorWidth > maximumWidth) {
+            final String compactSeparator = " ";
+            separator = 2 * gc.textExtent(compactSeparator).x <= maximumWidth ? compactSeparator : "";
+            separatorWidth = gc.textExtent(separator).x;
+        }
+        final int statisticsWidth = gc.textExtent(statisticsText).x;
+        final int monthWidth = gc.textExtent(monthText).x;
+        final int fixedWidth = statisticsWidth + monthWidth + 2 * separatorWidth;
+        String visibleStatistics = statisticsText;
+        String visibleMonth = monthText;
+        if (fixedWidth > maximumWidth) {
+            final int fieldBudget = Math.max(0, (maximumWidth - 2 * separatorWidth) / 2);
+            visibleStatistics = shorten(gc, statisticsText, fieldBudget);
+            visibleMonth = shorten(gc, monthText, fieldBudget);
+        }
 
+        int currentX = textX;
+        gc.drawText(visibleStatistics, currentX, textY, true);
+        currentX += gc.textExtent(visibleStatistics).x;
+        gc.drawText(separator, currentX, textY, true);
+        currentX += separatorWidth;
+
+        final String visibleRevenue = shorten(gc, revenueText, Math.max(0,
+                maximumWidth - (currentX - textX) - separatorWidth - gc.textExtent(visibleMonth).x));
         gc.setForeground(revenueColor());
-        gc.drawText(revenueText, currentX, textY, true);
-        currentX += gc.textExtent(revenueText).x;
+        gc.drawText(visibleRevenue, currentX, textY, true);
+        currentX += gc.textExtent(visibleRevenue).x;
 
         gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-        gc.drawText("  |  " + monthText, currentX, textY, true);
+        gc.drawText(separator + visibleMonth, currentX, textY, true);
     }
 
     private Color revenueColor() {
@@ -175,13 +201,20 @@ public class CustomerSummaryComposite extends Composite {
 
     private static String shorten(final GC gc, final String value, final int maximumWidth) {
         final String text = value != null ? value : "";
+        if (maximumWidth <= 0) {
+            return "";
+        }
         if (gc.textExtent(text).x <= maximumWidth) {
             return text;
         }
+        final String ellipsis = "...";
+        if (gc.textExtent(ellipsis).x > maximumWidth) {
+            return "";
+        }
         String shortened = text;
-        while (!shortened.isEmpty() && gc.textExtent(shortened + "...").x > maximumWidth) {
+        while (!shortened.isEmpty() && gc.textExtent(shortened + ellipsis).x > maximumWidth) {
             shortened = shortened.substring(0, shortened.length() - 1);
         }
-        return shortened + "...";
+        return shortened + ellipsis;
     }
 }
