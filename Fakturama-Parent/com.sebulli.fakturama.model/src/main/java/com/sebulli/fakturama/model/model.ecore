@@ -335,7 +335,13 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Debitor" eSuperTypes="#//Contact"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Debitor" eSuperTypes="#//Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="eInvoiceFormat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EByte" defaultValueLiteral="0">
+      <eAnnotations source="org.eclipse.emf.texo">
+        <details key="java.member" value="eInvoiceFormat"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Document" abstract="true" eSuperTypes="#//IEntity">
     <eAnnotations source="http://www.fakturama.org/JavaBean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="additionalInfo" eType="#//IndividualDocumentInfo"
@@ -647,6 +653,11 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="customerNumber" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
       <eAnnotations source="org.eclipse.emf.texo">
         <details key="java.member" value="customerNumber"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="eInvoiceFormat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EByte" defaultValueLiteral="0">
+      <eAnnotations source="org.eclipse.emf.texo">
+        <details key="java.member" value="eInvoiceFormat"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="consultant" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">

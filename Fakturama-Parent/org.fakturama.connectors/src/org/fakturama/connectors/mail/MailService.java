@@ -139,7 +139,10 @@ public class MailService implements IPdfPostProcessor {
         // check settings
         if (!settings.isValid()) {
             MessageDialog.openError(ctx.get(Shell.class), msg.dialogMessageboxTitleError, mailServiceMessages.mailserviceSettingsInvalid);
-            return false;
+            // Sending mail is optional and the document has already been
+            // created. Do not make document creation fail because the mail
+            // account is not configured yet.
+            return true;
         }
 
         //... and open the mail dialog for examining the mail to send

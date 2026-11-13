@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Fakturama2
+Name=Fakturama-2
 Comment=Freie Rechnungssoftware - Vorschauversion __VERSION__
 Exec=/usr/bin/fakturama2
 Icon=/opt/fakturama2/icon.svg

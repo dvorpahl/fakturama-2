@@ -53,6 +53,10 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
     @Column(name = "CUSTOMERNUMBER")
     private String customerNumber = null;
 
+    @Basic()
+    @Column(name = "EINVOICEFORMAT")
+    private byte eInvoiceFormat = 0;
+
     /**
      * <!-- begin-user-doc --> <!-- end-user-doc --> <!-- begin-model-doc --> A
      * contact person for this document. <!-- end-model-doc -->
@@ -550,6 +554,16 @@ public class DocumentReceiver extends ModelObject implements Serializable, IDesc
     public String getCustomerNumber() {
 
         return customerNumber;
+    }
+
+    public byte getEInvoiceFormat() {
+        return eInvoiceFormat;
+    }
+
+    public void setEInvoiceFormat(final byte eInvoiceFormat) {
+        final byte sanitized = (byte) (eInvoiceFormat & 0x03);
+        firePropertyChange("eInvoiceFormat", this.eInvoiceFormat, sanitized);
+        this.eInvoiceFormat = sanitized;
     }
 
     /**

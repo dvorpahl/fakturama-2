@@ -32,6 +32,11 @@ import org.eclipse.e4.core.services.nls.Message;
 
 @Message(contributionURI = "platform:/plugin/com.sebulli.fakturama.rcp")
 public class Messages {
+    public String editorDebitorEinvoiceFormat;
+    public String editorDebitorEinvoiceFormatNone;
+    public String editorDebitorEinvoiceFormatZugferd;
+    public String editorDebitorEinvoiceFormatXrechnung;
+    public String editorDebitorEinvoiceFormatBoth;
 
     public String aboutText;
     public String applicationName;

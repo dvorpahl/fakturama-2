@@ -509,7 +509,7 @@ public abstract class Editor<T extends IEntity> {
         IObservableValue<Object> uiWidget = ViewerProperties.singleSelection().observe(source);
         binding = getCtx().bindValue(uiWidget, model);
 
-        source.getCombo().addModifyListener(e -> {
+        source.addSelectionChangedListener(event -> {
             if (((MPart) getMDirtyablePart()).getTransientData().get(BIND_MODE_INDICATOR) == null) {
                 getMDirtyablePart().setDirty(true);
             }

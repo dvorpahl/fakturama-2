@@ -40,7 +40,15 @@ for mirror_subdir in Windows Linux/Debian Linux/Manjaro; do
 done
 
 STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/fakturama-release.XXXXXXXX")"
-trap 'rm -rf -- "$STAGING_DIR"' EXIT
+BUILD_RELEASE_SUCCESS=0
+cleanup_staging() {
+    if [[ "$BUILD_RELEASE_SUCCESS" == 1 ]]; then
+        rm -rf -- "$STAGING_DIR"
+    else
+        log "Release failed; keeping artifacts for recovery in $STAGING_DIR"
+    fi
+}
+trap cleanup_staging EXIT
 
 # Hash the actual inputs, including the gitignored build-packages.sh (which
 # contains the local install4j key). Timestamp checks miss rapid edits and can
@@ -104,6 +112,60 @@ for package in "$windows_product" "$linux_product" "$windows_plain" "$windows_jr
     fi
 done
 
+# Verify the bytes that will actually be published. A successful Maven build
+# alone does not prove that the product archives contain the model API needed
+# by the RCP bundle (for example after a packaging or target-platform mistake).
+if ! command -v javap >/dev/null 2>&1; then
+    echo "error: javap not found; a JDK is required to validate release bundles" >&2
+    exit 1
+fi
+if ! command -v unzip >/dev/null 2>&1; then
+    echo "error: unzip not found; required to validate the Windows product archive" >&2
+    exit 1
+fi
+
+validate_product_model() {
+    local archive="$1" platform="$2" extracted model_jar rcp_jar model_version rcp_version
+    extracted="$STAGING_DIR/validate-$platform"
+    mkdir -p "$extracted"
+    case "$archive" in
+        *.zip) unzip -q "$archive" -d "$extracted" ;;
+        *.tar.gz) tar -xzf "$archive" -C "$extracted" ;;
+        *) echo "error: unsupported product archive: $archive" >&2; return 1 ;;
+    esac
+
+    model_jar="$(find "$extracted" -type f -path '*/plugins/com.sebulli.fakturama.model_*.jar' -print -quit)"
+    rcp_jar="$(find "$extracted" -type f -path '*/plugins/com.sebulli.fakturama.rcp_*.jar' -print -quit)"
+    if [[ -z "$model_jar" ]]; then
+        echo "error: $platform product does not contain the Fakturama model bundle: $archive" >&2
+        return 1
+    fi
+    if [[ -z "$rcp_jar" ]]; then
+        echo "error: $platform product does not contain the Fakturama RCP bundle: $archive" >&2
+        return 1
+    fi
+    model_version="${model_jar##*com.sebulli.fakturama.model_}"
+    rcp_version="${rcp_jar##*com.sebulli.fakturama.rcp_}"
+    model_version="${model_version%.jar}"
+    rcp_version="${rcp_version%.jar}"
+    if [[ "$model_version" != "$rcp_version" ]]; then
+        echo "error: $platform product contains mismatched RCP/model bundles ($rcp_version vs $model_version)" >&2
+        return 1
+    fi
+    if ! javap -classpath "$model_jar" com.sebulli.fakturama.model.Debitor 2>/dev/null | grep -Fq 'getEInvoiceFormat()'; then
+        echo "error: $platform product model bundle lacks Debitor.getEInvoiceFormat(): $model_jar" >&2
+        return 1
+    fi
+    if ! javap -classpath "$rcp_jar" -c -p com.sebulli.fakturama.parts.DebitorEditor 2>/dev/null | grep -Fq 'eInvoiceFormat'; then
+        echo "error: $platform product RCP bundle lacks the Debitor e-invoice editor binding: $rcp_jar" >&2
+        return 1
+    fi
+    log "Validated matching RCP/model $model_version bundles and Debitor e-invoice binding in $platform product"
+}
+
+validate_product_model "$windows_product" windows
+validate_product_model "$linux_product" linux
+
 # Copy to a temporary file in each destination so Nextcloud sees a complete
 # package when it is renamed into place. Keep older versioned releases intact.
 publish_package() {
@@ -122,3 +184,5 @@ publish_package "$windows_jre" "$MIRROR_DIR/Windows"
 publish_package "$debian_plain" "$MIRROR_DIR/Linux/Debian"
 publish_package "$debian_jre" "$MIRROR_DIR/Linux/Debian"
 publish_package "${manjaro_packages[0]}" "$MIRROR_DIR/Linux/Manjaro"
+
+BUILD_RELEASE_SUCCESS=1

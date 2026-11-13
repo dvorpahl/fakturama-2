@@ -23,6 +23,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.osgi.service.event.Event;
 
 import com.sebulli.fakturama.dao.AbstractDAO;
@@ -44,6 +48,7 @@ public class DebitorEditor extends ContactEditor<Debitor> {
     @Inject
     private DebitorsDAO contactDAO;
     Button sqtButton;
+    private ComboViewer eInvoiceFormatViewer;
 
     @Override
     protected Class<Debitor> getModelClass() {
@@ -64,6 +69,23 @@ public class DebitorEditor extends ContactEditor<Debitor> {
 
     @Override
     protected void createAdditionalFields(final Composite tabMisc) {
+        Label eInvoiceLabel = new Label(tabMisc, SWT.NONE);
+        eInvoiceLabel.setText(msg.editorDebitorEinvoiceFormat);
+        eInvoiceFormatViewer = new ComboViewer(tabMisc, SWT.BORDER | SWT.READ_ONLY);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(eInvoiceFormatViewer.getControl());
+        eInvoiceFormatViewer.setContentProvider(ArrayContentProvider.getInstance());
+        eInvoiceFormatViewer.setInput(new Byte[] { 0, 1, 2, 3 });
+        eInvoiceFormatViewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(final Object element) {
+                return switch ((Byte) element) {
+                case 1 -> msg.editorDebitorEinvoiceFormatZugferd;
+                case 2 -> msg.editorDebitorEinvoiceFormatXrechnung;
+                case 3 -> msg.editorDebitorEinvoiceFormatBoth;
+                default -> msg.editorDebitorEinvoiceFormatNone;
+                };
+            }
+        });
         if (defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)) {
             /* Label emptyLbl = */new Label(tabMisc, SWT.NONE);
             sqtButton = new Button(tabMisc, SWT.CHECK);
@@ -73,6 +95,9 @@ public class DebitorEditor extends ContactEditor<Debitor> {
 
     @Override
     protected void bindAdditionalValues(final Debitor editorContact) {
+        // JavaBeans preserves the initial acronym in getEInvoiceFormat(), so
+        // the descriptor name is EInvoiceFormat (capital E).
+        bindModelValue(editorContact, eInvoiceFormatViewer, "EInvoiceFormat");
         if (defaultValuePrefs.getBoolean(Constants.PREFERENCES_CONTACT_USE_SALES_EQUALIZATION_TAX)) {
             bindModelValue(editorContact, sqtButton, Contact_.useSalesEqualizationTax.getName());
         }

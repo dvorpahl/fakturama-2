@@ -16,7 +16,7 @@
 # Usage:
 #   ./build-deb.sh
 #   JRE_ARCHIVE=/pfad/zu/linux-amd64-*.tar.gz ./build-deb.sh
-#   DEB_VERSION=2.2.1.PREVIEW ./build-deb.sh
+#   DEB_VERSION=2.2.3.PREVIEW ./build-deb.sh
 
 set -euo pipefail
 
@@ -31,7 +31,7 @@ DESKTOP_TEMPLATE="${DESKTOP_TEMPLATE:-$SCRIPT_DIR/fakturama2.desktop}"
 ICON_SOURCE="${ICON_SOURCE:-$PARENT_DIR/org.fakturama.graphics/icons/ProgramIcon/icon.svg}"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/demo}"
 
-DEB_VERSION="${DEB_VERSION:-2.2.1.PREVIEW}"
+DEB_VERSION="${DEB_VERSION:-2.2.3.PREVIEW}"
 DEB_ARCH="${DEB_ARCH:-amd64}"
 PKG_NAME="fakturama2"
 
@@ -104,5 +104,5 @@ dpkg-deb --root-owner-group --build "$PKG_ROOT" "$OUTPUT_DEB" >/dev/null
 
 echo "Fertig: $OUTPUT_DEB ($(du -h "$OUTPUT_DEB" | cut -f1))"
 echo "Installieren:   sudo dpkg -i $(basename "$OUTPUT_DEB")"
-echo "Starten:        fakturama2   (oder ueber's Anwendungsmenue: 'Fakturama2')"
+echo "Starten:        fakturama2   (oder ueber's Anwendungsmenue: 'Fakturama-2')"
 echo "Deinstallieren: sudo apt remove $PKG_NAME"

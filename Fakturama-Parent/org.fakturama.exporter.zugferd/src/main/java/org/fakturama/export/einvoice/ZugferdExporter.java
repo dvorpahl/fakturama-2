@@ -16,7 +16,6 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.contexts.IEclipseContext;
@@ -28,7 +27,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.fakturama.export.facturx.XRechnungCreator;
 import org.osgi.service.component.annotations.Component;
 
+import com.sebulli.fakturama.dao.ContactsDAO;
 import com.sebulli.fakturama.exception.FakturamaException;
+import com.sebulli.fakturama.model.Contact;
+import com.sebulli.fakturama.model.Debitor;
 import com.sebulli.fakturama.misc.Constants;
 import com.sebulli.fakturama.model.DocumentReceiver;
 import com.sebulli.fakturama.model.IDocumentAddressManager;
@@ -46,6 +48,9 @@ import com.sebulli.fakturama.office.IPdfPostProcessor;
  */
 @Component()
 public class ZugferdExporter implements IPdfPostProcessor {
+
+    private static final byte PROFILE_ZUGFERD = 1;
+    private static final byte PROFILE_XRECHNUNG = 2;
 
     @Inject
     @org.eclipse.e4.core.di.annotations.Optional
@@ -68,6 +73,9 @@ public class ZugferdExporter implements IPdfPostProcessor {
 
     @Inject
     protected IDocumentAddressManager addressManager;
+
+    @Inject
+    protected ContactsDAO contactsDAO;
 
     enum FinancialRole {
         DEBTOR, CREDITOR
@@ -100,13 +108,14 @@ public class ZugferdExporter implements IPdfPostProcessor {
          * zurücksetzen.
          */
         final boolean result = eclipsePrefs.getBoolean(ZFConstants.PREFERENCES_ZUGFERD_ACTIVE, Boolean.FALSE) && inputDocument.isPresent();
-        final DocumentReceiver billingAddress = addressManager.getBillingAdress(inputDocument.get());
-        final boolean resultEmail = StringUtils.trimToNull(billingAddress.getEmail()) != null;
-        if (result && !resultEmail) {
-            MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorNobuyeremail);
+        if (!result) {
             return false;
         }
-        return result && resultEmail;
+        final DocumentReceiver billingAddress = addressManager.getBillingAdress(inputDocument.get());
+        if (billingAddress == null || getRequestedFormats(billingAddress) == 0) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -114,30 +123,37 @@ public class ZugferdExporter implements IPdfPostProcessor {
 
         boolean result = checkSettings();
         if (result && invoice.isPresent() && invoice.get().getBillingType().isINVOICE()) {
-            ConformanceLevel zugferdProfile;
-            // create e-invoice according to selected preferences
-
-            IEinvoiceCreator invoiceCreator;
-            // default is 2.1 - XRechnung
-            // Attention: for default settings (i.e., version is 2.1), no preference is returned! 
-            // Therefore we check this at the beginning.
-            if (eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_VERSION, "2.1").contentEquals("2.1")) {
-                // currently only COMFORT profile is supported
-                final String conformanceLevel = eclipsePrefs.get(ZFConstants.PREFERENCES_ZUGFERD_PROFILE, ConformanceLevel.XRECHNUNG.name());
-                zugferdProfile = ConformanceLevel.valueOf(conformanceLevel);
-            } else {
-                throw new UnsupportedOperationException("Die Version ist nicht verfügbar");
-
+            final DocumentReceiver receiver = addressManager.getBillingAdress(invoice.get());
+            final byte requestedFormats = getRequestedFormats(receiver);
+            final IEinvoiceCreator invoiceCreator = ContextInjectionFactory.make(XRechnungCreator.class, eclipseContext);
+            result = true;
+            if ((requestedFormats & PROFILE_ZUGFERD) != 0) {
+                result &= invoiceCreator.createEInvoice(invoice, ConformanceLevel.ZUGFERD_V2_EN16931);
             }
-            invoiceCreator = ContextInjectionFactory.make(XRechnungCreator.class, eclipseContext);
-            result = invoiceCreator.createEInvoice(invoice, zugferdProfile);
-
+            if ((requestedFormats & PROFILE_XRECHNUNG) != 0) {
+                result &= invoiceCreator.createEInvoice(invoice, ConformanceLevel.XRECHNUNG);
+            }
             if (!result) {
                 // Display an error message
                 MessageDialog.openError(shell, msg.zugferdExportCommandTitle, msg.zugferdExportErrorCancelled);
             }
         }
         return result;
+    }
+
+    private byte getRequestedFormats(final DocumentReceiver receiver) {
+        if (receiver == null) {
+            return 0;
+        }
+        // The export format is a current customer preference, including when
+        // printing an old invoice. Never use the historical address snapshot.
+        if (receiver.getOriginContactId() != null) {
+            final Contact contact = contactsDAO.findById(receiver.getOriginContactId());
+            if (contact instanceof Debitor debitor) {
+                return debitor.getEInvoiceFormat();
+            }
+        }
+        return 0;
     }
 
     /**

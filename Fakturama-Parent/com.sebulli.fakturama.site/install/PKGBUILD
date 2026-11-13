@@ -22,7 +22,7 @@
 # reactor version at build time instead of relying on this staying in sync.
 
 pkgname=fakturama
-pkgver=2.2.1
+pkgver=2.2.3
 pkgrel=1
 pkgdesc="Invoicing software for small and medium enterprises"
 arch=('x86_64')

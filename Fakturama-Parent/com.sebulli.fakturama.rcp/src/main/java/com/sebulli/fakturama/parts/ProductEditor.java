@@ -1012,6 +1012,11 @@ public class ProductEditor extends Editor<Product> {
         checkboxInInventory = new Button(useQuantity ? stockShippingGroup : invisible, SWT.CHECK);
         checkboxInInventory.setText(msg.editorProductFieldIninventoryName);
         checkboxInInventory.setToolTipText(msg.editorProductFieldIninventoryTooltip);
+        checkboxInInventory.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+            if (((MPart) getMDirtyablePart()).getTransientData().get(BIND_MODE_INDICATOR) == null) {
+                getMDirtyablePart().setDirty(true);
+            }
+        }));
         GridDataFactory.swtDefaults().span(2, 1).applyTo(checkboxInInventory);
 
         // Row: Lagerbestand
@@ -1066,6 +1071,9 @@ public class ProductEditor extends Editor<Product> {
                     }
                     checkboxInInventory.setEnabled(nowManaged);
                     textQuantity.getControl().setEnabled(nowManaged);
+                    if (((MPart) getMDirtyablePart()).getTransientData().get(BIND_MODE_INDICATOR) == null) {
+                        getMDirtyablePart().setDirty(true);
+                    }
                 }
             });
         } else {

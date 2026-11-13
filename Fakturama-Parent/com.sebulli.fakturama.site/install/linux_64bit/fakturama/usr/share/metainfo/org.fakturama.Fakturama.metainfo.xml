@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>fakturama2.desktop</id>
+  <id>org.fakturama.Fakturama</id>
   <launchable type="desktop-id">fakturama2.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>EPL-1.0</project_license>
 
-  <name>Fakturama</name>
-  <name xml:lang="de">Fakturama</name>
+  <name>Fakturama-2</name>
+  <name xml:lang="de">Fakturama-2</name>
 
   <summary>Create invoices, manage products and customers</summary>
   <summary xml:lang="de">Rechnungen schreiben, Produkte und Kunden verwalten</summary>

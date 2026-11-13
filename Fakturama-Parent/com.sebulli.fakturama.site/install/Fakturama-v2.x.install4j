@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="12.0.4" transformSequenceNumber="12">
   <directoryPresets config="../../../../../../Security/keys" />
-  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.1" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
+  <application name="Fakturama" applicationId="5777-4828-1295-4178" mediaDir="./install" lzmaCompression="true" shortName="${compiler:sys.fullName}" publisher="Fakturama.org" publisherWeb="www.Fakturama.info" version="2.2.3" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="false" macVolumeId="e83f8980f4b76458" javaMinVersion="17" jdkName="JDK 1.8 x64">
     <languages skipLanguageSelection="true">
       <principalLanguage id="de" />
       <additionalLanguages>
@@ -23,7 +23,7 @@
       </additionalLanguages>
     </languages>
     <variables>
-      <variable name="sys.ext.rpmDescription" value="Fakturama enables you to write your invoices in an easy way. You can create orders, delivery notes and many other documents, manage your products and customers, and connect a web shop to Fakturama. It can also create e-invoices (XRechnung and Factur-X/ZUGFeRD)." />
+      <variable name="sys.ext.rpmDescription" value="Create and manage invoices, orders, delivery notes, products and customer records. Connect a web shop and issue electronic invoices in XRechnung or Factur-X/ZUGFeRD format." />
       <variable name="sys.ext.rpmSummary" value="Invoicing and small-business management software" />
     </variables>
     <codeSigning macEnabled="true" macPkcs12File="../../../../../../Documents/Zertifikate/2026_Fakturama-Zertifikat-AppleDev.p12" windowsEnabled="true" windowsKeySource="pkcs11" windowsPkcs12File="../../../../../../Projekte/Fakturama/Zertifikat/2023_Fakturama_neu.pfx" windowsCertDir="/Users/rheydenreich/Security/keys" macApiIssuer="9a2145b3-d965-4583-b997-09b4fd95b70f" macApiKey="N4MHS6SW3B" macApiPrivateKey="../../../../../Downloads/AuthKey_N4MHS6SW3B.p8" windowsPkcs11Library="/Library/OpenSC/lib/opensc-pkcs11.so">
@@ -77,8 +77,8 @@
     </entries>
   </files>
   <launchers>
-    <launcher name="Fakturama.exe (win64)" id="44" external="true" externalFile="Fakturama.exe" />
-    <launcher name="Fakturama (Linux 64bit)" id="58" external="true" externalFile="Fakturama" />
+    <launcher name="Fakturama-2" id="44" external="true" externalFile="Fakturama.exe" />
+    <launcher name="Fakturama-2" id="58" external="true" externalFile="Fakturama" />
     <launcher name="Fakturama (Mac OSX)" id="537" external="true" externalFile="Fakturama2.app" />
   </launchers>
   <installerGui>
@@ -293,7 +293,7 @@ return console.askOkCancel(message, true);
           </screen>
           <screen id="7" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
             <serializedBean>
-              <property name="programGroupName" type="string">${compiler:sys.fullName}</property>
+              <property name="programGroupName" type="string">Fakturama-2</property>
             </serializedBean>
             <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
           </screen>
@@ -824,7 +824,7 @@ sudo chmod 755 /usr/share/fakturama2/Fakturama
 sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64)" id="120" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -848,7 +848,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
       <jreBundle usePack200="false" />
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive (x64, NO JRE)" id="900" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive (x64, NO JRE)" id="900" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}${compiler:sys.withJre}" installDir="/usr/share/fakturama2" require64BitVm="true" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
@@ -872,7 +872,7 @@ sudo ln -s /usr/share/fakturama2/Fakturama /usr/local/bin</postInstallScript>
       <preUninstallScript>sudo rm /usr/local/bin/Fakturama</preUninstallScript>
       <jreBundle usePack200="false" jreBundleSource="none" />
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; .&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
+    <linuxDeb name="Linux Deb Archive (aarch64)" id="577" mediaFileName="Installer_${compiler:sys.shortName}_${compiler:sys.jreBundleArch}_${compiler:sys.version}" installDir="/usr/share/fakturama2" bzip="true" description="${compiler:sys.ext.rpmSummary}&#10; ${compiler:sys.ext.rpmDescription}" maintainerEmail="Ralf Heydenreich &lt;ralf.heydenreich@fakturama.net&gt;" architectureSet="true" architecture="aarch64">
       <excludedLaunchers>
         <launcher id="44" />
         <launcher id="537" />
